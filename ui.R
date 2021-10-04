@@ -1,7 +1,3 @@
-# Load libraries, data -----------------------------------------------
-characters <- read.csv("data/characters.csv")
-
-
 # Page 1 - Introduction ----------------------------------------------
 intro_panel <- tabPanel(
   "Introduction",
@@ -26,10 +22,6 @@ intro_panel <- tabPanel(
    
   
 )
-
-# Page 2 - Vizualization -------------------------------------------
-select_values <- colnames(characters)
-select_values <- select_values[! select_values %in% c('Character', 'Class')] # remove unwanted columns
 
 sidebar_content <- sidebarPanel(
    fileInput("File", "Analyze calorimetic data")
