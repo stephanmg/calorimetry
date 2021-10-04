@@ -9,4 +9,4 @@ jobs:
       - uses: r-lib/actions/setup-r@master
       - name: Install shiny and deploy
         run: |
-          Rscript -e "install.packages(c('shiny', 'rsconnect'), type = 'binary'); rsconnect::setAccountInfo(name='calorimetry', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}}); rsconnect::deployApp(appName = 'calorimetry')"
+          Rscript -e "install.packages(c('shiny', 'rsconnect')); rsconnect::setAccountInfo(name='calorimetry', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}}); rsconnect::deployApp(appName = 'calorimetry')"
