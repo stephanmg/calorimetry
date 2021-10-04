@@ -27,10 +27,10 @@ intro_panel <- tabPanel(
 sidebar_content <- sidebarPanel(
    fileInput("File", "Analyze calorimetic data"),
    br(), br(),
- numericRangeInput(
-    inputId = "noui1", label = "Remove outliers",
-    value = c(100, 400)
-  ),verbatimTextOutput(outputId="res1"),
+ #numericRangeInput(
+ #   inputId = "noui1", label = "Remove outliers",
+ #   value = c(100, 400)
+ # ),verbatimTextOutput(outputId="res1"),
    h1("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("unplotting", "Hide"),
