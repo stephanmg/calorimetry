@@ -1,8 +1,6 @@
 # Load libraries, data ------------------------------------------------
 library(ggplot2)
 
-characters <- read.csv("data/characters.csv")
-
 # Create server -------------------------------------------------------
 server <- function(input, output) {
   
