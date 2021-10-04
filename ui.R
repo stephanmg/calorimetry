@@ -1,4 +1,5 @@
 # Page 1 - Introduction ----------------------------------------------
+
 intro_panel <- tabPanel(
   "Introduction",
   
@@ -24,7 +25,19 @@ intro_panel <- tabPanel(
 )
 
 sidebar_content <- sidebarPanel(
-   fileInput("File", "Analyze calorimetic data")
+   fileInput("File", "Analyze calorimetic data"),
+   br(), br(),
+ numericRangeInput(
+    inputId = "noui1", label = "Remove outliers",
+    value = c(100, 400)
+  ),verbatimTextOutput(outputId="res1"),
+   h1("Plotting control"),
+   actionButton("plotting", "Show"),
+   actionButton("unplotting", "Hide"),
+   h2("Feature selection"),
+   selectInput("feature", "Variable:", c("V1", "V4", "V12", "V16")),
+   h2("Plot type"),
+   selectInput("plot_type", "Type:", c("Boxplot", "Line plot"))
 )
 
 main_content <- mainPanel(
@@ -37,11 +50,26 @@ second_panel <- tabPanel(
   p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
     sidebar_content, main_content
-  )
+  ),
+)
+
+third_panel <- tabPanel(
+   "About"
+)
+
+forth_panel <- tabPanel(
+   "Help"
+)
+
+fifth_panel <- tabPanel(
+   "Contact"
 )
 
 ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,
-  second_panel
+  second_panel,
+  third_panel,
+  forth_panel,
+  fifth_panel
 )
