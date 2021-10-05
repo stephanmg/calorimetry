@@ -90,9 +90,8 @@ fifth_panel <- tabPanel(
 sixth_panel <- tabPanel(
    "TODO",
    titlePanel("TODOs"),
-   p("Finish averaging of time series"),
-   p("Use exclusion list of animals in plotting"),
-   p("Adapt plotting to multiple files")
+   p("Finish averaging of time series (time windows for calorimetry)"),
+   p("Adapt plotting to multiple files (Merge cohorts)")
 )
 
 ui <- navbarPage(
