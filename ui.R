@@ -94,7 +94,7 @@ fifth_panel <- tabPanel(
 sixth_panel <- tabPanel(
    "TODO",
    titlePanel("TODOs"),
-   p("Finish averaging of time series (time windows for calorimetry)"),
+   p("Finish averaging of time series (time windows for calorimetry, address TODOs in server.R)"),
 )
 
 ui <- navbarPage(

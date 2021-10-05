@@ -8,9 +8,6 @@ require(tidyverse)
 
 do_plotting <- function(file, input, exclusion) {
 
-## TODO: Combine files file$File1 .. file$FileN by using
-### for i in (1:input$nFileS) { data <- read.csv2(input[[paste0("File", i)]]) }
-
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
 
@@ -65,10 +62,75 @@ C1 <- C1 %>%
 
 C1 <- C1[!is.na(C1$MeasPoint),]
 
+# time averaging
+## TODO: Averaging with input$averaging into time windows for more robust calorimetric analysis
+
+# Step #1 - calculate the difference between consecutive dates
+C1 <- C1 %>%
+  group_by(`Animal No._NA`) %>% # group by Animal ID
+  arrange(Datetime2) %>% # sort by Datetime2
+  mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2))) # subtract the next value from the first value and safe as variable "diff.sec)
+
+C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime to numeric
+
+# Step #2 - calculate the cumulative time difference between consecutive dates  
+C1 <- C1 %>%
+  group_by(`Animal No._NA`) %>% # group by Animal ID
+  arrange(Datetime2) %>% # sort by Datetime2
+  mutate(running_total.sec = cumsum(diff.sec)) # calculate the cumulative sum of the running time and save as variable "running_total.sec"
+
+# Step #3 - transfers time into hours (1 h = 3600 s)
+C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
+
+# Step #4 - round hours downwards to get "full" hours
+C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+C1 <- C1 %>%
+  group_by(`Animal No._NA`) %>% # group by Animal ID
+  arrange(Datetime2) %>% # sort by Datetime2
+  mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2))) # subtract the next value from the first value and safe as variable "diff.sec)
+
+C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime to numeric
+
+# Step #2 - calculate the cumulative time difference between consecutive dates  
+C1 <- C1 %>%
+  group_by(`Animal No._NA`) %>% # group by Animal ID
+  arrange(Datetime2) %>% # sort by Datetime2
+  mutate(running_total.sec = cumsum(diff.sec)) # calculate the cumulative sum of the running time and save as variable "running_total.sec"
+
+# Step #3 - transfers time into hours (1 h = 3600 s)
+C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
+
+# Step #4 - round hours downwards to get "full" hours
+C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+# Step #1 - define halfhours steps 
+## TODO: hardcoded 30 minutes intervals...
+C1 <- C1 %>%
+    mutate(thirtymin = case_when(minutes <= 30 ~ 0,
+                               minutes > 30 ~ 0.5))
+
+# Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
+C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$thirtymin
+
+###
+
 C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
 C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
 
-## TODO: Averaging with input$averaging into time windows for more robust calorimetric analysis
+# write out means (TODO) make automatically plots out of means for comparison (but need reference data from CalR)
+C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
+                                    VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
+                                    VCO2 = C1$`VCO2(3)_[ml/h]`, # calculate mean of VCO2
+                                    RER = C1$RER_NA), # calculate mean of RER
+                   by = list(Genotype = C1$Genotype,
+                             Animal = C1$`Animal No._NA`, # groups by Animal ID
+                             Time = C1$running_total.hrs.round), # groups by total rounded running hour
+                      FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
+
+write.csv2(C1.mean.hours, file = paste0(tools::file_path_sans_ext(file), "-cohort_means.csv"))
+
+## TODO Add plotting of means in GUI
 
 if (! is.null(exclusion)) {
    for (i in exclusion) {
