@@ -29,6 +29,14 @@ intro_panel <- tabPanel(
   
 )
 
+sidebar_content2 <- sidebarPanel(
+   fileInput("rerself", "RER self (means)"),
+   fileInput("rercalr", "RER CalR (means)"),
+   h1("Plotting control"),
+   actionButton("plottingvalidation", "Show"),
+   actionButton("reset", "Reset"),
+)
+
 sidebar_content <- sidebarPanel(
    withMathJax(),
    h1("Heat production"),
@@ -64,6 +72,10 @@ main_content <- mainPanel(
   plotOutput("plot")
 )
 
+main_content2 <- mainPanel(
+   plotOutput("plotvalidation")
+)
+
 second_panel <- tabPanel(
   "Visualization",
   titlePanel("Long term observational studies"),
@@ -74,9 +86,13 @@ second_panel <- tabPanel(
 )
 
 third_panel <- tabPanel(
-   "About",
-   titlePanel("About the project"),
-   p("To be populated...")
+   "Validation",
+   titlePanel("Validation of results by comparing RER values (CalR and self)"),
+   p("Use the file choser dialog below to select files for RER Calr and self"),
+   sidebarLayout(
+      sidebar_content2, main_content2
+   )
+   
 )
 
 forth_panel <- tabPanel(

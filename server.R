@@ -118,7 +118,6 @@ C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$thirtymin
 C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
 C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
 
-# write out means (TODO) make automatically plots out of means for comparison (but need reference data from CalR)
 C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                     VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
                                     VCO2 = C1$`VCO2(3)_[ml/h]`, # calculate mean of VCO2
@@ -129,8 +128,6 @@ C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate me
                       FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
 
 write.csv2(C1.mean.hours, file = paste0(tools::file_path_sans_ext(file), "-cohort_means.csv"))
-
-## TODO Add plotting of means in GUI
 
 if (! is.null(exclusion)) {
    for (i in exclusion) {
@@ -143,11 +140,13 @@ if (! is.null(exclusion)) {
    finalC1 <- rbind(C1, finalC1)
 }
 
+write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 
 p <- ggplot(data = finalC1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+
 
 list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
 }
@@ -171,6 +170,13 @@ server <- function(input, output, session) {
            real_data <- do_plotting(file$name, input, exclusion=input$sick)
            real_data$plot
            })
+   })
+
+   observeEvent(input$plottingvalidation, {
+         output$plotvalidation <- renderPlot({
+            print("Not yet implemented!")
+            # TODO: populate with line graph plot CalR vs self RER values... but need reference from CalR files...
+         })
    })
 
    real_data <- NULL
