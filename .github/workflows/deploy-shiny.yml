@@ -10,5 +10,5 @@ jobs:
       - uses: r-lib/actions/setup-r@master
       - name: Install shiny and deploy
         run: |
-          sudo apt-get install -y libcurl4-openssl-dev
-          Rscript -e "install.packages(c('RColorBrewer', 'cli', 'colorspace', 'fansi', 'farver', 'ggplot2', 'gtable', 'isoband', 'labeling', 'munsell', 'shiny', 'shinyWidgets', 'rsconnect')); rsconnect::setAccountInfo(name='calorimetry', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}}); rsconnect::deployApp(appName = 'calorimetry')"
+          sudo apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev
+          Rscript -e "install.packages(c('RColorBrewer', 'tidyverse', 'cli', 'viridis', 'dplyr', 'colorspace', 'fansi', 'farver', 'ggplot2', 'gtable', 'isoband', 'labeling', 'munsell', 'shiny', 'shinyWidgets', 'rsconnect')); rsconnect::setAccountInfo(name='calorimetry', token=${{secrets.SHINYAPPS_TOKEN}}, secret=${{secrets.SHINYAPPS_SECRET}}); rsconnect::deployApp(appName = 'calorimetry')"

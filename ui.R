@@ -25,6 +25,11 @@ intro_panel <- tabPanel(
 )
 
 sidebar_content <- sidebarPanel(
+   withMathJax(),
+   h1("Heat production"),
+   div("Heat production is calculated by the following formulas (Journal of comparative physiology 1975, 102:115-122):"),
+   div("$$ \\tag{1} HP[mW] = VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"),
+   div("$$ \\tag{2} HP2[mW] = (4.44 + 1.43 \\times RER + VO2[\\frac{ml}{h}] $$"),
    fileInput("File", "Analyze calorimetic data"),
    br(), br(),
  #numericRangeInput(
@@ -35,9 +40,12 @@ sidebar_content <- sidebarPanel(
    actionButton("plotting", "Show"),
    actionButton("unplotting", "Hide"),
    h2("Feature selection"),
-   selectInput("feature", "Variable:", c("V1", "V4", "V12", "V16")),
+   selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
+   selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
    h2("Plot type"),
-   selectInput("plot_type", "Type:", c("Boxplot", "Line plot"))
+   selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
+   h3("Data curation"),
+   sliderInput("averaging", "Time averaging [min]", 0, 120, 30)
 )
 
 main_content <- mainPanel(
@@ -71,5 +79,5 @@ ui <- navbarPage(
   second_panel,
   third_panel,
   forth_panel,
-  fifth_panel
+  fifth_panel,
 )
