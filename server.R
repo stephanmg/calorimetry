@@ -121,5 +121,10 @@ server <- function(input, output, session) {
         }
       })
     })
+
+   # Reset session
+   observeEvent(input$reset, {
+      session$reload()
+   })
 }
 

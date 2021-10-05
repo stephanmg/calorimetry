@@ -45,15 +45,17 @@ sidebar_content <- sidebarPanel(
  # ),verbatimTextOutput(outputId="res1"),
    h1("Plotting control"),
    actionButton("plotting", "Show"),
-   # actionButton("replotting", "Forced Refresh"),
+   actionButton("reset", "Reset"),
+   #actionButton("replotting", "Forced Refresh"),
    h2("Feature selection"),
    selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
    selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
    h2("Plot configuration"),
    selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
    sliderInput("averaging", "Time averaging [min]", 0, 120, 30),
-   h3("Data curation"),
-   uiOutput("sick")
+   h2("Data curation"),
+   checkboxInput(inputId="outliers", label="Remove outliers"),
+   conditionalPanel(condition = "input.outliers == true", uiOutput("sick"))
 )
 
 main_content <- mainPanel(
