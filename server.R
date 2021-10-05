@@ -6,7 +6,7 @@ library(dplyr)
 library(lubridate)
 require(tidyverse)
 
-do_plotting <- function(file, input) {
+do_plotting <- function(file, input, exclusion) {
 
 ## TODO: Combine files file$File1 .. file$FileN by using
 ### for i in (1:input$nFileS) { data <- read.csv2(input[[paste0("File", i)]]) }
@@ -65,21 +65,25 @@ C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
 
 ## TODO: Averaging with input$averaging into time windows for more robust calorimetric analysis
 
-if (is.null(input$sick)) {
+if (! is.null(exclusion)) {
+   for (i in exclusion) {
+     print(i)
+      C1 <- C1 %>% filter(`Animal No._NA` != as.numeric(i))
+   }
+}
+
 p <- ggplot(data = C1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
 
 list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
-} else {
-   ## TODO: Exclude animals based on exclusion list
-}
 }
 
 
 # Create server -------------------------------------------------------
 server <- function(input, output, session) {
+   # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs=renderUI({
       html_ui = " "
       for (i in 1:input$nFiles) {
@@ -88,32 +92,31 @@ server <- function(input, output, session) {
       HTML(html_ui)
       })
 
-   # Refresh plot
+   # Refresh plot (action button's action)
    observeEvent(input$replotting, {
            file = input$File1
-           real_data <- do_plotting(file$name, input)
+           real_data <- do_plotting(file$name, input, exclusion=input$sick)
            real_data$plot
    })
 
-   # Show plot
+   real_data <- NULL
+   # Show plot (action button's action)
    observeEvent(input$plotting, {
       output$plot <- renderPlot({
          if (is.null(input$File1)) {
             print("No cohort data given!");
          } else {
-
            file = input$File1
-           real_data <- do_plotting(file$name, input)
+           real_data <- do_plotting(file$name, input, NULL)
 
            if (! is.null(real_data$animals)) {
               output$sick = renderUI(
-              multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=real_data$animals))
+              multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
 
            real_data$plot
         }
       })
     })
-
 }
 
