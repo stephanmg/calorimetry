@@ -54,6 +54,8 @@ sidebar_content <- sidebarPanel(
    selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
    sliderInput("averaging", "Time averaging [min]", 0, 120, 30),
    h2("Data curation"),
+   p("Selection of dates"),
+   dateRangeInput("daterange", "Date", start="2020-01-01", end=Sys.Date()),
    checkboxInput(inputId="outliers", label="Remove outliers"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick"))
 )
@@ -93,7 +95,6 @@ sixth_panel <- tabPanel(
    "TODO",
    titlePanel("TODOs"),
    p("Finish averaging of time series (time windows for calorimetry)"),
-   p("Adapt plotting to multiple files (Merge cohorts)")
 )
 
 ui <- navbarPage(

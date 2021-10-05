@@ -21,6 +21,11 @@ theme_pubr_update <- theme_pubr(base_size = 8.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 theme_set(theme_pubr_update)
 
+
+finalC1 <- c()
+for (i in 1:input$nFiles) {
+file = input[[paste0("File", i)]]
+file = file$name
 C1.raw <- read.csv2(file, na.strings = c("-","NA"))
 C1.raw[1:12,1:6]
 C1 <- read.csv2(file, header = F, skip = 10, na.strings = c("-","NA"))
@@ -54,8 +59,8 @@ C1$minutes <- minute(C1$Datetime2)
 C1 <- C1 %>% 
   group_by(`Animal No._NA`) %>% 
   arrange(Datetime2)  %>% 
-  filter(Datetime2 >= '2020-05-08 12:02:00' & # you need to adjust this to your means!
-         Datetime2 <=  '2020-05-11 11:32:00') %>% # you need to adjust this to your means!
+  filter(Datetime2 >= input$daterange[[1]] & # 2020-05-08 12:02:00
+         Datetime2 <= input$daterange[[2]]) %>% # 2020-05-19 11:32:00
   mutate(MeasPoint = row_number())
 
 C1 <- C1[!is.na(C1$MeasPoint),]
@@ -73,7 +78,11 @@ if (! is.null(exclusion)) {
    }
 }
 
-p <- ggplot(data = C1, aes_string(x = input$variable1, y = input$variable2)) +
+   finalC1 <- rbind(C1, finalC1)
+}
+
+
+p <- ggplot(data = finalC1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
