@@ -44,8 +44,8 @@ sidebar_content <- sidebarPanel(
  #   value = c(100, 400)
  # ),verbatimTextOutput(outputId="res1"),
    h1("Plotting control"),
-   actionButton("plotting", "Show"),
-   actionButton("replotting", "Refresh"),
+   actionButton("plotting", "Show / Reset"),
+   actionButton("replotting", "Forced Refresh"),
    h2("Feature selection"),
    selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
    selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),

@@ -68,9 +68,11 @@ C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
 if (! is.null(exclusion)) {
    for (i in exclusion) {
      print(i)
-      C1 <- C1 %>% filter(`Animal No._NA` != as.numeric(i))
+      C1 <- C1 %>% 
+         filter(`Animal No._NA` != as.numeric(i))
    }
 }
+save(C1, file="test.Rda")
 
 p <- ggplot(data = C1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
@@ -94,9 +96,11 @@ server <- function(input, output, session) {
 
    # Refresh plot (action button's action)
    observeEvent(input$replotting, {
+           output$plot <- renderPlot({
            file = input$File1
            real_data <- do_plotting(file$name, input, exclusion=input$sick)
            real_data$plot
+           })
    })
 
    real_data <- NULL
