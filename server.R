@@ -1,5 +1,6 @@
 # Load libraries, data ------------------------------------------------
 library(ggplot2)
+library(ggpubr)
 library(viridis)
 library(dplyr)
 library(lubridate)
@@ -7,15 +8,17 @@ require(tidyverse)
 
 do_plotting <- function(file, input) {
 
+
+
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
 
-#theme_pubr_update <- theme_pubr(base_size = 8.5) +
-#  theme(legend.key.size = unit(0.3, "cm")) +
-#  theme(strip.background = element_blank()) +
-#  theme(strip.text = element_text(hjust = 0)) +
-#  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-#theme_set(theme_pubr_update)
+theme_pubr_update <- theme_pubr(base_size = 8.5) +
+  theme(legend.key.size = unit(0.3, "cm")) +
+  theme(strip.background = element_blank()) +
+  theme(strip.text = element_text(hjust = 0)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+theme_set(theme_pubr_update)
 
 C1.raw <- read.csv2(file, na.strings = c("-","NA"))
 C1.raw[1:12,1:6]
@@ -58,33 +61,51 @@ C1 <- C1[!is.na(C1$MeasPoint),]
 
 C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
 C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
+
+## TODO: Averaging with input$averaging into time windows for more robust calorimetric analysis
+
+if (is.null(input$sick)) {
 p <- ggplot(data = C1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
-  stat_smooth(method = "lm") # adds regression line
-  # stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
-p
-#HPcomp <- lm(HP ~ HP2, data = C1)
-#HPcomp
+  stat_smooth(method = "lm") + # adds regression line
+  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+
+list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
+} else {
+   ## TODO: Exclude animals based on exclusion list
+}
 }
 
 
 # Create server -------------------------------------------------------
 server <- function(input, output, session) {
 
+   # Refresh plot
+   observeEvent(input$replotting, {
+           file = input$File
+           real_data <- do_plotting(file$name, input)
+           real_data$plot
+   })
+
+   # Show plot
    observeEvent(input$plotting, {
       output$plot <- renderPlot({
          if (is.null(input$File)) {
-            print("No data given!");
+            print("No cohort data given!");
          } else {
+
            file = input$File
            real_data <- do_plotting(file$name, input)
-           real_data
-           #C1 <- read.csv2(file$name, header = F, skip = 10, na.strings = c("-","NA"))
-           #p <- ggplot(data=C1, aes_string(x=input$variable2, y=input$variable2)) + 
-           #geom_boxplot() 
-           #p
+
+           if (! is.null(real_data$animals)) {
+              output$sick = renderUI(
+              multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=real_data$animals))
+           }
+
+           real_data$plot
         }
       })
     })
+
 }
 
