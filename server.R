@@ -8,7 +8,8 @@ require(tidyverse)
 
 do_plotting <- function(file, input) {
 
-
+## TODO: Combine files file$File1 .. file$FileN by using
+### for i in (1:input$nFileS) { data <- read.csv2(input[[paste0("File", i)]]) }
 
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
@@ -79,10 +80,17 @@ list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
 
 # Create server -------------------------------------------------------
 server <- function(input, output, session) {
+   output$fileInputs=renderUI({
+      html_ui = " "
+      for (i in 1:input$nFiles) {
+         html_ui <- paste0(html_ui, fileInput(paste0("File", i), label=paste0("Cohort ",i)))
+         }
+      HTML(html_ui)
+      })
 
    # Refresh plot
    observeEvent(input$replotting, {
-           file = input$File
+           file = input$File1
            real_data <- do_plotting(file$name, input)
            real_data$plot
    })
@@ -90,11 +98,11 @@ server <- function(input, output, session) {
    # Show plot
    observeEvent(input$plotting, {
       output$plot <- renderPlot({
-         if (is.null(input$File)) {
+         if (is.null(input$File1)) {
             print("No cohort data given!");
          } else {
 
-           file = input$File
+           file = input$File1
            real_data <- do_plotting(file$name, input)
 
            if (! is.null(real_data$animals)) {
