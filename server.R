@@ -72,7 +72,6 @@ if (! is.null(exclusion)) {
          filter(`Animal No._NA` != as.numeric(i))
    }
 }
-save(C1, file="test.Rda")
 
 p <- ggplot(data = C1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
