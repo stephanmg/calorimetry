@@ -49,10 +49,10 @@ sidebar_content <- sidebarPanel(
    h2("Feature selection"),
    selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
    selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
-   h2("Plot type"),
+   h2("Plot configuration"),
    selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
-   h3("Data curation"),
    sliderInput("averaging", "Time averaging [min]", 0, 120, 30),
+   h3("Data curation"),
    uiOutput("sick")
 )
 
