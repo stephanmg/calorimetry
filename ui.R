@@ -25,7 +25,7 @@ intro_panel <- tabPanel(
    h1("Visualization and plotting of data"),
    p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis"),
    h1("Further information"),
-   p("Use the navigation bar to jump Contact, About, Help and current TODOs for this R Shiny app. Feel free to contact SG in case of any questions")
+   p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
   
 )
 
@@ -33,6 +33,7 @@ sidebar_content2 <- sidebarPanel(
    fileInput("rerself", "RER self (means)"),
    fileInput("rercalr", "RER CalR (means)"),
    h1("Plotting control"),
+   textInput("plotTitle", "Plot title", paste0("Average of RER value")),
    actionButton("plottingvalidation", "Show"),
    actionButton("reset", "Reset"),
 )
@@ -60,7 +61,7 @@ sidebar_content <- sidebarPanel(
    selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
    h2("Plot configuration"),
    selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
-   sliderInput("averaging", "Time averaging [min]", 0, 120, 30),
+   sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step=10),
    h2("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="2020-01-01", end=Sys.Date()),
@@ -107,12 +108,6 @@ fifth_panel <- tabPanel(
    p("To be populated")
 )
 
-sixth_panel <- tabPanel(
-   "TODO",
-   titlePanel("TODOs"),
-   p("Finish averaging of time series (time windows for calorimetry, address TODOs in server.R)"),
-)
-
 ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,
@@ -120,5 +115,4 @@ ui <- navbarPage(
   third_panel,
   forth_panel,
   fifth_panel,
-  sixth_panel
 )

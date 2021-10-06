@@ -62,9 +62,6 @@ C1 <- C1 %>%
 
 C1 <- C1[!is.na(C1$MeasPoint),]
 
-# time averaging
-## TODO: Averaging with input$averaging into time windows for more robust calorimetric analysis
-
 # Step #1 - calculate the difference between consecutive dates
 C1 <- C1 %>%
   group_by(`Animal No._NA`) %>% # group by Animal ID
@@ -105,15 +102,28 @@ C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
 C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
 # Step #1 - define halfhours steps 
-## TODO: hardcoded 30 minutes intervals...
+
+if (input$averaging == 10) {
+C1 <- C1 %>%
+    mutate(thirtymin = case_when(minutes <= 10 ~ 0,
+                                 minutes <= 20 ~ (1/6),
+                                 minutes <= 30 ~ (2/6),
+                                 minutes <= 40 ~ (3/6),
+                                 minutes <= 50 ~ (4/6),
+                                 minutes > 50 ~ (5/6)))
+} else if (input$averaging == 20) {
+C1 <- C1 %>%
+    mutate(thirtymin = case_when(minutes <= 20 ~ 0,
+                                 minutes <= 40 ~ 0.3,
+                                 minutes > 40 ~ 0.6))
+} else {
 C1 <- C1 %>%
     mutate(thirtymin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
+}
 
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
 C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$thirtymin
-
-###
 
 C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
 C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
@@ -145,7 +155,7 @@ write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 p <- ggplot(data = finalC1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
-  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coeffici
 
 
 list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
@@ -174,8 +184,19 @@ server <- function(input, output, session) {
 
    observeEvent(input$plottingvalidation, {
          output$plotvalidation <- renderPlot({
-            print("Not yet implemented!")
-            # TODO: populate with line graph plot CalR vs self RER values... but need reference from CalR files...
+            ref <- read.csv2(input$rerself$name, na.strings = c("-","NA"), header=FALSE, sep=";")
+            calr <- read.csv2(input$rercalr$name, na.strings = c("-","NA"), header=FALSE, sep=";")
+            print(ref)
+            df_comparison <- data.frame(ref=as.numeric(gsub(",", ".", gsub("\\.", "", ref$V11))), calr=as.numeric(gsub(",", ".", gsub("\\.", "", calr$V11))))
+            print(head(df_comparison))
+            print(df_comparison)
+            p <- ggscatter(df_comparison, x="ref", y="calr", add = "reg.line", add.params = list(color="black", fill="lightgray")) +
+            stat_cor(method="pearson") +
+            theme(axis.text.x = element_text(angle=90)) + 
+            xlab("RER self") + 
+            ylab("RER CalR") +
+            ggtitle(input$plotTitle)
+            p
          })
    })
 
