@@ -105,7 +105,7 @@ C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
 if (input$averaging == 10) {
 C1 <- C1 %>%
-    mutate(thirtymin = case_when(minutes <= 10 ~ 0,
+    mutate(timeintervalinmin = case_when(minutes <= 10 ~ 0,
                                  minutes <= 20 ~ (1/6),
                                  minutes <= 30 ~ (2/6),
                                  minutes <= 40 ~ (3/6),
@@ -113,17 +113,17 @@ C1 <- C1 %>%
                                  minutes > 50 ~ (5/6)))
 } else if (input$averaging == 20) {
 C1 <- C1 %>%
-    mutate(thirtymin = case_when(minutes <= 20 ~ 0,
+    mutate(timeintervalinmin = case_when(minutes <= 20 ~ 0,
                                  minutes <= 40 ~ 0.3,
                                  minutes > 40 ~ 0.6))
 } else {
 C1 <- C1 %>%
-    mutate(thirtymin = case_when(minutes <= 30 ~ 0,
+    mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
 }
 
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
-C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$thirtymin
+C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
 
 C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
 C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
