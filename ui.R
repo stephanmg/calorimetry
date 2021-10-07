@@ -61,7 +61,7 @@ sidebar_content <- sidebarPanel(
    selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
    h2("Plot configuration"),
    selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
-   sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step=10),
+   sliderInput("averaging", "Time averaging for RER [min]", 0, 30, 10, step=10),
    h2("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="2020-01-01", end=Sys.Date()),

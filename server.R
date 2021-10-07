@@ -4,6 +4,7 @@ library(ggpubr)
 library(viridis)
 library(dplyr)
 library(lubridate)
+library(shinyWidgets)
 require(tidyverse)
 
 do_plotting <- function(file, input, exclusion) {
@@ -101,9 +102,9 @@ C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
 # Step #4 - round hours downwards to get "full" hours
 C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
-# Step #1 - define halfhours steps 
-
-if (input$averaging == 10) {
+# Step #1 - define 1/n-hours steps 
+# TODO: Check if this is correct.
+if (input$averaging == 10) { # 1/6 hours
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 10 ~ 0,
                                  minutes <= 20 ~ (1/6),
@@ -111,15 +112,18 @@ C1 <- C1 %>%
                                  minutes <= 40 ~ (3/6),
                                  minutes <= 50 ~ (4/6),
                                  minutes > 50 ~ (5/6)))
-} else if (input$averaging == 20) {
+} else if (input$averaging == 20) { # 1/3 hours
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 20 ~ 0,
                                  minutes <= 40 ~ 0.3,
                                  minutes > 40 ~ 0.6))
-} else {
+} else if (input$averaging == 30) { # 1/2 hours
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
+} else { # no averaging
+#C1 <- C1 %>%dd
+#    mutate(timeintervalinmin = case_when(minutes <= 59 ~ 0))
 }
 
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
