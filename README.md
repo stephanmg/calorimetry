@@ -5,8 +5,9 @@
 ## Problems:
 
 ### Data (.csv)
-- File encoding wrong: Using UTF-8 symbols in ISO-8859 destroys data read in
+- File encoding wrong: Using UTF-8 symbols in ISO-8859 destroys data read in and print out 
 - Cohort 2 file header wrongly assumed (Provided R script probably never worked for this file)
+- Cohort 2 data in columns incompatible with RER averaging procedure...
 
 ### Code (.R)
 - Did filtering of animals ever work? Comparison made by string but required scalar number

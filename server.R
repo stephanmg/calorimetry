@@ -122,8 +122,8 @@ C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
 } else { # no averaging
-#C1 <- C1 %>%dd
-#    mutate(timeintervalinmin = case_when(minutes <= 59 ~ 0))
+C1 <- C1 %>%
+    mutate(timeintervalinmin = case_when(minutes <= 60 ~ 0))
 }
 
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
