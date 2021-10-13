@@ -14,4 +14,4 @@
 - Did merging of cohorts ever work? File headers not compatible in .csv files
 
 ## Demo
-[![TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
+[![TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)]
