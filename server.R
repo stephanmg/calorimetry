@@ -181,7 +181,7 @@ server <- function(input, output, session) {
    observeEvent(input$replotting, {
            output$plot <- renderPlot({
            file = input$File1
-           real_data <- do_plotting(file$name, input, exclusion=input$sick)
+           real_data <- do_plotting(file$datapath, input, exclusion=input$sick)
            real_data$plot
            })
    })
@@ -212,7 +212,7 @@ server <- function(input, output, session) {
             print("No cohort data given!");
          } else {
            file = input$File1
-           real_data <- do_plotting(file$name, input, input$sick)
+           real_data <- do_plotting(file$datapath, input, input$sick)
 
            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick = renderUI(
