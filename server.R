@@ -23,7 +23,7 @@ theme_set(theme_pubr_update)
 finalC1 <- c()
 for (i in 1:input$nFiles) {
 file = input[[paste0("File", i)]]
-file = file$name
+file = file$datapath
 C1.raw <- read.csv2(file, na.strings = c("-","NA"))
 C1.raw[1:12,1:6]
 C1 <- read.csv2(file, header = F, skip = 10, na.strings = c("-","NA"))
@@ -212,6 +212,7 @@ server <- function(input, output, session) {
             print("No cohort data given!");
          } else {
            file = input$File1
+           print(file$datapath)
            real_data <- do_plotting(file$datapath, input, input$sick)
 
            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
