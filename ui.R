@@ -1,14 +1,14 @@
 # Page 1 - Introduction ----------------------------------------------
-
 intro_panel <- tabPanel(
   "Introduction",
   
   titlePanel("Indirect calorimetry"),
+  tags$img(src="splash.jpg", align="right"),
   
-  p("This is an R Shiny app for TSE-CaloSys Data Analysis"),
+  p("This is an R Shiny app for indirect calorimetric analysis provided TSE-CaloSys or Sable system input data"),
   br(),
-  h1("TSE-CaloSys Data Analysis"),
-  p("In this document the analysis of data acquired with a TSE-CaloSys system is described for"),
+  h1("Indirect calorimetry data analysis"),
+  p("In this document the analysis of data acquired with TSE-CaloSys or Sable is described for"),
    tags$ul(
    tags$li("long term observations over multiple hours"),
    tags$li("short therm/ acute response experiments < 2 hours")
@@ -24,6 +24,8 @@ intro_panel <- tabPanel(
    p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)"),
    h1("Visualization and plotting of data"),
    p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis"),
+   h1("Data export"),
+   p("Use the navigation bar to jump to Data export for e.g. CalR"),
    h1("Further information"),
    p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
   
@@ -38,16 +40,25 @@ sidebar_content2 <- sidebarPanel(
    actionButton("reset", "Reset"),
 )
 
+sidebar_content3 <- sidebarPanel(
+   numericInput("nFiles", "Number of files", value=1, min=1, step=1),
+   uiOutput("fileInputs"),
+)
+
 sidebar_content <- sidebarPanel(
    withMathJax(),
    h1("Heat production"),
-   div("Heat production is calculated by the following formulas (Journal of comparative physiology 1975, 102:115-122):"),
+   div("One of the established formulas for calculating the heat production are the Heldmaier formulas reported in Journal of Comparative Physiology 1975, 102:115-122:"),
    div("$$ \\tag{1} HP[mW] = VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"),
    div("$$ \\tag{2} HP2[mW] = (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"),
+   div("If desired, choose two different formula from the drop-down menus below for a comparison"),
+   selectInput("variable1", "Select formula", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Heldmaier", "Ferrannini")),
+   selectInput("variable2", "Select formula", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Heldmaier", "Ferrannini")),
    numericInput("nFiles", "Number of files", value=1, min=1, step=1),
    uiOutput("fileInputs"),
    # fileInput("File", "Analyze calorimetic data"),
-   br(), br(),
+   #br(), br(),
+   br(),
  #numericRangeInput(
  #   inputId = "noui1", label = "Remove outliers",
  #   value = c(100, 400)
@@ -56,17 +67,23 @@ sidebar_content <- sidebarPanel(
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
    #actionButton("replotting", "Forced Refresh"),
-   h2("Feature selection"),
-   selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
-   selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
+   #h2("Feature selection"),
+   #selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
+   #selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
    h2("Plot configuration"),
-   selectInput("plot_type", "Type:", c("Line plot", "Box plot")),
+   ### TODO: based on plot_type, add more conditional panels, so can get rid of the above sections with heat production which is confusing, so display in case of line plot = scatterplot configurations
+   ### from above, in case of caloric equivalent the establsiehd and for box plot nothing at the moment, these are the 2 scenarios, compare formulas for heat production (2 formulars) and calculate heat 
+   ### production over time...
+   selectInput("plot_type", "Type:", c("Line plot", "Box plot", "Caloric_equiv")),
+   conditionalPanel(condition = "input.plot_type == 'Caloric_equiv'", uiOutput("myp")),
    sliderInput("averaging", "Time averaging for RER [min]", 0, 30, 10, step=10),
    h2("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="2020-01-01", end=Sys.Date()),
    checkboxInput(inputId="outliers", label="Remove outliers"),
-   conditionalPanel(condition = "input.outliers == true", uiOutput("sick"))
+   conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
+   h3("Plotting status"),
+   span(textOutput("message"), style="color:red")
 )
 
 main_content <- mainPanel(
@@ -93,25 +110,31 @@ third_panel <- tabPanel(
    sidebarLayout(
       sidebar_content2, main_content2
    )
-   
 )
 
 forth_panel <- tabPanel(
    "Help",
    titlePanel("Help and documentation"),
-   p("To be populated...")
+   p("TODO")
 )
 
 fifth_panel <- tabPanel(
    "Contact",
    titlePanel("Contact us"),
-   p("To be populated")
+   p("TODO")
+)
+
+sixth_panel <- tabPanel(
+   "Data export",
+   titlePanel("Data export"),
+   p("TODO")
 )
 
 ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,
   second_panel,
+  sixth_panel,
   third_panel,
   forth_panel,
   fifth_panel,

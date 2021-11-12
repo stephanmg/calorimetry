@@ -9,6 +9,7 @@ require(tidyverse)
 
 do_plotting <- function(file, input, exclusion) {
 
+
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
 
@@ -20,10 +21,23 @@ theme_pubr_update <- theme_pubr(base_size = 8.5) +
 theme_set(theme_pubr_update)
 
 
+fileFormatTSE = FALSE
 finalC1 <- c()
 for (i in 1:input$nFiles) {
 file = input[[paste0("File", i)]]
 file = file$datapath
+
+con =  file(file)
+line = readLines(con, n = 2)
+if (i == 1) {
+   fileFormatTSE = grepl("TSE", line[2])
+} else {
+   if (grepl("TSE", line[2]) != fileFormatTSE) {
+      return (list("plot"=NULL, "animals"=NULL, "status"=FALSE))
+   }
+}
+
+
 C1.raw <- read.csv2(file, na.strings = c("-","NA"))
 C1.raw[1:12,1:6]
 C1 <- read.csv2(file, header = F, skip = 10, na.strings = c("-","NA"))
@@ -102,6 +116,8 @@ C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
 # Step #4 - round hours downwards to get "full" hours
 C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
+## TODO: use variable1 and variable2 to calculate HP and HP2, which correspond to the required formulas in the input
+
 # Step #1 - define 1/n-hours steps 
 # TODO: Check if this is correct.
 if (input$averaging == 10) { # 1/6 hours
@@ -129,6 +145,9 @@ C1 <- C1 %>%
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
 C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
 
+
+# TODO C1$HP and C1$HP2 need to be changed for C1$variable1 and C1$variable2 for formulas from Martin K.
+# (depending on variable1 and variable2 -> use switch statement and calculate the appropriate contributions as caloric equivalent)
 C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
 C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
 
@@ -159,7 +178,7 @@ write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 p <- ggplot(data = finalC1, aes_string(x = input$variable1, y = input$variable2)) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
-  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coeffici
+  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
 
 
 list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
@@ -176,6 +195,12 @@ server <- function(input, output, session) {
          }
       HTML(html_ui)
       })
+
+   # TODO: here decide which plot_type is used.
+   observeEvent(input$plot_type, {
+            output$myp = renderUI(
+               selectInput(inputId="myp", label="Chose prefered method for calculating caloric equivalent over time", selected="", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Heldmaier", "Ferrannini")))
+         })
 
    # Refresh plot (action button's action)
    observeEvent(input$replotting, {
@@ -210,15 +235,24 @@ server <- function(input, output, session) {
       output$plot <- renderPlot({
          if (is.null(input$File1)) {
             print("No cohort data given!");
+            output$message <- renderText("Not any cohort data given")
          } else {
            file = input$File1
            print(file$datapath)
            real_data <- do_plotting(file$datapath, input, input$sick)
+           
+           print(real_data$status)
+           if (! (is.null(real_data$status)) && (real_data$status == FALSE)) {
+               output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.")
+           } else {
+               output$message <- renderText("Success")
+           }
 
            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick = renderUI(
               multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
+            
 
            real_data$plot
         }
