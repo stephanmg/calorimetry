@@ -119,7 +119,7 @@ C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 ## TODO: use variable1 and variable2 to calculate HP and HP2, which correspond to the required formulas in the input
 
 # Step #1 - define 1/n-hours steps 
-# TODO: Check if this is correct.
+# TODO: Check if this is really correct ...
 if (input$averaging == 10) { # 1/6 hours
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 10 ~ 0,
@@ -145,11 +145,62 @@ C1 <- C1 %>%
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
 C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
 
+f1 = input$variable1
+f2 = input$variable2
 
-# TODO C1$HP and C1$HP2 need to be changed for C1$variable1 and C1$variable2 for formulas from Martin K.
-# (depending on variable1 and variable2 -> use switch statement and calculate the appropriate contributions as caloric equivalent)
-C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
-C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
+switch(f1,
+Lusk={
+   C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA
+},
+HP = {
+   C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
+},
+HP2 = {
+   C1$HP <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
+},
+Weir = {
+   C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA
+},
+Elia = {
+   C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA
+},
+Brower = {
+   C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA
+},
+Ferrannini = {
+   C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA
+},
+{
+}
+)
+
+switch(f2,
+Lusk={
+  C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA
+},
+HP = {
+   C1$HP2 <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
+},
+HP2 = {
+   C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
+},
+Weir = {
+   C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA
+},
+Elia = {
+   C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA
+},
+Brower = {
+   C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA
+},
+Ferrannini = {
+   C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA
+},
+{
+}
+)
+
+
 
 C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                     VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
@@ -175,7 +226,7 @@ if (! is.null(exclusion)) {
 
 write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 
-p <- ggplot(data = finalC1, aes_string(x = input$variable1, y = input$variable2)) +
+p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
