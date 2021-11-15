@@ -51,9 +51,9 @@ sidebar_content <- sidebarPanel(
    div("One of the established formulas for calculating the heat production are the Heldmaier formulas reported in Journal of Comparative Physiology 1975, 102:115-122:"),
    div("$$ \\tag{1} HP[mW] = VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"),
    div("$$ \\tag{2} HP2[mW] = (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"),
-   div("If desired, choose two different formula from the drop-down menus below for a comparison"),
-   selectInput("variable1", "Select formula", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Heldmaier", "Ferrannini")),
-   selectInput("variable2", "Select formula", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Heldmaier", "Ferrannini")),
+   div("If desired, choose two different formula from the drop-down menus below for a comparison (HP are the Heldmaier formulas)"),
+   selectInput("variable1", "Select formula", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
+   selectInput("variable2", "Select formula", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
    numericInput("nFiles", "Number of files", value=1, min=1, step=1),
    uiOutput("fileInputs"),
    # fileInput("File", "Analyze calorimetic data"),
@@ -74,8 +74,10 @@ sidebar_content <- sidebarPanel(
    ### TODO: based on plot_type, add more conditional panels, so can get rid of the above sections with heat production which is confusing, so display in case of line plot = scatterplot configurations
    ### from above, in case of caloric equivalent the establsiehd and for box plot nothing at the moment, these are the 2 scenarios, compare formulas for heat production (2 formulars) and calculate heat 
    ### production over time...
-   selectInput("plot_type", "Type:", c("Line plot", "Box plot", "Caloric_equiv")),
-   conditionalPanel(condition = "input.plot_type == 'Caloric_equiv'", uiOutput("myp")),
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime")),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
    sliderInput("averaging", "Time averaging for RER [min]", 0, 30, 10, step=10),
    h2("Data curation"),
    p("Selection of dates"),

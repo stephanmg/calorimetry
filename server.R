@@ -226,11 +226,43 @@ if (! is.null(exclusion)) {
 
 write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 
+
+plotType=input$plot_type
+print(plotType)
+
+switch(plotType,
+CompareHeatProductionFormulas={
 p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
   geom_point() +
   stat_smooth(method = "lm") + # adds regression line
   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+},
+CaloricEquivalentOverTime={
+colors=as_factor(`$`(finalC1, "Animal No._NA"))
+finalC1$Animals=colors
+#p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`)) +
+p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = input$myp, color="Animals", group="Animals")) + 
+  geom_point() + scale_fill_brewer(palette="Spectral") 
 
+if (input$wmeans) {
+   p <- p + geom_smooth(method="lm") 
+}
+
+if (input$wstats) {
+   p <- p + stat_cor(method="pearson")
+}
+
+p <- p + xlab("Time [h]")
+p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
+
+#  stat_smooth(method = "lm") + # adds regression line
+#  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+},
+{
+}
+)
+
+write.csv2(finalC1, file="test.csv")
 
 list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
 }
@@ -250,8 +282,19 @@ server <- function(input, output, session) {
    # TODO: here decide which plot_type is used.
    observeEvent(input$plot_type, {
             output$myp = renderUI(
-               selectInput(inputId="myp", label="Chose prefered method for calculating caloric equivalent over time", selected="", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Heldmaier", "Ferrannini")))
+               selectInput(inputId="myp", label="Chose prefered method for calculating caloric equivalent over time", selected=input$variable1, choices=c(input$variable1, input$variable2)))
          })
+
+   observeEvent(input$plot_type, {
+            output$wmeans = renderUI(
+               checkboxInput(inputId="wmeans", label="Display means"))
+         })
+
+   observeEvent(input$plot_type, {
+            output$wstats = renderUI(
+               checkboxInput(inputId="wstats", label="Display statistics"))
+         })
+
 
    # Refresh plot (action button's action)
    observeEvent(input$replotting, {
