@@ -5,7 +5,23 @@ library(viridis)
 library(dplyr)
 library(lubridate)
 library(shinyWidgets)
+library(fs)
 require(tidyverse)
+
+do_export <- function(format) {
+   if (format == "CalR") {
+      # TODO: Implement CalR export
+      print("CalR")
+      TRUE
+   }
+
+   if (format == "Sable") {
+      print("SABLE")
+      FALSE
+   }
+   print("eLSe")
+   FALSE
+}
 
 do_plotting <- function(file, input, exclusion) {
 
@@ -270,6 +286,8 @@ list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
 
 # Create server -------------------------------------------------------
 server <- function(input, output, session) {
+   shinyDirChoose(input, 'export_folder', roots=c(wd=path_home()), filetypes=c('', 'txt'))
+
    # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs=renderUI({
       html_ui = " "
@@ -295,6 +313,25 @@ server <- function(input, output, session) {
                checkboxInput(inputId="wstats", label="Display statistics"))
          })
 
+
+     observeEvent(input$export_folder, {
+         print(input$export_folder)
+
+       output$folder_name_export = renderUI(
+            renderText(paste(path_home(), input$export_folder$path[[2]], sep="/")))
+      })
+
+   observeEvent(input$export, {
+       if (input$export_format == "CalR") {
+            output$message <- renderText(paste("Consolidated data exported to format >>", input$export_format, "<<", sep=" "))
+            do_export("CalR")
+       }
+
+       if (input$export_format == "Sable") {
+           output$message <- renderText("Not yet implemented!")
+       }
+       
+      })
 
    # Refresh plot (action button's action)
    observeEvent(input$replotting, {
@@ -322,6 +359,7 @@ server <- function(input, output, session) {
             p
          })
    })
+
 
    real_data <- NULL
    # Show plot (action button's action)

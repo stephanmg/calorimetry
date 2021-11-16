@@ -85,7 +85,16 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId="outliers", label="Remove outliers"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
    h3("Plotting status"),
-   span(textOutput("message"), style="color:red")
+   span(textOutput("message"), style="color:red"),
+   h1("Data export"),
+   selectInput("export_format", "Format", choices=c("CalR", "Sable")),
+   h2("Folder"),
+   shinyDirButton("export_folder", "Select a folder", "Please select a folder", FALSE),
+   h2("File name"),
+   textInput("export_file_name", "File"),
+   h2("Folder name"),
+   uiOutput("folder_name_export"),
+   actionButton("export", "Export")
 )
 
 main_content <- mainPanel(
