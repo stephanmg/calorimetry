@@ -1,3 +1,5 @@
+library("shinyFiles")
+
 # Page 1 - Introduction ----------------------------------------------
 intro_panel <- tabPanel(
   "Introduction",
