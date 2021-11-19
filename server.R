@@ -1,4 +1,4 @@
-# Load libraries, data ------------------------------------------------
+# libraries
 library(ggplot2)
 library(ggpubr)
 library(viridis)
@@ -14,7 +14,6 @@ do_export <- function(format, input, output) {
       file = input$File1
 
       if (is.null(input$File1)) {
-         print("No cohort data given!");
          output$message <- renderText("Not any cohort data given")
       } else {
          file = input$File1
@@ -340,12 +339,16 @@ server <- function(input, output, session) {
 
    observeEvent(input$export, {
        if (input$export_format == "CalR") {
-            output$message <- renderText(paste("Consolidated data exported to format >>", input$export_format, "<<", sep=" "))
-            do_export("CalR", input, output)
+            status_okay <- do_export("CalR", input, output)
+            if (!status_okay) {
+              output$message <- renderText("Error during data export, check logs")
+            } else {
+              output$message <- renderText(paste("Consolidated data exported to format >>", input$export_format, "<<", sep=" "))
+            }
        }
 
        if (input$export_format == "Sable") {
-           output$message <- renderText("Not yet implemented!")
+           output$message <- renderText("Sable system export not yet implemented!")
        }
        
       })
@@ -377,7 +380,6 @@ server <- function(input, output, session) {
          })
    })
 
-
    real_data <- NULL
    # Show plot (action button's action)
    observeEvent(input$plotting, {
@@ -402,7 +404,6 @@ server <- function(input, output, session) {
               multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
             
-
            real_data$plot
         }
       })
