@@ -274,9 +274,24 @@ p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
 CaloricEquivalentOverTime={
 colors=as_factor(`$`(finalC1, "Animal No._NA"))
 finalC1$Animals=colors
+
+convert <- function(x) {
+  # print(x[[1]])
+   splitted = strsplit(as.character(x), " ")
+   #splitted = strsplit(as.character(data[1,"Datetime"]), ' ')
+   paste(splitted[[1]][2], ":00", sep="")
+}
+
+### Note: This filters out first recordings on each day, probably not desired
+#finalC1$Datetime <- lapply(finalC1$Datetime, convert)
+#finalC1$TimeInHours <- hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime))
+#finalC1 = filter(finalC1, TimeInHours > (60*as.numeric(input$exclusion)))
+#print(finalC1$TimeInHours)
+
+
 #p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`)) +
 p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = input$myp, color="Animals", group="Animals")) + 
-  geom_point() + scale_fill_brewer(palette="Spectral") 
+  geom_point() + scale_fill_brewer(palette="Spectral") + geom_line()
 
 if (input$wmeans) {
    p <- p + geom_smooth(method="lm") 
@@ -288,6 +303,7 @@ if (input$wstats) {
 
 p <- p + xlab("Time [h]")
 p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
+# Note this excludes only at beginning of measurement experiment
 p <- p + scale_x_continuous(limits=c(input$exclusion, NA))
 
 #  stat_smooth(method = "lm") + # adds regression line
