@@ -42,7 +42,7 @@ do_export <- function(format, input, output) {
    FALSE
 }
 
-do_plotting <- function(file, input, exclusion) {
+do_plotting <- function(file, input, exclusion, output) {
 
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
@@ -326,6 +326,14 @@ finalC1$Animals = as_factor(`$`(finalC1, "Animal No._NA"))
 p <- ggplot(finalC1, aes(x=Animals, y=HP, fill=NightDay)) + geom_boxplot()
 
 },
+StackedBarPlotForRMRandNonRMR={
+
+### TODO: Implement
+},
+ANCOVA={
+
+### TODO: Implement
+},
 {
 }
 )
@@ -364,6 +372,12 @@ server <- function(input, output, session) {
             output$wstats = renderUI(
                checkboxInput(inputId="wstats", label="Display statistics"))
          })
+
+   ### TODO: add possible covariates from data here not only weight
+   observeEvent(input$plot_type, {
+      output$covariates = renderUI(
+            selectInput(inputId="covariates", label="Chose a covariate", selected="Weight", choices=c("Weight")))
+   })
 
 
      observeEvent(input$export_folder, {
