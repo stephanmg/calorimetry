@@ -76,7 +76,7 @@ sidebar_content <- sidebarPanel(
    ### TODO: based on plot_type, add more conditional panels, so can get rid of the above sections with heat production which is confusing, so display in case of line plot = scatterplot configurations
    ### from above, in case of caloric equivalent the establsiehd and for box plot nothing at the moment, these are the 2 scenarios, compare formulas for heat production (2 formulars) and calculate heat 
    ### production over time...
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime")),
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
@@ -84,6 +84,7 @@ sidebar_content <- sidebarPanel(
    h2("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="2020-01-01", end=Sys.Date()),
+   sliderInput("exclusion", "Exclude hours from start of measurements", 0, 24, 2, step=1),
    checkboxInput(inputId="outliers", label="Remove outliers"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
    h3("Plotting status"),

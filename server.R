@@ -261,6 +261,8 @@ write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 
 plotType=input$plot_type
 print(plotType)
+print(finalC1)
+write.csv2(C1, file="all_data.csv")
 
 switch(plotType,
 CompareHeatProductionFormulas={
@@ -286,9 +288,27 @@ if (input$wstats) {
 
 p <- p + xlab("Time [h]")
 p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
+p <- p + scale_x_continuous(limits=c(input$exclusion, NA))
 
 #  stat_smooth(method = "lm") + # adds regression line
 #  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+},
+DayNightActivity={
+
+convert <- function(x) {
+  # print(x[[1]])
+   splitted = strsplit(as.character(x), " ")
+   #splitted = strsplit(as.character(data[1,"Datetime"]), ' ')
+   paste(splitted[[1]][2], ":00", sep="")
+}
+
+finalC1$Datetime <- lapply(finalC1$Datetime, convert)
+
+finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime)) < 720, 'am', 'pm')
+
+finalC1$Animals = as_factor(`$`(finalC1, "Animal No._NA"))
+p <- ggplot(finalC1, aes(x=Animals, y=HP, fill=NightDay)) + geom_boxplot()
+
 },
 {
 }
