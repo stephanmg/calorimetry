@@ -1,4 +1,5 @@
 library("shinyFiles")
+library("plotly")
 
 # Page 1 - Introduction ----------------------------------------------
 intro_panel <- tabPanel(
@@ -103,7 +104,8 @@ sidebar_content <- sidebarPanel(
 )
 
 main_content <- mainPanel(
-  plotOutput("plot")
+  #plotOutput("plot")
+  plotlyOutput("plot")
 )
 
 main_content2 <- mainPanel(
