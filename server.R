@@ -1,5 +1,6 @@
 # libraries
 library(ggplot2)
+library(plotly)
 library(ggpubr)
 library(viridis)
 library(dplyr)
@@ -42,7 +43,7 @@ do_export <- function(format, input, output) {
    FALSE
 }
 
-do_plotting <- function(file, input, exclusion) {
+do_plotting <- function(file, input, exclusion, output) {
 
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
@@ -170,8 +171,8 @@ C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
 } else { # no averaging
-#C1 <- C1 %>%
-#    mutate(timeintervalinmin = case_when(minutes <= 60 ~ 0))
+C1 <- C1 %>%
+    mutate(timeintervalinmin = case_when(minutes <= 2 ~ 0))
 }
 
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
@@ -261,6 +262,8 @@ write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
 
 plotType=input$plot_type
 print(plotType)
+print(finalC1)
+write.csv2(C1, file="all_data.csv")
 
 switch(plotType,
 CompareHeatProductionFormulas={
@@ -272,9 +275,25 @@ p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
 CaloricEquivalentOverTime={
 colors=as_factor(`$`(finalC1, "Animal No._NA"))
 finalC1$Animals=colors
+
+convert <- function(x) {
+  # print(x[[1]])
+   splitted = strsplit(as.character(x), " ")
+   #splitted = strsplit(as.character(data[1,"Datetime"]), ' ')
+   paste(splitted[[1]][2], ":00", sep="")
+}
+
+### Note: This filters out first recordings on each day, probably not desired
+#finalC1$Datetime <- lapply(finalC1$Datetime, convert)
+#finalC1$TimeInHours <- hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime))
+#finalC1 = filter(finalC1, TimeInHours > (60*as.numeric(input$exclusion)))
+#print(finalC1$TimeInHours)
+
+
 #p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`)) +
 p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = input$myp, color="Animals", group="Animals")) + 
-  geom_point() + scale_fill_brewer(palette="Spectral") 
+  scale_fill_brewer(palette="Spectral") + geom_line() 
+
 
 if (input$wmeans) {
    p <- p + geom_smooth(method="lm") 
@@ -286,9 +305,40 @@ if (input$wstats) {
 
 p <- p + xlab("Time [h]")
 p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
+# Note this excludes only at beginning of measurement experiment
+p <- p + scale_x_continuous(limits=c(input$exclusion, NA))
+
+p <- ggplotly(p)
+p <- p %>% layout(dragmode = "pan") # %>% config(displayModeBar = FALSE)
 
 #  stat_smooth(method = "lm") + # adds regression line
 #  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+},
+DayNightActivity={
+
+convert <- function(x) {
+  # print(x[[1]])
+   splitted = strsplit(as.character(x), " ")
+   #splitted = strsplit(as.character(data[1,"Datetime"]), ' ')
+   paste(splitted[[1]][2], ":00", sep="")
+}
+
+finalC1$Datetime <- lapply(finalC1$Datetime, convert)
+
+finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime)) < 720, 'am', 'pm')
+
+finalC1$Animals = as_factor(`$`(finalC1, "Animal No._NA"))
+p <- ggplot(finalC1, aes(x=Animals, y=HP, fill=NightDay)) + geom_boxplot()
+p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+
+},
+StackedBarPlotForRMRandNonRMR={
+
+### TODO: Implement
+},
+ANCOVA={
+
+### TODO: Implement
 },
 {
 }
@@ -329,6 +379,12 @@ server <- function(input, output, session) {
                checkboxInput(inputId="wstats", label="Display statistics"))
          })
 
+   ### TODO: add possible covariates from data here not only weight
+   observeEvent(input$plot_type, {
+      output$covariates = renderUI(
+            selectInput(inputId="covariates", label="Chose a covariate", selected="Weight", choices=c("Weight")))
+   })
+
 
      observeEvent(input$export_folder, {
          print(input$export_folder)
@@ -355,7 +411,7 @@ server <- function(input, output, session) {
 
    # Refresh plot (action button's action)
    observeEvent(input$replotting, {
-           output$plot <- renderPlot({
+           output$plot <- renderPlotly({
            file = input$File1
            real_data <- do_plotting(file$datapath, input, exclusion=input$sick)
            real_data$plot
@@ -363,7 +419,7 @@ server <- function(input, output, session) {
    })
 
    observeEvent(input$plottingvalidation, {
-         output$plotvalidation <- renderPlot({
+         output$plotvalidation <- renderPlotly({
             ref <- read.csv2(input$rerself$name, na.strings = c("-","NA"), header=FALSE, sep=";")
             calr <- read.csv2(input$rercalr$name, na.strings = c("-","NA"), header=FALSE, sep=";")
             print(ref)
@@ -383,7 +439,7 @@ server <- function(input, output, session) {
    real_data <- NULL
    # Show plot (action button's action)
    observeEvent(input$plotting, {
-      output$plot <- renderPlot({
+      output$plot <- renderPlotly({
          if (is.null(input$File1)) {
             print("No cohort data given!");
             output$message <- renderText("Not any cohort data given")
