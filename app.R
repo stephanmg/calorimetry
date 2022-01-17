@@ -1,6 +1,7 @@
 # Load data and libraries -------------------------------------------
 library("shiny")
 library("shinyWidgets")
+library("shinyFiles")
 source("ui.R")
 source("server.R")
 

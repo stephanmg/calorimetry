@@ -1,3 +1,5 @@
+library("shinyFiles")
+
 # Page 1 - Introduction ----------------------------------------------
 intro_panel <- tabPanel(
   "Introduction",
@@ -78,7 +80,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
-   sliderInput("averaging", "Time averaging for RER [min]", 0, 30, 10, step=10),
+   sliderInput("averaging", "Time averaging for RER [min]", 0, 60, 10, step=10),
    h2("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="2020-01-01", end=Sys.Date()),

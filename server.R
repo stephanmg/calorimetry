@@ -1,4 +1,4 @@
-# Load libraries, data ------------------------------------------------
+# libraries
 library(ggplot2)
 library(ggpubr)
 library(viridis)
@@ -6,25 +6,43 @@ library(dplyr)
 library(lubridate)
 library(shinyWidgets)
 library(fs)
+library(hash)
 require(tidyverse)
 
-do_export <- function(format) {
+do_export <- function(format, input, output) {
    if (format == "CalR") {
-      # TODO: Implement CalR export
-      print("CalR")
-      TRUE
+      file = input$File1
+
+      if (is.null(input$File1)) {
+         output$message <- renderText("Not any cohort data given")
+      } else {
+         file = input$File1
+         real_data <- do_plotting(file$datapath, input, input$sick)
+         h = hash()
+         # Specific mapping of colum names from TSE to CalR compatible .csv file
+         h[["Datetime"]] <- "Date_Time"
+         h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
+         h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"
+         h[["HP"]] <- "RT_Kcal_hr_1" # caloric equivalent by 1st formula
+         h[["HP2"]] <- "RT_Kcal_hr_2" # caloric equivalent by 2nd formula
+         for (v in ls(h)) {
+            names(real_data$data)[names(real_data$data) == v] = h[[v]]
+         }
+
+         fname = paste(paste(path_home(), input$export_folder$path[[2]], sep="/"), input$export_file_name, sep="/")
+         write.csv(real_data$data[values(h)], file=fname, row.names = FALSE)
+         writeLines(gsub(pattern='"', replace="", x=readLines(fname)), con=fname)
+      }
    }
 
    if (format == "Sable") {
-      print("SABLE")
+      output$message <- renderText("Sable system export not yet implemented!")
       FALSE
    }
-   print("eLSe")
    FALSE
 }
 
 do_plotting <- function(file, input, exclusion) {
-
 
 cbPalette <- viridis(3, option = "cividis", begin = 0.1, end = 0.8, alpha = 1)
 cbPalette2 <- cbPalette[c(1,3)]
@@ -132,8 +150,6 @@ C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
 # Step #4 - round hours downwards to get "full" hours
 C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
-## TODO: use variable1 and variable2 to calculate HP and HP2, which correspond to the required formulas in the input
-
 # Step #1 - define 1/n-hours steps 
 # TODO: Check if this is really correct ...
 if (input$averaging == 10) { # 1/6 hours
@@ -154,8 +170,8 @@ C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
 } else { # no averaging
-C1 <- C1 %>%
-    mutate(timeintervalinmin = case_when(minutes <= 60 ~ 0))
+#C1 <- C1 %>%
+#    mutate(timeintervalinmin = case_when(minutes <= 60 ~ 0))
 }
 
 # Step #2 - create a running total with half hour intervals by adding the thirty min to the full hours
@@ -278,9 +294,9 @@ p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
 }
 )
 
-write.csv2(finalC1, file="test.csv")
+#write.csv2(finalC1, file="test.csv")
 
-list("plot"=p, "animals"=`$`(C1, "Animal No._NA"))
+list("plot"=p, "animals"=`$`(C1, "Animal No._NA"), "data"=finalC1)
 }
 
 
@@ -323,12 +339,16 @@ server <- function(input, output, session) {
 
    observeEvent(input$export, {
        if (input$export_format == "CalR") {
-            output$message <- renderText(paste("Consolidated data exported to format >>", input$export_format, "<<", sep=" "))
-            do_export("CalR")
+            status_okay <- do_export("CalR", input, output)
+            if (!status_okay) {
+              output$message <- renderText("Error during data export, check logs")
+            } else {
+              output$message <- renderText(paste("Consolidated data exported to format >>", input$export_format, "<<", sep=" "))
+            }
        }
 
        if (input$export_format == "Sable") {
-           output$message <- renderText("Not yet implemented!")
+           output$message <- renderText("Sable system export not yet implemented!")
        }
        
       })
@@ -360,7 +380,6 @@ server <- function(input, output, session) {
          })
    })
 
-
    real_data <- NULL
    # Show plot (action button's action)
    observeEvent(input$plotting, {
@@ -385,7 +404,6 @@ server <- function(input, output, session) {
               multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
             
-
            real_data$plot
         }
       })
@@ -396,4 +414,3 @@ server <- function(input, output, session) {
       session$reload()
    })
 }
-
