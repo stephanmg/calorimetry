@@ -264,6 +264,7 @@ plotType=input$plot_type
 print(plotType)
 print(finalC1)
 write.csv2(C1, file="all_data.csv")
+write.csv2(finalC1, file="finalC1.csv")
 
 switch(plotType,
 CompareHeatProductionFormulas={
@@ -340,6 +341,22 @@ ANCOVA={
 
 ### TODO: Implement
 },
+RAW={
+write.csv2(finalC1, file="finalC1.csv")
+colors=as_factor(`$`(finalC1, "Animal No._NA"))
+finalC1$Animals=colors
+head(finalC1)
+print("myr:")
+print(input$myr)
+mylabbel=paste(input$myr, sep="", "_[%]")
+print(mylabbel)
+p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
+#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
+#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, "O2_[%]"), color="Animals", group="Animals")) + geom_point()
+#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) + geom_point()
+#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = 'HP2')) + geom_point()
+p <- ggplotly(p)
+},
 {
 }
 )
@@ -368,6 +385,11 @@ server <- function(input, output, session) {
             output$myp = renderUI(
                selectInput(inputId="myp", label="Chose prefered method for calculating caloric equivalent over time", selected=input$variable1, choices=c(input$variable1, input$variable2)))
          })
+
+   observeEvent(input$plot_type, {
+      output$myr = renderUI(
+         selectInput(inputId="myr", label="Chose raw data to plot", choices=c("O2", "CO2")))
+    })
 
    observeEvent(input$plot_type, {
             output$wmeans = renderUI(
