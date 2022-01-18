@@ -360,16 +360,42 @@ p <- ggplotly(p)
 TotalOverDay={
 colors=as_factor(`$`(finalC1, "Animal No._NA"))
 finalC1$Animals=colors
-TEE1=aggregate(finalC1$HP, by=list(Animals=finalC1$Animals), FUN=sum)
-TEE2=aggregate(finalC1$HP2, by=list(Animals=finalC1$Animals), FUN=sum)
+
+convert <- function(x) {
+  # print(x[[1]])
+   splitted = strsplit(as.character(x), " ")
+   #splitted = strsplit(as.character(data[1,"Datetime"]), ' ')
+   #paste(splitted[[1]][2], ":00", sep="")
+   paste(splitted[[1]][1], "",sep="")
+}
+
+finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
+
+TEE1=aggregate(finalC1$HP, by=list(Animals=finalC1$Animals, Days=finalC1$Datetime), FUN=sum)
+print("TEE1")
+print(TEE1)
+TEE2=aggregate(finalC1$HP2, by=list(Animals=finalC1$Animals, Days=finalC1$Datetime), FUN=sum)
 TEE=rbind(TEE1, TEE2)
+print("TEE")
 print(TEE)
 names(TEE)[names(TEE) == 'x'] <- 'TEE'
+print("grouped")
 TEE$Equation = as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+TEE$Days = as_factor(TEE$Days)
+TEE$Animals = as_factor(TEE$Animals)
 print(TEE)
-p <- ggplot(data=TEE, aes(x=Equation, y=TEE, group=Equation)) + geom_boxplot() + geom_point(aes(fill=Animals))
+#p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Animals)) + geom_boxplot() # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
+p <- ggplot(data=TEE, aes(x=Animals, y=TEE, fill=Equation)) + geom_boxplot() + geom_point(position=position_jitterdodge()) # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
+#p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Days, group=Days)) + geom_boxplot() + geom_point(aes(fill=Animals))
+#p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Days)) + geom_boxplot() + geom_point(aes(fill=Animals))
+#p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Days)) + geom_boxplot() + geom_point(aes(fill=Animals, x=Equation))
 #p <- ggplotly(p)
 p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+#p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+
+
+#finalC1$Animals = as_factor(`$`(finalC1, "Animal No._NA"))
+#p <- ggplot(finalC1, aes(x=Animals, y=HP, fill=NightDay)) + geom_boxplot()
 #p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
 },
 {
