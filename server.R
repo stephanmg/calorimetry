@@ -292,8 +292,8 @@ convert <- function(x) {
 
 
 #p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`)) +
-p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = input$myp, color="Animals", group="Animals")) + 
-  scale_fill_brewer(palette="Spectral") + geom_line() 
+#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "CO_2[%]", color="Animals", group="Animals")) + 
+#  scale_fill_brewer(palette="Spectral") + geom_line() 
 
 
 if (input$wmeans) {
@@ -348,14 +348,29 @@ finalC1$Animals=colors
 head(finalC1)
 print("myr:")
 print(input$myr)
-mylabbel=paste(input$myr, sep="", "_[%]")
-print(mylabbel)
-p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
+mylabel=paste0(input$myr, sep="", "_[%]")
+print(mylabel)
+names(finalC1)[names(finalC1) == mylabel] <- input$myr
+names(finalC1)[names(finalC1) == 'RER_NA'] <- 'RER'
+print(names(finalC1))
+p <- ggplot(data = finalC1, aes_string(y = input$myr, x="running_total.hrs.halfhour", color="Animals", group="Animals")) + geom_line()
 #p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
-#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, "O2_[%]"), color="Animals", group="Animals")) + geom_point()
-#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) + geom_point()
-#p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = 'HP2')) + geom_point()
 p <- ggplotly(p)
+},
+TotalOverDay={
+colors=as_factor(`$`(finalC1, "Animal No._NA"))
+finalC1$Animals=colors
+TEE1=aggregate(finalC1$HP, by=list(Animals=finalC1$Animals), FUN=sum)
+TEE2=aggregate(finalC1$HP2, by=list(Animals=finalC1$Animals), FUN=sum)
+TEE=rbind(TEE1, TEE2)
+print(TEE)
+names(TEE)[names(TEE) == 'x'] <- 'TEE'
+TEE$Equation = as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+print(TEE)
+p <- ggplot(data=TEE, aes(x=Equation, y=TEE, group=Equation)) + geom_boxplot() + geom_point(aes(fill=Animals))
+#p <- ggplotly(p)
+p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+#p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
 },
 {
 }
@@ -380,6 +395,72 @@ server <- function(input, output, session) {
       HTML(html_ui)
       })
 
+
+   observeEvent(c(input$variable1, input$variable2), {
+         text1 <- ""
+         text2 <- ""
+         switch(input$variable1,
+         Weir={
+            text1 = "$$ \\tag{1} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$"
+         },
+         HP={
+            text1 = "$$ \\tag{1} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
+         },
+         HP2={
+            text1 = "$$ \\tag{1} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"
+         },
+         Lusk={
+            text1 = "$$ \\tag{1} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$"
+         },
+         Elia={
+            text1 = "$$ \\tag{1} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
+         },
+         Brower={
+            text1 = "$$ \\tag{1} 16.07 \\times VO2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
+         },
+         Ferrannini={
+            text1 = "$$ \\tag{1} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
+         },
+         {
+         }
+         )
+
+         switch(input$variable2,
+         Weir={
+            text2 = "$$ \\tag{2} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$"
+         },
+         HP={
+            text2 = "$$ \\tag{2} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
+         },
+         HP2={
+            text2 = "$$ \\tag{2} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"
+         },
+         Lusk={
+            text2 = "$$ \\tag{2} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$"
+         },
+         Elia={
+            text2 = "$$ \\tag{2} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
+         },
+         Brower={
+            text2 = "$$ \\tag{2} 16.07 \\times VO2[\\frac{ml}{h}] + 4.69 \\times RER $$"
+         },
+         Ferrannini={
+            text2 = "$$ \\tag{2} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
+         },
+         {
+         }
+         )
+
+         output$heat_production_equations = renderUI(
+            tagList(
+            withMathJax(),
+            div("Chosen first (1) and second (2) equation for plotting"),
+            div(text1),
+            div(text2)
+            )
+         )
+   })
+
    # TODO: here decide which plot_type is used.
    observeEvent(input$plot_type, {
             output$myp = renderUI(
@@ -388,7 +469,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$myr = renderUI(
-         selectInput(inputId="myr", label="Chose raw data to plot", choices=c("O2", "CO2")))
+         selectInput(inputId="myr", label="Chose raw data to plot", choices=c("O2", "CO2", "RER")))
     })
 
    observeEvent(input$plot_type, {
@@ -430,6 +511,8 @@ server <- function(input, output, session) {
        }
        
       })
+
+   ### OUTPUT plots below here
 
    # Refresh plot (action button's action)
    observeEvent(input$replotting, {
