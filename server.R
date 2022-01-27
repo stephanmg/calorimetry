@@ -1,6 +1,7 @@
 # libraries
 library(ggplot2)
 library(plotly)
+library(zoo)
 library(ggpubr)
 library(viridis)
 library(dplyr)
@@ -20,17 +21,18 @@ do_export <- function(format, input, output) {
          file = input$File1
          real_data <- do_plotting(file$datapath, input, input$sick)
          h = hash()
-         # Specific mapping of colum names from TSE to CalR compatible .csv file
+         # Specific mapping of column names from TSE to CalR to produce a compatible .csv file
          h[["Datetime"]] <- "Date_Time"
          h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
          h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"
-         h[["HP"]] <- "RT_Kcal_hr_1" # caloric equivalent by 1st formula
-         h[["HP2"]] <- "RT_Kcal_hr_2" # caloric equivalent by 2nd formula
+         h[["HP"]] <- "RT_Kcal_hr_1" # caloric equivalent by 1st formula (HeatProduction)
+         h[["HP2"]] <- "RT_Kcal_hr_2" # caloric equivalent by 2nd formula (HeatProduction 2)
          for (v in ls(h)) {
             names(real_data$data)[names(real_data$data) == v] = h[[v]]
          }
 
-         fname = paste(paste(path_home(), input$export_folder$path[[2]], sep="/"), input$export_file_name, sep="/")
+         fname = paste(paste(path_home(), input$export_folder$path[[2]], sep="/"), 
+            input$export_file_name, sep="/")
          write.csv(real_data$data[values(h)], file=fname, row.names = FALSE)
          writeLines(gsub(pattern='"', replace="", x=readLines(fname)), con=fname)
       }
@@ -55,7 +57,6 @@ theme_pubr_update <- theme_pubr(base_size = 8.5) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 theme_set(theme_pubr_update)
 
-
 fileFormatTSE = FALSE
 finalC1 <- c()
 for (i in 1:input$nFiles) {
@@ -72,7 +73,6 @@ if (i == 1) {
    }
 }
 
-
 C1.raw <- read.csv2(file, na.strings = c("-","NA"))
 C1.raw[1:12,1:6]
 C1 <- read.csv2(file, header = F, skip = 10, na.strings = c("-","NA"))
@@ -86,11 +86,6 @@ C1.head <- read.csv2(file,
 names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 head(C1)
 print(head(C1))
-C1 <- C1 %>%
-    mutate(Genotype = case_when(`Animal No._NA` == 2262 ~ 'wt',
-                                `Animal No._NA` == 2263 ~ 'ko',
-                                `Animal No._NA` == 2265 ~ 'ko',
-                                `Animal No._NA` == 2195 ~ 'wt'))
 
 C1 <- C1 %>%
   unite(Datetime, # name of the final column
@@ -152,7 +147,7 @@ C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
 C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
 # Step #1 - define 1/n-hours steps 
-# TODO: Check if this is really correct ...
+# TODO: Check if this is really correct 
 if (input$averaging == 10) { # 1/6 hours
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 10 ~ 0,
@@ -170,7 +165,7 @@ C1 <- C1 %>%
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                minutes > 30 ~ 0.5))
-} else { # no averaging
+} else { # no averaging at all
 C1 <- C1 %>%
     mutate(timeintervalinmin = case_when(minutes <= 2 ~ 0))
 }
@@ -239,7 +234,7 @@ C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate me
                                     VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
                                     VCO2 = C1$`VCO2(3)_[ml/h]`, # calculate mean of VCO2
                                     RER = C1$RER_NA), # calculate mean of RER
-                   by = list(Genotype = C1$Genotype,
+                   by = list(
                              Animal = C1$`Animal No._NA`, # groups by Animal ID
                              Time = C1$running_total.hrs.round), # groups by total rounded running hour
                       FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
@@ -293,12 +288,18 @@ convert <- function(x) {
 
 #p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`, color=finalC1$`Animal No._NA`)) + geom_point()
 
+if (input$running_average > 0) {
+   p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color="Animals", group="Animals")) 
+   # TODO: Add switch statement for running_average_method
+   p <- p + geom_line(aes(y=rollmean(HP2, input$running_average, na.pad=TRUE)), group="Animals")
+} else {
 p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color="Animals", group="Animals")) 
 p <- p + geom_line()
+}
 p <- p + scale_fill_brewer(palette="Spectral")
+
 #p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "CO_2[%]", color="Animals", group="Animals")) + 
 #  scale_fill_brewer(palette="Spectral") + geom_line() 
-
 
 if (input$wmeans) {
    p <- p + geom_smooth(method="lm") 
@@ -516,7 +517,7 @@ server <- function(input, output, session) {
    ### TODO: add possible covariates from data here not only weight
    observeEvent(input$plot_type, {
       output$covariates = renderUI(
-            selectInput(inputId="covariates", label="Chose a covariate", selected="Weight", choices=c("Weight")))
+            selectInput(inputId="covariates", label="Chose a covariate", selected="Weight", choices=c("Weight", "Fat mass")))
    })
 
 
