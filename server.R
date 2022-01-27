@@ -291,7 +291,11 @@ convert <- function(x) {
 #print(finalC1$TimeInHours)
 
 
-#p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`)) +
+#p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`, color=finalC1$`Animal No._NA`)) + geom_point()
+
+p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color="Animals", group="Animals")) 
+p <- p + geom_line()
+p <- p + scale_fill_brewer(palette="Spectral")
 #p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "CO_2[%]", color="Animals", group="Animals")) + 
 #  scale_fill_brewer(palette="Spectral") + geom_line() 
 
@@ -310,7 +314,8 @@ p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
 p <- p + scale_x_continuous(limits=c(input$exclusion, NA))
 
 p <- ggplotly(p)
-p <- p %>% layout(dragmode = "pan") # %>% config(displayModeBar = FALSE)
+#p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+#p <- p %>% layout(dragmode = "pan") # %>% config(displayModeBar = FALSE)
 
 #  stat_smooth(method = "lm") + # adds regression line
 #  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
