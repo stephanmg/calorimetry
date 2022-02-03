@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@master
         with:
-          r-version: '4.1.1'
+          r-version: '4.1.2'
       - name: Install shiny and deploy
         run: |
           sudo apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev
