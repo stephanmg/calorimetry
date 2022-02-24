@@ -73,19 +73,37 @@ if (i == 1) {
    }
 }
 
-C1.raw <- read.csv2(file, na.strings = c("-","NA"))
-C1.raw[1:12,1:6]
-C1 <- read.csv2(file, header = F, skip = 10, na.strings = c("-","NA"))
+detectData = function(filename) {
+   con = file(filename, "r")
+   lineNo = 1
+   while (TRUE) {
+      lineNo = lineNo + 1
+      line = readLines(con, n=1)
+      print(length(line))
+      if (length(line) == 0 || length(grep("^;+$", line) != 0) || line == "") {
+         return(lineNo)
+      }
+   }
+}
+
+print("detect data:")
+toSkip = detectData(file)
+print(toSkip)
+#C1.raw <- read.csv2(file, na.strings = c("-","NA"))
+#C1.raw[1:toSkip,1:6]
+C1 <- read.csv2(file, header = F, skip = toSkip+1, na.strings = c("-","NA"), fileEncoding="ISO-8859-1")
 C1.head <- read.csv2(file, 
                      header = F,
-                     skip = 8, #skip rows until the first header line indicating the variable
+                     skip = toSkip-1, #skip rows until the first header line indicating the variable
                      nrows = 2, #read only two rows (variable name + unit)
                      na.strings = c("","NA"), #transform missing units to NA
                      as.is = TRUE, #avoid transformation of character to vector
-                     check.names = FALSE) #set the decimal separator of the csv file
+                     check.names = FALSE, #set the decimal separator of the csv file
+                     fileEncoding = "ISO-8859-1")
 names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 head(C1)
 print(head(C1))
+print(names(C1))
 
 C1 <- C1 %>%
   unite(Datetime, # name of the final column
