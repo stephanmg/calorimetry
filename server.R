@@ -91,7 +91,9 @@ toSkip = detectData(file)
 print(toSkip)
 #C1.raw <- read.csv2(file, na.strings = c("-","NA"))
 #C1.raw[1:toSkip,1:6]
-C1 <- read.csv2(file, header = F, skip = toSkip+1, na.strings = c("-","NA"), fileEncoding="ISO-8859-1")
+C1 <- read.csv2(file, header = F, skip = toSkip+1, na.strings = c("-","NA"), fileEncoding="ISO-8859-1", sep=";")
+C1meta <- read.csv2(file, header=T, skip=2, nrows=toSkip+1-4, na.strings = c("-", "NA"), fileEncoding="ISO-8859-1")
+print(names(C1meta))
 C1.head <- read.csv2(file, 
                      header = F,
                      skip = toSkip-1, #skip rows until the first header line indicating the variable
@@ -363,7 +365,36 @@ StackedBarPlotForRMRandNonRMR={
 },
 ANCOVA={
 
-### TODO: Implement
+print(`$`(C1meta, "Weight..g."))
+print(`$`(C1meta, "Animal.No."))
+
+metadata <- data.frame(`$`(C1meta, "Weight..g."), `$`(C1meta, "Animal.No."))
+names(metadata) <- c("Weight", "Animal No._NA")
+
+finalC1[, "Weight"] <- NA
+for (i in 1:nrow(finalC1)) 
+{
+   #print("animal no")
+   #print(finalC1[i, "Animal No._NA"])
+   #print("j")
+   js = which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
+   if(length(js) > 0) {
+        w = metadata[js, "Weight"]
+        finalC1[i, "Weight"] = w
+   }
+   #finalC1[i, "Weight"] = metadata[j, "Weight"]
+}
+names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
+finalC1$Animal <- as.factor(finalC1$Animal)
+
+
+# TODO: aggregate TEE over day per animal, then ancova over animals TEE (y) vs weight (x) color by KO vs WT
+write.csv2(finalC1, file="finalC1.csv")
+#p <- ggplot(data = finalC1, aes(x=Weight, y=HP, group=Animal, color=Animal)) + geom_point()
+p <- ggplot(data = finalC1, aes(x=Weight, y=HP, group=running_total.hrs.halfhour)) + geom_point()
+p <- p + geom_smooth(method = "lm", se = FALSE)
+p <- ggplotly(p)
+
 },
 RAW={
 write.csv2(finalC1, file="finalC1.csv")
