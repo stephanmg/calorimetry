@@ -97,7 +97,7 @@ sidebar_content <- sidebarPanel(
    h3("Plotting status"),
    span(textOutput("message"), style="color:red"),
    h1("Data export"),
-   selectInput("export_format", "Format", choices=c("CalR", "Sable")),
+   selectInput("export_format", "Format", choices=c("CalR", "Sable", "XLSX")),
    h2("Folder"),
    shinyDirButton("export_folder", "Select a folder", "Please select a folder", FALSE),
    h2("File name"),

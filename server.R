@@ -609,6 +609,10 @@ server <- function(input, output, session) {
        if (input$export_format == "Sable") {
            output$message <- renderText("Sable system export not yet implemented!")
        }
+      
+       if (input$export_format == "XLSX") {
+           output$message <- renderText("XLSX not yet implemented!")
+        }
        
       })
 
