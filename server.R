@@ -361,7 +361,7 @@ p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALS
 },
 StackedBarPlotForRMRandNonRMR={
 
-### TODO: Implement
+### TODO: Implement: add description
 },
 ANCOVA={
 
@@ -371,7 +371,10 @@ print(`$`(C1meta, "Animal.No."))
 metadata <- data.frame(`$`(C1meta, "Weight..g."), `$`(C1meta, "Animal.No."))
 names(metadata) <- c("Weight", "Animal No._NA")
 
+
 finalC1[, "Weight"] <- NA
+#print(by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = 10))
+#by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
 for (i in 1:nrow(finalC1)) 
 {
    #print("animal no")
@@ -380,20 +383,36 @@ for (i in 1:nrow(finalC1))
    js = which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
    if(length(js) > 0) {
         w = metadata[js, "Weight"]
-        finalC1[i, "Weight"] = w
+        finalC1[i, "Weight"] = as.numeric(w)
    }
-   #finalC1[i, "Weight"] = metadata[j, "Weight"]
 }
 names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
 finalC1$Animal <- as.factor(finalC1$Animal)
 
 
+#            p <- ggscatter(df_comparison, x="ref", y="calr", add = "reg.line", add.params = list(color="black", fill="lightgray")) +
+
 # TODO: aggregate TEE over day per animal, then ancova over animals TEE (y) vs weight (x) color by KO vs WT
 write.csv2(finalC1, file="finalC1.csv")
 #p <- ggplot(data = finalC1, aes(x=Weight, y=HP, group=Animal, color=Animal)) + geom_point()
-p <- ggplot(data = finalC1, aes(x=Weight, y=HP, group=running_total.hrs.halfhour)) + geom_point()
-p <- p + geom_smooth(method = "lm", se = FALSE)
+finalC1 <- drop_na(finalC1)
+finalC1 <- aggregate(finalC1, by=list(AnimalGroup=finalC1$Animal), FUN=mean)
+print(finalC1)
+print(names(finalC1))
+#p <- ggplot(data = finalC1, aes(x=Weight, y=HP, group=running_total.hrs.halfhour)) + geom_point()
+
+p <- ggscatter(finalC1, x="Weight", y="HP", add = "reg.line", add.params = list(color="blue", fill="lightgray"), conf.int = TRUE)
+p <- p + xlab("Weight [g]") + ylab("Mean heat production")
 p <- ggplotly(p)
+## old
+#p <- ggplot(data = finalC1, aes(x=Weight, y=HP)) + geom_point()
+#p <- p + geom_smooth(method=lm)
+
+
+
+#p <- ggplotly(p)
+
+print(summary(lm(HP ~ Weight, finalC1)))
 
 },
 RAW={
