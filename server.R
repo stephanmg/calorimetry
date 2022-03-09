@@ -585,7 +585,7 @@ server <- function(input, output, session) {
    ### TODO: add possible covariates from data here not only weight
    observeEvent(input$plot_type, {
       output$covariates = renderUI(
-            selectInput(inputId="covariates", label="Chose a covariate", selected="Weight", choices=c("Weight", "Fat mass")))
+            selectInput(inputId="covariates", label="Chose a covariate", selected="Weight", choices=c("Weight", "Lean mass", "Fat mass")))
    })
 
 
