@@ -1,5 +1,6 @@
 # libraries
 library(ggplot2)
+library(data.table)
 library(plotly)
 library(zoo)
 library(ggpubr)
@@ -368,7 +369,17 @@ ANCOVA={
 print(`$`(C1meta, "Weight..g."))
 print(`$`(C1meta, "Animal.No."))
 
-metadata <- data.frame(`$`(C1meta, "Weight..g."), `$`(C1meta, "Animal.No."))
+my_covariate = "Weight..g."
+print(colnames(C1meta))
+for (c in colnames(C1meta)) {
+   if (c %like% input$covariates) {
+      my_covariate = "Weight..g."
+      break
+   }
+}
+
+#metadata <- data.frame(`$`(C1meta, foo), `$`(C1meta, "Animal.No."))
+metadata <- data.frame(C1meta[my_covariate], `$`(C1meta, "Animal.No."))
 names(metadata) <- c("Weight", "Animal No._NA")
 
 
@@ -478,7 +489,7 @@ p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALS
 
 #write.csv2(finalC1, file="test.csv")
 
-list("plot"=p, "animals"=`$`(C1, "Animal No._NA"), "data"=finalC1)
+list("plot"=p, "animals"=`$`(C1, "Animal No._NA"), "data"=finalC1,"metadata"=C1meta)
 }
 
 
@@ -663,6 +674,11 @@ server <- function(input, output, session) {
            } else {
                output$message <- renderText("Success")
            }
+
+            if (! any(colnames(real_data$metadata) %like% input$covariates)) {
+               output$message <- renderText("Covariate not present in data sets, fallback to default (Weight [g])")
+            }
+
 
            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick = renderUI(
