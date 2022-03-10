@@ -1,8 +1,8 @@
 # required libraries 
 library(ggplot2)
-library(data.table)
+library(data.table) # only for %like% so far
 library(plotly)
-library(zoo)
+library(zoo) # only for running aveage calculations
 library(ggpubr)
 library(viridis)
 library(dplyr)
