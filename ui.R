@@ -1,10 +1,11 @@
 library("shinyFiles")
 library("plotly")
 
-# Page 1 - Introduction ----------------------------------------------
+################################################################################
+# First page: Introduction
+################################################################################
 intro_panel <- tabPanel(
   "Introduction",
-  
   titlePanel("Indirect calorimetry"),
   tags$img(src="splash.jpg", align="right"),
   
@@ -34,6 +35,9 @@ intro_panel <- tabPanel(
   
 )
 
+################################################################################
+# side bars
+################################################################################
 sidebar_content2 <- sidebarPanel(
    fileInput("rerself", "RER self (means)"),
    fileInput("rercalr", "RER CalR (means)"),
@@ -52,33 +56,23 @@ sidebar_content <- sidebarPanel(
    withMathJax(),
    h1("Heat production"),
    div("Chose two of the established equations for calculating the heat production in mW. Note that HP and HP2 refer to the Heldmaier equations reported in Journal of Comparative Physiology 1975, 102:115-122:"),
-   #div("$$ \\tag{1} HP[mW] = VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"),
-   #div("$$ \\tag{2} HP2[mW] = (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"),
-   #div("If desired, choose two different formula from the drop-down menus below for a comparison (HP are the Heldmaier formulas)"),
    selectInput("variable1", "Select first equation", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
    selectInput("variable2", "Select second equation", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
    withMathJax(),
    uiOutput('heat_production_equations'),
    numericInput("nFiles", "Number of data files", value=1, min=1, step=1),
    uiOutput("fileInputs"),
-   # fileInput("File", "Analyze calorimetic data"),
-   #br(), br(),
    br(),
- #numericRangeInput(
- #   inputId = "noui1", label = "Remove outliers",
- #   value = c(100, 400)
- # ),verbatimTextOutput(outputId="res1"),
    h1("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
-   #actionButton("replotting", "Forced Refresh"),
-   #h2("Feature selection"),
-   #selectInput("variable1", "Variable 1:", c("HP", "V4", "V1", "V12", "V16")),
-   #selectInput("variable2", "Variable 2:", c("HP2", "V16", "V4", "V12", "V1")),
    h2("Plot configuration"),
-   ### TODO: based on plot_type, add more conditional panels, so can get rid of the above sections with heat production which is confusing, so display in case of line plot = scatterplot configurations
-   ### from above, in case of caloric equivalent the establsiehd and for box plot nothing at the moment, these are the 2 scenarios, compare formulas for heat production (2 formulars) and calculate heat 
-   ### production over time...
+   ### TODO: based on plot_type, add more conditional panels, so can get rid of
+   ### the above sections with heat production which is confusing, so display in 
+   ### case of line plot = scatterplot configurations from above, in case of 
+   ### caloric equivalent the establsiehd and for box plot nothing at the moment, 
+   ### these are the 2 scenarios, compare formulas for heat production (2 formulars) 
+   ### and calculate heat production over time
    selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "StackedBarPlotForRMRandNonRMR", "ANCOVA", "Histogram", "RAW", "TotalOverDay")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
@@ -106,16 +100,23 @@ sidebar_content <- sidebarPanel(
    uiOutput("folder_name_export"),
    actionButton("export", "Export")
 )
-
+################################################################################
+# Main panel
+################################################################################
 main_content <- mainPanel(
-  #plotOutput("plot")
   plotlyOutput("plot")
 )
 
+################################################################################
+# Plotting validation
+################################################################################
 main_content2 <- mainPanel(
    plotOutput("plotvalidation")
 )
 
+################################################################################
+# Visualization panel
+################################################################################
 second_panel <- tabPanel(
   "Visualization",
   titlePanel("Long term observational studies"),
@@ -125,6 +126,9 @@ second_panel <- tabPanel(
   )
 )
 
+################################################################################
+# Validation panel
+################################################################################
 third_panel <- tabPanel(
    "Validation",
    titlePanel("Validation of results by comparing RER values (CalR and self)"),
@@ -134,24 +138,36 @@ third_panel <- tabPanel(
    )
 )
 
+################################################################################
+# Help and documentation
+################################################################################
 forth_panel <- tabPanel(
    "Help",
    titlePanel("Help and documentation"),
    p("TODO")
 )
 
+################################################################################
+# Contact
+################################################################################
 fifth_panel <- tabPanel(
    "Contact",
    titlePanel("Contact us"),
    p("TODO")
 )
 
+################################################################################
+# Data export
+################################################################################
 sixth_panel <- tabPanel(
    "Data export",
    titlePanel("Data export"),
    p("TODO")
 )
 
+################################################################################
+# Main navigation bar
+################################################################################
 ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,

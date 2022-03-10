@@ -18,4 +18,5 @@
 
 ## TODOs
 - Address TODOs
+- Modularize app structure
 - Add unit tests
