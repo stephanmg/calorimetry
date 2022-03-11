@@ -663,6 +663,7 @@ server <- function(input, output, session) {
                output$message <- renderText("Success")
            }
 
+           # Caused an error before on deployment, need to check for null always.
             if (!is.null(input$covariates)) {
                if (! any(colnames(real_data$metadata) %like% input$covariates)) {
                   output$message <- renderText("Covariate not present in data sets, fallback to default (Weight [g])")
