@@ -391,6 +391,8 @@ do_plotting <- function(file, input, exclusion, output) {
    my_data <- read_excel(input$metadatafile$datapath)
 
    df <- tbl_df(my_data) # use as_tibble (tbl_df deprecated)
+   # TODO: based on covariate extract a different line, weight is in line 26
+   # lean in 27 and fat in 28 line...
    a = df[21,] %>% slice(1) %>% unlist(., use.names=FALSE)
    b = df[26,] %>% slice(1) %>% unlist(., use.names=FALSE)
    metadata <- data.frame(a, b)
