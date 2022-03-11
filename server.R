@@ -1,6 +1,7 @@
 # required libraries 
 library(ggplot2)
 library(data.table) # only for %like% so far
+library(readxl) # only to read .xlsm files
 library(plotly)
 library(zoo) # only for running aveage calculations
 library(ggpubr)
@@ -95,6 +96,7 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
+
 
    # Skip metadata 
    toSkip = detectData(file)
@@ -381,9 +383,22 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    #metadata <- data.frame(`$`(C1meta, foo), `$`(C1meta, "Animal.No."))
-   metadata <- data.frame(C1meta[my_covariate], `$`(C1meta, "Animal.No."))
-   names(metadata) <- c("Weight", "Animal No._NA")
+   #metadata <- data.frame(C1meta[my_covariate], `$`(C1meta, "Animal.No."))
+   #names(metadata) <- c("Weight", "Animal No._NA")
+   #print(metadata)
    finalC1[, "Weight"] <- NA
+
+   my_data <- read_excel(input$metadatafile$datapath)
+
+   df <- tbl_df(my_data) # use as_tibble (tbl_df deprecated)
+   a = df[21,] %>% slice(1) %>% unlist(., use.names=FALSE)
+   b = df[26,] %>% slice(1) %>% unlist(., use.names=FALSE)
+   metadata <- data.frame(a, b)
+   metadata <- na.omit(metadata)
+   names(metadata) <- c("Weight", "Animal No._NA")
+   metadata = metadata[seq(2, nrow(metadata)),]
+   print(metadata$Weight)
+
    #print(by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = 10))
    #by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
    # TODO: Make for loop more efficient
@@ -392,11 +407,14 @@ do_plotting <- function(file, input, exclusion, output) {
       js = which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
       if(length(js) > 0) {
          w = metadata[js, "Weight"]
-         finalC1[i, "Weight"] = as.numeric(w)
+         print(w)
+         finalC1[i, "Weight"] = as.numeric(w) # as.numeric()
       }
    }
    names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
    finalC1$Animal <- as.factor(finalC1$Animal)
+
+
 
    write.csv2(finalC1, file="finalC1.csv")
    finalC1 <- drop_na(finalC1)
@@ -455,6 +473,12 @@ do_plotting <- function(file, input, exclusion, output) {
 ################################################################################
 server <- function(input, output, session) {
    shinyDirChoose(input, 'export_folder', roots=c(wd=path_home()), filetypes=c('', 'txt'))
+
+   output$metadatafile=renderUI({
+      html_ui = " "
+      html_ui <- paste0(html_ui, fileInput("metadatafile", label="Metadata file"))
+      HTML(html_ui)
+   })
 
    # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs=renderUI({
@@ -639,8 +663,10 @@ server <- function(input, output, session) {
                output$message <- renderText("Success")
            }
 
-            if (! any(colnames(real_data$metadata) %like% input$covariates)) {
-               output$message <- renderText("Covariate not present in data sets, fallback to default (Weight [g])")
+            if (!is.null(input$covariates)) {
+               if (! any(colnames(real_data$metadata) %like% input$covariates)) {
+                  output$message <- renderText("Covariate not present in data sets, fallback to default (Weight [g])")
+               }
             }
 
 

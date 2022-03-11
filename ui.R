@@ -60,6 +60,8 @@ sidebar_content <- sidebarPanel(
    selectInput("variable2", "Select second equation", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
    withMathJax(),
    uiOutput('heat_production_equations'),
+   checkboxInput(inputId="havemetadata", label="Have metadata?"),
+   conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    numericInput("nFiles", "Number of data files", value=1, min=1, step=1),
    uiOutput("fileInputs"),
    br(),
