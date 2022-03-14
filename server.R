@@ -421,10 +421,12 @@ do_plotting <- function(file, input, exclusion, output) {
    print("before filter")
    # filter df by indexing
    if (length(input$checkboxgroup_gender) == 0) {
+      finalC1 <- NA
    } else {
       if (! length(input$checkboxgroup_gender) == 2) {
           print(input$checkboxgroup_gender)
           finalC1 = finalC1[finalC1$Gender == input$checkboxgroup_gender,]
+          print(finalC1)
     }
    }
    print("after filter")
@@ -445,7 +447,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # TOOD: add summary statistics to plot
    print(summary(lm(HP ~ Weight, finalC1)))
    message <- NULL
-   if (sum(is.na(finalC1)) > 0) {
+   if (sum(is.na(finalC1)) > 0) { 
       message <- paste("# ", sum(is.na(finalC1)), " entries do not have metadata attached, Check metadata file.")
    }
    return (list("plot"=p, status=message, metadata=metadata))
@@ -587,7 +589,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
             output$checkboxgroup_gender = renderUI(
-               checkboxGroupInput(inputId="checkboxgroup_gender", label="Chose gender", choices=list("male"=1, "female"=2), selected=c(1,2)))
+               checkboxGroupInput(inputId="checkboxgroup_gender", label="Chose gender", choices=list("male"="male", "female"="female"), selected=c("malw","female")))
          })
 
    observeEvent(input$plot_type, {
