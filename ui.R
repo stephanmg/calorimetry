@@ -81,6 +81,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'RAW'", uiOutput("myr")),
+   conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step=10),
    sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1),
    selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum")),

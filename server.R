@@ -102,6 +102,7 @@ do_plotting <- function(file, input, exclusion, output) {
    toSkip = detectData(file)
    # File encoding important, otherwise Shiny apps crashes due to undefined character entity
    C1 <- read.csv2(file, header = F, skip = toSkip+1, na.strings = c("-","NA"), fileEncoding="ISO-8859-1", sep=";")
+   # TODO: C1meta obsolete
    C1meta <- read.csv2(file, header=T, skip=2, nrows=toSkip+1-4, na.strings = c("-", "NA"), fileEncoding="ISO-8859-1")
 
    # Curate data frame
@@ -373,7 +374,7 @@ do_plotting <- function(file, input, exclusion, output) {
       # TODO: Implement
    },
    ANCOVA={
-   # fall back covariate
+   # fall back covariate (TODO: can be used from xlsx sheet not from csv input measurement file)
    my_covariate = "Weight..g."
    for (c in colnames(C1meta)) {
       if (c %like% input$covariates) {
@@ -387,6 +388,7 @@ do_plotting <- function(file, input, exclusion, output) {
    #names(metadata) <- c("Weight", "Animal No._NA")
    #print(metadata)
    finalC1[, "Weight"] <- NA
+   finalC1[, "Gender"] <- NA
 
    my_data <- read_excel(input$metadatafile$datapath)
 
@@ -394,10 +396,11 @@ do_plotting <- function(file, input, exclusion, output) {
    # TODO: based on covariate extract a different line, weight is in line 26
    # lean in 27 and fat in 28 line...
    a = df[21,] %>% slice(1) %>% unlist(., use.names=FALSE)
+   c = df[23,] %>% slice(1) %>% unlist(., use.names=FALSE)
    b = df[26,] %>% slice(1) %>% unlist(., use.names=FALSE)
-   metadata <- data.frame(a, b)
+   metadata <- data.frame(a, b, c)
    metadata <- na.omit(metadata)
-   names(metadata) <- c("Weight", "Animal No._NA")
+   names(metadata) <- c("Weight", "Animal No._NA", "Gender")
    metadata = metadata[seq(2, nrow(metadata)),]
    print(metadata$Weight)
 
@@ -409,14 +412,26 @@ do_plotting <- function(file, input, exclusion, output) {
       js = which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
       if(length(js) > 0) {
          w = metadata[js, "Weight"]
-         print(w)
+         w2 = metadata[js, "Gender"]
          finalC1[i, "Weight"] = as.numeric(w) # as.numeric()
+         finalC1[i, "Gender"] = w2
       }
    }
+      
+   print("before filter")
+   # filter df by indexing
+   if (length(input$checkboxgroup_gender) == 0) {
+   } else {
+      if (! length(input$checkboxgroup_gender) == 2) {
+          print(input$checkboxgroup_gender)
+          finalC1 = finalC1[finalC1$Gender == input$checkboxgroup_gender,]
+    }
+   }
+   print("after filter")
+   
+
    names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
    finalC1$Animal <- as.factor(finalC1$Animal)
-
-
 
    write.csv2(finalC1, file="finalC1.csv")
    finalC1 <- drop_na(finalC1)
@@ -429,7 +444,11 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- ggplotly(p)
    # TOOD: add summary statistics to plot
    print(summary(lm(HP ~ Weight, finalC1)))
-
+   message <- NULL
+   if (sum(is.na(finalC1)) > 0) {
+      message <- paste("# ", sum(is.na(finalC1)), " entries do not have metadata attached, Check metadata file.")
+   }
+   return (list("plot"=p, status=message, metadata=metadata))
    },
    RAW={
    write.csv2(finalC1, file="finalC1.csv")
@@ -567,6 +586,11 @@ server <- function(input, output, session) {
          })
 
    observeEvent(input$plot_type, {
+            output$checkboxgroup_gender = renderUI(
+               checkboxGroupInput(inputId="checkboxgroup_gender", label="Chose gender", choices=list("male"=1, "female"=2), selected=c(1,2)))
+         })
+
+   observeEvent(input$plot_type, {
       output$myr = renderUI(
          selectInput(inputId="myr", label="Chose raw data to plot", choices=c("O2", "CO2", "RER")))
     })
@@ -659,16 +683,18 @@ server <- function(input, output, session) {
            real_data <- do_plotting(file$datapath, input, input$sick)
            
            print(real_data$status)
-           if (! (is.null(real_data$status)) && (real_data$status == FALSE)) {
-               output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.")
-           } else {
-               output$message <- renderText("Success")
-           }
+           if (! is.null(real_data$status)) {
+               if (real_data$status == FALSE) {
+                  output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.")
+               } else {
+                  output$message <- renderText(real_data$status)
+               }
+            }
 
            # Caused an error before on deployment, need to check for null always.
             if (!is.null(input$covariates)) {
                if (! any(colnames(real_data$metadata) %like% input$covariates)) {
-                  output$message <- renderText("Covariate not present in data sets, fallback to default (Weight [g])")
+                  output$message <- renderText("Covariate not present in (all) data sets, fallback to default (Weight [g])")
                }
             }
 
