@@ -20,3 +20,4 @@
 - Address TODOs
 - Modularize app structure
 - Add unit tests
+- (Add activity data)
