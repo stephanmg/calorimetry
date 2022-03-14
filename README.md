@@ -15,3 +15,9 @@
 
 ## Demo
 [TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
+
+## TODOs
+- Address TODOs
+- Modularize app structure
+- Add unit tests
+- (Add activity data)
