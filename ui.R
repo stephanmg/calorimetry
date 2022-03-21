@@ -1,5 +1,6 @@
 library("shinyFiles")
 library("plotly")
+library("shinybusy")
 
 ################################################################################
 # First page: Introduction
@@ -53,6 +54,7 @@ sidebar_content3 <- sidebarPanel(
 )
 
 sidebar_content <- sidebarPanel(
+   add_busy_bar(color = "#FF0000"),
    withMathJax(),
    h1("Heat production"),
    div("Chose two of the established equations for calculating the heat production in mW. Note that HP and HP2 refer to the Heldmaier equations reported in Journal of Comparative Physiology 1975, 102:115-122:"),
