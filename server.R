@@ -45,7 +45,7 @@ do_export <- function(format, input, output) {
    }
 
    if (format == "Sable") {
-      # TODO: Implement
+      # TODO: Implement Sable system import
       output$message <- renderText("Sable system export not yet implemented!")
       FALSE
    }
@@ -390,6 +390,7 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1[, "Weight"] <- NA
    finalC1[, "Gender"] <- NA
 
+   # The metadata from the excel spreadsheet
    my_data <- read_excel(input$metadatafile$datapath)
 
    df <- tbl_df(my_data) # use as_tibble (tbl_df deprecated)
@@ -406,7 +407,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    #print(by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = 10))
    #by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
-   # TODO: Make for loop more efficient
+   # TODO: Make for loop more efficient somehow
    for (i in 1:nrow(finalC1)) 
    {
       js = which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
