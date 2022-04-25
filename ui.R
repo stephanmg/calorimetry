@@ -76,7 +76,7 @@ sidebar_content <- sidebarPanel(
    ### caloric equivalent the establsiehd and for box plot nothing at the moment, 
    ### these are the 2 scenarios, compare formulas for heat production (2 formulas) 
    ### and calculate heat production over time in the following then
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "StackedBarPlotForRMRandNonRMR", "ANCOVA", "Histogram", "RAW", "TotalOverDay")),
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "StackedBarPlotForRMRandNonRMR", "ANCOVA", "Histogram", "RAW", "TotalOverDay", "CoefficientOfVariation")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),

@@ -356,6 +356,9 @@ do_plotting <- function(file, input, exclusion, output) {
    #  stat_smooth(method = "lm") + # adds regression line
    #  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
    },
+   CoefficientOfVariation={
+      print(rollmean(finalC1$HP2, input$running_average, na.pad=TRUE))
+   },
    DayNightActivity={
 
    convert <- function(x) {

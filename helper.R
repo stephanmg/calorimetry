@@ -1,0 +1,46 @@
+library(dplyr)
+library(plyr)
+
+# mock data: replace with real data, Group=AnimalNo/Group, Values=TEE for heat production formula #1, Values2=TEE for heat production formula #2
+# TEE comes from roll mean with averaging window = 3 or so, before we average data to half hours of 10 minutes ... (do we need all of this?)
+df <- data.frame(Values=c(1,2,3,4,57,8,9,10), Group=c("A", "A", "A", "A", "B", "B", "B", "B"), Values2=c(1,2,3,4,5,6,7,8))
+
+partition <- function(mydf) {
+   df <- mydf
+   data <- df %>% group_split(Group)
+   df_new <- data.frame()
+   for (i in data) {
+        if (nrow(df_new) == 0) {
+            df_new = data.frame(c(i$Values))
+        } else {
+            df_new <- cbind(df_new, c(i$Values))
+        }
+   }
+   colnames(df_new) <- unique(df$Group)
+   df_new
+}
+
+cv <- function(mydf) {
+   df = mydf
+   window = 2
+   df_new = data.frame()
+   for(i in 1:ncol(df)) {
+      values = df[, i]
+      covs = c()
+      for (j in seq(from=1, to=length(values), by=window)) {
+         m = mean(values[seq(from=j, to=j+window-1, by=1)])
+         s = sd(values[seq(from=j, to=j+window-1, by=1)])
+         covs <- append(covs, s/m)
+      }
+      if (nrow(df_new) == 0) {   
+         df_new = data.frame(covs)
+      } else {
+         df_new <- cbind(df_new, covs)
+      }
+   }
+   colnames(df_new) <- names(df)
+   df_new
+}
+
+df_new = partition(df)
+print(cv(df_new))
