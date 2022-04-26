@@ -12,6 +12,7 @@ library(shinyWidgets)
 library(fs)
 library(hash)
 require(tidyverse)
+source("helper.R")
 
 ################################################################################
 # Export to CalR and Sable format
@@ -358,6 +359,36 @@ do_plotting <- function(file, input, exclusion, output) {
    },
    CoefficientOfVariation={
       print(rollmean(finalC1$HP2, input$running_average, na.pad=TRUE))
+      df <- data.frame(Values=finalC1$HP2, Group=`$`(finalC1, "Animal No._NA"), Values2=finalC1$HP)
+      df_new = partition(df)
+      df_new = cv(df_new, input$window)
+      df_new = reformat(df_new)
+
+      convert <- function(x) {
+        splitted = strsplit(as.character(x), " ")
+        paste(splitted[[1]][2], ":00", sep="")
+     }
+
+      finalC1$Datetime <- lapply(finalC1$Datetime, convert)
+      print("nrows ndew")
+      print(nrow(df_new))
+      print("finalc rows")
+      print(nrow(finalC1))
+      df_to_plot = cbind(df_new, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
+      #finalC1 = finalC1 %>% arrange(desc(`Animal No._NA`))
+      #df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+
+      df_to_plot$Group = as_factor(df_to_plot$Group)
+      write.csv2(df_new, file="df_new.csv")
+      colnames(df_to_plot) = c("CoefficientOfVariation", "Animal", "Time")
+      print("to plot:")
+      print(df_to_plot)
+      write.csv2(df_to_plot, file="df_to_plot.csv")
+
+       p <- ggplot(df_to_plot, aes(x=Time, y=CoefficientOfVariation, color=Animal)) + geom_line()
+       p <- p + xlab("Time [h]")
+       p <- p + ylab("Coefficient of variation")
+       p <- ggplotly(p) 
    },
    DayNightActivity={
 
