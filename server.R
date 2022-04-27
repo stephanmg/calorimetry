@@ -1,9 +1,9 @@
 # required libraries 
 library(ggplot2)
-library(data.table) # only for %like% so far
-library(readxl) # only to read .xlsm files
+library(data.table) # %like% 
+library(readxl) # to read .xlsx/.xlsxm files
 library(plotly)
-library(zoo) # only for running aveage calculations
+library(zoo) # running average methods
 library(ggpubr)
 library(viridis)
 library(dplyr)
@@ -12,7 +12,7 @@ library(shinyWidgets)
 library(fs)
 library(hash)
 require(tidyverse)
-source("helper.R")
+source("helper.R") # helpers 
 
 ################################################################################
 # Export to CalR and Sable format
@@ -98,12 +98,11 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
 
-
    # Skip metadata 
    toSkip = detectData(file)
    # File encoding important, otherwise Shiny apps crashes due to undefined character entity
    C1 <- read.csv2(file, header = F, skip = toSkip+1, na.strings = c("-","NA"), fileEncoding="ISO-8859-1", sep=";")
-   # TODO: C1meta obsolete
+   # TODO: C1meta obsolete when using metadata sheet
    C1meta <- read.csv2(file, header=T, skip=2, nrows=toSkip+1-4, na.strings = c("-", "NA"), fileEncoding="ISO-8859-1")
 
    # Curate data frame
@@ -334,7 +333,7 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    p <- p + scale_fill_brewer(palette="Spectral")
 
-   #p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "CO_2[%]", color="Animals", group="Animals")) + 
+   # p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "CO_2[%]", color="Animals", group="Animals")) + 
    #  scale_fill_brewer(palette="Spectral") + geom_line() 
 
    if (input$wmeans) {
@@ -351,8 +350,8 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + scale_x_continuous(limits=c(input$exclusion, NA))
 
    p <- ggplotly(p)
-   #p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
-   #p <- p %>% layout(dragmode = "pan") # %>% config(displayModeBar = FALSE)
+   # p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+   # p <- p %>% layout(dragmode = "pan") # %>% config(displayModeBar = FALSE)
 
    #  stat_smooth(method = "lm") + # adds regression line
    #  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
@@ -375,8 +374,8 @@ do_plotting <- function(file, input, exclusion, output) {
       print("finalc rows")
       print(nrow(finalC1))
       df_to_plot = cbind(df_new, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
-      #finalC1 = finalC1 %>% arrange(desc(`Animal No._NA`))
-      #df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+      # finalC1 = finalC1 %>% arrange(desc(`Animal No._NA`))
+      # df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
 
       df_to_plot$Group = as_factor(df_to_plot$Group)
       write.csv2(df_new, file="df_new.csv")
@@ -405,7 +404,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    },
    StackedBarPlotForRMRandNonRMR={
-      # TODO: Implement
+      # TODO: Implement stacked bar plot for RMR and non-RMR
    },
    ANCOVA={
    # fall back covariate (TODO: can be used from xlsx sheet not from csv input measurement file)
@@ -417,10 +416,10 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
 
-   #metadata <- data.frame(`$`(C1meta, foo), `$`(C1meta, "Animal.No."))
-   #metadata <- data.frame(C1meta[my_covariate], `$`(C1meta, "Animal.No."))
-   #names(metadata) <- c("Weight", "Animal No._NA")
-   #print(metadata)
+   # metadata <- data.frame(`$`(C1meta, foo), `$`(C1meta, "Animal.No."))
+   # metadata <- data.frame(C1meta[my_covariate], `$`(C1meta, "Animal.No."))
+   # names(metadata) <- c("Weight", "Animal No._NA")
+   # print(metadata)
    finalC1[, "Weight"] <- NA
    finalC1[, "Gender"] <- NA
 
@@ -495,7 +494,7 @@ do_plotting <- function(file, input, exclusion, output) {
    names(finalC1)[names(finalC1) == mylabel] <- input$myr
    names(finalC1)[names(finalC1) == 'RER_NA'] <- 'RER'
    p <- ggplot(data = finalC1, aes_string(y = input$myr, x="running_total.hrs.halfhour", color="Animals", group="Animals")) + geom_line()
-   #p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
+   # p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
    p <- ggplotly(p)
    },
    TotalOverDay={
@@ -516,7 +515,7 @@ do_plotting <- function(file, input, exclusion, output) {
    TEE$Equation = as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
    TEE$Days = as_factor(TEE$Days)
    TEE$Animals = as_factor(TEE$Animals)
-   #p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Animals)) + geom_boxplot() # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
+   # p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Animals)) + geom_boxplot() # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
    p <- ggplot(data=TEE, aes(x=Animals, y=TEE, fill=Equation)) + geom_boxplot() + geom_point(position=position_jitterdodge()) # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
    p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
    },
