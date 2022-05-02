@@ -357,11 +357,34 @@ do_plotting <- function(file, input, exclusion, output) {
    #  stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
    },
    CoefficientOfVariation={
+      component2 = ""
       print(rollmean(finalC1$HP2, input$running_average, na.pad=TRUE))
-      df <- data.frame(Values=finalC1$HP2, Group=`$`(finalC1, "Animal No._NA"), Values2=finalC1$HP)
+      if (length(input$cvs) == 2) {
+         component = input$cvs[[1]]
+         component2 = input$cvs[[2]]
+      } else {
+         component = input$cvs
+         component2 = component
+      }
+      component = paste("V", component, "(3)_[ml/h]", sep="")
+      component2 = paste("V", component2, "(3)_[ml/h]", sep="")
+
+      if (length(input$cvs) == 0) {
+         component = "HP2"
+         component2 = "HP"
+      }
+
+      # first component
+      df <- data.frame(Values=finalC1[[component]], Group=`$`(finalC1, "Animal No._NA"), Values2=finalC1$HP)
       df_new = partition(df)
       df_new = cv(df_new, input$window)
       df_new = reformat(df_new)
+
+      # second component
+      df2 <- data.frame(Values=finalC1[[component2]], Group=`$`(finalC1, "Animal No._NA"), Values2=finalC1$HP)
+      df_new2 = partition(df2)
+      df_new2 = cv(df_new2, input$window)
+      df_new2 = reformat(df_new2)
 
       convert <- function(x) {
         splitted = strsplit(as.character(x), " ")
@@ -374,20 +397,25 @@ do_plotting <- function(file, input, exclusion, output) {
       print("finalc rows")
       print(nrow(finalC1))
       df_to_plot = cbind(df_new, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
+      df_to_plot2 = cbind(df_new2, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
       # finalC1 = finalC1 %>% arrange(desc(`Animal No._NA`))
       # df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
 
       df_to_plot$Group = as_factor(df_to_plot$Group)
+      df_to_plot2$Group = as_factor(df_to_plot$Group)
+
       write.csv2(df_new, file="df_new.csv")
       colnames(df_to_plot) = c("CoefficientOfVariation", "Animal", "Time")
+      colnames(df_to_plot2) = c("CoefficientOfVariation2", "Animal", "Time")
       print("to plot:")
       print(df_to_plot)
       write.csv2(df_to_plot, file="df_to_plot.csv")
 
-       p <- ggplot(df_to_plot, aes(x=Time, y=CoefficientOfVariation, color=Animal)) + geom_line()
-       p <- p + xlab("Time [h]")
-       p <- p + ylab("Coefficient of variation")
-       p <- ggplotly(p) 
+      p <- ggplot(df_to_plot, aes(x=Time, y=CoefficientOfVariation, color=Animal)) + geom_point(shape=6)
+      p <- p + xlab("Time [h]")
+      p <- p + ylab("Coefficient of variation")
+      p <- p + geom_point(data=df_to_plot2, aes(x=Time, y=CoefficientOfVariation2, color=Animal), shape=3)
+      p <- ggplotly(p) 
    },
    DayNightActivity={
 

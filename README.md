@@ -16,8 +16,6 @@
 ## Demo
 [TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
 
-## TODOs
-- Address TODOs
-- Modularize app structure
-- Add unit tests
-- (Add activity data)
+## To do
+- See Github issues 
+- See FIXME/TODOs in code

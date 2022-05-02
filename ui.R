@@ -84,6 +84,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'RAW'", uiOutput("myr")),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", sliderInput("window", "Window", 2, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
    conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step=10)),
    conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
    conditionalPanel(condition = "input.plot.type != 'CoefficientOfVariation'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
