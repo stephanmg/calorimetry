@@ -84,6 +84,9 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'RAW'", uiOutput("myr")),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
+   # TODO: Need input percentage of lowest RMR
+   # TODO: Need input number of points in interval (can be inferred automatically - > no user input, but use averaging default of 10 minutes for instance)
+   # --> note could be also a user input in principal as a number (integer)
    conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", sliderInput("window", "Window", 2, 30, 10, step=1)),
    conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
    conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step=10)),
