@@ -29,6 +29,7 @@ cv <- function(mydf, window=2) {
          m = mean(values[seq(from=j, to=j+window-1, by=1)])
          s = sd(values[seq(from=j, to=j+window-1, by=1)])
          covs <- append(covs, s/m)
+         # bestimmen wo m am niedrigsten ist, und cov am niedrigsten ist, das j finden...
       }
       if (nrow(df_new) == 0) {   
          df_new = data.frame(covs)

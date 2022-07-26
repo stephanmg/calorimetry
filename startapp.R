@@ -1,5 +1,5 @@
 library(shiny)
 library(shinyFiles)
 options(shiny.host = "127.0.0.1")
-options(shiny.port = 1337)
+options(shiny.port = 1338)
 runApp(".")

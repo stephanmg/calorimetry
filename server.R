@@ -14,6 +14,7 @@ library(hash)
 require(tidyverse)
 source("helper.R") # helpers
 source("new_feature.R") # new feature
+source("new_feature2.R") # new feature2
 
 ################################################################################
 # Export to CalR and Sable format
@@ -109,6 +110,7 @@ do_plotting <- function(file, input, exclusion, output) {
    C1 <- read.csv2(file, header = F, skip = toSkip+1, na.strings = c("-","NA"), fileEncoding="ISO-8859-1", sep=";")
    # TODO: C1meta obsolete when using metadata sheet
    C1meta <- read.csv2(file, header=T, skip=2, nrows=toSkip+1-4, na.strings = c("-", "NA"), fileEncoding="ISO-8859-1")
+   print(C1meta)
 
    # Curate data frame
    C1.head <- read.csv2(file, 
@@ -120,6 +122,7 @@ do_plotting <- function(file, input, exclusion, output) {
                         check.names = FALSE, #set the decimal separator of the csv file
                         fileEncoding = "ISO-8859-1")
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
+
 
    # unite data sets (unite in tidyverse package)
    C1 <- C1 %>%
@@ -150,6 +153,7 @@ do_plotting <- function(file, input, exclusion, output) {
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2))) 
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime to numeric
 
+
    # Step #2 - calculate the cumulative time difference between consecutive dates  
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>% # group by Animal ID
@@ -175,6 +179,7 @@ do_plotting <- function(file, input, exclusion, output) {
    arrange(Datetime2) %>% # sort by Datetime2
    # calculate the cumulative sum of the running time and save as variable "running_total.sec"
    mutate(running_total.sec = cumsum(diff.sec)) 
+
 
    # Step #7 - transfers time into hours (1 h = 3600 s)
    C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
@@ -202,8 +207,9 @@ do_plotting <- function(file, input, exclusion, output) {
       mutate(timeintervalinmin = case_when(minutes <= 30 ~ 0,
                                  minutes > 30 ~ 0.5))
    } else { # no averaging at all
-   C1 <- C1 %>%
-      mutate(timeintervalinmin = case_when(minutes <= 2 ~ 0))
+   C1 <- C1 %>% mutate(timeintervalinmin = minutes)
+ #  C1 <- C1  %>%
+ #     mutate(timeintervalinmin = case_when(TRUE == TRUE))
    }
 
    # Step #10 - create a running total with half hour intervals by adding the thirty min to the full hours
@@ -270,6 +276,9 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
+
+   print(C1$`Animal No._NA`)
+   print(C1$RER_NA)
 
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
@@ -380,6 +389,9 @@ do_plotting <- function(file, input, exclusion, output) {
          component <- "HP2"
          component2 <- "HP"
       }
+      ##########################################################################
+      ## TODO: This is not correct, need to use O2 and CO2 not HP and HP2!
+      ##########################################################################
 
       # first component
       df <- data.frame(Values=finalC1[[component]], Group=`$`(finalC1, "Animal No._NA"), Values2=finalC1$HP)
@@ -398,13 +410,23 @@ do_plotting <- function(file, input, exclusion, output) {
         paste(splitted[[1]][2], ":00", sep="")
      }
 
+
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
       print("nrows ndew")
       print(nrow(df_new))
       print("finalc rows")
       print(nrow(finalC1))
-      df_to_plot = cbind(df_new, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
-      df_to_plot2 = cbind(df_new2, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
+
+      ## FIXME!!!
+      # TODO: depending on calcaulation of finalC1$HP values we have different number of rows for df_new and finalC1, then fails.
+      #df_to_plot = cbind(df_new, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
+      ### WORKS in this way only if NO averaging present! FIXME!
+      # Frage: 1) MK O2 oder VO2 oder DO2?
+      # Frage: 2) Dominik: Wie export von tse daten rmr als dataframe...
+      # Frage: 3) Dominik: Nicht wirklich standardisiert.... die TSE
+      df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+      df_to_plot2 = cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
+      #df_to_plot2 = cbind(df_new2, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
       # finalC1 = finalC1 %>% arrange(desc(`Animal No._NA`))
       # df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
 
@@ -417,7 +439,10 @@ do_plotting <- function(file, input, exclusion, output) {
       print("to plot:")
       print(df_to_plot)
       write.csv2(df_to_plot, file="df_to_plot.csv")
-      df_for_cov_analysis = cbind(df_to_plot, `$`(finalC1, "O2_[%]"), `$`(finalC1, "CO2_[%]"), `$`(finalC1, "HP"), df_to_plot2$CoefficientOfVariation2)
+      # TODO: What do chose?
+      ### Note: Units of RMR in Calimera??
+      # was O2_[%] and CO2_[%] for MK data sets but otherwie for DL data set
+      df_for_cov_analysis = cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"), `$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"), df_to_plot2$CoefficientOfVariation2)
       df_for_cov_analysis$Group = df_to_plot$Group
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file="df_for_cov_analysis.csv")
@@ -430,16 +455,29 @@ do_plotting <- function(file, input, exclusion, output) {
       #p <- ggplotly(p) 
       M <- 50
       PERCENTAGE <- 1
-      dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
-      df_plot_total <- dd$df_plot_total
-      df_foo <- dd$df_foo
-      p <- ggline(df_plot_total, x="Time", y="HP", color="Component")
+      ## TODO: apply extract rmr to df_for_cov_analysis by ANIMAL GROUP!
+      #dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
+      df_plot_total <- extract_rmr_helper()
+      write.csv2(df_plot_total, file="df_for_comparison_with_calimera.csv")
+      #df_plot_total <- dd$df_plot_total
+      #df_foo <- dd$df_foo
+
+      df_plot_total$HP = as.numeric(df_plot_total$HP)
+      df_plot_total$Time = as.numeric(df_plot_total$Time)
+p <- ggplot(data=df_plot_total, aes(x=Time, y = HP, group = Component, color=Component)) +
+  geom_line() + facet_wrap(~Animal)
+p <- p + scale_y_continuous(breaks = pretty(df_plot_total$HP, n = 10))
+
+
+      #p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", hue="Component")
+      ##p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", shape="Component")
       p <- p + rotate_x_text(90)
       p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
 
-      p2 <- ggline(df_foo, x="Time", y="HP") 
-      p2 <- ggpar(p2, ylab="TEE [kcal/day]")
-      p2 <- p2 + rotate_x_text(90)
+      p <- ggplotly(p)
+      #p2 <- ggline(df_foo, x="Time", y="HP") 
+      #p2 <- ggpar(p2, ylab="TEE [kcal/day]")
+      #p2 <- p2 + rotate_x_text(90)
       #p <- p | p2
    },
    DayNightActivity = {
