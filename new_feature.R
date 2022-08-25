@@ -48,7 +48,7 @@ do_extract <- function(df, component="O2", percentage=5, N) {
 
    dat <- transform(sub_df, sum = psum(CoV1, CoV2))
    print(dat)
-      
+
    # today do not return only the best but the 10% lowest in the interval
    index = which.minn(dat$sum, n=1) # TODO: return n=3 best values, then do binned scatter plot (y axis)
    # plot data of heat production by using index
@@ -63,16 +63,23 @@ create_df <- function(df, component, M, N, percentage) {
    hp = c()
    index = c()
 
+
+   # TODO: Time N/M -> N number of data entries, equally spaced typically 10 minutes, M how many intervals...
    for (i in 0:floor(N/M)) { # sub interval, get minimum of every M elements...
       # extract only from some interval (could also extract from whole df!)
-      hp <- append(hp, do_extract(df[seq(i*M, i*M+M),], component, percentage, N))
-      index <- append(index, i)
+      hp_val <- do_extract(df[seq(i*M, i*M+M),], component, percentage, N)
+      if (length(hp_val) != 0) { # means couldn't extract a minimum in the function do_extract: question figure out why... TODO
+         hp <- append(hp, hp_val)
+         index <- append(index, i)
+      }
    }
-
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
-   df_plot$Time <- df_plot$Time * floor(N/M) # which averaging (time points in dat taken every 5 minutes?)
-   df_plot$HP <- df_plot$HP / 24 / 5 # heat production divided by 24 hours (might be scaled wrongly here) 
+   INTERVAL_LENGTH = 10
+   #df_plot$Time <- df_plot$Time * floor(N/M) # which averaging (time points in dat taken every 5 minutes?)
+   df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
+   df_plot$HP <- df_plot$HP / 24 / (60/INTERVAL_LENGTH) / INTERVAL_LENGTH
+   #df_plot$HP <- df_plot$HP / 24 / 6 # heat production divided by 24 hours (might be scaled wrongly here) 
    # TODO: need to scale HP to hour first, as it may be only one single value extracted, is has to be accounted for the time interval length
    # TODO: Interval llength needs to be known 5 or 10 minutes to scale HP...
    df_plot
@@ -83,6 +90,7 @@ percentage=5
 
 extract_rmr2 <- function(data, M, PERCENTAGE) {
    N <- nrow(data)
+   M = 10
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
@@ -122,18 +130,20 @@ extract_rmr <- function(input_filename, M, PERCENTAGE, SLIDING_WINDOW_OF_PREPROC
 #df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)), rep("CO2", nrow(df_plot_CO2)))
 # need to do this by group!
 ##p <- ggscatter(df_plot, x="Time", y="HP")
-M = 50
-PERCENTAGE=5
-dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
-df_plot_total <- dd$df_plot_total
-df_foo <- dd$df_foo
-p <- ggline(df_plot_total, x="Time", y="HP", color="Component")
-p <- p + rotate_x_text(90)
-p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
 
-p2 <- ggline(df_foo, x="Time", y="HP") 
-p2 <- ggpar(p2, ylab="TEE [kcal/day]")
-p2 <- p2 + rotate_x_text(90)
+## Not required!
+#M = 50
+#PERCENTAGE=5
+#dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
+#df_plot_total <- dd$df_plot_total
+#df_foo <- dd$df_foo
+#p <- ggline(df_plot_total, x="Time", y="HP", color="Component")
+#p <- p + rotate_x_text(90)
+#p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
+
+#p2 <- ggline(df_foo, x="Time", y="HP") 
+#p2 <- ggpar(p2, ylab="TEE [kcal/day]")
+#p2 <- p2 + rotate_x_text(90)
 
 #p <- p | p2
-p %>% ggexport(filename=filename)
+#p %>% ggexport(filename=filename)

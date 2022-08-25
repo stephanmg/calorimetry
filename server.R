@@ -453,7 +453,7 @@ do_plotting <- function(file, input, exclusion, output) {
       #p <- p + ylab("Coefficient of variation")
       #p <- p + geom_point(data=df_to_plot2, aes(x=Time, y=CoefficientOfVariation2, color=Animal), shape=3)
       #p <- ggplotly(p) 
-      M <- 50
+      M <- 1
       PERCENTAGE <- 1
       ## TODO: apply extract rmr to df_for_cov_analysis by ANIMAL GROUP!
       #dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
