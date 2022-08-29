@@ -75,7 +75,7 @@ create_df <- function(df, component, M, N, percentage) {
    }
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
-   INTERVAL_LENGTH = 10
+   INTERVAL_LENGTH = 5
    #df_plot$Time <- df_plot$Time * floor(N/M) # which averaging (time points in dat taken every 5 minutes?)
    df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
    df_plot$HP <- df_plot$HP / 24 / (60/INTERVAL_LENGTH) / INTERVAL_LENGTH
@@ -90,7 +90,7 @@ percentage=5
 
 extract_rmr2 <- function(data, M, PERCENTAGE) {
    N <- nrow(data)
-   M = 10
+   M = 25
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
