@@ -15,11 +15,12 @@ def find_approx_square(N):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Run plot_comp_times.py')
+        description='Run compare.py')
     parser.add_argument('-f', '--file', dest='file', required=True)
     parser.add_argument('-r', '--reference', dest='reference', required=True)
     parser.add_argument('-w', '--window', dest='window', required=True)
     parser.add_argument('-o', '--output', dest='output', required=True)
+    parser.add_argument('-t', '--time', dest='time', required=True)
     args = parser.parse_args()
 
     dfCalimera = pd.read_csv(args.reference, sep='\t')
@@ -73,9 +74,12 @@ if __name__ == "__main__":
 
     manager = plt.get_current_fig_manager()
     # manager.window.showMaximized()
-    plt.suptitle(f"Time discretization 10 minutes, Window size = {args.window} intervals, 25% lowest for averaging of resting metabolic rate in each window")
-    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_time_trace_RMR_over_day.png", bbox_inches='tight')
     # plt.show()
+    plt.suptitle(f"Time discretization {args.time} minutes, Window size = {args.window} intervals, 25% lowest for averaging of resting metabolic rate in each window")
+    f = plt.gcf()
+    f.set_size_inches(16, 10)
+    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_time_trace_RMR_over_day.png", bbox_inches='tight')
+    plt.clf()
 
     data = {'Our' : min_RMRs, 'Ref' : min_RMRsRef}
     plt.boxplot(data.values(), showfliers=False, sym='')
@@ -89,4 +93,6 @@ if __name__ == "__main__":
         plt.text(2.01, val, animal_ids[index], fontsize=6)
 
     # plt.show()
+    f = plt.gcf()
+    f.set_size_inches(16, 10)
     plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_boxplots_RMR_per_day.png", bbox_inches='tight')
