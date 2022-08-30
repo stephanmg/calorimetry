@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser.add_argument('-w', '--window', dest='window', required=True)
     parser.add_argument('-o', '--output', dest='output', required=True)
     parser.add_argument('-t', '--time', dest='time', required=True)
+    parser.add_argument('-n', '--name', dest='name', required=True)
     args = parser.parse_args()
 
     dfCalimera = pd.read_csv(args.reference, sep='\t')
@@ -48,14 +49,12 @@ if __name__ == "__main__":
         rmsds.append(np.sqrt(np.mean((np.array(datapointsRef)-np.array(datapoints))**2)))
         
     L, U = find_approx_square(len(animal_ids))
-    print("L:")
-    print(L)
-    print("U:")
-    print(U)
     for index, column in enumerate(animal_ids):
         plt.subplot(L, U, index + 1) # 3, 4
         plt.plot(range(0, num_rows), dfCalimera[column][1:], label=f"Animal {column} (Calimera)")
         plt.legend(loc=2, prop={'size' : 6})
+        plt.ylabel('kcal/h')
+        plt.xlabel(f'Time')
 
     for index, animal in enumerate(animal_ids):
         plt.subplot(L, U, index + 1) # 3, 4
@@ -63,6 +62,9 @@ if __name__ == "__main__":
         plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["HP"].tolist(), label=f"Animal {animal} (based on CO2)")
         plt.legend(loc=1, prop={'size' : 6})
         plt.text(0.1, 0.2, f"RMSD={'{:10.4f}'.format(rmsds[index])}")
+        plt.ylabel('kcal/h')
+        plt.xlabel(f'Time')
+
 
     min_RMRs = []
     for index, animal in enumerate(animal_ids):
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     manager = plt.get_current_fig_manager()
     # manager.window.showMaximized()
     # plt.show()
-    plt.suptitle(f"Time discretization {args.time} minutes, Window size = {args.window} intervals, 25% lowest for averaging of resting metabolic rate in each window")
+    plt.suptitle(f"Time discretization {args.time} minutes. Window size = {args.window} intervals, 25% lowest for averaging of RMR in each window. Dataset: {args.name}")
     f = plt.gcf()
     f.set_size_inches(16, 10)
     plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_time_trace_RMR_over_day.png", bbox_inches='tight')
@@ -95,4 +97,6 @@ if __name__ == "__main__":
     # plt.show()
     f = plt.gcf()
     f.set_size_inches(16, 10)
+    plt.ylabel('kcal/day')
+    plt.suptitle(f"Daily RMR. Dataset: {args.name}")
     plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_boxplots_RMR_per_day.png", bbox_inches='tight')
