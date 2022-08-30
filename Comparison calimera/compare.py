@@ -4,13 +4,22 @@ import matplotlib.pyplot as plt
 import math
 import argparse
 
-    
+def find_approx_square(N):
+    """Very primitive idea to find an approximate square subplot arrangement"""
+    U = math.ceil(math.sqrt(N))
+    L = math.floor(math.sqrt(N))
+    if U*L != N:
+        return U, U
+    else:
+        return L, U
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Run plot_comp_times.py')
     parser.add_argument('-f', '--file', dest='file', required=True)
     parser.add_argument('-r', '--reference', dest='reference', required=True)
     parser.add_argument('-w', '--window', dest='window', required=True)
+    parser.add_argument('-o', '--output', dest='output', required=True)
     args = parser.parse_args()
 
     dfCalimera = pd.read_csv(args.reference, sep='\t')
@@ -37,14 +46,18 @@ if __name__ == "__main__":
         datapointsRef = [datapointsRef[i] for i in timepoints]
         rmsds.append(np.sqrt(np.mean((np.array(datapointsRef)-np.array(datapoints))**2)))
         
-    
+    L, U = find_approx_square(len(animal_ids))
+    print("L:")
+    print(L)
+    print("U:")
+    print(U)
     for index, column in enumerate(animal_ids):
-        plt.subplot(6, 6, index + 1) # 3, 4
+        plt.subplot(L, U, index + 1) # 3, 4
         plt.plot(range(0, num_rows), dfCalimera[column][1:], label=f"Animal {column} (Calimera)")
         plt.legend(loc=2, prop={'size' : 6})
 
     for index, animal in enumerate(animal_ids):
-        plt.subplot(6, 6, index + 1) # 3, 4
+        plt.subplot(L, U, index + 1) # 3, 4
         plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist(), label=f"Animal {animal} (based on O2)")
         plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["HP"].tolist(), label=f"Animal {animal} (based on CO2)")
         plt.legend(loc=1, prop={'size' : 6})
@@ -61,9 +74,8 @@ if __name__ == "__main__":
     manager = plt.get_current_fig_manager()
     # manager.window.showMaximized()
     plt.suptitle(f"Time discretization 10 minutes, Window size = {args.window} intervals, 25% lowest for averaging of resting metabolic rate in each window")
-    plt.savefig(f"comparison_with_calimera_window_size={args.window}.png", bbox_inches='tight')
-    plt.show()
-
+    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_time_trace_RMR_over_day.png", bbox_inches='tight')
+    # plt.show()
 
     data = {'Our' : min_RMRs, 'Ref' : min_RMRsRef}
     plt.boxplot(data.values(), showfliers=False, sym='')
@@ -76,5 +88,5 @@ if __name__ == "__main__":
     for index, val in enumerate(min_RMRsRef):
         plt.text(2.01, val, animal_ids[index], fontsize=6)
 
-
-    plt.show()
+    # plt.show()
+    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_boxplots_RMR_per_day.png", bbox_inches='tight')

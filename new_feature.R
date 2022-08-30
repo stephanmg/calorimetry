@@ -72,7 +72,7 @@ percentage=5
 extract_rmr2 <- function(data, M, PERCENTAGE) {
    N <- nrow(data)
    # TODO: Make M a parameter again... specified by user
-   M = 25
+   M = 5
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
