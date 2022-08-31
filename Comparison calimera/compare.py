@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import math
 import argparse
 
+################################################################################
+# Note: Datasets are coming from here:
+## https://hmgubox2.helmholtz-muenchen.de/index.php/s/tSi66Ajo3DLHXc9?path=%2FCalorimetryDataSets
+################################################################################
+
 def find_approx_square(N):
     """Very primitive idea to find an approximate square subplot arrangement"""
     U = math.ceil(math.sqrt(N))

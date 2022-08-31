@@ -60,6 +60,7 @@ sidebar_content <- sidebarPanel(
    div("Chose two of the established equations for calculating the heat production in mW. Note that HP and HP2 refer to the Heldmaier equations reported in Journal of Comparative Physiology 1975, 102:115-122:"),
    selectInput("variable1", "Select first equation", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
    selectInput("variable2", "Select second equation", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
+   selectInput("kj_or_kcal", "Unit of energy", choices=c("kj", "kcal")),
    withMathJax(),
    uiOutput('heat_production_equations'),
    checkboxInput(inputId="havemetadata", label="Have metadata?"),
