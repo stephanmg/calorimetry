@@ -155,7 +155,7 @@ validation <- tabPanel(
 documentation <- tabPanel(
    "Documentation",
    titlePanel("Documentation"),
-   p("TODO")
+   tags$img(src="overview_shiny.png")
 )
 
 ################################################################################
@@ -164,19 +164,8 @@ documentation <- tabPanel(
 contact <- tabPanel(
    "Contact",
    titlePanel("Contact"),
-   p("TODO")
+   p("SG (SG <AT> UNI <MINUS> BONN <DOT> DE")
 )
-
-
-################################################################################
-# Data export
-################################################################################
-data_export <- tabPanel(
-   "Data export",
-   titlePanel("Data export"),
-   p("TODO")
-)
-
 
 
 ################################################################################
@@ -186,7 +175,6 @@ ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
-  # data_export,
   validation,
   documentation,
   contact
