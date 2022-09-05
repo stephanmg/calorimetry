@@ -60,7 +60,7 @@ sidebar_content <- sidebarPanel(
    div("Chose two of the established equations for calculating the heat production in mW. Note that HP and HP2 refer to the Heldmaier equations reported in Journal of Comparative Physiology 1975, 102:115-122:"),
    selectInput("variable1", "Select first equation", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
    selectInput("variable2", "Select second equation", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
-   selectInput("kj_or_kcal", "Unit of energy", choices=c("kj", "kcal")),
+   selectInput("kj_or_kcal", "Unit of energy", choices=c("kcal", "kJ")),
    withMathJax(),
    uiOutput('heat_production_equations'),
    checkboxInput(inputId="havemetadata", label="Have metadata?"),
@@ -155,7 +155,7 @@ validation <- tabPanel(
 documentation <- tabPanel(
    "Documentation",
    titlePanel("Documentation"),
-   p("TODO")
+   tags$img(src="overview_shiny.png")
 )
 
 ################################################################################
@@ -164,19 +164,8 @@ documentation <- tabPanel(
 contact <- tabPanel(
    "Contact",
    titlePanel("Contact"),
-   p("TODO")
+   p("SG (SG <AT> UNI <MINUS> BONN <DOT> DE")
 )
-
-
-################################################################################
-# Data export
-################################################################################
-data_export <- tabPanel(
-   "Data export",
-   titlePanel("Data export"),
-   p("TODO")
-)
-
 
 
 ################################################################################
@@ -186,7 +175,6 @@ ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
-  # data_export,
   validation,
   documentation,
   contact
