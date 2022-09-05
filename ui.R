@@ -128,7 +128,7 @@ main_content2 <- mainPanel(
 ################################################################################
 # Visualization panel
 ################################################################################
-second_panel <- tabPanel(
+visualization <- tabPanel(
   "Visualization",
   titlePanel("Long term observational studies"),
   p("Use the file choser dialog below to select an individual file to analyze"),
@@ -140,41 +140,44 @@ second_panel <- tabPanel(
 ################################################################################
 # Validation panel
 ################################################################################
-third_panel <- tabPanel(
+validation <- tabPanel(
    "Validation",
-   titlePanel("Validation of results by comparing RER values (CalR and self)"),
-   p("Use the file choser dialog below to select files for RER Calr and self"),
+   titlePanel("Validation of results by comparing RER values (CalR and our method)"),
+   p("Use the file choser dialog below to select files for RER Calr and our method"),
    sidebarLayout(
       sidebar_content2, main_content2
    )
 )
 
 ################################################################################
-# Help and documentation
+# Documentation
 ################################################################################
-forth_panel <- tabPanel(
-   "Help",
-   titlePanel("Help and documentation"),
+documentation <- tabPanel(
+   "Documentation",
+   titlePanel("Documentation"),
    p("TODO")
 )
 
 ################################################################################
 # Contact
 ################################################################################
-fifth_panel <- tabPanel(
+contact <- tabPanel(
    "Contact",
-   titlePanel("Contact us"),
+   titlePanel("Contact"),
    p("TODO")
 )
+
 
 ################################################################################
 # Data export
 ################################################################################
-sixth_panel <- tabPanel(
+data_export <- tabPanel(
    "Data export",
    titlePanel("Data export"),
    p("TODO")
 )
+
+
 
 ################################################################################
 # Main navigation bar
@@ -182,9 +185,9 @@ sixth_panel <- tabPanel(
 ui <- navbarPage(
   "Generalized Calorimetry Analysis",
   intro_panel,
-  second_panel,
-  sixth_panel,
-  third_panel,
-  forth_panel,
-  fifth_panel,
+  visualization,
+  # data_export,
+  validation,
+  documentation,
+  contact
 )
