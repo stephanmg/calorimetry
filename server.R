@@ -318,8 +318,18 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
+   # rescale to kj or kcal
+   if(input$kj_or_kcal == "kj") {
+      print("Convert!")
+      finalC1$HP <- finalC1$HP * 4184 # kcal to kj
+      finalC1$HP2 <- finalC1$HP2 * 4184 # kcal to kj
+      print(finalC1$HP)
+   }
+
    switch(plotType,
    CompareHeatProductionFormulas = {
+
+
    p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
    geom_point() +
    stat_smooth(method = "lm") + # adds regression line
