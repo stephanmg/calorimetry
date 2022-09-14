@@ -1,6 +1,7 @@
 library("shinyFiles")
 library("plotly")
 library("shinybusy")
+library("shinythemes")
 
 
 ################################################################################
@@ -172,6 +173,7 @@ contact <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- navbarPage(
+  theme = shinytheme("sandstone"),
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
