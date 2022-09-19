@@ -178,7 +178,7 @@ if __name__ == "__main__":
     min_RMRs = []
     total_EEs = []
     for index, animal in enumerate(animal_ids):
-        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3) # 5 minutes interval, thus divide by 5*12=60
+        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3) # 5 minutes interval, thus divide by 5*12=60 TODO keep track of number of days, cannot just sum all data
 
     for index, animal in enumerate(animal_ids):
         min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12
