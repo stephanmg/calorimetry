@@ -4,6 +4,20 @@ import matplotlib.pyplot as plt
 import math
 import argparse
 
+def bland_altman(data1, data2, *args, **kwargs):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2                   # Difference between data1 and data2
+    md        = np.mean(diff)                   # Mean of the difference
+    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+
+    plt.scatter(mean, diff, *args, **kwargs)
+    plt.axhline(md,           color='blue', linestyle='--')
+    plt.axhline(md + 1.96*sd, color='red', linestyle='--')
+    plt.axhline(md - 1.96*sd, color='red', linestyle='--')
+
+
 import seaborn as sns
 from statannot import add_stat_annotation
 
@@ -139,6 +153,13 @@ if __name__ == "__main__":
     f = plt.gcf()
     f.set_size_inches(16, 10)
     plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_barplots_with_stats_RMR_per_day.png", bbox_inches='tight')
+
+    plt.clf()
+    bland_altman(min_RMRs, min_RMRsRef)
+    plt.title("bland-altman")
+    plt.show()
+
+    
 
 
 

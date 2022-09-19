@@ -447,6 +447,9 @@ do_plotting <- function(file, input, exclusion, output) {
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file="df_for_cov_analysis.csv")
 
+      p2 <- ggplot(data=df_for_cov_analysis, aes(x=Time, y = CoV1, group = Animal))
+      p3 <- ggplot(data=df_for_cov_analysis, aes(x=Time, y = CoV2, group = Animal))
+
       # TODO plug in here _new_feature_R and operate on df_for_cov_analyis...
       #p <- ggplot(df_to_plot, aes(x=Time, y=CoefficientOfVariation, color=Animal)) + geom_point(shape=6)
       #p <- p + xlab("Time [h]")
@@ -472,11 +475,13 @@ do_plotting <- function(file, input, exclusion, output) {
       ##p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", shape="Component")
       p <- p + rotate_x_text(90)
       p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
+      p <- p + p2 + p3
       p <- ggplotly(p)
       #p2 <- ggline(df_foo, x="Time", y="HP") 
       #p2 <- ggpar(p2, ylab="TEE [kcal/day]")
       #p2 <- p2 + rotate_x_text(90)
       #p <- p | p2
+      p <- ggplotly(p)
    },
    DayNightActivity = {
 

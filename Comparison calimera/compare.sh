@@ -1,6 +1,11 @@
 #!/bin/bash
 
+
 BINARY=python3.9
+case "$(uname -s)" in
+   Linux*) BINARY=python3;;
+esac
+
 SCRIPT=compare.py
 
 WINDOWS=(5 10 25)
