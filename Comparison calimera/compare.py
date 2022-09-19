@@ -178,7 +178,7 @@ if __name__ == "__main__":
     min_RMRs = []
     total_EEs = []
     for index, animal in enumerate(animal_ids):
-        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum())
+        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 12) # 5 minutes interval, thus divide by 5*12=60
 
     for index, animal in enumerate(animal_ids):
         min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12
@@ -186,7 +186,7 @@ if __name__ == "__main__":
     min_RMRsRef = []
     total_EEsRef = []
     for index, animal in enumerate(animal_ids):
-        total_EEsRef.append(dfCalimera[animal][1:].sum() / 24)
+        total_EEsRef.append(dfCalimera[animal][1:].sum() / 24) # need to divide by 6 because 6x 10 minute interval...
         min_RMRsRef.append(24 * min(dfCalimera[animal][1:].tolist())) # *6
 
     manager = plt.get_current_fig_manager()
