@@ -1,9 +1,106 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import pylab
 import math
 import argparse
 import scipy
+import scipy.stats as stats
+
+
+def hist_plot(data1, data2):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2
+    plt.hist(diff)
+
+def calc_ks(data1, data2):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2
+    return stats.kstest(diff, stats.norm.cdf)
+
+def calc_shapiro(data1, data2):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2
+    return stats.shapiro(diff)
+
+def bland_altman(data1, data2, *args, **kwargs):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2                   # Difference between data1 and data2
+    md        = np.mean(diff)                   # Mean of the difference
+    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+
+    plt.savefig("abcdedf.png")
+
+    plt.scatter(mean, diff, *args, **kwargs)
+    plt.axhline(md,           color='blue', linestyle='--')
+    plt.axhline(md + 1.96*sd, color='red', linestyle='--')
+    plt.axhline(md - 1.96*sd, color='red', linestyle='--')
+
+
+import seaborn as sns
+from statannot import add_stat_annotation
+
+################################################################################
+# Note: Datasets are coming from here:
+## https://hmgubox2.helmholtz-muenchen.de/index.php/s/tSi66Ajo3DLHXc9?path=%2FCalorimetryDataSets
+################################################################################
+
+def find_approx_square(N):
+    """Very primitive idea to find an approximate square subplot arrangement"""
+    U = math.ceil(math.sqrt(N))
+    L = math.floor(math.sqrt(N))
+    if U*L != N:
+        return U, U
+    else:
+        return L, U
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Run compare.py')
+    parser.add_argument('-f', '--file', dest='file', required=True)
+    parser.add_argument('-r', '--reference', dest='reference', required=True)
+    parser.add_argument('-w', '--window', dest='window', required=True)
+    parser.add_argument('-o', '--output', dest='output', required=True)
+    parser.add_argument('-t', '--time', dest='time', required=True)
+    parser.add_argument('-n', '--name', dest='name', required=True)
+    parser.add_argument('-m', '--metadata', dest='metadata', required=False)
+    args = parser.parse_args()
+
+    dfCalimera = pd.read_csv(args.reference, sep='\t')
+    dfShiny = pd.read_csv(args.file, sep=";")
+    #dfShiny.loc[(dfShiny["HP"] > 1), "HP"] *= 0.005
+
+
+def qq_plot(data1, data2, *args, **kwargs):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2                   
+    stats.probplot(diff, dist="norm", plot=pylab)
+
+def bland_altman(data1, data2, *args, **kwargs):
+    data1     = np.asarray(data1)
+    data2     = np.asarray(data2)
+    mean      = np.mean([data1, data2], axis=0)
+    diff      = data1 - data2                   # Difference between data1 and data2
+    md        = np.mean(diff)                   # Mean of the difference
+    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+
+    plt.savefig("abcdedf.png")
+
+    plt.scatter(mean, diff, *args, **kwargs)
+    plt.axhline(md,           color='blue', linestyle='--')
+    plt.axhline(md + 1.96*sd, color='red', linestyle='--')
+    plt.axhline(md - 1.96*sd, color='red', linestyle='--')
+
 
 import seaborn as sns
 from statannot import add_stat_annotation
@@ -142,8 +239,34 @@ if __name__ == "__main__":
     f = plt.gcf()
     f.set_size_inches(16, 10)
     plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_barplots_with_stats_RMR_per_day.png", bbox_inches='tight')
+    plt.clf()
+
+    shapiro = calc_shapiro(min_RMRs, min_RMRsRef)
+    ks = calc_ks(min_RMRs, min_RMRsRef)
+    print(f"KS test: p-value = {ks.pvalue}")
+    print(f"Shapiro-Wilk test: p-value = {shapiro.pvalue}")
+    if ks.pvalue < 0.05 or shapiro.pvalue < 0.05:
+        print("Test might not be applicable (Bland-Altman)")
 
     plt.clf()
+    qq_plot(min_RMRs, min_RMRsRef)
+    plt.title("Q-Q plot")
+    plt.ylabel('Expected mean')
+    plt.xlabel('Observed mean')
+    plt.savefig(f"{args.output}/qq_plot={args.window}_RMR_per_day.png", bbox_inches='tight')
+    plt.clf()
+    plt.rcParams['text.usetex'] = True
+    bland_altman(min_RMRs, min_RMRsRef)
+    plt.title("Bland-Altman plot RMR method without and with activity data")
+    plt.xlabel(r'$\frac{S_1+S_2}{2}$')
+    plt.ylabel(r'$S_1+S_2$')
+    plt.rcParams['text.usetex'] = False
+    plt.savefig(f"{args.output}/bland_altman={args.window}_RMR_per_day.png", bbox_inches='tight')
+    plt.clf()
+    hist_plot(min_RMRs, min_RMRsRef)
+    plt.savefig(f"{args.output}/histogram={args.window}_RMR_per_day.png", bbox_inches='tight')
+
+
     if args.metadata:
         metadata = pd.read_csv(f"{args.metadata}.csv", sep=";")
         xs = metadata["Weight"].tolist()

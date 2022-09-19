@@ -1,6 +1,11 @@
 #!/bin/bash
 
+
 BINARY=python3.9
+case "$(uname -s)" in
+   Linux*) BINARY=python3;;
+esac
+
 SCRIPT=compare.py
 
 WINDOWS=(5 10 25)
@@ -48,7 +53,7 @@ $BINARY $SCRIPT --file new_data4/df_for_comparison_with_calimera_$window.csv \
                    --time 5 \
                    --name 'Jnk1_Dusp8_KOonHFD_TSE_clean' \
                    --metadata 'Jnk1_Dusp8_KOonHFD_TSE_clean_metadata'
-
+#
    $BINARY $SCRIPT --file old_data/df_for_comparison_with_calimera_$window.csv \
                    --window $window \
                    --ref old_data/comp_table.tsv \
@@ -56,5 +61,4 @@ $BINARY $SCRIPT --file new_data4/df_for_comparison_with_calimera_$window.csv \
                    --time 10 \
                    --name 'Bl6j_vs_Bl6n_TSE' \
                    --metadata 'Bl6j_vs_Bl6n_TSE_metadata'
-   exit 0
 done
