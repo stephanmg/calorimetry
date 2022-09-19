@@ -186,7 +186,7 @@ if __name__ == "__main__":
     min_RMRsRef = []
     total_EEsRef = []
     for index, animal in enumerate(animal_ids):
-        total_EEsRef.append(dfCalimera[animal][1:].sum() / 24) # need to divide by 6 because 6x 10 minute interval...
+        total_EEsRef.append(dfCalimera[animal][1:].sum() / 3) # need to divide by 6 because 6x 10 minute interval...
         min_RMRsRef.append(24 * min(dfCalimera[animal][1:].tolist())) # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation? 
 
     manager = plt.get_current_fig_manager()
