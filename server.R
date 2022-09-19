@@ -230,6 +230,9 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA
    },
    HP = {
+      print("within HP")
+      print(C1$RER_NA)
+      print(C1$`VO2(3)_[ml/h]`)
       C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
    },
    HP2 = {

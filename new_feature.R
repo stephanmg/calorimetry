@@ -56,10 +56,10 @@ create_df <- function(df, component, M, N, percentage) {
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
    # TODO: Detect automatically from the first two measurements (Time2-Time1)
-   INTERVAL_LENGTH = 5
+   INTERVAL_LENGTH = 15
    #df_plot$Time <- df_plot$Time * floor(N/M) # which averaging (time points in dat taken every 5 minutes?)
    df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
-   df_plot$HP <- df_plot$HP / 24 / (60/INTERVAL_LENGTH) / INTERVAL_LENGTH
+   df_plot$HP <- df_plot$HP / 24 / (60/INTERVAL_LENGTH) / INTERVAL_LENGTH # check for correctness here TODO
    #df_plot$HP <- df_plot$HP / 24 / 6 # heat production divided by 24 hours (might be scaled wrongly here) 
    # TODO: need to scale HP to hour first, as it may be only one single value extracted, is has to be accounted for the time interval length
    # TODO: Interval llength needs to be known 5 or 10 minutes to scale HP...

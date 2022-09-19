@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 import argparse
+import scipy
 
 import seaborn as sns
 from statannot import add_stat_annotation
@@ -30,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', dest='output', required=True)
     parser.add_argument('-t', '--time', dest='time', required=True)
     parser.add_argument('-n', '--name', dest='name', required=True)
+    parser.add_argument('-m', '--metadata', dest='metadata', required=False)
     args = parser.parse_args()
 
     dfCalimera = pd.read_csv(args.reference, sep='\t')
@@ -75,19 +77,20 @@ if __name__ == "__main__":
         plt.xlabel(f'Time')
 
 
+    # filter based on metadata daylight period... 7 to 7...
     min_RMRs = []
     total_EEs = []
     for index, animal in enumerate(animal_ids):
         total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum())
 
     for index, animal in enumerate(animal_ids):
-        min_RMRs.append(24  * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12
+        min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12
 
     min_RMRsRef = []
     total_EEsRef = []
     for index, animal in enumerate(animal_ids):
-        total_EEsRef.append(dfCalimera[animal][1:].sum())
-        min_RMRsRef.append(24  * min(dfCalimera[animal][1:].tolist())) # *6
+        total_EEsRef.append(dfCalimera[animal][1:].sum() / 24)
+        min_RMRsRef.append(24 * min(dfCalimera[animal][1:].tolist())) # *6
 
     manager = plt.get_current_fig_manager()
     # manager.window.showMaximized()
@@ -140,7 +143,19 @@ if __name__ == "__main__":
     f.set_size_inches(16, 10)
     plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_barplots_with_stats_RMR_per_day.png", bbox_inches='tight')
 
-
+    plt.clf()
+    if args.metadata:
+        metadata = pd.read_csv(f"{args.metadata}.csv", sep=";")
+        xs = metadata["Weight"].tolist()
+        metadata["RMR"] = min_RMRs
+        metadata.names = ["Weight", "Animal", "RMR"]
+        g = sns.scatterplot(data=metadata, y="RMR", x="Weight")
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(metadata["RMR"], metadata["Weight"])
+        ypos = max(metadata["RMR"]) - max(metadata["RMR"]) / 50
+        xpos = max(metadata["Weight"]) - max(metadata["Weight"])*10/100
+        plt.text(xpos, ypos, f"R²: {r_value**2:9.4e} and p-value: {p_value:9.4e}")
+        f.set_size_inches(16, 10)
+        plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_weight_vs_RMR.png", bbox_inches='tight')
 
     #df = pd.DataFrame({ 'Our' : min_RMRs, 'Total' : total_EEs, 'Theirs': min_RMRsRef, 'Animals' : animal_ids})
     #df.plot(kind='bar', stacked=True, color=['red', 'skyblue', 'green'])
