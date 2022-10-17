@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pylab
+from numpy.polynomial.polynomial import polyfit
+from sklearn.metrics import r2_score
 import math
 import argparse
 import scipy
@@ -37,12 +39,11 @@ def bland_altman(data1, data2, *args, **kwargs):
     md        = np.mean(diff)                   # Mean of the difference
     sd        = np.std(diff, axis=0)            # Standard deviation of the difference
 
-    plt.savefig("abcdedf.png")
-
     plt.scatter(mean, diff, *args, **kwargs)
     plt.axhline(md,           color='blue', linestyle='--')
     plt.axhline(md + 1.96*sd, color='red', linestyle='--')
     plt.axhline(md - 1.96*sd, color='red', linestyle='--')
+
 
 
 import seaborn as sns
@@ -94,12 +95,23 @@ def bland_altman(data1, data2, *args, **kwargs):
     md        = np.mean(diff)                   # Mean of the difference
     sd        = np.std(diff, axis=0)            # Standard deviation of the difference
 
-    plt.savefig("abcdedf.png")
-
     plt.scatter(mean, diff, *args, **kwargs)
     plt.axhline(md,           color='blue', linestyle='--')
+
+    plt.text(5.0, float(md+0.1), f"{abs(float(md)-0)}")
     plt.axhline(md + 1.96*sd, color='red', linestyle='--')
     plt.axhline(md - 1.96*sd, color='red', linestyle='--')
+
+    b, m = polyfit(mean, diff, 1)
+    print(f"b: {b}")
+    print(f"m: {m}")
+    plt.plot(mean, b + m * mean, color="yellow", linestyle='-.')
+    #plt.plot(0, 0, color="black", linestyle=":")
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(mean, diff)
+    print(f"r2: {r_value*r_value}")
+    plt.text(6.5, 0, f"$R^2$: {r_value*r_value}")
+    plt.text(5.5, 1, f"p-value: {p_value}")
+    #plt.axline(xy1=(0, b), slope=m, color='r', label=f'$y = {m:.2f}x {b:+.2f}$')
 
 
 import seaborn as sns
@@ -178,10 +190,10 @@ if __name__ == "__main__":
     min_RMRs = []
     total_EEs = []
     for index, animal in enumerate(animal_ids):
-        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 12) # 5 minutes interval, thus divide by 5*12=60
+        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum()) # TODO: not fixed interval! 5 minutes interval, thus divide by 5*12=60
 
     for index, animal in enumerate(animal_ids):
-        min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12
+        min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
 
     min_RMRsRef = []
     total_EEsRef = []
@@ -259,7 +271,7 @@ if __name__ == "__main__":
     bland_altman(min_RMRs, min_RMRsRef)
     plt.title("Bland-Altman plot RMR method without and with activity data")
     plt.xlabel(r'$\frac{S_1+S_2}{2}$')
-    plt.ylabel(r'$S_1+S_2$')
+    plt.ylabel(r'$S_1-S_2$')
     plt.rcParams['text.usetex'] = False
     plt.savefig(f"{args.output}/bland_altman={args.window}_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
