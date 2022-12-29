@@ -8,6 +8,8 @@ import math
 import argparse
 import scipy
 import scipy.stats as stats
+import os
+import re
 
 
 def hist_plot(data1, data2):
@@ -63,22 +65,6 @@ def find_approx_square(N):
     else:
         return L, U
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Run compare.py')
-    parser.add_argument('-f', '--file', dest='file', required=True)
-    parser.add_argument('-r', '--reference', dest='reference', required=True)
-    parser.add_argument('-w', '--window', dest='window', required=True)
-    parser.add_argument('-o', '--output', dest='output', required=True)
-    parser.add_argument('-t', '--time', dest='time', required=True)
-    parser.add_argument('-n', '--name', dest='name', required=True)
-    parser.add_argument('-m', '--metadata', dest='metadata', required=False)
-    args = parser.parse_args()
-
-    dfCalimera = pd.read_csv(args.reference, sep='\t')
-    dfShiny = pd.read_csv(args.file, sep=";")
-    #dfShiny.loc[(dfShiny["HP"] > 1), "HP"] *= 0.005
-
 
 def qq_plot(data1, data2, *args, **kwargs):
     data1     = np.asarray(data1)
@@ -132,84 +118,87 @@ def find_approx_square(N):
         return L, U
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Run compare.py')
-    parser.add_argument('-f', '--file', dest='file', required=True)
-    parser.add_argument('-r', '--reference', dest='reference', required=True)
-    parser.add_argument('-w', '--window', dest='window', required=True)
-    parser.add_argument('-o', '--output', dest='output', required=True)
-    parser.add_argument('-t', '--time', dest='time', required=True)
-    parser.add_argument('-n', '--name', dest='name', required=True)
-    parser.add_argument('-m', '--metadata', dest='metadata', required=False)
-    args = parser.parse_args()
+    list_of_comparisons = ["new_data", "new_data3", "new_data2", "new_data4", "other_data", "old_data", "20201109"]
+    #list_of_comparisons = ["other_data"]
+    window_size = 5
+    output_folder = "all_data_combined"
+    time_disc = 15
 
-    dfCalimera = pd.read_csv(args.reference, sep='\t')
-    dfShiny = pd.read_csv(args.file, sep=";")
-    #dfShiny.loc[(dfShiny["HP"] > 1), "HP"] *= 0.005
-    animal_ids = dfCalimera.columns.tolist()[4:]
-    num_rows2 = math.ceil((len(dfShiny.index) - 1) / len(animal_ids))
-    num_rows = len(dfCalimera.index) - 1
-
-    print(num_rows2)
-    print("calimera")
-    print(num_rows)
-    if num_rows != num_rows2:
-        print("do not match!")
-
-    rmsds = []
-
-    for index, animal in enumerate(animal_ids):
-        timepoints = dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist()
-        # Shiny might have too many rows as well depending on averaging etc.
-        timepoints = [t for t in timepoints if t < num_rows]
-        datapoints =  dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist()
-        datapoints = datapoints[0:len(timepoints)]
-        datapointsRef = dfCalimera[animal][1:].tolist()
-        datapointsRef = [datapointsRef[i] for i in timepoints]
-        rmsds.append(np.sqrt(np.mean((np.array(datapointsRef)-np.array(datapoints))**2)))
-        
-    L, U = find_approx_square(len(animal_ids))
-    for index, column in enumerate(animal_ids):
-        plt.subplot(L, U, index + 1) # 3, 4
-        plt.plot(range(0, num_rows), dfCalimera[column][1:], label=f"Animal {column} (Calimera)")
-        plt.legend(loc=2, prop={'size' : 6})
-        plt.ylabel('kcal/h')
-        plt.xlabel(f'Time')
-
-    for index, animal in enumerate(animal_ids):
-        plt.subplot(L, U, index + 1) # 3, 4
-        plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist(), label=f"Animal {animal} (based on O2)")
-        plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["HP"].tolist(), label=f"Animal {animal} (based on CO2)")
-        plt.legend(loc=1, prop={'size' : 6})
-        plt.text(0.1, 0.2, f"RMSD={'{:10.4f}'.format(rmsds[index])}")
-        plt.ylabel('kcal/h')
-        plt.xlabel(f'Time')
-
-
-    ### TODO: crucical to figure the scaling out...  otherwise will get screwed depending on window size! (time discretization matters also?)
-    # filter based on metadata daylight period... 7 to 7...
     min_RMRs = []
     total_EEs = []
-    for index, animal in enumerate(animal_ids):
-        total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3) # 5 minutes interval, thus divide by 5*12=60 TODO keep track of number of days, cannot just sum all data
-
-    for index, animal in enumerate(animal_ids):
-        min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
-
     min_RMRsRef = []
     total_EEsRef = []
-    for index, animal in enumerate(animal_ids):
-        total_EEsRef.append(dfCalimera[animal][1:].sum() / 3) # need to divide by 6 because 6x 10 minute interval...
-        min_RMRsRef.append(24 * min(dfCalimera[animal][1:].tolist())) # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation? 
+    all_animal_ids = []
 
-    manager = plt.get_current_fig_manager()
-    # manager.window.showMaximized()
-    # plt.show()
-    plt.suptitle(f"Time discretization {args.time} minutes. Window size = {args.window} intervals, 25% lowest for averaging of RMR in each window. Dataset: {args.name}")
-    f = plt.gcf()
-    f.set_size_inches(16, 10)
-    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_time_trace_RMR_over_day.png", bbox_inches='tight')
-    plt.clf()
+    for folder in list_of_comparisons:
+        reference = ""
+        try:
+            reference = [f for f in os.listdir(folder) if re.match(r'^comp_table.*tsv$', f)][0]
+            print(reference)
+        except IndexError:
+            print(f"No reference Calimera solution found for data set {folder}.")
+        dfCalimera = pd.read_csv(f"{folder}/{reference}", sep='\t')
+        dfShiny = pd.read_csv(f"{folder}/df_for_comparison_with_calimera_{window_size}.csv", sep=";")
+        animal_ids = dfCalimera.columns.tolist()[4:]
+        for animal_id in animal_ids:
+            all_animal_ids.append(animal_id)
+        num_rows2 = math.ceil((len(dfShiny.index) - 1) / len(animal_ids))
+        num_rows = len(dfCalimera.index) - 1
+
+        print(num_rows2)
+        print("calimera")
+        print(num_rows)
+        if num_rows != num_rows2:
+            print("do not match!")
+
+        rmsds = []
+
+        for index, animal in enumerate(animal_ids):
+            timepoints = dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist()
+            # Shiny might have too many rows as well depending on averaging etc.
+            timepoints = [t for t in timepoints if t < num_rows]
+            datapoints =  dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist()
+            datapoints = datapoints[0:len(timepoints)]
+            datapointsRef = dfCalimera[animal][1:].tolist()
+            datapointsRef = [datapointsRef[i] for i in timepoints]
+            rmsds.append(np.sqrt(np.mean((np.array(datapointsRef)-np.array(datapoints))**2)))
+            
+        L, U = find_approx_square(len(animal_ids))
+        for index, column in enumerate(animal_ids):
+            plt.subplot(L, U, index + 1) # 3, 4
+            plt.plot(range(0, num_rows), dfCalimera[column][1:], label=f"Animal {column} (Calimera)")
+            plt.legend(loc=2, prop={'size' : 6})
+            plt.ylabel('kcal/h')
+            plt.xlabel(f'Time')
+
+        for index, animal in enumerate(animal_ids):
+            plt.subplot(L, U, index + 1) # 3, 4
+            plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist(), label=f"Animal {animal} (based on O2)")
+            plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["HP"].tolist(), label=f"Animal {animal} (based on CO2)")
+            plt.legend(loc=1, prop={'size' : 6})
+            plt.text(0.1, 0.2, f"RMSD={'{:10.4f}'.format(rmsds[index])}")
+            plt.ylabel('kcal/h')
+            plt.xlabel(f'Time')
+
+        manager = plt.get_current_fig_manager()
+        # manager.window.showMaximized()
+        # plt.show()
+        plt.suptitle(f"Time discretization {time_disc} minutes. Window size = {window_size} intervals, 25% lowest for averaging of RMR in each window. Dataset: {folder}")
+        f = plt.gcf()
+        f.set_size_inches(16, 10)
+        plt.savefig(f"{output_folder}/dataset_{folder}_comparison_with_calimera_window_size={window_size}_time_trace_RMR_over_day.png", bbox_inches='tight')
+        plt.clf()
+
+        # filter based on metadata daylight period... 7 to 7...
+        for index, animal in enumerate(animal_ids):
+            total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3) # 5 minutes interval, thus divide by 5*12=60 TODO keep track of number of days, cannot just sum all data
+
+        for index, animal in enumerate(animal_ids):
+            min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
+
+        for index, animal in enumerate(animal_ids):
+            total_EEsRef.append(dfCalimera[animal][1:].sum() / 3) # need to divide by 6 because 6x 10 minute interval...
+            min_RMRsRef.append(24 * min(dfCalimera[animal][1:].tolist())) # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation? 
 
     data = {'Our' : min_RMRs, 'Ref' : min_RMRsRef}
     order = ['Our', 'Theirs']
@@ -221,52 +210,51 @@ if __name__ == "__main__":
     f = plt.gcf()
     f.set_size_inches(16, 10)
     plt.ylabel('kcal/day')
-    plt.suptitle(f"Daily RMR. Dataset: {args.name}")
-    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_boxplots_with_stats_RMR_per_day.png", bbox_inches='tight')
-
+    plt.suptitle(f"Daily RMR. Dataset: {''.join(list_of_comparisons)}")
+    plt.savefig(f"{output_folder}/comparison_with_calimera_window_size={window_size}_boxplots_with_stats_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
-    
+
     plt.boxplot(data.values(), showfliers=False, sym='')
     plt.xticks([1,2], ['w/o activity data', 'w activity data'])
     plt.plot([1]*len(min_RMRs), min_RMRs, 'r.', alpha=.2)
     plt.ylim([0, 20])
     for index, val in enumerate(min_RMRs):
-        plt.text(1.01, val, animal_ids[index], fontsize=6)
+        plt.text(1.01, val, all_animal_ids[index], fontsize=6)
     plt.plot([2]*len(min_RMRs), min_RMRsRef, 'r.', alpha=.2)
     for index, val in enumerate(min_RMRsRef):
-        plt.text(2.01, val, animal_ids[index], fontsize=6)
+        plt.text(2.01, val, all_animal_ids[index], fontsize=6)
 
     # plt.show()
     f = plt.gcf()
     f.set_size_inches(16, 10)
     plt.ylabel('kcal/day')
-    plt.suptitle(f"Daily RMR. Dataset: {args.name}")
-    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_boxplots_RMR_per_day.png", bbox_inches='tight')
-
+    plt.suptitle(f"Daily RMR. Dataset: {','.join(list_of_comparisons)}")
+    plt.savefig(f"{output_folder}/comparison_with_calimera_window_size={window_size}_boxplots_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
-    df = pd.DataFrame({ 'Energy': min_RMRs + min_RMRsRef + total_EEs, 'Animals' : animal_ids + animal_ids + animal_ids, 
+
+    df = pd.DataFrame({ 'Energy': min_RMRs + min_RMRsRef + total_EEs, 'Animals' : all_animal_ids + all_animal_ids + all_animal_ids, 
         'Type' : ["RMR"] * len(min_RMRs) + ["RMR_ref"] * len(min_RMRsRef) + ["Total"] * len(total_EEs)})
     g = sns.catplot(data=df, kind="bar", x='Animals', y='Energy', hue="Type", palette='dark', alpha=.6, height=6, ci='sd', estimator=np.mean, capsize=.2)
     g.despine(left=True)
     g.set_axis_labels("Animal ID", "Energy expenditure over day [kcal/day]")
     f = plt.gcf()
     f.set_size_inches(16, 10)
-    plt.savefig(f"{args.output}/comparison_with_calimera_window_size={args.window}_barplots_with_stats_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(f"{output_folder}/comparison_with_calimera_window_size={window_size}_barplots_with_stats_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
 
-    #shapiro = calc_shapiro(min_RMRs, min_RMRsRef)
-    #ks = calc_ks(min_RMRs, min_RMRsRef)
-    #print(f"KS test: p-value = {ks.pvalue}")
-    #print(f"Shapiro-Wilk test: p-value = {shapiro.pvalue}")
-    #if ks.pvalue < 0.05 or shapiro.pvalue < 0.05:
-    #    print("Test might not be applicable (Bland-Altman)")
-
+    shapiro = calc_shapiro(min_RMRs, min_RMRsRef)
+    ks = calc_ks(min_RMRs, min_RMRsRef)
+    print(f"KS test: p-value = {ks.pvalue}")
+    print(f"Shapiro-Wilk test: p-value = {shapiro.pvalue}")
+    if ks.pvalue < 0.05 or shapiro.pvalue < 0.05:
+        print("Test might not be applicable (Bland-Altman)")
     plt.clf()
+
     qq_plot(min_RMRs, min_RMRsRef)
     plt.title("Q-Q plot")
     plt.ylabel('Expected mean')
     plt.xlabel('Observed mean')
-    plt.savefig(f"{args.output}/qq_plot={args.window}_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(f"{output_folder}/qq_plot={window_size}_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
     plt.rcParams['text.usetex'] = True
     bland_altman(min_RMRs, min_RMRsRef)
@@ -274,13 +262,14 @@ if __name__ == "__main__":
     plt.xlabel(r'$\frac{S_1+S_2}{2}$')
     plt.ylabel(r'$S_1-S_2$')
     plt.rcParams['text.usetex'] = False
-    plt.savefig(f"{args.output}/bland_altman={args.window}_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(f"{output_folder}/bland_altman={window_size}_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
     hist_plot(min_RMRs, min_RMRsRef)
-    plt.savefig(f"{args.output}/histogram={args.window}_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(f"{output_folder}/histogram={window_size}_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
 
-
+"""
+   
     if args.metadata:
         metadata = pd.read_csv(f"{args.metadata}.csv", sep=";")
         xs = metadata["Weight"].tolist()
@@ -297,3 +286,4 @@ if __name__ == "__main__":
     #df = pd.DataFrame({ 'Our' : min_RMRs, 'Total' : total_EEs, 'Theirs': min_RMRsRef, 'Animals' : animal_ids})
     #df.plot(kind='bar', stacked=True, color=['red', 'skyblue', 'green'])
     #plt.show()
+"""
