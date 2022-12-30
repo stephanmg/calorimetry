@@ -189,16 +189,17 @@ if __name__ == "__main__":
         plt.savefig(f"{output_folder}/dataset_{folder}_comparison_with_calimera_window_size={window_size}_time_trace_RMR_over_day.png", bbox_inches='tight')
         plt.clf()
 
+        TIME_INTERVAL = 1
         # filter based on metadata daylight period... 7 to 7...
         for index, animal in enumerate(animal_ids):
             total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3) # 5 minutes interval, thus divide by 5*12=60 TODO keep track of number of days, cannot just sum all data
 
         for index, animal in enumerate(animal_ids):
-            min_RMRs.append(24 * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
+            min_RMRs.append(24/TIME_INTERVAL * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
 
         for index, animal in enumerate(animal_ids):
             total_EEsRef.append(dfCalimera[animal][1:].sum() / 3) # need to divide by 6 because 6x 10 minute interval...
-            min_RMRsRef.append(24 * min(dfCalimera[animal][1:].tolist())) # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation? 
+            min_RMRsRef.append(24/TIME_INTERVAL * min(dfCalimera[animal][1:].tolist())) # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation? 
 
     data = {'Our' : min_RMRs, 'Ref' : min_RMRsRef}
     order = ['Our', 'Theirs']
@@ -268,8 +269,8 @@ if __name__ == "__main__":
     plt.savefig(f"{output_folder}/histogram={window_size}_RMR_per_day.png", bbox_inches='tight')
     plt.clf()
 
+# Additional information for metadata (weight of animal etc)
 """
-   
     if args.metadata:
         metadata = pd.read_csv(f"{args.metadata}.csv", sep=";")
         xs = metadata["Weight"].tolist()
