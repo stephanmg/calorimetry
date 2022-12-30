@@ -35,9 +35,9 @@ def prepend_line(file_name, line):
 def convert_tse():
     """Converts some non-standard TSE format to TSE format"""
     # TODO: Need to adjust this depending on TSE file... perhaps automatically...
-    NUMBER_OF_SEPARATING_EMPTY_LINES = 1 # 3
-    OFFSET_EMPTY_LINE_TO_STOP = 1 # 0
-    DATA_OFFSET = 4 # 3
+    NUMBER_OF_SEPARATING_EMPTY_LINES = 1  # 3
+    OFFSET_EMPTY_LINE_TO_STOP = 1  # 0
+    DATA_OFFSET = 4  # 3
 
     lines = []
     with open(args.file_in) as f:
@@ -63,7 +63,7 @@ def convert_tse():
     dateNames = [name for name in items_first_column if re.search(pat, str(name))]
     indices = [item[0] for item in lines if item[0] != ""]
 
-    animalNames = [ ]
+    animalNames = []
     print(indices)
     print("len of indices")
     print(len(indices))
@@ -92,12 +92,12 @@ def convert_tse():
 
     # TODO: Need to adjust this depending on TSE file...
     identifiers = {
-        "XY+YZ": 9, # 0
-        "Time": 1, # 1
-        "VO2(3)": 6, # 2 
-        "VCO2(3)": 7, # 3
-        "Temp": 1, # 4
-        "RER": 8, # 5
+        "XY+YZ": 9,  # 0
+        "Time": 1,  # 1
+        "VO2(3)": 6,  # 2
+        "VCO2(3)": 7,  # 3
+        "Temp": 1,  # 4
+        "RER": 8,  # 5
     }
     identifiers_meta = {"Box": boxNames, "Animal No.": animalNames, "Date": dateNames}
 
@@ -112,7 +112,7 @@ def convert_tse():
                         animals[key].append(
                             re.search("(\d+)", val[boxIndex]).group(1)
                             if key == "Box"
-                            else val[boxIndex+1]
+                            else val[boxIndex + 1]
                         )
 
         # append for last measurement day
@@ -124,7 +124,7 @@ def convert_tse():
                     animals[key].append(
                         re.search("(\d+)", val[boxIndex]).group(1)
                         if key == "Box"
-                        else val[boxIndex+1]
+                        else val[boxIndex + 1]
                     )
 
         # add all data identifiers
@@ -147,7 +147,7 @@ def convert_tse():
                 )
 
     # consistency check if all data of all boxes has been recorded accordingly
-    assert (len(lines) - stop - NUMBER_OF_SEPARATING_EMPTY_LINES-1) * len(boxes) == (
+    assert (len(lines) - stop - NUMBER_OF_SEPARATING_EMPTY_LINES - 1) * len(boxes) == (
         min([len(value) for _, value in animals.items()])
     )
 
@@ -163,6 +163,7 @@ def convert_tse():
     # prepend given metadata to exported csv file (insert TSE header)
     for line in reversed(lines[0:date]):
         prepend_line(args.file_out, ";".join([str(l) for l in line]))
+
 
 if __name__ == "__main__":
     args = parse_cli_args()

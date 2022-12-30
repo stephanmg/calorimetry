@@ -13,39 +13,41 @@ import re
 
 
 def hist_plot(data1, data2):
-    data1     = np.asarray(data1)
-    data2     = np.asarray(data2)
-    mean      = np.mean([data1, data2], axis=0)
-    diff      = data1 - data2
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2
     plt.hist(diff)
 
+
 def calc_ks(data1, data2):
-    data1     = np.asarray(data1)
-    data2     = np.asarray(data2)
-    mean      = np.mean([data1, data2], axis=0)
-    diff      = data1 - data2
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2
     return stats.kstest(diff, stats.norm.cdf)
 
+
 def calc_shapiro(data1, data2):
-    data1     = np.asarray(data1)
-    data2     = np.asarray(data2)
-    mean      = np.mean([data1, data2], axis=0)
-    diff      = data1 - data2
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2
     return stats.shapiro(diff)
 
+
 def bland_altman(data1, data2, *args, **kwargs):
-    data1     = np.asarray(data1)
-    data2     = np.asarray(data2)
-    mean      = np.mean([data1, data2], axis=0)
-    diff      = data1 - data2                   # Difference between data1 and data2
-    md        = np.mean(diff)                   # Mean of the difference
-    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2  # Difference between data1 and data2
+    md = np.mean(diff)  # Mean of the difference
+    sd = np.std(diff, axis=0)  # Standard deviation of the difference
 
     plt.scatter(mean, diff, *args, **kwargs)
-    plt.axhline(md,           color='blue', linestyle='--')
-    plt.axhline(md + 1.96*sd, color='red', linestyle='--')
-    plt.axhline(md - 1.96*sd, color='red', linestyle='--')
-
+    plt.axhline(md, color="blue", linestyle="--")
+    plt.axhline(md + 1.96 * sd, color="red", linestyle="--")
+    plt.axhline(md - 1.96 * sd, color="red", linestyle="--")
 
 
 import seaborn as sns
@@ -56,48 +58,50 @@ from statannot import add_stat_annotation
 ## https://hmgubox2.helmholtz-muenchen.de/index.php/s/tSi66Ajo3DLHXc9?path=%2FCalorimetryDataSets
 ################################################################################
 
+
 def find_approx_square(N):
     """Very primitive idea to find an approximate square subplot arrangement"""
     U = math.ceil(math.sqrt(N))
     L = math.floor(math.sqrt(N))
-    if U*L != N:
+    if U * L != N:
         return U, U
     else:
         return L, U
 
 
 def qq_plot(data1, data2, *args, **kwargs):
-    data1     = np.asarray(data1)
-    data2     = np.asarray(data2)
-    mean      = np.mean([data1, data2], axis=0)
-    diff      = data1 - data2                   
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2
     stats.probplot(diff, dist="norm", plot=pylab)
 
+
 def bland_altman(data1, data2, *args, **kwargs):
-    data1     = np.asarray(data1)
-    data2     = np.asarray(data2)
-    mean      = np.mean([data1, data2], axis=0)
-    diff      = data1 - data2                   # Difference between data1 and data2
-    md        = np.mean(diff)                   # Mean of the difference
-    sd        = np.std(diff, axis=0)            # Standard deviation of the difference
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2  # Difference between data1 and data2
+    md = np.mean(diff)  # Mean of the difference
+    sd = np.std(diff, axis=0)  # Standard deviation of the difference
 
     plt.scatter(mean, diff, *args, **kwargs)
-    plt.axhline(md,           color='blue', linestyle='--')
+    plt.axhline(md, color="blue", linestyle="--")
 
-    plt.text(5.0, float(md+0.1), f"{abs(float(md)-0)}")
-    plt.axhline(md + 1.96*sd, color='red', linestyle='--')
-    plt.axhline(md - 1.96*sd, color='red', linestyle='--')
+    plt.text(5.0, float(md + 0.1), f"{abs(float(md)-0)}")
+    plt.axhline(md + 1.96 * sd, color="red", linestyle="--")
+    plt.axhline(md - 1.96 * sd, color="red", linestyle="--")
 
     b, m = polyfit(mean, diff, 1)
     print(f"b: {b}")
     print(f"m: {m}")
-    plt.plot(mean, b + m * mean, color="yellow", linestyle='-.')
-    #plt.plot(0, 0, color="black", linestyle=":")
+    plt.plot(mean, b + m * mean, color="yellow", linestyle="-.")
+    # plt.plot(0, 0, color="black", linestyle=":")
     slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(mean, diff)
     print(f"r2: {r_value*r_value}")
     plt.text(6.5, 0, f"$R^2$: {r_value*r_value}")
     plt.text(5.5, 1, f"p-value: {p_value}")
-    #plt.axline(xy1=(0, b), slope=m, color='r', label=f'$y = {m:.2f}x {b:+.2f}$')
+    # plt.axline(xy1=(0, b), slope=m, color='r', label=f'$y = {m:.2f}x {b:+.2f}$')
 
 
 import seaborn as sns
@@ -108,18 +112,28 @@ from statannot import add_stat_annotation
 ## https://hmgubox2.helmholtz-muenchen.de/index.php/s/tSi66Ajo3DLHXc9?path=%2FCalorimetryDataSets
 ################################################################################
 
+
 def find_approx_square(N):
     """Very primitive idea to find an approximate square subplot arrangement"""
     U = math.ceil(math.sqrt(N))
     L = math.floor(math.sqrt(N))
-    if U*L != N:
+    if U * L != N:
         return U, U
     else:
         return L, U
 
+
 if __name__ == "__main__":
-    list_of_comparisons = ["new_data", "new_data3", "new_data2", "new_data4", "other_data", "old_data", "20201109"]
-    #list_of_comparisons = ["other_data"]
+    list_of_comparisons = [
+        "new_data",
+        "new_data3",
+        "new_data2",
+        "new_data4",
+        "other_data",
+        "old_data",
+        "20201109",
+    ]
+    # list_of_comparisons = ["other_data"]
     window_size = 5
     output_folder = "all_data_combined"
     time_disc = 15
@@ -133,12 +147,16 @@ if __name__ == "__main__":
     for folder in list_of_comparisons:
         reference = ""
         try:
-            reference = [f for f in os.listdir(folder) if re.match(r'^comp_table.*tsv$', f)][0]
+            reference = [
+                f for f in os.listdir(folder) if re.match(r"^comp_table.*tsv$", f)
+            ][0]
             print(reference)
         except IndexError:
             print(f"No reference Calimera solution found for data set {folder}.")
-        dfCalimera = pd.read_csv(f"{folder}/{reference}", sep='\t')
-        dfShiny = pd.read_csv(f"{folder}/df_for_comparison_with_calimera_{window_size}.csv", sep=";")
+        dfCalimera = pd.read_csv(f"{folder}/{reference}", sep="\t")
+        dfShiny = pd.read_csv(
+            f"{folder}/df_for_comparison_with_calimera_{window_size}.csv", sep=";"
+        )
         animal_ids = dfCalimera.columns.tolist()[4:]
         for animal_id in animal_ids:
             all_animal_ids.append(animal_id)
@@ -154,93 +172,178 @@ if __name__ == "__main__":
         rmsds = []
 
         for index, animal in enumerate(animal_ids):
-            timepoints = dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist()
+            timepoints = dfShiny.loc[
+                (dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")
+            ]["Time"].tolist()
             # Shiny might have too many rows as well depending on averaging etc.
             timepoints = [t for t in timepoints if t < num_rows]
-            datapoints =  dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist()
-            datapoints = datapoints[0:len(timepoints)]
+            datapoints = dfShiny.loc[
+                (dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")
+            ]["HP"].tolist()
+            datapoints = datapoints[0 : len(timepoints)]
             datapointsRef = dfCalimera[animal][1:].tolist()
             datapointsRef = [datapointsRef[i] for i in timepoints]
-            rmsds.append(np.sqrt(np.mean((np.array(datapointsRef)-np.array(datapoints))**2)))
-            
+            rmsds.append(
+                np.sqrt(np.mean((np.array(datapointsRef) - np.array(datapoints)) ** 2))
+            )
+
         L, U = find_approx_square(len(animal_ids))
         for index, column in enumerate(animal_ids):
-            plt.subplot(L, U, index + 1) # 3, 4
-            plt.plot(range(0, num_rows), dfCalimera[column][1:], label=f"Animal {column} (Calimera)")
-            plt.legend(loc=2, prop={'size' : 6})
-            plt.ylabel('kcal/h')
-            plt.xlabel(f'Time')
+            plt.subplot(L, U, index + 1)  # 3, 4
+            plt.plot(
+                range(0, num_rows),
+                dfCalimera[column][1:],
+                label=f"Animal {column} (Calimera)",
+            )
+            plt.legend(loc=2, prop={"size": 6})
+            plt.ylabel("kcal/h")
+            plt.xlabel(f"Time")
 
         for index, animal in enumerate(animal_ids):
-            plt.subplot(L, U, index + 1) # 3, 4
-            plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")]["HP"].tolist(), label=f"Animal {animal} (based on O2)")
-            plt.plot(dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["Time"].tolist(), dfShiny.loc[(dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")]["HP"].tolist(), label=f"Animal {animal} (based on CO2)")
-            plt.legend(loc=1, prop={'size' : 6})
+            plt.subplot(L, U, index + 1)  # 3, 4
+            plt.plot(
+                dfShiny.loc[
+                    (dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")
+                ]["Time"].tolist(),
+                dfShiny.loc[
+                    (dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "O2")
+                ]["HP"].tolist(),
+                label=f"Animal {animal} (based on O2)",
+            )
+            plt.plot(
+                dfShiny.loc[
+                    (dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")
+                ]["Time"].tolist(),
+                dfShiny.loc[
+                    (dfShiny["Animal"] == int(animal)) & (dfShiny["Component"] == "CO2")
+                ]["HP"].tolist(),
+                label=f"Animal {animal} (based on CO2)",
+            )
+            plt.legend(loc=1, prop={"size": 6})
             plt.text(0.1, 0.2, f"RMSD={'{:10.4f}'.format(rmsds[index])}")
-            plt.ylabel('kcal/h')
-            plt.xlabel(f'Time')
+            plt.ylabel("kcal/h")
+            plt.xlabel(f"Time")
 
         manager = plt.get_current_fig_manager()
         # manager.window.showMaximized()
         # plt.show()
-        plt.suptitle(f"Time discretization {time_disc} minutes. Window size = {window_size} intervals, 25% lowest for averaging of RMR in each window. Dataset: {folder}")
+        plt.suptitle(
+            f"Time discretization {time_disc} minutes. Window size = {window_size} intervals, 25% lowest for averaging of RMR in each window. Dataset: {folder}"
+        )
         f = plt.gcf()
         f.set_size_inches(16, 10)
-        plt.savefig(f"{output_folder}/dataset_{folder}_comparison_with_calimera_window_size={window_size}_time_trace_RMR_over_day.png", bbox_inches='tight')
+        plt.savefig(
+            f"{output_folder}/dataset_{folder}_comparison_with_calimera_window_size={window_size}_time_trace_RMR_over_day.png",
+            bbox_inches="tight",
+        )
         plt.clf()
 
         TIME_INTERVAL = 1
         # filter based on metadata daylight period... 7 to 7...
         for index, animal in enumerate(animal_ids):
-            total_EEs.append(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3) # 5 minutes interval, thus divide by 5*12=60 TODO keep track of number of days, cannot just sum all data
+            total_EEs.append(
+                dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].sum() / 3
+            )  # 5 minutes interval, thus divide by 5*12=60 TODO keep track of number of days, cannot just sum all data
 
         for index, animal in enumerate(animal_ids):
-            min_RMRs.append(24/TIME_INTERVAL * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist()))  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
+            min_RMRs.append(
+                24
+                / TIME_INTERVAL
+                * min(dfShiny.loc[dfShiny["Animal"] == int(animal)]["HP"].tolist())
+            )  # *6 (10 minute interval) # 5 minute interval = 12 (since value in shiny app is kcal/h)
 
         for index, animal in enumerate(animal_ids):
-            total_EEsRef.append(dfCalimera[animal][1:].sum() / 3) # need to divide by 6 because 6x 10 minute interval...
-            min_RMRsRef.append(24/TIME_INTERVAL * min(dfCalimera[animal][1:].tolist())) # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation? 
+            total_EEsRef.append(
+                dfCalimera[animal][1:].sum() / 3
+            )  # need to divide by 6 because 6x 10 minute interval...
+            min_RMRsRef.append(
+                24 / TIME_INTERVAL * min(dfCalimera[animal][1:].tolist())
+            )  # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation?
 
-    data = {'Our' : min_RMRs, 'Ref' : min_RMRsRef}
-    order = ['Our', 'Theirs']
-    df = pd.DataFrame(data={'x': min_RMRs + min_RMRsRef, 'y': ["Our"]*len(min_RMRs) + ["Theirs"]*len(min_RMRsRef)})
-    ax = sns.boxplot(data=df, x='y', y='x', order=order)
-    add_stat_annotation(ax, data=df, x='y', y='x', order=order, box_pairs=[("Our", "Theirs")], test='t-test_ind', text_format='star', loc='outside', verbose=2)
+    data = {"Our": min_RMRs, "Ref": min_RMRsRef}
+    order = ["Our", "Theirs"]
+    df = pd.DataFrame(
+        data={
+            "x": min_RMRs + min_RMRsRef,
+            "y": ["Our"] * len(min_RMRs) + ["Theirs"] * len(min_RMRsRef),
+        }
+    )
+    ax = sns.boxplot(data=df, x="y", y="x", order=order)
+    add_stat_annotation(
+        ax,
+        data=df,
+        x="y",
+        y="x",
+        order=order,
+        box_pairs=[("Our", "Theirs")],
+        test="t-test_ind",
+        text_format="star",
+        loc="outside",
+        verbose=2,
+    )
     sns.stripplot(data=df, x="y", y="x", dodge=True, ax=ax)
-    
+
     f = plt.gcf()
     f.set_size_inches(16, 10)
-    plt.ylabel('kcal/day')
+    plt.ylabel("kcal/day")
     plt.suptitle(f"Daily RMR. Dataset: {''.join(list_of_comparisons)}")
-    plt.savefig(f"{output_folder}/comparison_with_calimera_window_size={window_size}_boxplots_with_stats_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(
+        f"{output_folder}/comparison_with_calimera_window_size={window_size}_boxplots_with_stats_RMR_per_day.png",
+        bbox_inches="tight",
+    )
     plt.clf()
 
-    plt.boxplot(data.values(), showfliers=False, sym='')
-    plt.xticks([1,2], ['w/o activity data', 'w activity data'])
-    plt.plot([1]*len(min_RMRs), min_RMRs, 'r.', alpha=.2)
+    plt.boxplot(data.values(), showfliers=False, sym="")
+    plt.xticks([1, 2], ["w/o activity data", "w activity data"])
+    plt.plot([1] * len(min_RMRs), min_RMRs, "r.", alpha=0.2)
     plt.ylim([0, 20])
     for index, val in enumerate(min_RMRs):
         plt.text(1.01, val, all_animal_ids[index], fontsize=6)
-    plt.plot([2]*len(min_RMRs), min_RMRsRef, 'r.', alpha=.2)
+    plt.plot([2] * len(min_RMRs), min_RMRsRef, "r.", alpha=0.2)
     for index, val in enumerate(min_RMRsRef):
         plt.text(2.01, val, all_animal_ids[index], fontsize=6)
 
     # plt.show()
     f = plt.gcf()
     f.set_size_inches(16, 10)
-    plt.ylabel('kcal/day')
+    plt.ylabel("kcal/day")
     plt.suptitle(f"Daily RMR. Dataset: {','.join(list_of_comparisons)}")
-    plt.savefig(f"{output_folder}/comparison_with_calimera_window_size={window_size}_boxplots_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(
+        f"{output_folder}/comparison_with_calimera_window_size={window_size}_boxplots_RMR_per_day.png",
+        bbox_inches="tight",
+    )
     plt.clf()
 
-    df = pd.DataFrame({ 'Energy': min_RMRs + min_RMRsRef + total_EEs, 'Animals' : all_animal_ids + all_animal_ids + all_animal_ids, 
-        'Type' : ["RMR"] * len(min_RMRs) + ["RMR_ref"] * len(min_RMRsRef) + ["Total"] * len(total_EEs)})
-    g = sns.catplot(data=df, kind="bar", x='Animals', y='Energy', hue="Type", palette='dark', alpha=.6, height=6, ci='sd', estimator=np.mean, capsize=.2)
+    df = pd.DataFrame(
+        {
+            "Energy": min_RMRs + min_RMRsRef + total_EEs,
+            "Animals": all_animal_ids + all_animal_ids + all_animal_ids,
+            "Type": ["RMR"] * len(min_RMRs)
+            + ["RMR_ref"] * len(min_RMRsRef)
+            + ["Total"] * len(total_EEs),
+        }
+    )
+    g = sns.catplot(
+        data=df,
+        kind="bar",
+        x="Animals",
+        y="Energy",
+        hue="Type",
+        palette="dark",
+        alpha=0.6,
+        height=6,
+        ci="sd",
+        estimator=np.mean,
+        capsize=0.2,
+    )
     g.despine(left=True)
     g.set_axis_labels("Animal ID", "Energy expenditure over day [kcal/day]")
     f = plt.gcf()
     f.set_size_inches(16, 10)
-    plt.savefig(f"{output_folder}/comparison_with_calimera_window_size={window_size}_barplots_with_stats_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(
+        f"{output_folder}/comparison_with_calimera_window_size={window_size}_barplots_with_stats_RMR_per_day.png",
+        bbox_inches="tight",
+    )
     plt.clf()
 
     shapiro = calc_shapiro(min_RMRs, min_RMRsRef)
@@ -253,20 +356,27 @@ if __name__ == "__main__":
 
     qq_plot(min_RMRs, min_RMRsRef)
     plt.title("Q-Q plot")
-    plt.ylabel('Expected mean')
-    plt.xlabel('Observed mean')
-    plt.savefig(f"{output_folder}/qq_plot={window_size}_RMR_per_day.png", bbox_inches='tight')
+    plt.ylabel("Expected mean")
+    plt.xlabel("Observed mean")
+    plt.savefig(
+        f"{output_folder}/qq_plot={window_size}_RMR_per_day.png", bbox_inches="tight"
+    )
     plt.clf()
-    plt.rcParams['text.usetex'] = True
+    plt.rcParams["text.usetex"] = True
     bland_altman(min_RMRs, min_RMRsRef)
     plt.title("Bland-Altman plot RMR method without and with activity data")
-    plt.xlabel(r'$\frac{S_1+S_2}{2}$')
-    plt.ylabel(r'$S_1-S_2$')
-    plt.rcParams['text.usetex'] = False
-    plt.savefig(f"{output_folder}/bland_altman={window_size}_RMR_per_day.png", bbox_inches='tight')
+    plt.xlabel(r"$\frac{S_1+S_2}{2}$")
+    plt.ylabel(r"$S_1-S_2$")
+    plt.rcParams["text.usetex"] = False
+    plt.savefig(
+        f"{output_folder}/bland_altman={window_size}_RMR_per_day.png",
+        bbox_inches="tight",
+    )
     plt.clf()
     hist_plot(min_RMRs, min_RMRsRef)
-    plt.savefig(f"{output_folder}/histogram={window_size}_RMR_per_day.png", bbox_inches='tight')
+    plt.savefig(
+        f"{output_folder}/histogram={window_size}_RMR_per_day.png", bbox_inches="tight"
+    )
     plt.clf()
 
 # Additional information for metadata (weight of animal etc)
