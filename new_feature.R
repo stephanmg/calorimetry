@@ -64,31 +64,44 @@ create_df <- function(df, component, M, N, percentage) {
    # TODO: Detect length from metadata or 1st two measurements (Time2-Time1)
    INTERVAL_LENGTH <- 15
    df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
-   df_plot$HP <- df_plot$HP / 24 / (60/INTERVAL_LENGTH) / INTERVAL_LENGTH # check for correctness here TODO
-   #df_plot$HP <- df_plot$HP / 24 / 6 # heat production divided by 24 hours (might be scaled wrongly here) 
-   #df_plot$Time <- df_plot$Time * floor(N/M) # which averaging (time points in dat taken every 5 minutes?)
+   # TODO: Check for scaling correctness
+   df_plot$HP <- df_plot$HP / 24 / (60 / INTERVAL_LENGTH) / INTERVAL_LENGTH
+   #df_plot$HP <- df_plot$HP / 24 / 6 
+   #df_plot$Time <- df_plot$Time * floor(N/M) 
    df_plot
 }
 
+# default settings for test
 filename <- "test_O2.pdf"
-percentage=5
+percentage <- 5
 
+################################################################################
+# extract_rmr2
+################################################################################
+# data
+# M
+# PERCENTAGE
 extract_rmr2 <- function(data, M, PERCENTAGE) {
    N <- nrow(data)
-   # TODO: Make M a parameter again... specified by user
-   M = 5
+   # TODO: Make M a parameter... a user might want to specify the sliding window
+   M <- 5
+   # actual data
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
    df_foo <- data.frame(df$HP, seq(1, N))
    colnames(df_foo) <- c("HP", "Time")
-   df_foo$HP <- df_foo$HP / 24 # TODO/FIXME: dubious constant?! over day? but maybe okay....
+   df_foo$HP <- df_foo$HP / 24 # TODO/FIXME: dubious constant?! over day? okay?!
    df_foo$Time <- df_foo$Time
    df_plot_total <- rbind(df_plot_O2, df_plot_CO2)
-   df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)), rep("CO2", nrow(df_plot_CO2)))
+   df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)),
+      rep("CO2", nrow(df_plot_CO2)))
    return(list("df_plot_total" = df_plot_total, "df_foo" = df_foo))
 }
 
+################################################################################
+# extract_rmr: TODO: Old code. Remove
+################################################################################
 extract_rmr <- function(input_filename, M, PERCENTAGE, 
    SLIDING_WINDOW_OF_PREPROCESSING=10, SEP=";") {
    data <- read.csv2(input_filename, sep=SEP)
@@ -98,10 +111,10 @@ extract_rmr <- function(input_filename, M, PERCENTAGE,
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
    df_foo <- data.frame(df$HP, seq(1, N))
    colnames(df_foo) <- c("HP", "Time")
-   df_foo$HP <- df_foo$HP / 24 # TODO/FIXME: dubious constant?! over day? but maybe okay....
+   df_foo$HP <- df_foo$HP / 24
    df_foo$Time <- df_foo$Time
    df_plot_total <- rbind(df_plot_O2, df_plot_CO2)
-   df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)), rep("CO2", nrow(df_plot_CO2)))
-   return (list("df_plot_total"=df_plot_total, "df_foo"=df_foo))
+   df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)),
+      rep("CO2", nrow(df_plot_CO2)))
+   return(list("df_plot_total" = df_plot_total, "df_foo" = df_foo))
 }
-
