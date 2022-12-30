@@ -3,7 +3,6 @@ library("plotly")
 library("shinybusy")
 library("shinythemes")
 
-
 ################################################################################
 # First page: Introduction
 ################################################################################
@@ -34,7 +33,6 @@ intro_panel <- tabPanel(
    p("Use the navigation bar to jump to Data export for e.g. CalR"),
    h1("Further information"),
    p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
-  
 )
 
 ################################################################################
@@ -156,7 +154,7 @@ validation <- tabPanel(
 documentation <- tabPanel(
    "Documentation",
    titlePanel("Documentation"),
-   tags$img(src="overview_shiny.png")
+   tags$img(src = "overview_shiny.png")
 )
 
 ################################################################################
