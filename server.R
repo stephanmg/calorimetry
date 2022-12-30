@@ -233,6 +233,8 @@ do_plotting <- function(file, input, exclusion, output) {
       print("within HP")
       print(C1$RER_NA)
       print(C1$`VO2(3)_[ml/h]`)
+      C1$RER_NA <- as.numeric(C1$RER_NA)
+      C1$`VO2(3)_[ml/h]`  <- as.numeric(C1$`VO2(3)_[ml/h]`)
       C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
    },
    HP2 = {
@@ -473,18 +475,19 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- ggplot(data=df_plot_total, aes(x=Time, y = HP, group = Component, 
       color=Component)) 
       p <- p + geom_line() + facet_wrap(~Animal)
-      p <- p + scale_y_continuous(breaks = pretty(df_plot_total$HP, n = 10))
+      #p <- p + scale_y_continuous(breaks = pretty(df_plot_total$HP, n = 10))
       #p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", hue="Component")
       ##p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", shape="Component")
-      p <- p + rotate_x_text(90)
-      p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
-      p <- p + p2 + p3
-      p <- ggplotly(p)
+      #p <- p + rotate_x_text(90)
+      ##p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
+      #p <- p + p2 + p3
+      #p <- ggplotly(p)
       #p2 <- ggline(df_foo, x="Time", y="HP") 
       #p2 <- ggpar(p2, ylab="TEE [kcal/day]")
       #p2 <- p2 + rotate_x_text(90)
       #p <- p | p2
-      p <- ggplotly(p)
+      #p <- ggplotly(p)
+      #p
    },
    DayNightActivity = {
 
