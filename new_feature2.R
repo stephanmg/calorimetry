@@ -1,3 +1,6 @@
+################################################################################
+# extract_rmr_helper
+################################################################################
 extract_rmr_helper <- function() {
    df <- read.csv2("df_for_cov_analysis.csv")
    library(dplyr)
@@ -15,11 +18,10 @@ extract_rmr_helper <- function() {
       total_data <- rbind(total_data, tmp)
    }
 
-
    colnames(total_data) <- c("HP", "Time", "Component", "Animal")
    total_data$Animal <- as.factor(total_data$Animal)
    total_data$Component <- as.factor(total_data$Component)
    print(total_data)
    return(total_data)
-   # FIXME: total data contains O2 and CO2 production not heat production
+   # TODO: double check, total data contain Heat production, not O2 and CO2?
 }
