@@ -25,9 +25,38 @@ convert <- function(x) {
 ################################################################################
 # Export to CalR and Sable format
 ################################################################################
+do_export2 <- function(format, input, output, fileOutput) {
+      # exports for now only the first data set (TODO) use combined data set (all_data.csv) and reformat for xlsx or sable
+      file <- input$File1
+      if (is.null(input$File1)) {
+         output$message <- renderText("Not any cohort data given by the user.")
+      } else {
+         file <- input$File1
+         real_data <- do_plotting(file$datapath, input, input$sick)
+         h <- hash()
+
+         # Specific mapping of column names from TSE to CalR to produce
+         # a compatible .csv file
+         h[["Datetime"]] <- "Date_Time"
+         h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
+         h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"
+         # caloric equivalent by 1st formula (HeatProduction formula 1)
+         h[["HP"]] <- "RT_Kcal_hr_1"
+         # caloric equivalent by 2nd formula (HeatProduction formula 2)
+         h[["HP2"]] <- "RT_Kcal_hr_2"
+         # rename data
+         for (v in ls(h)) {
+            names(real_data$data)[names(real_data$data) == v] = h[[v]]
+         }
+         write.csv(real_data$data[values(h)], file = fileOutput, row.names = FALSE)
+         writeLines(gsub(pattern = '"', replace = "", x = readLines(fileOutput)),
+          con = fileOutput)
+      }
+   }
+
 do_export <- function(format, input, output) {
    if (format == "CalR") {
-      file = input$File1
+      file <- input$File1
 
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
@@ -91,6 +120,7 @@ do_plotting <- function(file, input, exclusion, output) {
       if (grepl("TSE", line[2]) != fileFormatTSE) {
          return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
       }
+      # TODO: need to support also Jennifers format 
    }
    #############################################################################
    # Detect data type (TSE or Sable)
@@ -607,17 +637,13 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
-   list("plot"=p, "animals"=`$`(C1, "Animal No._NA"), "data"=finalC1,"metadata"=C1meta)
+   list("plot"=p, "animals"=`$`(finalC1, "Animal No._NA"), "data"=finalC1,"metadata"=C1meta)
 }
 
 ################################################################################
 # Create server
 ################################################################################
 server <- function(input, output, session) {
-   shinyDirChoose(input, "export_folder",
-      roots = c(wd=path_home()),
-      filetypes = c("", "txt"))
-
    output$metadatafile <- renderUI({
       html_ui <- " "
       html_ui <- paste0(html_ui,
@@ -625,6 +651,20 @@ server <- function(input, output, session) {
          label="Metadata file"))
       HTML(html_ui)
    })
+
+   # if no data available, no download button
+   output$downloadData <- downloadHandler(
+      filename = function() {
+      if (! input$export_file_name == "") {
+         paste(input$export_file_name, '.csv', sep="")
+      } else {
+         paste("data-", Sys.Date(), input$export_format, sep="")
+      }
+      },
+         content = function(file) {
+            status_okay <- do_export2("CalR", input, output, file)
+         }
+   )
 
    # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs <- renderUI({
