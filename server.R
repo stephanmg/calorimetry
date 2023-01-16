@@ -120,7 +120,7 @@ do_plotting <- function(file, input, exclusion, output) {
       if (grepl("TSE", line[2]) != fileFormatTSE) {
          return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
       }
-      # TODO: need to support also Jennifers format 
+      # TODO: need to support also Jennifer's format
    }
    #############################################################################
    # Detect data type (TSE or Sable)
@@ -399,7 +399,8 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + xlab("Time [h]")
    p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
    # Note this excludes only at beginning of measurement experiment
-   p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
+   print(layer_scales(p)$x$get_limits()[2])
+   p <- p + scale_x_continuous(limits = c(input$exclusion_start, layer_scales(p)$x$get_limits()[2]-input$exclusion_end))
    p <- ggplotly(p)
    },
    CoefficientOfVariation = {
@@ -637,7 +638,15 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
-   list("plot"=p, "animals"=`$`(finalC1, "Animal No._NA"), "data"=finalC1,"metadata"=C1meta)
+   #b = `$`(finalC1, "Animal No._NA")
+   #a = dmy(lapply(finalC1$Datetime, function(x) { strsplit(as.character(x), " ")[[1]][1]}))
+   #print("***** a ******")
+   #print(a)
+   #start_date = min(Reduce(intersect, split(a, b)))
+   #print("*************** start date ********************")
+   #print(start_date)
+   list("plot"=p, "animals"=`$`(finalC1, "Animal No._NA"),
+   "data"=finalC1,"metadata"=C1meta)
 }
 
 ################################################################################
@@ -764,6 +773,7 @@ server <- function(input, output, session) {
          selectInput(inputId="myr", label="Chose raw data to plot", choices=c("O2", "CO2", "RER")))
     })
 
+
    observeEvent(input$plot_type, {
             output$wmeans <- renderUI(
                checkboxInput(inputId = "wmeans", label = "Display means"))
@@ -840,6 +850,7 @@ server <- function(input, output, session) {
    #############################################################################
    # Show plot (action button's action)
    #############################################################################
+
    observeEvent(input$plotting, {
       output$plot <- renderPlotly({
          if (is.null(input$File1)) {
@@ -856,6 +867,8 @@ server <- function(input, output, session) {
                   output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.")
                } else {
                   output$message <- renderText(real_data$status)
+                 # output$mydaterange <- renderUI({
+                 # dateRangeInput(inputId="daterange", "Date", start="1970-01-01", end=Sys.Date())})
                }
             }
 
