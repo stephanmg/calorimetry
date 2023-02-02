@@ -255,7 +255,7 @@ main_content2 <- mainPanel(
 ################################################################################
 visualization <- tabPanel(
   "Visualization",
-  titlePanel("Long term observational studies"),
+  titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
   p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
     sidebar_content_test, main_content
