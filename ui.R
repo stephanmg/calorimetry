@@ -55,13 +55,13 @@ sidebar_content3 <- sidebarPanel(
 sidebar_content_test <- sidebarPanel(
    fluidPage(
    fluidRow(
-      column(8,
+      column(8, style="padding: 0px;",
       h1("Heat Production")),
-   column(2,
-    actionButton("hideTabHP", label="", icon=icon("square-minus"))
+   column(2, style="padding: 20px;",
+    actionButton("hideTabHP", label="", icon=icon("square-minus", "fa-3x"))
    ),
-   column(2,
-    actionButton("showTabHP", label="", icon=icon("square-plus"))
+   column(2, style="padding: 20px;",
+    actionButton("showTabHP", label="", icon=icon("square-plus", "fa-3x"))
    ))),
    tabsetPanel(id="tabsHP", type="hidden",
       tabPanelBody("HP",
@@ -84,13 +84,13 @@ sidebar_content_test <- sidebarPanel(
    hr(),
    fluidPage(
    fluidRow(
-      column(8,
+      column(8, style="padding: 0px;",
       h1("Plot configuration")),
-   column(2,
-    actionButton("hideTabPC", label="", icon=icon("square-minus")),
+   column(2, style="padding: 20px;",
+    actionButton("hideTabPC", label="", icon=icon("square-minus", "fa-3x")),
    ),
-   column(2,
-    actionButton("showTabPC", label="", icon=icon("square-plus")),
+   column(2, style="padding: 20px;",
+    actionButton("showTabPC", label="", icon=icon("square-plus", "fa-3x")),
    ))),
    tabsetPanel(id="tabsPC", type="hidden",
       tabPanelBody("PC",
@@ -120,14 +120,14 @@ sidebar_content_test <- sidebarPanel(
    hr(),
    fluidPage(
       fluidRow(
-         column(8, 
-         h2("Data curation"),
+         column(8, style="padding: 0px;",
+         h1("Data curation"),
          ),
-         column(2,
-         actionButton("hideTabDC", label="", icon=icon("square-minus")),
+         column(2, style="padding: 20px;",
+         actionButton("hideTabDC", label="", icon=icon("square-minus", "fa-3x")),
          ),
-         column(2,
-         actionButton("showTabDC", label="", icon=icon("square-plus")),
+         column(2, style="padding: 20px;",
+         actionButton("showTabDC", label="", icon=icon("square-plus", "fa-3x")),
          )
       )
    ),
@@ -145,14 +145,14 @@ sidebar_content_test <- sidebarPanel(
    hr(),
   fluidPage(
       fluidRow(
-         column(8, 
+         column(8, style="padding: 0px;",
          h1("Data export"),
          ),
-         column(2,
-         actionButton("hideTabDE", label="", icon=icon("square-minus")),
+         column(2, style="padding: 20px;",
+         actionButton("hideTabDE", label="", icon=icon("square-minus", "fa-3x")),
          ),
-         column(2,
-         actionButton("showTabDE", label="", icon=icon("square-plus")),
+         column(2, style="padding: 20px;",
+         actionButton("showTabDE", label="", icon=icon("square-plus", "fa-3x")),
          )
       )
    ),
