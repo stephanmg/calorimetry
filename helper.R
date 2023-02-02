@@ -37,7 +37,7 @@ cv <- function(mydf, window = 2) {
          covs <- append(covs, s / m)
          # find the m index which is lowest in CoV and energy expenditure
       }
-      if (nrow(df_new) == 0) { 
+      if (nrow(df_new) == 0) {
          df_new <- data.frame(covs)
       } else {
          df_new <- cbind(df_new, covs)

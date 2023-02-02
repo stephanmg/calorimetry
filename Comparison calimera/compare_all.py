@@ -11,6 +11,17 @@ import scipy.stats as stats
 import os
 import re
 
+def weight_a(data1, data2):
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    a = (np.var(data1) - np.cov(data1, data2, bias=False)[0][1]) / (np.var(data2) - np.cov(data1, data2, bias=False)[0][1] + np.var(data1))
+    return a
+
+def weight_a_minus(data1, data2):
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    a_minus = (np.var(data2) - np.cov(data1, data2, bias=False)[0][1]) / (np.var(data2) - np.cov(data1, data2, bias=False)[0][1] + np.var(data1))
+    return a_minus
 
 def hist_plot(data1, data2):
     data1 = np.asarray(data1)
@@ -19,16 +30,38 @@ def hist_plot(data1, data2):
     diff = data1 - data2
     plt.hist(diff)
 
+def calc_corr(data1, data2):
+    print("Corr coeff")
+    data1 = np.asarray(data1)
+    data2 = np.asarray(data2)
+    mean = np.mean([data1, data2], axis=0)
+    diff = data1 - data2
+    print(np.corrcoef(mean, diff))
+    print(np.corrcoef(data1, data2))
+
+def calc_variances(data1, data2):
+    print("Variances...")
+    print(np.var(data1))
+    print(np.var(data2))
+
 
 def calc_ks(data1, data2):
+    # p-value < 0.05 means: diff is not distributed normally (reject h0: from same distribution/normal distribution)
     data1 = np.asarray(data1)
     data2 = np.asarray(data2)
     mean = np.mean([data1, data2], axis=0)
     diff = data1 - data2
     return stats.kstest(diff, stats.norm.cdf)
 
+def calc_levene(data1, data2):
+    # p-value < 0.05 means: unequal variances of data1 and data2 (reject h0: equal variances)
+    stat, p_value = stats.levene(data1, data2)
+    print(f"Lavene's test statistic: {stat}")
+    print(f"P-value: {p_value}")
+
 
 def calc_shapiro(data1, data2):
+    # p-value > 0.05 means: do not reject null hypothesis: might be normally distributed
     data1 = np.asarray(data1)
     data2 = np.asarray(data2)
     mean = np.mean([data1, data2], axis=0)
@@ -44,7 +77,7 @@ def bland_altman(data1, data2, *args, **kwargs):
     md = np.mean(diff)  # Mean of the difference
     sd = np.std(diff, axis=0)  # Standard deviation of the difference
 
-    plt.scatter(mean, diff, *args, **kwargs)
+    plt.scatter(mean, diff/mean, *args, **kwargs)
     plt.axhline(md, color="blue", linestyle="--")
     plt.axhline(md + 1.96 * sd, color="red", linestyle="--")
     plt.axhline(md - 1.96 * sd, color="red", linestyle="--")
@@ -80,27 +113,30 @@ def qq_plot(data1, data2, *args, **kwargs):
 def bland_altman(data1, data2, *args, **kwargs):
     data1 = np.asarray(data1)
     data2 = np.asarray(data2)
+    #data1 = tmp1
+    #data2 = tmp2
     mean = np.mean([data1, data2], axis=0)
     diff = data1 - data2  # Difference between data1 and data2
-    md = np.mean(diff)  # Mean of the difference
+    md = np.mean(diff)  # Mean of the difference diff / mean for percentage
     sd = np.std(diff, axis=0)  # Standard deviation of the difference
 
-    plt.scatter(mean, diff, *args, **kwargs)
+    plt.scatter(mean, diff, *args, **kwargs) # diff / mean for percentage
     plt.axhline(md, color="blue", linestyle="--")
 
-    plt.text(5.0, float(md + 0.1), f"{abs(float(md)-0)}")
+    plt.text(5.0-5, float(md + 0.1), f"{abs(float(md)-0)}")
     plt.axhline(md + 1.96 * sd, color="red", linestyle="--")
     plt.axhline(md - 1.96 * sd, color="red", linestyle="--")
 
-    b, m = polyfit(mean, diff, 1)
+    b, m = polyfit(mean, diff, 1) # diff / mean for percentage
     print(f"b: {b}")
     print(f"m: {m}")
     plt.plot(mean, b + m * mean, color="yellow", linestyle="-.")
     # plt.plot(0, 0, color="black", linestyle=":")
-    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(mean, diff)
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(mean, diff) # diff / mean for percentage
     print(f"r2: {r_value*r_value}")
-    plt.text(6.5, 0, f"$R^2$: {r_value*r_value}")
-    plt.text(5.5, 1, f"p-value: {p_value}")
+    print(f"p-value: {p_value}")
+    plt.text(6.5-5, 0, f"$R^2$: {r_value*r_value}")
+    plt.text(5.5-5, 1, f"p-value: {p_value}")
     # plt.axline(xy1=(0, b), slope=m, color='r', label=f'$y = {m:.2f}x {b:+.2f}$')
 
 
@@ -353,6 +389,9 @@ if __name__ == "__main__":
     if ks.pvalue < 0.05 or shapiro.pvalue < 0.05:
         print("Test might not be applicable (Bland-Altman)")
     plt.clf()
+    calc_levene(min_RMRs, min_RMRsRef)
+    calc_variances(min_RMRs, min_RMRsRef)
+    calc_corr(min_RMRs, min_RMRsRef)
 
     qq_plot(min_RMRs, min_RMRsRef)
     plt.title("Q-Q plot")
@@ -363,7 +402,13 @@ if __name__ == "__main__":
     )
     plt.clf()
     plt.rcParams["text.usetex"] = True
-    bland_altman(min_RMRs, min_RMRsRef)
+    tmp1 = (1-weight_a_minus(min_RMRs, min_RMRsRef)) * np.asarray(min_RMRs)
+    tmp2 = weight_a(min_RMRs, min_RMRsRef) * np.asarray(min_RMRsRef)
+    print("after rescaling...")
+    calc_variances(tmp1, tmp2)
+    min_RMRs = tmp1
+    min_RMRsRef = tmp2
+    bland_altman(min_RMRsRef, min_RMRs)
     plt.title("Bland-Altman plot RMR method without and with activity data")
     plt.xlabel(r"$\frac{S_1+S_2}{2}$")
     plt.ylabel(r"$S_1-S_2$")

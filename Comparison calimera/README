@@ -1,0 +1,5 @@
+# README
+
+## Notes
+- bland altman only with equal variance possibl
+- need to rescale, otherwise see correlation, see papers+blog post for scaling
