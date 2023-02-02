@@ -871,10 +871,36 @@ server <- function(input, output, session) {
               multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
 
-           real_data$plot
+          output$summary <- renderText("Some summary...")
+          output$statistics <- renderText("Some statistics...")
+          real_data$plot
         }
       })
     })
+
+   # hide and show components
+   lapply(
+      X = c("DC", "HP", "DE", "PC"),
+      FUN = function(i) {
+         c(
+         observeEvent(input[[paste0("hideTab", i)]], {
+            hideTab(inputId=paste0("tabs", i), target=i)
+         }),
+         observeEvent(input[[paste0("showTab", i)]], {
+            showTab(inputId=paste0("tabs", i), target=i, select=TRUE)
+         })
+         )
+      }
+   )
+
+   # on startup, hide irrelevant components
+   lapply(
+      X = c("DC", "DE", "PC"),
+      FUN = function(i) {
+         hideTab(inputId=paste0("tabs", i), target=i)
+      }
+   )
+
 
    #############################################################################
    # Reset session
