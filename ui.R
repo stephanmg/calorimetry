@@ -102,6 +102,14 @@ sidebar_content_test <- sidebarPanel(
    ### and calculate heat production over time in the following then
    # Disable ANCOVA and StackedBarPlotForRMR as not yet implemented (TODO)
    selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "RestingMetabolicRate")),
+   checkboxInput(inputId="with_grouping", label="With grouping?"),
+   conditionalPanel(condition = "input.with_grouping == true",
+   selectInput("group_data_by", "Group by:", choices = list("Diet" = c("HDF 0.00", "CD", "HDF 0.05"), "Weight" = c("low", "high")))),
+   h2("Advanced options"),
+   checkboxInput(inputId="with_facets", label="Use facets?"),
+   # TODO selectInput below needs to be replaced with UI output, to populate automatically selectInput choices from metadata..
+   conditionalPanel(condition = "input.with_facets == true", selectInput("facets_data_by_one", "Facet #1", choices=c("CD", "HDF"))),
+   conditionalPanel(condition = "input.with_facets == true", selectInput("facets_data_by_two", "Facet #2", choices=c("low", "high"))),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
