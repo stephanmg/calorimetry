@@ -101,7 +101,7 @@ sidebar_content_test <- sidebarPanel(
    ### these are the 2 scenarios, compare formulas for heat production (2 formulas) 
    ### and calculate heat production over time in the following then
    # Disable ANCOVA and StackedBarPlotForRMR as not yet implemented (TODO)
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "CoefficientOfVariation")),
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "RestingMetabolicRate")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
@@ -111,11 +111,11 @@ sidebar_content_test <- sidebarPanel(
    # TODO: Need input percentage of lowest RMR
    # TODO: Need input number of points in interval (can be inferred automatically - > no user input, but use averaging default of 10 minutes for instance)
    # --> note could be also a user input in principal as a number (integer)
-   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", sliderInput("window", "Window", 2, 30, 10, step=1)),
-   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
-   conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
-   conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
-   conditionalPanel(condition = "input.plot.type != 'CoefficientOfVariation'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
+   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
    )),
    hr(),
    fluidPage(
@@ -195,7 +195,7 @@ sidebar_content <- sidebarPanel(
    ### these are the 2 scenarios, compare formulas for heat production (2 formulas) 
    ### and calculate heat production over time in the following then
    # Disable ANCOVA and StackedBarPlotForRMR as not yet implemented (TODO)
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "CoefficientOfVariation")),
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "RestingMetabolicRate")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
@@ -205,11 +205,11 @@ sidebar_content <- sidebarPanel(
    # TODO: Need input percentage of lowest RMR
    # TODO: Need input number of points in interval (can be inferred automatically - > no user input, but use averaging default of 10 minutes for instance)
    # --> note could be also a user input in principal as a number (integer)
-   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", sliderInput("window", "Window", 2, 30, 10, step=1)),
-   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
-   conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
-   conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
-   conditionalPanel(condition = "input.plot.type != 'CoefficientOfVariation'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
+   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
    h1("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="1970-01-01", end=Sys.Date()),

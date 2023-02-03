@@ -402,7 +402,7 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
    p <- ggplotly(p)
    },
-   CoefficientOfVariation = {
+   RestingMetabolicRate = {
       component2 <- ""
       print(rollmean(finalC1$HP2, input$running_average, na.pad = TRUE))
       if (length(input$cvs) == 2) {
@@ -457,15 +457,15 @@ do_plotting <- function(file, input, exclusion, output) {
       df_to_plot2$Group <- as_factor(df_to_plot$Group)
 
       write.csv2(df_new, file = "df_new.csv")
-      colnames(df_to_plot) <- c("CoefficientOfVariation", "Animal", "Time")
-      colnames(df_to_plot2) <- c("CoefficientOfVariation2", "Animal", "Time")
+      colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
+      colnames(df_to_plot2) <- c("RestingMetabolicRate2", "Animal", "Time")
       print("to plot:")
       print(df_to_plot)
       write.csv2(df_to_plot, file = "df_to_plot.csv")
       # TODO: What do chose?
       ### Note: Units of RMR in Calimera??
       # was O2_[%] and CO2_[%] for MK data sets but otherwie for DL data set
-      df_for_cov_analysis = cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"), `$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"), df_to_plot2$CoefficientOfVariation2)
+      df_for_cov_analysis = cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"), `$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"), df_to_plot2$RestingMetabolicRate2)
       df_for_cov_analysis$Group <- df_to_plot$Group
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
@@ -474,10 +474,10 @@ do_plotting <- function(file, input, exclusion, output) {
       p3 <- ggplot(data=df_for_cov_analysis, aes(x=Time, y = CoV2, group = Animal))
 
       # TODO plug in here _new_feature_R and operate on df_for_cov_analyis...
-      #p <- ggplot(df_to_plot, aes(x=Time, y=CoefficientOfVariation, color=Animal)) + geom_point(shape=6)
+      #p <- ggplot(df_to_plot, aes(x=Time, y=RestingMetabolicRate, color=Animal)) + geom_point(shape=6)
       #p <- p + xlab("Time [h]")
       #p <- p + ylab("Coefficient of variation")
-      #p <- p + geom_point(data=df_to_plot2, aes(x=Time, y=CoefficientOfVariation2, color=Animal), shape=3)
+      #p <- p + geom_point(data=df_to_plot2, aes(x=Time, y=RestingMetabolicRate2, color=Animal), shape=3)
       #p <- ggplotly(p) 
 
       # TODO: Use actual user input values
@@ -872,7 +872,13 @@ server <- function(input, output, session) {
               multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
 
-         # explanation of plot
+           if (input$plot_type == "RestingMetabolicRate") {
+            # plot
+            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value=min(HP), cgroups=c(Animal, Component))
+            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill=Component)) + geom_bar(stat="identity", position="dodge") + scale_fill_brewer(palette="Set1")
+            p <- p + xlab('Animal') + ylab("RMR (min) [kcal/day]")
+
+       # explanation of plot
          output$explanation <- renderUI({
             str1 <- "<h3> RMR estimation </h3>"
             str2 <- "Resting metabolic rate (RMR) has been estimated based on the coefficient of variation of the O2 and CO2 signal."
@@ -881,13 +887,24 @@ server <- function(input, output, session) {
             str5 <- "Time traces are available in the Plot tab, displaying RMR over time for each animal in cohort(s)."
             HTML(paste(str1, str2, str3, str4, str5, sep='<br/>'))
          })
-          # summary of plot
-            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value=min(HP), cgroups=c(Animal, Component))
-            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill=Component)) + geom_bar(stat="identity", position="dodge") + scale_fill_brewer(palette="Set1")
+
+            # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
+           } else if (input$plot_type == "CompareHeatProductionFormulas") {
+            output$explanation <- renderUI({
+            str1 <- "<h3> Comparison of heat production formulas </h3>"
+            str2 <- "Two heat production formulas can be compared via a simple scatter plot and plotting into the plot a regression line (Pearson-Product-Moment correlation coefficient r)"
+            str3 <- "p-value reported, HP and HP2 correspond to the formulas displayed in the sidebar on the left"
+            str4 <- "<hr/>"
+            str5 <- "When heat pproduction formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot."
+            HTML(paste(str1, str2, str3, str4, str5, sep='<br/>'))
+            })
+           } else {
+            output$summary <- renderPlotly(NULL)
+            output$explanation <- renderUI({HTML("No information available yet.")})
+           }
            # plot
            real_data$plot
-
         }
       })
     })
