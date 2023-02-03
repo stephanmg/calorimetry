@@ -2,6 +2,7 @@ library("shinyFiles")
 library("plotly")
 library("shinybusy")
 library("shinythemes")
+library("shinyWidgets")
 
 ################################################################################
 # First page: Introduction
@@ -51,6 +52,130 @@ sidebar_content3 <- sidebarPanel(
    numericInput("nFiles", "Number of files", value=1, min=1, step=1),
    uiOutput("fileInputs"),
 )
+sidebar_content_test <- sidebarPanel(
+   fluidPage(
+   fluidRow(
+      column(8, style="padding: 0px;",
+      h1("Heat Production")),
+   column(2, style="padding: 20px;",
+    actionButton("showTabHP", label="", icon=icon("square-plus", "fa-3x"))
+   ),
+   column(2, style="padding: 20px;",
+    actionButton("hideTabHP", label="", icon=icon("square-minus", "fa-3x"))
+   ))),
+   tabsetPanel(id="tabsHP", type="hidden",
+      tabPanelBody("HP",
+   add_busy_bar(color = "#FF0000"),
+   withMathJax(),
+   div("Chose two of the established equations for calculating the heat production in mW. Note that HP and HP2 refer to the Heldmaier equations reported in Journal of Comparative Physiology 1975, 102:115-122:"),
+   selectInput("variable1", "Select first equation", choices=c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
+   selectInput("variable2", "Select second equation", choices=c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
+   selectInput("kj_or_kcal", "Unit of energy", choices=c("kcal", "kJ")),
+   withMathJax(),
+   uiOutput('heat_production_equations'),
+   checkboxInput(inputId="havemetadata", label="Have metadata?"),
+   conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
+   numericInput("nFiles", "Number of data files", value=1, min=1, step=1),
+   uiOutput("fileInputs"),
+   h3("Plotting control"),
+   actionButton("plotting", "Show"),
+   actionButton("reset", "Reset"),
+   )),
+   hr(),
+   fluidPage(
+   fluidRow(
+      column(8, style="padding: 0px;",
+      h1("Plot configuration")),
+   column(2, style="padding: 20px;",
+    actionButton("showTabPC", label="", icon=icon("square-plus", "fa-3x")),
+   ),
+   column(2, style="padding: 20px;",
+    actionButton("hideTabPC", label="", icon=icon("square-minus", "fa-3x")),
+   ))),
+   tabsetPanel(id="tabsPC", type="hidden",
+      tabPanelBody("PC",
+   ### TODO: based on plot_type, add more conditional panels, so can get rid of
+   ### the above sections with heat production which is confusing, so display in 
+   ### case of line plot = scatterplot configurations from above, in case of 
+   ### caloric equivalent the establsiehd and for box plot nothing at the moment, 
+   ### these are the 2 scenarios, compare formulas for heat production (2 formulas) 
+   ### and calculate heat production over time in the following then
+   # Disable ANCOVA and StackedBarPlotForRMR as not yet implemented (TODO)
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "RestingMetabolicRate")),
+   checkboxInput(inputId="with_grouping", label="With grouping?"),
+   conditionalPanel(condition = "input.with_grouping == true",
+   selectInput("group_data_by", "Group by:", choices = list("Diet" = c("HDF 0.00", "CD", "HDF 0.05"), "Weight" = c("low", "high")))),
+   h2("Advanced options"),
+   checkboxInput(inputId="with_facets", label="Use facets?"),
+   # TODO selectInput below needs to be replaced with UI output, to populate automatically selectInput choices from metadata..
+   conditionalPanel(condition = "input.with_facets == true", selectInput("facets_data_by_one", "Facet #1", choices=c("CD", "HDF"))),
+   conditionalPanel(condition = "input.with_facets == true", selectInput("facets_data_by_two", "Facet #2", choices=c("low", "high"))),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
+   conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
+   conditionalPanel(condition = "input.plot_type == 'RAW'", uiOutput("myr")),
+   conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
+   # TODO: Need input percentage of lowest RMR
+   # TODO: Need input number of points in interval (can be inferred automatically - > no user input, but use averaging default of 10 minutes for instance)
+   # --> note could be also a user input in principal as a number (integer)
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
+   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
+   )),
+   hr(),
+   fluidPage(
+      fluidRow(
+         column(8, style="padding: 0px;",
+         h1("Data curation"),
+         ),
+         column(2, style="padding: 20px;",
+         actionButton("showTabDC", label="", icon=icon("square-plus", "fa-3x")),
+         ),
+         column(2, style="padding: 20px;",
+         actionButton("hideTabDC", label="", icon=icon("square-minus", "fa-3x")),
+         )
+      )
+   ),
+   tabsetPanel(id="tabsDC", type="hidden",
+      tabPanelBody("DC",
+   p("Selection of dates"),
+   dateRangeInput("daterange", "Date", start="1970-01-01", end=Sys.Date()),
+   sliderInput("exclusion", "Exclude hours from start of measurements", 0, 24, 2, step=1),
+   sliderInput("exclusion_start", "Exclude hours from end of measurements", 0, 24, 2, step=1),
+   checkboxInput(inputId="outliers", label="Remove outliers"),
+   conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
+   h3("Plotting status"),
+   span(textOutput("message"), style="color:red"),
+   )),
+   hr(),
+  fluidPage(
+      fluidRow(
+         column(8, style="padding: 0px;",
+         h1("Data export"),
+         ),
+         column(2, style="padding: 20px;",
+         actionButton("showTabDE", label="", icon=icon("square-plus", "fa-3x")),
+         ),
+         column(2, style="padding: 20px;",
+         actionButton("hideTabDE", label="", icon=icon("square-minus", "fa-3x")),
+         )
+      )
+   ),
+   tabsetPanel(id="tabsDE", type="hidden",
+      tabPanelBody("DE",
+   selectInput("export_format", "Format", choices=c("CalR", "Sable", "XLSX")),
+   h2("Folder"),
+   textInput("export_file_name", "File name (Otherwise autogenerated)"),
+   downloadButton('downloadData', 'Download')
+   #shinyDirButton("export_folder", "Select a folder", "Please select a folder", FALSE),
+   #h2("Folder name"),
+   #uiOutput("folder_name_export"),
+   #actionButton("export", "Export")
+   ))
+)
 
 sidebar_content <- sidebarPanel(
    add_busy_bar(color = "#FF0000"),
@@ -78,7 +203,7 @@ sidebar_content <- sidebarPanel(
    ### these are the 2 scenarios, compare formulas for heat production (2 formulas) 
    ### and calculate heat production over time in the following then
    # Disable ANCOVA and StackedBarPlotForRMR as not yet implemented (TODO)
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "CoefficientOfVariation")),
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Histogram", "RAW", "TotalOverDay", "RestingMetabolicRate")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
@@ -88,15 +213,16 @@ sidebar_content <- sidebarPanel(
    # TODO: Need input percentage of lowest RMR
    # TODO: Need input number of points in interval (can be inferred automatically - > no user input, but use averaging default of 10 minutes for instance)
    # --> note could be also a user input in principal as a number (integer)
-   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", sliderInput("window", "Window", 2, 30, 10, step=1)),
-   conditionalPanel(condition = "input.plot_type == 'CoefficientOfVariation'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
-   conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
-   conditionalPanel(condition = "input.plot_type != 'CoefficientOfVariation'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
-   conditionalPanel(condition = "input.plot.type != 'CoefficientOfVariation'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
-   h2("Data curation"),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices=c("CO2", "O2"), multiple=TRUE)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step=1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step=1)),
+   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices=c("Max", "Mean", "Median", "Sum"))),
+   h1("Data curation"),
    p("Selection of dates"),
    dateRangeInput("daterange", "Date", start="1970-01-01", end=Sys.Date()),
    sliderInput("exclusion", "Exclude hours from start of measurements", 0, 24, 2, step=1),
+   sliderInput("exclusion_start", "Exclude hours from end of measurements", 0, 24, 2, step=1),
    checkboxInput(inputId="outliers", label="Remove outliers"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
    h3("Plotting status"),
@@ -115,7 +241,14 @@ sidebar_content <- sidebarPanel(
 # Main panel
 ################################################################################
 main_content <- mainPanel(
-  plotlyOutput("plot")
+   # TODO: make this collapsible
+   # https://stackoverflow.com/questions/68953107/r-shiny-make-collapsible-tabsetpanel
+   # https://stackoverflow.com/questions/42159804/how-to-collapse-sidebarpanel-in-shiny-app
+   tabsetPanel(
+      tabPanel("Plot", plotlyOutput("plot")),
+      tabPanel("Summary statistics", plotlyOutput("summary")),
+      tabPanel("Help", htmlOutput("explanation"))
+   )
 )
 
 ################################################################################
@@ -130,10 +263,10 @@ main_content2 <- mainPanel(
 ################################################################################
 visualization <- tabPanel(
   "Visualization",
-  titlePanel("Long term observational studies"),
+  titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
   p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
-    sidebar_content, main_content
+    sidebar_content_test, main_content
   )
 )
 
@@ -172,7 +305,7 @@ contact <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- navbarPage(
-  theme = shinytheme("sandstone"),
+  theme = shinytheme("superhero"),
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
