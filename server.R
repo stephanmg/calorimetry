@@ -506,6 +506,7 @@ do_plotting <- function(file, input, exclusion, output) {
       #p2 <- p2 + rotate_x_text(90)
       #p <- p | p2
       #p <- ggplotly(p)
+      finalC1 = df_plot_total
    },
    DayNightActivity = {
 
@@ -871,9 +872,22 @@ server <- function(input, output, session) {
               multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
            }
 
-          output$summary <- renderText("Some summary...")
-          output$statistics <- renderText("Some statistics...")
-          real_data$plot
+         # explanation of plot
+         output$explanation <- renderUI({
+            str1 <- "<h3> RMR estimation </h3>"
+            str2 <- "Resting metabolic rate (RMR) has been estimated based on the coefficient of variation of the O2 and CO2 signal."
+            str3 <- "Bar plots show minimum over whole recorded time (experiment), see Summary statistics tab."
+            str4 <- "<hr/>"
+            str5 <- "Time traces are available in the Plot tab, displaying RMR over time for each animal in cohort(s)."
+            HTML(paste(str1, str2, str3, str4, str5, sep='<br/>'))
+         })
+          # summary of plot
+            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value=min(HP), cgroups=c(Animal, Component))
+            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill=Component)) + geom_bar(stat="identity", position="dodge") + scale_fill_brewer(palette="Set1")
+            output$summary <- renderPlotly(ggplotly(p))
+           # plot
+           real_data$plot
+
         }
       })
     })

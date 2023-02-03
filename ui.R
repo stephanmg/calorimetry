@@ -58,10 +58,10 @@ sidebar_content_test <- sidebarPanel(
       column(8, style="padding: 0px;",
       h1("Heat Production")),
    column(2, style="padding: 20px;",
-    actionButton("hideTabHP", label="", icon=icon("square-minus", "fa-3x"))
+    actionButton("showTabHP", label="", icon=icon("square-plus", "fa-3x"))
    ),
    column(2, style="padding: 20px;",
-    actionButton("showTabHP", label="", icon=icon("square-plus", "fa-3x"))
+    actionButton("hideTabHP", label="", icon=icon("square-minus", "fa-3x"))
    ))),
    tabsetPanel(id="tabsHP", type="hidden",
       tabPanelBody("HP",
@@ -87,10 +87,10 @@ sidebar_content_test <- sidebarPanel(
       column(8, style="padding: 0px;",
       h1("Plot configuration")),
    column(2, style="padding: 20px;",
-    actionButton("hideTabPC", label="", icon=icon("square-minus", "fa-3x")),
+    actionButton("showTabPC", label="", icon=icon("square-plus", "fa-3x")),
    ),
    column(2, style="padding: 20px;",
-    actionButton("showTabPC", label="", icon=icon("square-plus", "fa-3x")),
+    actionButton("hideTabPC", label="", icon=icon("square-minus", "fa-3x")),
    ))),
    tabsetPanel(id="tabsPC", type="hidden",
       tabPanelBody("PC",
@@ -124,10 +124,10 @@ sidebar_content_test <- sidebarPanel(
          h1("Data curation"),
          ),
          column(2, style="padding: 20px;",
-         actionButton("hideTabDC", label="", icon=icon("square-minus", "fa-3x")),
+         actionButton("showTabDC", label="", icon=icon("square-plus", "fa-3x")),
          ),
          column(2, style="padding: 20px;",
-         actionButton("showTabDC", label="", icon=icon("square-plus", "fa-3x")),
+         actionButton("hideTabDC", label="", icon=icon("square-minus", "fa-3x")),
          )
       )
    ),
@@ -149,10 +149,10 @@ sidebar_content_test <- sidebarPanel(
          h1("Data export"),
          ),
          column(2, style="padding: 20px;",
-         actionButton("hideTabDE", label="", icon=icon("square-minus", "fa-3x")),
+         actionButton("showTabDE", label="", icon=icon("square-plus", "fa-3x")),
          ),
          column(2, style="padding: 20px;",
-         actionButton("showTabDE", label="", icon=icon("square-plus", "fa-3x")),
+         actionButton("hideTabDE", label="", icon=icon("square-minus", "fa-3x")),
          )
       )
    ),
@@ -238,8 +238,8 @@ main_content <- mainPanel(
    # https://stackoverflow.com/questions/42159804/how-to-collapse-sidebarpanel-in-shiny-app
    tabsetPanel(
       tabPanel("Plot", plotlyOutput("plot")),
-      tabPanel("Summary", verbatimTextOutput("summary")),
-      tabPanel("Statistics", verbatimTextOutput("statistics"))
+      tabPanel("Summary statistics", plotlyOutput("summary")),
+      tabPanel("Help", htmlOutput("explanation"))
    )
 )
 
