@@ -110,34 +110,64 @@ def qq_plot(data1, data2, *args, **kwargs):
     stats.probplot(diff, dist="norm", plot=pylab)
 
 
-def bland_altman(data1, data2, *args, **kwargs):
+def bland_altman(data1, data2, groups, groups_mapping, *args, **kwargs):
     data1 = np.asarray(data1)
     data2 = np.asarray(data2)
+    # bland altman in percentage or not
+    in_percentage = True
     #data1 = tmp1
     #data2 = tmp2
     mean = np.mean([data1, data2], axis=0)
     diff = data1 - data2  # Difference between data1 and data2
-    md = np.mean(diff)  # Mean of the difference diff / mean for percentage
-    sd = np.std(diff, axis=0)  # Standard deviation of the difference
+    md = np.mean(diff) # Mean of the difference diff / mean for percentage
+    if in_percentage: md = np.mean(diff/mean)
 
-    plt.scatter(mean, diff, *args, **kwargs) # diff / mean for percentage
+    sd = np.std(diff, axis=0)  # Standard deviation of the difference
+    if in_percentage:
+        sd = np.std(diff/mean, axis=0)
+    
+    # scatter plot with grouping
+    colors = plt.cm.tab10(range(len(groups)))
+    our_colors = [item for sublist in [ [colors[groups.index(cohort)]] * len(cohort) for cohort in groups] for item in sublist]
+    import matplotlib.patches as mpatches
+    mpatches_all = []
+    for index, cohort in enumerate(groups):
+        mpatches_all.append(mpatches.Patch(color=colors[index], label=groups_mapping[cohort[0]]))
+
+    if in_percentage: plt.scatter(mean, diff/mean, c=our_colors, *args, **kwargs)
+    else: plt.scatter(mean, diff, *args, **kwargs) # diff / mean for percentage
+
     plt.axhline(md, color="blue", linestyle="--")
 
-    plt.text(5.0-5, float(md + 0.1), f"{abs(float(md)-0)}")
+    if not in_percentage:
+       plt.text(5.0-5, float(md + 0.1), f"{abs(float(md)-0)}")
+    else:
+       plt.text(5.0-2, float(md), f"{abs(float(md)-0)}")
+
     plt.axhline(md + 1.96 * sd, color="red", linestyle="--")
     plt.axhline(md - 1.96 * sd, color="red", linestyle="--")
 
     b, m = polyfit(mean, diff, 1) # diff / mean for percentage
+    if in_percentage: 
+        b, m = polyfit(mean, diff/mean, 1)
     print(f"b: {b}")
     print(f"m: {m}")
     plt.plot(mean, b + m * mean, color="yellow", linestyle="-.")
     # plt.plot(0, 0, color="black", linestyle=":")
     slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(mean, diff) # diff / mean for percentage
+    if in_percentage:
+        slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(mean, diff/mean) # diff / mean for percentage
     print(f"r2: {r_value*r_value}")
     print(f"p-value: {p_value}")
-    plt.text(6.5-5, 0, f"$R^2$: {r_value*r_value}")
-    plt.text(5.5-5, 1, f"p-value: {p_value}")
-    # plt.axline(xy1=(0, b), slope=m, color='r', label=f'$y = {m:.2f}x {b:+.2f}$')
+    if in_percentage:
+        plt.text(6.5+1.5, 0, f"$R^2$: {r_value*r_value}")
+        plt.text(6.0+1.5, 0.1, f"p-value: {p_value}")
+    else:
+        plt.text(6.5-5, 0, f"$R^2$: {r_value*r_value}")
+        plt.text(5.5-5, 1, f"p-value: {p_value}")
+        # plt.axline(xy1=(0, b), slope=m, color='r', label=f'$y = {m:.2f}x {b:+.2f}$')
+
+    plt.legend(handles=mpatches_all)
 
 
 import seaborn as sns
@@ -177,6 +207,7 @@ if __name__ == "__main__":
     min_RMRs = []
     total_EEs = []
     min_RMRsRef = []
+    animal_groups = []
     total_EEsRef = []
     all_animal_ids = []
 
@@ -296,6 +327,8 @@ if __name__ == "__main__":
                 24 / TIME_INTERVAL * min(dfCalimera[animal][1:].tolist())
             )  # *6 # TODO: maybe need to divide by 6 or 12 depending on interval length in summation?
 
+        animal_groups.append([folder] * len(animal_ids))
+
     data = {"Our": min_RMRs, "Ref": min_RMRsRef}
     order = ["Our", "Theirs"]
     df = pd.DataFrame(
@@ -402,16 +435,31 @@ if __name__ == "__main__":
     )
     plt.clf()
     plt.rcParams["text.usetex"] = True
-    tmp1 = (1-weight_a_minus(min_RMRs, min_RMRsRef)) * np.asarray(min_RMRs)
-    tmp2 = weight_a(min_RMRs, min_RMRsRef) * np.asarray(min_RMRsRef)
-    print("after rescaling...")
-    calc_variances(tmp1, tmp2)
-    min_RMRs = tmp1
-    min_RMRsRef = tmp2
-    bland_altman(min_RMRsRef, min_RMRs)
+    # rescaling...
+    #tmp1 = (1-weight_a_minus(min_RMRs, min_RMRsRef)) * np.asarray(min_RMRs)
+    #tmp2 = weight_a(min_RMRs, min_RMRsRef) * np.asarray(min_RMRsRef)
+    #print("after rescaling...")
+    #calc_variances(tmp1, tmp2)
+    #min_RMRs = tmp1
+    #min_RMRsRef = tmp2
+
+    print("animal groups...")
+    print(len(animal_groups))
+    print(animal_groups)
+
+    animal_groups_mapping = {
+        'new_data': '20220515_NonIMPC_Calimera_Females2_DP_2',
+        'new_data2': '20220512_NonIMPC_Calimera_Males_DP_2',
+        'new_data3': '20220405_For Calimera_Chow_HFD_F_PR_2',
+        'new_data4': '20220523_NonIMPC_Calimera_Males2_PR_2',
+        'old_data': 'Bl6j_vs_Bl6n_TSE',
+        'other_data': 'Jnk1_Dusp8_KOonHFD_TSE_clean',
+        '20201109': '20201109_NonIMPC_ACAN2ndC_F_RS_1'
+    }
+    bland_altman(min_RMRsRef, min_RMRs, animal_groups, animal_groups_mapping)
     plt.title("Bland-Altman plot RMR method without and with activity data")
     plt.xlabel(r"$\frac{S_1+S_2}{2}$")
-    plt.ylabel(r"$S_1-S_2$")
+    plt.ylabel(r"$\frac{S_1-S_2}{mean(S_1+S_2)}\%$")
     plt.rcParams["text.usetex"] = False
     plt.savefig(
         f"{output_folder}/bland_altman={window_size}_RMR_per_day.png",
