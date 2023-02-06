@@ -1,7 +1,9 @@
-# required libraries
+# Libraries
+library(shiny)
+library(tidyr)
 library(ggplot2)
-library(data.table) # %like%
-library(readxl) # to read .xlsx/.xlsxm files
+library(data.table) # for filtering with %like%
+library(readxl)
 library(plotly)
 library(zoo) # running average methods
 library(ggpubr)
@@ -12,11 +14,15 @@ library(shinyWidgets)
 library(fs)
 library(hash)
 require(tidyverse)
-# TODO: cleanup imports
+
+# TODO: Cleanup file names and code in included source files
 source("helper.R") # helpers
 source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 
+################################################################################
+# Helper functions
+################################################################################
 convert <- function(x) {
     splitted <- strsplit(as.character(x), " ")
     paste(splitted[[1]][2], ":00", sep = "")
@@ -25,8 +31,9 @@ convert <- function(x) {
 ################################################################################
 # Export to CalR and Sable format
 ################################################################################
-do_export2 <- function(format, input, output, fileOutput) {
-      # exports for now only the first data set (TODO) use combined data set (all_data.csv) and reformat for xlsx or sable
+do_export2 <- function(format, input, output, file_output) {
+      # exports for now only the first data set to CalR data format
+      # TODO: Use combined data set (all_data.csv), reformat for xlsx/Sable
       file <- input$File1
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
@@ -46,11 +53,10 @@ do_export2 <- function(format, input, output, fileOutput) {
          h[["HP2"]] <- "RT_Kcal_hr_2"
          # rename data
          for (v in ls(h)) {
-            names(real_data$data)[names(real_data$data) == v] = h[[v]]
+            names(real_data$data)[names(real_data$data) == v] <- h[[v]]
          }
-         write.csv(real_data$data[values(h)], file = fileOutput, row.names = FALSE)
-         writeLines(gsub(pattern = '"', replace = "", x = readLines(fileOutput)),
-          con = fileOutput)
+         write.csv(real_data$data[values(h)], file = file_output, row.names = FALSE)
+         writeLines(gsub(pattern = '"', replace = "", x = readLines(file_output)), con = file_output)
       }
    }
 
@@ -76,10 +82,10 @@ do_export <- function(format, input, output) {
          h[["HP2"]] <- "RT_Kcal_hr_2"
          # rename data
          for (v in ls(h)) {
-            names(real_data$data)[names(real_data$data) == v] = h[[v]]
+            names(real_data$data)[names(real_data$data) == v] <- h[[v]]
          }
          fname <- paste(paste(path_home(), input$export_folder$path[[2]],
-            sep="/"), input$export_file_name, sep="/")
+            sep <- "/"), input$export_file_name, sep <- "/")
          write.csv(real_data$data[values(h)], file = fname, row.names = FALSE)
          writeLines(gsub(pattern = '"', replace = "", x = readLines(fname)),
           con = fname)
@@ -120,7 +126,7 @@ do_plotting <- function(file, input, exclusion, output) {
       if (grepl("TSE", line[2]) != fileFormatTSE) {
          return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
       }
-      # TODO: need to support also Jennifers format 
+      # TODO: need to support also Jennifers and Tabeas dataformat
    }
    #############################################################################
    # Detect data type (TSE or Sable)
@@ -130,7 +136,7 @@ do_plotting <- function(file, input, exclusion, output) {
       lineNo <- 1
       while (TRUE) {
          lineNo <- lineNo + 1
-         line <- readLines(con, n=1)
+         line <- readLines(con, n = 1)
          print(length(line))
          if (length(line) == 0 || length(grep("^;+$", line) != 0) ||
           line == "") {
@@ -142,17 +148,14 @@ do_plotting <- function(file, input, exclusion, output) {
    # Skip metadata before data
    toSkip <- detectData(file)
    # File encoding matters: Shiny apps crashes due to undefined character entity
-   C1 <- read.csv2(file, header = FALSE, skip = toSkip + 1, 
+   C1 <- read.csv2(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = ";")
-   # TODO: C1meta obsolete when using metadata sheet
-   C1meta <- read.csv2(file, header=TRUE, skip = 2, nrows = toSkip + 1 - 4,
+   # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
+   C1meta <- read.csv2(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1")
-   print(C1meta)
-   write.csv2(C1meta, file="my_metadata_new.csv")
-
    # Curate data frame
-   C1.head <- read.csv2(file, 
-                        header = FALSE,
+   C1.head <- read.csv2(file, # input file
+                        header = FALSE, # no header
                         skip = toSkip - 1, # skip headers up to first animal
                         nrows = 2, # read only two rows (variable name + unit)
                         na.strings = c("", "NA"), #transform missing units to NA
@@ -221,8 +224,8 @@ do_plotting <- function(file, input, exclusion, output) {
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
-   # Step #9 - define 1/n-hours steps 
-   # TODO: Check that this implementation is actually correct
+   # Step #9 - define 1/n-hours steps
+   # TODO: Check that this implementation is actually correct as taken from provided code
    if (input$averaging == 10) { # 1/6 hours
       C1 <- C1 %>%
       mutate(timeintervalinmin = case_when(minutes <= 10 ~ 0,
@@ -246,7 +249,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    # Step #10 - create a running total with half hour intervals by adding
    # the thirty min to the full hours
-   C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin # nolint
+   C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
    f1 <- input$variable1
    f2 <- input$variable2
 
@@ -258,9 +261,6 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA
    },
    HP = {
-      print("within HP")
-      print(C1$RER_NA)
-      print(C1$`VO2(3)_[ml/h]`)
       C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
    },
    HP2 = {
@@ -313,9 +313,6 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    )
 
-   print(C1$`Animal No._NA`)
-   print(C1$RER_NA)
-
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                        VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
@@ -332,9 +329,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # exclude animals (outliers) from data sets
    if (! is.null(exclusion)) {
       for (i in exclusion) {
-      print(i)
-         C1 <- C1 %>% 
-            filter(`Animal No._NA` != as.numeric(i))
+         C1 <- C1 %>% filter(`Animal No._NA` != as.numeric(i))
       }
    }
    finalC1 <- rbind(C1, finalC1)
@@ -350,11 +345,9 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(finalC1, file = "finalC1.csv")
 
    # rescale to kj or kcal
-   if(input$kj_or_kcal == "kj") {
-      print("Convert!")
+   if (input$kj_or_kcal == "kj") {
       finalC1$HP <- finalC1$HP * 4184 # kcal to kj
       finalC1$HP2 <- finalC1$HP2 * 4184 # kcal to kj
-      print(finalC1$HP)
    }
 
    switch(plotType,
@@ -362,52 +355,42 @@ do_plotting <- function(file, input, exclusion, output) {
 
    p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
    geom_point() +
-   stat_smooth(method = "lm") + # adds regression line
-   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~"))) # adds correlation coefficient
+   stat_smooth(method = "lm") + # add regression line and pearson product moment correlation
+   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
    },
-   CaloricEquivalentOverTime={
+   CaloricEquivalentOverTime = {
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
-   # get metadata
+   # get metadata from TSE header (should in fact use C1meta metadata from metadata sheet)
    df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
    df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
    df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
    colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-   #categories <- colnames(df_filtered4)
-
-   # TODO: use this in uiOutput to generate the categories and values to chose from
-   finalC1 <- merge(finalC1, df_filtered, by="Box_NA")
-   print("colnams after ")
-   print(colnames(finalC1))
+   finalC1 <- merge(finalC1, df_filtered, by = "Box_NA")
 
    if (input$with_grouping) {
       if (!is.null(input$select_data_by)) {
-         print("selecting data!")
-         my_var = input$condition_type
+         my_var <- input$condition_type
          finalC1 <- finalC1[finalC1[[my_var]] == input$select_data_by, ]
       }
    }
 
-   ### TODO: Check the implementation below
-   ### Note: This filters out first recordings on each day, probably not desired
+   # TODO: This filters out first recordings on each day, probably not desired
    # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
    # finalC1$TimeInHours <- hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime))
    # finalC1 = filter(finalC1, TimeInHours > (60*as.numeric(input$exclusion)))
    # print(finalC1$TimeInHours)
-   # p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`, color=finalC1$`Animal No._NA`)) + geom_point()
+   # p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`, color=finalC1$`Animal No._NA`)) + geom_point() #nolint
    if (input$running_average > 0) {
-      p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color="Animals", group="Animals")) 
-      # TODO: Add switch statement for running_average_method
-      p <- p + geom_line(aes(y=rollmean(HP2, input$running_average, na.pad=TRUE)), group="Animals")
+      p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
+      # TODO: Add switch statement for running_average_method: Currently only rollmean supported
+      p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
    } else {
-   p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color="Animals", group="Animals")) 
-   p <- p + geom_line()
+     p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
+     p <- p + geom_line()
    }
-   p <- p + scale_fill_brewer(palette="Spectral")
-
-   # p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "CO_2[%]", color="Animals", group="Animals")) + 
-   #  scale_fill_brewer(palette="Spectral") + geom_line() 
+   p <- p + scale_fill_brewer(palette = "Spectral")
 
    if (input$wmeans) {
       p <- p + geom_smooth(method = "lm")
@@ -419,7 +402,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    p <- p + xlab("Time [h]")
    p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
-   # Note this excludes only at beginning of measurement experiment
+   # Note this excludes only at beginning of measurement experiment currently in the visualization
    p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
 
    if (input$with_facets) {
@@ -430,13 +413,11 @@ do_plotting <- function(file, input, exclusion, output) {
             p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
          }
       }
-   } 
-
+   }
    p <- ggplotly(p)
    },
    RestingMetabolicRate = {
       component2 <- ""
-      print(rollmean(finalC1$HP2, input$running_average, na.pad = TRUE))
       if (length(input$cvs) == 2) {
          component <- input$cvs[[1]]
          component2 <- input$cvs[[2]]
@@ -468,77 +449,42 @@ do_plotting <- function(file, input, exclusion, output) {
       df_new2 <- reformat(df_new2)
 
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
-      print("nrows ndew")
-      print(nrow(df_new))
-      print("finalc rows")
-      print(nrow(finalC1))
 
-      ## FIXME!!!
-      # TODO: depending on calcaulation of finalC1$HP values we have different number of rows for df_new and finalC1, then fails.
-      #df_to_plot = cbind(df_new, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
-      ### WORKS in this way only if NO averaging present! FIXME!
-      # Frage: 1) MK O2 oder VO2 oder DO2?
-      # Frage: 2) Dominik: Wie export von tse daten rmr als dataframe...
-      # Frage: 3) Dominik: Nicht wirklich standardisiert.... die TSE
-      df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
-      df_to_plot2 = cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
-      # df_to_plot2 = cbind(df_new2, rep(unique(`$`(finalC1, "running_total.hrs.halfhour")), length(unique(`$`(finalC1, 'Animal No._NA')))))
-      # finalC1 = finalC1 %>% arrange(desc(`Animal No._NA`))
-      # df_to_plot = cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+      # FIXME: Code works in this way only if NO averaging present done for RMR
+      # depending on calculation of finalC1$HP values we have different number
+      # of rows for df_new and finalC1, then fails.
+      df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+      df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot$Group <- as_factor(df_to_plot$Group)
       df_to_plot2$Group <- as_factor(df_to_plot$Group)
 
       write.csv2(df_new, file = "df_new.csv")
       colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
       colnames(df_to_plot2) <- c("RestingMetabolicRate2", "Animal", "Time")
-      print("to plot:")
-      print(df_to_plot)
       write.csv2(df_to_plot, file = "df_to_plot.csv")
-      # TODO: What do chose?
-      ### Note: Units of RMR in Calimera??
-      # was O2_[%] and CO2_[%] for MK data sets but otherwie for DL data set
-      df_for_cov_analysis = cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"), `$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"), df_to_plot2$RestingMetabolicRate2)
+
+      df_for_cov_analysis <- cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"),
+         `$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"),
+         df_to_plot2$RestingMetabolicRate2)
       df_for_cov_analysis$Group <- df_to_plot$Group
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
 
-      p2 <- ggplot(data=df_for_cov_analysis, aes(x=Time, y = CoV1, group = Animal))
-      p3 <- ggplot(data=df_for_cov_analysis, aes(x=Time, y = CoV2, group = Animal))
+      p2 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV1, group = Animal))
+      p3 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV2, group = Animal))
 
-      # TODO plug in here _new_feature_R and operate on df_for_cov_analyis...
-      #p <- ggplot(df_to_plot, aes(x=Time, y=RestingMetabolicRate, color=Animal)) + geom_point(shape=6)
-      #p <- p + xlab("Time [h]")
-      #p <- p + ylab("Coefficient of variation")
-      #p <- p + geom_point(data=df_to_plot2, aes(x=Time, y=RestingMetabolicRate2, color=Animal), shape=3)
-      #p <- ggplotly(p) 
-
-      # TODO: Use actual user input values
+      # TODO: Use actual user input values (The following has been
+      # used for testing purposes and have full control over data)
+      # dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
       M <- 1
       PERCENTAGE <- 1
-      # dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
       df_plot_total <- extract_rmr_helper()
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
-      # df_plot_total <- dd$df_plot_total
-      # df_foo <- dd$df_foo
-
       df_plot_total$HP <- as.numeric(df_plot_total$HP)
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
-      p <- ggplot(data=df_plot_total, aes(x = Time, y = HP, group = Component, 
+      p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
-      #p <- p + geom_line() + facet_wrap(~Animal)
-      #p <- p + scale_y_continuous(breaks = pretty(df_plot_total$HP, n = 10))
-      #p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", hue="Component")
-      #p <- ggline(df_plot_total, x="Time", y="HP", color="Animal", shape="Component")
-      #p <- p + rotate_x_text(90)
-      #p <- ggpar(p, xlab="Time [h]", title="Sliding Window = 10, # Meas = 800, # Meas / Int = 50, Length of Int = 4 h", subtitle="Animal 2265 (TSE file: 20200508_SD_Ucpdd_K1.csv)", ylab="RMR [kcal/day]", legend.title="Sorted by component")
-      #p <- p + p2 + p3
-      #p <- ggplotly(p)
-      #p2 <- ggline(df_foo, x="Time", y="HP") 
-      #p2 <- ggpar(p2, ylab="TEE [kcal/day]")
-      #p2 <- p2 + rotate_x_text(90)
-      #p <- p | p2
-      #p <- ggplotly(p)
-      finalC1 = df_plot_total
+      finalC1 <- df_plot_total
    },
    DayNightActivity = {
 
@@ -548,18 +494,18 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    finalC1$Datetime <- lapply(finalC1$Datetime, convert)
-   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime)) < 720, 'am', 'pm')
+   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime)) * 60 + minute(hms(finalC1$Datetime)) < 720, "am", "pm")
    finalC1$Animals <- as_factor(`$`(finalC1, "Animal No._NA"))
    p <- ggplot(finalC1, aes(x = Animals, y = HP, fill = NightDay)) + geom_boxplot()
-   p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
-
+   p <- ggplotly(p) %>% layout(boxmode = "group")
    },
    StackedBarPlotForRMRandNonRMR = {
       # TODO: Implement stacked bar plot for RMR and non-RMR
    },
    ANCOVA = {
-   # fall back covariate (TODO: can be used from xlsx sheet not from csv input measurement file)
-   my_covariate = "Weight..g."
+   # fall back covariate weight
+   # (TODO: can be used from xlsx sheet not from the TSE file)
+   my_covariate <- "Weight..g."
    for (c in colnames(C1meta)) {
       if (c %like% input$covariates) {
          my_covariate <- "Weight..g."
@@ -567,6 +513,7 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
 
+   # Use the metadata from the provided TSE file header
    # metadata <- data.frame(`$`(C1meta, foo), `$`(C1meta, "Animal.No."))
    # metadata <- data.frame(C1meta[my_covariate], `$`(C1meta, "Animal.No."))
    # names(metadata) <- c("Weight", "Animal No._NA")
@@ -577,49 +524,42 @@ do_plotting <- function(file, input, exclusion, output) {
    # The metadata from the excel spreadsheet
    my_data <- read_excel(input$metadatafile$datapath)
 
-   df <- tbl_df(my_data) # use as_tibble (tbl_df deprecated)
+   df <- tbl_df(my_data) # TODO: use as_tibble (tbl_df deprecated)
    # TODO: based on covariate extract a different line, weight is in line 26
-   # lean in 27 and fat in 28 line...
-   a <- df[21,] %>% slice(1) %>% unlist(., use.names = FALSE)
-   c <- df[23,] %>% slice(1) %>% unlist(., use.names = FALSE)
-   b <- df[26,] %>% slice(1) %>% unlist(., use.names = FALSE)
+   # lean in 27 and fat in 28 line... (this data comes from the Excel metadata sheet)
+   a <- df[21, ] %>% slice(1) %>% unlist(., use.names = FALSE)
+   c <- df[23, ] %>% slice(1) %>% unlist(., use.names = FALSE)
+   b <- df[26, ] %>% slice(1) %>% unlist(., use.names = FALSE)
    metadata <- data.frame(a, b, c)
    metadata <- na.omit(metadata)
    names(metadata) <- c("Weight", "Animal No._NA", "Gender")
    metadata <- metadata[seq(2, nrow(metadata)), ]
    print(metadata$Weight)
 
-   #print(by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = 10))
-   #by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
-   # TODO: Make for loop more efficient somehow
+   # TODO: Make for loop more efficient somehow, perhaps with the following statement:
+   # by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
    for (i in 1:nrow(finalC1)) {
-      js = which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
-      if(length(js) > 0) {
+      js <- which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
+      if (length(js) > 0) {
          w <- metadata[js, "Weight"]
          w2 <- metadata[js, "Gender"]
          finalC1[i, "Weight"] <- as.numeric(w)
          finalC1[i, "Gender"] <- w2
       }
    }
-   print("before filter")
    # filter df by indexing
    if (length(input$checkboxgroup_gender) == 0) {
       finalC1 <- NA
    } else {
       if (! length(input$checkboxgroup_gender) == 2) {
-          print(input$checkboxgroup_gender)
           finalC1 <- finalC1[finalC1$Gender == input$checkboxgroup_gender, ]
-          print(finalC1)
     }
    }
-   print("after filter")
    names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
    finalC1$Animal <- as.factor(finalC1$Animal)
-   write.csv2(finalC1, file="finalC1.csv")
+   write.csv2(finalC1, file = "finalC1.csv")
    finalC1 <- drop_na(finalC1)
    finalC1 <- aggregate(finalC1, by = list(AnimalGroup = finalC1$Animal), FUN = mean)
-   print(finalC1)
-   print(names(finalC1))
 
    p <- ggscatter(finalC1, x = "Weight", y = "HP", add = "reg.line",
     add.params = list(color = "blue", fill = "lightgray"), conf.int = TRUE)
@@ -628,21 +568,20 @@ do_plotting <- function(file, input, exclusion, output) {
    # TOOD: add summary statistics to plot
    print(summary(lm(HP ~ Weight, finalC1)))
    message <- NULL
-   if (sum(is.na(finalC1)) > 0) { 
+   if (sum(is.na(finalC1)) > 0) {
       message <- paste("# ", sum(is.na(finalC1)),
       " entries do not have metadata attached, Check metadata file.")
    }
    return(list("plot" = p, status = message, metadata = metadata))
    },
    RAW = {
-   write.csv2(finalC1, file="finalC1.csv")
-   colors<- as_factor(`$`(finalC1, "Animal No._NA"))
+   write.csv2(finalC1, file = "finalC1.csv")
+   colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
-   mylabel <- paste0(input$myr, sep="", "_[%]")
+   mylabel <- paste0(input$myr, sep = "", "_[%]")
    names(finalC1)[names(finalC1) == mylabel] <- input$myr
-   names(finalC1)[names(finalC1) == 'RER_NA'] <- 'RER'
-   p <- ggplot(data = finalC1, aes_string(y = input$myr, x="running_total.hrs.halfhour", color="Animals", group="Animals")) + geom_line()
-   # p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = `$`(finalC1, mylabbel), color="Animals", group="Animals")) 
+   names(finalC1)[names(finalC1) == "RER_NA"] <- "RER"
+   p <- ggplot(data = finalC1, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
    p <- ggplotly(p)
    },
    TotalOverDay = {
@@ -650,27 +589,26 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1$Animals <- colors
 
    convert <- function(x) {
-      splitted = strsplit(as.character(x), " ")
-      paste(splitted[[1]][1], "",sep="")
+      splitted <- strsplit(as.character(x), " ")
+      paste(splitted[[1]][1], "", sep = "")
    }
 
    finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-   TEE1=aggregate(finalC1$HP, by=list(Animals=finalC1$Animals, Days=finalC1$Datetime), FUN=sum)
-   TEE2=aggregate(finalC1$HP2, by=list(Animals=finalC1$Animals, Days=finalC1$Datetime), FUN=sum)
-   TEE=rbind(TEE1, TEE2)
-   names(TEE)[names(TEE) == 'x'] <- 'TEE'
-   TEE$Equation = as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
-   TEE$Days = as_factor(TEE$Days)
-   TEE$Animals = as_factor(TEE$Animals)
-   # p <- ggplot(data=TEE, aes(x=Equation, y=TEE, fill=Animals)) + geom_boxplot() # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
-   p <- ggplot(data=TEE, aes(x=Animals, y=TEE, fill=Equation)) + geom_boxplot() + geom_point(position=position_jitterdodge()) # geom_point(aes(fill=Animals), size = 1, shape = 21, position=position_jitterdodge())
-   p <- ggplotly(p) %>%layout(boxmode = "group") # %>% config(displayModeBar = FALSE)
+   TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+   TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+   TEE <- rbind(TEE1, TEE2)
+   names(TEE)[names(TEE) == "x"] <- "TEE"
+   TEE$Equation <- as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+   TEE$Days <- as_factor(TEE$Days)
+   TEE$Animals <- as_factor(TEE$Animals)
+   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation)) + geom_boxplot() + geom_point(position = position_jitterdodge())
+   p <- ggplotly(p) %>% layout(boxmode = "group")
    },
    {
 
    }
    )
-   list("plot"=p, "animals"=`$`(finalC1, "Animal No._NA"), "data"=finalC1,"metadata"=C1meta)
+   list("plot" = p, "animals" = `$`(finalC1, "Animal No._NA"), "data" = finalC1, "metadata" = C1meta)
 }
 
 ################################################################################
@@ -681,7 +619,7 @@ server <- function(input, output, session) {
       html_ui <- " "
       html_ui <- paste0(html_ui,
          fileInput("metadatafile",
-         label="Metadata file"))
+         label = "Metadata file"))
       HTML(html_ui)
    })
 
@@ -689,14 +627,14 @@ server <- function(input, output, session) {
    output$downloadData <- downloadHandler(
       filename = function() {
       if (! input$export_file_name == "") {
-         paste(input$export_file_name, '.csv', sep="")
+         paste(input$export_file_name, ".csv", sep = "")
       } else {
-         paste("data-", Sys.Date(), input$export_format, sep="")
+         paste("data-", Sys.Date(), input$export_format, sep = "")
       }
       },
          content = function(file) {
             status_okay <- do_export2("CalR", input, output, file)
-         }
+      }
    )
 
    # Dynamically create fileInput fields by the number of requested files of the user
@@ -717,25 +655,25 @@ server <- function(input, output, session) {
          text2 <- ""
          switch(input$variable1,
          Weir = {
-            text1 = "$$ \\tag{1} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$" #nolint
+            text1 <- "$$ \\tag{1} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$"
          },
          HP = {
-            text1 = "$$ \\tag{1} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$" #nolint
+            text1 <- "$$ \\tag{1} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          HP2 = {
-            text1 = "$$ \\tag{1} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$" #nolint
+            text1 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"
          },
          Lusk = {
-            text1 = "$$ \\tag{1} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$" #nolint
+            text1 <- "$$ \\tag{1} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$"
          },
          Elia = {
-            text1 = "$$ \\tag{1} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$" #nolint
+            text1 <- "$$ \\tag{1} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
          Brower = {
-            text1 = "$$ \\tag{1} 16.07 \\times VO2[\\frac{ml}{h}]+ 4.69 \\times RER $$" #nolint
+            text1 <- "$$ \\tag{1} 16.07 \\times VO2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
          },
          Ferrannini = {
-            text1 = "$$ \\tag{1} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$" #nolint
+            text1 <- "$$ \\tag{1} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
          },
          {
          }
@@ -743,25 +681,25 @@ server <- function(input, output, session) {
 
          switch(input$variable2,
          Weir = {
-            text2 = "$$ \\tag{2} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$" #nolint
+            text2 <- "$$ \\tag{2} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$"
          },
          HP = {
-            text2 = "$$ \\tag{2} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$" #nolint
+            text2 <- "$$ \\tag{2} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          HP2 = {
-            text2 = "$$ \\tag{2} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$" #nolint
+            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"
          },
          Lusk = {
-            text2 = "$$ \\tag{2} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$" #nolint
+            text2 <- "$$ \\tag{2} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$"
          },
          Elia = {
-            text2 = "$$ \\tag{2} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$" #nolint
+            text2 <- "$$ \\tag{2} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
          Brower = {
-            text2 = "$$ \\tag{2} 16.07 \\times VO2[\\frac{ml}{h}] + 4.69 \\times RER $$" #nolint
+            text2 <- "$$ \\tag{2} 16.07 \\times VO2[\\frac{ml}{h}] + 4.69 \\times RER $$"
          },
          Ferrannini = {
-            text2 = "$$ \\tag{2} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$" #nolint
+            text2 <- "$$ \\tag{2} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
          },
          {
          }
@@ -781,20 +719,20 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
-               selectInput(inputId="myp", 
-               label="Chose prefered method for calculating caloric equivalent over time",
-               selected=input$variable1, choices=c(input$variable1, input$variable2)))
+               selectInput(inputId = "myp",
+               label = "Chose prefered method for calculating caloric equivalent over time",
+               selected = input$variable1, choices = c(input$variable1, input$variable2)))
          })
 
    observeEvent(input$plot_type, {
             output$checkboxgroup_gender <- renderUI(
-               checkboxGroupInput(inputId="checkboxgroup_gender", label="Chose gender", 
-               choices=list("male"="male", "female"="female"), selected=c("malw","female")))
+               checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chose gender",
+               choices = list("male" = "male", "female" = "female"), selected = c("malw", "female")))
          })
 
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
-         selectInput(inputId="myr", label="Chose raw data to plot", choices=c("O2", "CO2", "RER")))
+         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER")))
     })
 
    observeEvent(input$plot_type, {
@@ -809,8 +747,8 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$covariates <- renderUI(
-            selectInput(inputId="covariates", label="Chose a covariate", 
-            selected="Weight", choices=c("Weight", "Lean mass", "Fat mass")))
+            selectInput(inputId = "covariates", label = "Chose a covariate",
+            selected = "Weight", choices = c("Weight", "Lean mass", "Fat mass")))
    })
 
 
@@ -819,7 +757,7 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$export_folder, {
        output$folder_name_export <- renderUI(
-            renderText(paste(path_home(), input$export_folder$path[[2]], sep="/")))
+            renderText(paste(path_home(), input$export_folder$path[[2]], sep = "/")))
       })
 
    observeEvent(input$export, {
@@ -828,8 +766,8 @@ server <- function(input, output, session) {
             if (!status_okay) {
               output$message <- renderText("Error during data export, check logs")
             } else {
-              output$message <- renderText(paste("Consolidated data exported to format >>", 
-              input$export_format, "<<", sep=" "))
+              output$message <- renderText(paste("Consolidated data exported to format >>",
+              input$export_format, "<<", sep = " "))
             }
        }
        if (input$export_format == "Sable") {
@@ -845,8 +783,8 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$replotting, {
            output$plot <- renderPlotly({
-           file = input$File1
-           real_data <- do_plotting(file$datapath, input, exclusion=input$sick)
+           file <- input$File1
+           real_data <- do_plotting(file$datapath, input, exclusion = input$sick)
            real_data$plot
            })
    })
@@ -856,10 +794,12 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$plottingvalidation, {
          output$plotvalidation <- renderPlotly({
-            ref <- read.csv2(input$rerself$name, na.strings = c("-","NA"), header=FALSE, sep=";")
-            calr <- read.csv2(input$rercalr$name, na.strings = c("-","NA"), header=FALSE, sep=";")
-            df_comparison <- data.frame(ref=as.numeric(gsub(",", ".", gsub("\\.", "", ref$V11))), calr=as.numeric(gsub(",", ".", gsub("\\.", "", calr$V11))))
-            p <- ggscatter(df_comparison, x="ref", y="calr", add = "reg.line", add.params = list(color="black", fill="lightgray")) +
+            ref <- read.csv2(input$rerself$name, na.strings = c("-", "NA"), header = FALSE, sep = ";")
+            calr <- read.csv2(input$rercalr$name, na.strings = c("-", "NA"), header = FALSE, sep = ";")
+            df_comparison <- data.frame(ref = as.numeric(gsub(",", ".", gsub("\\.", "", ref$V11))),
+               calr = as.numeric(gsub(",", ".", gsub("\\.", "", calr$V11))))
+            p <- ggscatter(df_comparison, x = "ref", y = "calr", add = "reg.line",
+            add.params = list(color = "black", fill = "lightgray")) +
             stat_cor(method = "pearson") +
             theme(axis.text.x = element_text(angle = 90)) +
             xlab("RER self") +
@@ -876,17 +816,17 @@ server <- function(input, output, session) {
    observeEvent(input$plotting, {
       output$plot <- renderPlotly({
          if (is.null(input$File1)) {
-            print("No cohort data given!");
+            print("No cohort data given!")
             output$message <- renderText("Not any cohort data given")
          } else {
-           file = input$File1
+           file <- input$File1
            print(file$datapath)
            real_data <- do_plotting(file$datapath, input, input$sick)
 
            print(real_data$status)
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
-                  output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.")
+                  output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.") #nolint
                } else {
                   output$message <- renderText(real_data$status)
                }
@@ -901,7 +841,7 @@ server <- function(input, output, session) {
 
            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick <- renderUI(
-              multiInput(inputId="sick", label="Remove outliers (sick animals, etc.) ", selected="", choices=unique(real_data$animals)))
+              multiInput(inputId = "sick", label = "Remove outliers (sick animals, etc.) ", selected = "", choices = unique(real_data$animals)))
            }
 
            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
@@ -909,14 +849,15 @@ server <- function(input, output, session) {
             df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
             df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
             colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-            our_group_names = unique(colnames(df_filtered))
+            our_group_names <- unique(colnames(df_filtered))
 
             output$facets_by_data_one <- renderUI(
-               selectInput(inputId="facets_by_data_one", label="Choose facet", selected="Animals", choices=our_group_names))
+               selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+               selected = "Animals", choices = our_group_names))
 
            # TODO: add this back to filter any group by a certain condition... is this useful at all?
            # if (! is.null(input$condition_type)) {
-           # output$condition_type <- renderUI( 
+           # output$condition_type <- renderUI(
            #    selectInput(inputId="condition_type", label="Group", selected="Diet", choices=our_group_names))
            # }
 
@@ -924,9 +865,8 @@ server <- function(input, output, session) {
 
         if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
             metadata <- real_data$metadata
-            my_var = input$condition_type
-            diets = unique(metadata[[my_var]])
-            print(diets)
+            my_var <- input$condition_type
+            diets <- unique(metadata[[my_var]])
             output$select_data_by <- renderUI(
                selectInput("select_data_by", "Condition", choices = diets)
             )
@@ -934,9 +874,10 @@ server <- function(input, output, session) {
 
          if (input$plot_type == "RestingMetabolicRate") {
             # plot
-            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value=min(HP), cgroups=c(Animal, Component))
-            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill=Component)) + geom_bar(stat="identity", position="dodge") + scale_fill_brewer(palette="Set1")
-            p <- p + xlab('Animal') + ylab("RMR (min) [kcal/day]")
+            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
+            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
+            p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
+            p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
 
        # explanation of plot
          output$explanation <- renderUI({
@@ -945,7 +886,7 @@ server <- function(input, output, session) {
             str3 <- "Bar plots show minimum over whole recorded time (experiment), see Summary statistics tab."
             str4 <- "<hr/>"
             str5 <- "Time traces are available in the Plot tab, displaying RMR over time for each animal in cohort(s)."
-            HTML(paste(str1, str2, str3, str4, str5, sep='<br/>'))
+            HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
          })
 
             # summary of plot
@@ -953,15 +894,17 @@ server <- function(input, output, session) {
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
-            str2 <- "Two heat production formulas can be compared via a simple scatter plot and plotting into the plot a regression line (Pearson-Product-Moment correlation coefficient r)"
+            str2 <- "Two heat production formulas can be compared via a simple scatter plot and plotting into the plot a regression line (Pearson-Product-Moment correlation coefficient r)" #nolint
             str3 <- "p-value reported, HP and HP2 correspond to the formulas displayed in the sidebar on the left"
             str4 <- "<hr/>"
-            str5 <- "When heat pproduction formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot."
-            HTML(paste(str1, str2, str3, str4, str5, sep='<br/>'))
+            str5 <- "When heat pproduction formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
+            HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
            } else {
             output$summary <- renderPlotly(NULL)
-            output$explanation <- renderUI({HTML("No information available yet.")})
+            output$explanation <- renderUI({
+               HTML("No information available yet.")
+            })
            }
            # plot
            real_data$plot
@@ -975,10 +918,10 @@ server <- function(input, output, session) {
       FUN = function(i) {
          c(
          observeEvent(input[[paste0("hideTab", i)]], {
-            hideTab(inputId=paste0("tabs", i), target=i)
+            hideTab(inputId = paste0("tabs", i), target = i)
          }),
          observeEvent(input[[paste0("showTab", i)]], {
-            showTab(inputId=paste0("tabs", i), target=i, select=TRUE)
+            showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          })
          )
       }
@@ -988,7 +931,7 @@ server <- function(input, output, session) {
    lapply(
       X = c("DC", "DE", "PC"),
       FUN = function(i) {
-         hideTab(inputId=paste0("tabs", i), target=i)
+         hideTab(inputId = paste0("tabs", i), target = i)
       }
    )
 

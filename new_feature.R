@@ -51,8 +51,8 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 create_df <- function(df, component, M, N, percentage) {
    hp <- c()
    index <- c()
-   for (i in 0:floor(N/M)) { # sub interval, get minimum EE in M intervals
-      hp_val <- do_extract(df[seq(i*M, i*M+M),], component, percentage, N)
+   for (i in 0:floor(N / M)) { # sub interval, get minimum EE in M intervals
+      hp_val <- do_extract(df[seq(i * M, i * M + M), ], component, percentage, N)
       # Minimum EE couldn't be extracted, but why? (TODO: End of intervals?)
       if (length(hp_val) != 0) {
          hp <- append(hp, hp_val)
@@ -66,8 +66,8 @@ create_df <- function(df, component, M, N, percentage) {
    df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
    # TODO: Check for scaling correctness
    df_plot$HP <- df_plot$HP / 24 / (60 / INTERVAL_LENGTH) / INTERVAL_LENGTH
-   #df_plot$HP <- df_plot$HP / 24 / 6 
-   #df_plot$Time <- df_plot$Time * floor(N/M) 
+   #df_plot$HP <- df_plot$HP / 24 / 6
+   #df_plot$Time <- df_plot$Time * floor(N/M)
    df_plot
 }
 
@@ -103,8 +103,8 @@ extract_rmr2 <- function(data, M, PERCENTAGE) {
 # extract_rmr: TODO: Old code. Remove
 ################################################################################
 extract_rmr <- function(input_filename, M, PERCENTAGE, 
-   SLIDING_WINDOW_OF_PREPROCESSING=10, SEP=";") {
-   data <- read.csv2(input_filename, sep=SEP)
+   SLIDING_WINDOW_OF_PREPROCESSING = 10, SEP = ";") {
+   data <- read.csv2(input_filename, sep = SEP)
    N <- nrow(data)
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)

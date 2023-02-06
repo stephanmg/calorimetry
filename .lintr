@@ -1,6 +1,9 @@
 linters: linters_with_defaults(
-    line_length_linter(120), 
-    commented_code_linter = NULL
-  )
-exclusions: list(
+    line_length_linter(160), 
+    commented_code_linter = NULL,
+    cyclocomp_linter(complexity_limit = 50L),
+    camel_case_linter = NULL, 
+    snake_case_linter = NULL,
+    object_name_linter = NULL,
+    object_usage_linter = NULL
   )
