@@ -8,8 +8,7 @@ extract_rmr_helper <- function() {
    res <- df %>%
       group_by(Animal) %>%
       group_map(~ extract_rmr2(.x, 1, 1))
-   animal_names <- as.data.frame(df %>% group_by(Animal) %>% select(Animal) %>% 
-      distinct(Animal))
+   animal_names <- as.data.frame(df %>% group_by(Animal) %>% select(Animal) %>% distinct(Animal))
 
    total_data <- data.frame()
    for (animal in 1:length(res)) {
