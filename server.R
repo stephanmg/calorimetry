@@ -574,7 +574,7 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    return(list("plot" = p, status = message, metadata = metadata))
    },
-   RAW = {
+   Raw = {
    write.csv2(finalC1, file = "finalC1.csv")
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
@@ -897,8 +897,40 @@ server <- function(input, output, session) {
             str2 <- "Two heat production formulas can be compared via a simple scatter plot and plotting into the plot a regression line (Pearson-Product-Moment correlation coefficient r)" #nolint
             str3 <- "p-value reported, HP and HP2 correspond to the formulas displayed in the sidebar on the left"
             str4 <- "<hr/>"
-            str5 <- "When heat pproduction formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
+            str5 <- "When heat production formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
+            })
+           } else if (input$plot_type == "CaloricEquivalentOverTime") {
+             output$explanation <- renderUI({
+            str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
+            str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
+            str3 <- "<hr/>"
+            str4 <- "Cohorts are usually stratified by animal ID by default"
+            HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+            })
+           } else if (input$plot_type == "DayNightActivity") {
+              output$explanation <- renderUI({
+            str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
+            str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
+            str3 <- "<hr/>"
+            str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
+            HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+            })
+           } else if (input$plot_type == "Raw") {
+            output$explanation <- renderUI({
+               str1 <- "<h3> Raw data values are plotted </h3>"
+               str2 <- "According to the recorded data, line graphs are displayed"
+               str3 <- "<hr/>"
+               str4 <- "Cohorts are usually strafified by animal ID by default"
+            HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+            })
+           } else if (input$plot_type == "TotalOverDay") {
+            output$explanation <- renderUI({
+               str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
+               str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
+               str3 <- "<hr/>"
+               str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+            HTML(paste(str1, sep = "<br/>"))
             })
            } else {
             output$summary <- renderPlotly(NULL)
