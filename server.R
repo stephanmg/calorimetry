@@ -484,7 +484,6 @@ do_plotting <- function(file, input, exclusion, output) {
 
       # TODO: Use actual user input values (The following has been
       # used for testing purposes and have full control over data)
-      # dd <- extract_rmr("df_for_cov_analysis.csv", M, PERCENTAGE)
       M <- 1
       PERCENTAGE <- 1
       df_plot_total <- extract_rmr_helper()
