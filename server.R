@@ -384,8 +384,17 @@ do_plotting <- function(file, input, exclusion, output) {
    # p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`, color=finalC1$`Animal No._NA`)) + geom_point() #nolint
    if (input$running_average > 0) {
       p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
-      # TODO: Add switch statement for running_average_method: Currently only rollmean supported
-      p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+      if (input$running_average_method == "Mean") {
+         p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+      } else if (input$running_average_method == "Max") {
+         p <- p + geom_line(aes(y = rollmax(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+      } else if (input$running_average_method == "Median") {
+         p <- p + geom_line(aes(y = rollmedian(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+      } else if (input$running_average_method == "Sum") {
+         p <- p + geom_line(aes(y = rollsum(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+      } else {
+         p <- p + geom_line(aes(y = HP2), group = "Animals")
+      }
    } else {
      p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
      p <- p + geom_line()

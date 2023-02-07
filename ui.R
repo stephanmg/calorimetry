@@ -113,7 +113,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
-   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Max", "Mean", "Median", "Sum"))), #nolint
+   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
    )),
    hr(),
    fluidPage(
