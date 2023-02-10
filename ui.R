@@ -8,31 +8,100 @@ library("shinyWidgets")
 # First page: Introduction
 ################################################################################
 intro_panel <- tabPanel(
-  "Introduction",
-  titlePanel("Indirect calorimetry"),
+  "Introduction and Features",
+  titlePanel("A reactive web-based application for the analysis of indirect calorimetry experiments"),
   tags$img(src = "splash.jpg", align = "right"),
-  p("This is an R Shiny app for indirect calorimetric analysis provided TSE-CaloSys or Sable system input data"),
-  br(),
-  h1("Indirect calorimetry data analysis"),
-  p("In this document the analysis of data acquired with TSE-CaloSys or Sable is described for"),
+  p("A R Shiny web app for the analysis of indirect calorimetric data provided in standardized data formats from the TSE Phenomaster/Phenolab, Sable Promethion and Columbus Instruments CLAMS system."), #nolint
+  p("In this document the analysis of data acquired during indirect calorimetry experiments is explained for: "),
    tags$ul(
    tags$li("long term observations over multiple hours"),
-   tags$li("short therm/ acute response experiments < 2 hours")
+   tags$li("short therm/acute response experiments < 2 hours")
    ),
-   h2("Features"),
-   h3("Long term observational studies"),
-   p("On a single data set. This description deals with an animal experiment investigating mice of two different genotypes (ko & wt) running in two cohorts (C1 & C2) and thus at two different timepoints. The provided commands are compatible with csv-files exported by the LabMaster software. Just export the respective csv-file and save it to a appropriate location."), #nolint
-   h3("Removing outliers, sick animals etc."),
-   p("Although not recommended you might want to exclude animals from the data. Maybe animals got sick, did not eat or technical issues with the cage occurred. One solution to remove whole animals is provided below."), #nolint
-   h3("Time averaging for a more robust calorimetry analysis"),
-   p("As calorimetry data is quite unstable, it is usually averaged over a certain time period (e.g. 1h as in CalR). However, one might to adjust this time period to personal preferences e.g. 30 minute intervals. This script offers this possibility. In order to do so, one must again extract some additional information form the data. In a first step, the cumulative running time of the experiment is calculated. The cumulative time (in s) is subsequently transformed in hours."), #nolint
-   h3("Combining several data sets"),
-   p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)"), #nolint
-   h1("Visualization and plotting of data"),
-   p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis"),
-   h1("Data export"),
-   p("Use the navigation bar to jump to Data export for e.g. CalR"),
-   h1("Further information"),
+  p("For a non-exhaustive list of features, see the section below."),
+   br(),
+   hr(style = "width:75%;"),
+   br(),
+   h1("Features"),
+   fluidPage(
+      fluidRow(
+         column(1,
+         icon("timeline", "fa-3x"),
+         ),
+         column(3,
+      h3("Long term observational studies"),
+      ),
+      column(6,
+     p("On a single data set. This description deals with an animal experiment investigating mice of two different genotypes (ko & wt) running in two cohorts (C1 & C2) and thus at two different timepoints. The provided commands are compatible with csv-files exported by the LabMaster software. Just export the respective csv-file and save it to a appropriate location."), #nolint
+      ),
+      )
+   ),
+   fluidPage(
+      fluidRow(
+         column(1,
+         icon("user-xmark", "fa-3x"),
+         ),
+         column(3,
+         h3("Outlier detection and removal"),
+         ),
+         column(6,
+            p("Although not recommended you might want to exclude animals from the data. Maybe animals got sick, did not eat or technical issues with the cage occurred. One solution to remove whole animals is provided below."), #nolint
+         )
+      )
+   ),
+   fluidPage(
+      fluidRow(
+         column(1,
+         icon("plus-minus", "fa-3x"),
+         ),
+         column(3,
+         h3("Time averaging for robust analysis"),
+         ),
+         column(6,
+            p("As calorimetry data is quite unstable, it is usually averaged over a certain time period (e.g. 1h as in CalR). However, one might to adjust this time period to personal preferences e.g. 30 minute intervals. This script offers this possibility. In order to do so, one must again extract some additional information form the data. In a first step, the cumulative running time of the experiment is calculated. The cumulative time (in s) is subsequently transformed in hours."), #nolint
+         )
+      )
+   ),
+   fluidPage(
+      fluidRow(
+         column(1,
+         icon("folder-tree", "fa-3x"),
+         ),
+         column(3,
+         h3("Combining several data sets"),
+         ),
+         column(6,
+         p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)"), #nolint
+         )
+      )
+   ),
+   fluidPage(
+      fluidRow(
+         column(1,
+         icon("magnifying-glass-chart", "fa-3x"),
+         ),
+         column(3,
+         h3("Visualization and analysis of data"),
+         ),
+         column(6,
+         p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis"),
+         )
+      )
+   ),
+  fluidPage(
+      fluidRow(
+         column(1,
+         icon("file-export", "fa-3x"),
+         ),
+         column(3,
+         h3("Data export"),
+         ),
+         column(6,
+            p("Various export data formats supported, for instance CalR compatible data export")
+         )
+      )
+   ),
+   hr(style = "width:75%;"),
+   h1("Documentation and getting help"),
    p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
 )
 
@@ -184,7 +253,7 @@ main_content2 <- mainPanel(
 # Visualization panel
 ################################################################################
 visualization <- tabPanel(
-  "Visualization",
+  "Visualization and statistical analysis",
   titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
   p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
@@ -196,7 +265,7 @@ visualization <- tabPanel(
 # Validation panel
 ################################################################################
 validation <- tabPanel(
-   "Validation",
+   "Validation of calorimetry data",
    titlePanel("Validation of results by comparing RER values (CalR and our method)"),
    p("Use the file choser dialog below to select files for RER Calr and our method"),
    sidebarLayout(
@@ -226,7 +295,9 @@ contact <- tabPanel(
 ################################################################################
 # Main navigation bar
 ################################################################################
-ui <- navbarPage(
+ui <- tagList(
+   tags$head(tags$script(type = "text/javascript", src = "code.js")),
+   navbarPage(
   theme = shinytheme("superhero"),
   "Generalized Calorimetry Analysis",
   intro_panel,
@@ -234,4 +305,5 @@ ui <- navbarPage(
   validation,
   documentation,
   contact
+   )
 )
