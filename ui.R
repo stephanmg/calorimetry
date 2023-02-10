@@ -21,7 +21,7 @@ intro_panel <- tabPanel(
    br(),
    hr(style = "width:75%;"),
    br(),
-   h1("Features"),
+   h1("List of selected app features"),
    fluidPage(
       fluidRow(
          column(1,
@@ -100,7 +100,7 @@ intro_panel <- tabPanel(
          )
       )
    ),
-   hr(style = "width:75%;"),
+   hr(style = "width:100%;"),
    h1("Documentation and getting help"),
    p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
 )
@@ -176,7 +176,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
-   conditionalPanel(condition = "input.plot_type == 'RAW'", uiOutput("myr")),
+   conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
