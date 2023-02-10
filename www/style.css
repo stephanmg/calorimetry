@@ -1,12 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Slab');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa');
 
 * {
-	font-family: 'Roboto Slab', sans-serif;
+	 font-family: 'Comfortaa', 'sans-serif'
 }
 
 .feature-table 
 td:nth-child(1) {
 	width: 2%;
+	text-align: center;
 }
 
 .feature-table 
