@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab');
+
+* {
+	font-family: 'Roboto Slab', sans-serif;
+}
+
+.feature-table 
+td:nth-child(1) {
+	width: 2%;
+}
+
+.feature-table 
+td:nth-child(2) {
+	width: 30%;
+}
+
+.feature-table 
+td:nth-child(3) {
+	width: 60%;
+}
+
+
+.feature-table
+td {
+	vertical-align: top;
+}
+.feature-table
+h3 {
+	padding: 0px;
+	margin: 0px;
+}

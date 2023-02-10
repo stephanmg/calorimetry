@@ -17,92 +17,46 @@ intro_panel <- tabPanel(
    tags$li("long term observations over multiple hours"),
    tags$li("short therm/acute response experiments < 2 hours")
    ),
-  p("For a non-exhaustive list of features, see the section below."),
-   br(),
+  p("For a non-exhaustive list of features, see the section below. Use top navigation bar to get started."),
    hr(style = "width:75%;"),
-   br(),
    h1("List of selected app features"),
-   fluidPage(
-      fluidRow(
-         column(1,
-         icon("timeline", "fa-3x"),
-         ),
-         column(3,
-      h3("Long term observational studies"),
+
+   tags$table(class = "feature-table",
+      tags$tr(
+         tags$td(icon("timeline", "fa-3x")),
+         tags$td(h3("Long term observational studies")),
+         tags$td(p("On a single data set. This description deals with an animal experiment investigating mice of two different genotypes (ko & wt) running in two cohorts (C1 & C2) and thus at two different timepoints. The provided commands are compatible with csv-files exported by the LabMaster software. Just export the respective csv-file and save it to a appropriate location.")) #nolint
       ),
-      column(6,
-     p("On a single data set. This description deals with an animal experiment investigating mice of two different genotypes (ko & wt) running in two cohorts (C1 & C2) and thus at two different timepoints. The provided commands are compatible with csv-files exported by the LabMaster software. Just export the respective csv-file and save it to a appropriate location."), #nolint
+      tags$tr(
+         tags$td(icon("plus-minus", "fa-3x")),
+         tags$td(h3("Time averaging for robust analysis")),
+         tags$td(p("As calorimetry data is quite unstable, it is usually averaged over a certain time period (e.g. 1h as in CalR). However, one might to adjust this time period to personal preferences e.g. 30 minute intervals. This script offers this possibility. In order to do so, one must again extract some additional information form the data. In a first step, the cumulative running time of the experiment is calculated. The cumulative time (in s) is subsequently transformed in hours.")) #nolint
+
       ),
+      tags$tr(
+         tags$td(icon("user-xmark", "fa-3x")),
+         tags$td(h3("Outlier detection and removal")),
+         tags$td(p("Although not recommended you might want to exclude animals from the data. Maybe animals got sick, did not eat or technical issues with the cage occurred. One solution to remove whole animals is provided below.")) #nolint
+      ),
+      tags$tr(
+         tags$td(icon("folder-tree", "fa-3x")),
+         tags$td(h3("Combining several data sets")),
+         tags$td(p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)")) #nolint
+      ),
+      tags$tr(
+         tags$td(icon("magnifying-glass-chart", "fa-3x")),
+         tags$td(h3("Visualization and analysis of data")),
+         tags$td(p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis")) #nolint
+      ),
+      tags$tr(
+         tags$td(icon("file-export", "fa-3x")),
+         tags$td(h3("Data export")),
+         tags$td(p("Various export data formats supported, for instance CalR compatible data export"))
       )
    ),
-   fluidPage(
-      fluidRow(
-         column(1,
-         icon("user-xmark", "fa-3x"),
-         ),
-         column(3,
-         h3("Outlier detection and removal"),
-         ),
-         column(6,
-            p("Although not recommended you might want to exclude animals from the data. Maybe animals got sick, did not eat or technical issues with the cage occurred. One solution to remove whole animals is provided below."), #nolint
-         )
-      )
-   ),
-   fluidPage(
-      fluidRow(
-         column(1,
-         icon("plus-minus", "fa-3x"),
-         ),
-         column(3,
-         h3("Time averaging for robust analysis"),
-         ),
-         column(6,
-            p("As calorimetry data is quite unstable, it is usually averaged over a certain time period (e.g. 1h as in CalR). However, one might to adjust this time period to personal preferences e.g. 30 minute intervals. This script offers this possibility. In order to do so, one must again extract some additional information form the data. In a first step, the cumulative running time of the experiment is calculated. The cumulative time (in s) is subsequently transformed in hours."), #nolint
-         )
-      )
-   ),
-   fluidPage(
-      fluidRow(
-         column(1,
-         icon("folder-tree", "fa-3x"),
-         ),
-         column(3,
-         h3("Combining several data sets"),
-         ),
-         column(6,
-         p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)"), #nolint
-         )
-      )
-   ),
-   fluidPage(
-      fluidRow(
-         column(1,
-         icon("magnifying-glass-chart", "fa-3x"),
-         ),
-         column(3,
-         h3("Visualization and analysis of data"),
-         ),
-         column(6,
-         p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis"),
-         )
-      )
-   ),
-  fluidPage(
-      fluidRow(
-         column(1,
-         icon("file-export", "fa-3x"),
-         ),
-         column(3,
-         h3("Data export"),
-         ),
-         column(6,
-            p("Various export data formats supported, for instance CalR compatible data export")
-         )
-      )
-   ),
-   hr(style = "width:100%;"),
-   h1("Documentation and getting help"),
-   p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
+   hr(style = "width:100%;")
+   # h1("Documentation and getting help"),
+   # p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
 )
 
 ################################################################################
@@ -122,6 +76,7 @@ sidebar_content3 <- sidebarPanel(
    uiOutput("fileInputs"),
 )
 
+# TODO/Note: Should change to table format
 sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
@@ -278,7 +233,7 @@ validation <- tabPanel(
 ################################################################################
 documentation <- tabPanel(
    "Documentation",
-   titlePanel("Documentation"),
+   titlePanel("Documentation of RMR estimation"),
    tags$img(src = "overview_shiny.png")
 )
 
@@ -291,12 +246,20 @@ contact <- tabPanel(
    p("SG (SG <AT> UNI <MINUS> BONN <DOT> DE")
 )
 
+tutorial <- tabPanel(
+   "Tutorial",
+   titlePanel("Tutorial"),
+   p("A step by step guide on how to analyze indirect calorimetry data sets"),
+   p("TODO")
+)
+
 
 ################################################################################
 # Main navigation bar
 ################################################################################
 ui <- tagList(
    tags$head(tags$script(type = "text/javascript", src = "code.js")),
+   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
    navbarPage(
   theme = shinytheme("superhero"),
   "Generalized Calorimetry Analysis",
@@ -304,6 +267,7 @@ ui <- tagList(
   visualization,
   validation,
   documentation,
+  tutorial,
   contact
    )
 )
