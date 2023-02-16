@@ -5,7 +5,7 @@ name: make-badges
 jobs:
   deploy-shiny:
     runs-on: ubuntu-latest
-      steps:
+    steps:
       - name: Create badges
         run: |
           sudo apt-get install -y npm
