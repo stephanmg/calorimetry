@@ -7,3 +7,4 @@
 [TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
 
 ## Status
+![](https://raw.github.com/stephanmg/calorimetry/blob/data/mybadge.svg)
