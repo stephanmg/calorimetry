@@ -36,7 +36,7 @@ jobs:
 
       - name: Update README
         run: |
-          echo -n "![](https://raw.github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)" >> README.md
+          echo -n "![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)" >> README.md
 
           git add README.md
           git config --global user.name 'CI'
