@@ -27,7 +27,7 @@ jobs:
         run: |
           git add mybadge.svg
           git config --global user.name 'CI'
-          git commit -am "Updating Badge"
+          git commit -am "Updating mybadge.svg"
           git push
 
       - uses: actions/checkout@v2
