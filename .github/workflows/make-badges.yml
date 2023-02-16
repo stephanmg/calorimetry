@@ -3,7 +3,7 @@ on: [push, pull_request]
 name: make-badges
 
 jobs:
-  deploy-shiny:
+  make-badges:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
