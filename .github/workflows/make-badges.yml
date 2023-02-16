@@ -7,7 +7,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Create badges
+      - uses: actions/checkout@v2
         run: |
           sudo apt-get install -y npm
           npm install -g badge-maker
           badge build passed :green > mybadge.svg
+      
+      - name: Upload artifacts
+      - uses: actions/upload-artifact@v1
+        with:
+          name: Badges
+          path: mybadge.svg
+
+      - name: Update README
+      - uses: actions/checkout@v2
+        run: |
+          echo -n "-    [status](https://api.github.com/stephanmg/calorimetry/actions/artifacts/" >> README.md
+      - name: Commit
+        run: |
+          git config --global user.name 'CI'
+          git commit -am "Updating README"
+          git push
