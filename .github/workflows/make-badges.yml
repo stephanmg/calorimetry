@@ -37,3 +37,7 @@ jobs:
       - name: Update README
         run: |
           echo -n "-    [status](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg)" >> README.md
+          git add README.md
+          git config --global user.name 'CI'
+          git commit -am "Updating README.md"
+          git push
