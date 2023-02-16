@@ -14,7 +14,7 @@ jobs:
         run: |
           sudo apt-get install -y npm
           npm install -g badge-maker
-          badge build passed :green > mybadge.svg
+          badge "last commit" "$(date '+%Y-%m-%d %H:%M:%S')" :green > mybadge.svg
       
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
