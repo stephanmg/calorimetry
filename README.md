@@ -5,4 +5,5 @@
 
 ## Demonstration of application
 [TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
--    [status](https://api.github.com/stephanmg/calorimetry/actions/artifacts/
+
+## Status
