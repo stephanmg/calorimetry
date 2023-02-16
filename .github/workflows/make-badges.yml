@@ -13,13 +13,13 @@ jobs:
           badge build passed :green > mybadge.svg
       
       - name: Upload artifacts
-      - uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v1
         with:
           name: Badges
           path: mybadge.svg
 
       - name: Update README
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
         run: |
           echo -n "-    [status](https://api.github.com/stephanmg/calorimetry/actions/artifacts/" >> README.md
 
