@@ -1,0 +1,12 @@
+on: [push, pull_request]
+
+name: make-badges
+
+jobs:
+  deploy-shiny:
+    runs-on: ubuntu-latest
+      - name: Create badges
+        run: |
+          sudo apt-get install -y npm
+          npm install -g badge-maker
+          badge build passed :green > mybadge.svg
