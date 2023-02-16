@@ -7,6 +7,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: data
 
       - name: Create badges
         run: |
@@ -26,7 +28,6 @@ jobs:
 
       - name: Commit
         run: |
-          git checkout data
           git add mybadge.svg
           git config --global user.name 'CI'
           git commit -am "Updating README"
