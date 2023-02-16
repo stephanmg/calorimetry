@@ -19,7 +19,6 @@ jobs:
           path: mybadge.svg
 
       - name: Update README
-        uses: actions/checkout@v2
         run: |
           echo -n "-    [status](https://api.github.com/stephanmg/calorimetry/actions/artifacts/" >> README.md
 
