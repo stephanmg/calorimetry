@@ -20,6 +20,8 @@ source("helper.R") # helpers
 source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 
+my_metadata <- "test test"
+
 ################################################################################
 # Helper functions
 ################################################################################
@@ -162,6 +164,7 @@ do_plotting <- function(file, input, exclusion, output) {
                         as.is = TRUE, # avoid transformation character->vector
                         check.names = FALSE, # set the decimal separator
                         fileEncoding = "ISO-8859-1")
+   print(C1.head)
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 
    # unite data sets (unite in tidyverse package)
@@ -868,9 +871,16 @@ server <- function(input, output, session) {
            # output$condition_type <- renderUI(
            #    selectInput(inputId="condition_type", label="Group", selected="Diet", choices=our_group_names))
            # }
-
            }
-
+           observeEvent(input$condition_type, {
+            metadata <- real_data$metadata
+            my_var <- input$condition_type
+            diets <- unique(metadata[[my_var]])
+            output$select_data_by <- renderUI(
+               selectInput("select_data_by", "Condition", choices = diets, selected=input$select_data_by)
+            )
+           }
+           )
         if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
             metadata <- real_data$metadata
             my_var <- input$condition_type
@@ -880,7 +890,7 @@ server <- function(input, output, session) {
             )
            }
 
-         if (input$plot_type == "RestingMetabolicRate") {
+               if (input$plot_type == "RestingMetabolicRate") {
             # plot
             df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
             p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
@@ -974,7 +984,6 @@ server <- function(input, output, session) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
    )
-
 
    #############################################################################
    # Reset session

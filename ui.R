@@ -121,7 +121,8 @@ sidebar_content <- sidebarPanel(
       tabPanelBody("PC",
    selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Raw", "TotalOverDay", "RestingMetabolicRate")), #nolint
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
-   conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet"))),
+   # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
+   conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
    h2("Advanced options"),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
