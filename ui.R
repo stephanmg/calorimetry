@@ -81,7 +81,7 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Heat Production")),
+      h1("Energy expenditure")),
    column(2, style = "padding: 20px;",
     actionButton("showTabHP", label = "", icon = icon("square-plus", "fa-3x"))
    ),
@@ -98,7 +98,7 @@ sidebar_content <- sidebarPanel(
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kcal", "kJ")),
    withMathJax(),
    uiOutput("heat_production_equations"),
-   checkboxInput(inputId = "havemetadata", label = "Have metadata?"),
+   checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
