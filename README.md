@@ -1,7 +1,7 @@
 # Web-based analysis of indirect calorimetry 
 
 ## Demonstration of application
-[TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
+Visit the following website: [TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
 
 ## Development
 
