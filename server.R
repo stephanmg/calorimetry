@@ -117,6 +117,8 @@ do_plotting <- function(file, input, exclusion, output) {
    # data read-in
    fileFormatTSE <- FALSE
    finalC1 <- c()
+   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.") # supported metadata fields
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
@@ -336,9 +338,12 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
    finalC1 <- rbind(C1, finalC1)
+   common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
+   finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
    }
    # step 13 (debugging: save all cohort means)
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
+   C1meta <- finalC1meta
 
    #############################################################################
    # Plotting
@@ -370,7 +375,12 @@ do_plotting <- function(file, input, exclusion, output) {
    df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
    df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
    colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-   finalC1 <- merge(finalC1, df_filtered, by = "Box_NA")
+   colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
+   print("filtered colnames.....")
+   print(colnames(df_filtered))
+   ##finalC1 <- merge(finalC1, df_filtered, by = "Box_NA")
+   # Note: merge should be done on unique Animal No!
+   finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
 
    if (input$with_grouping) {
       if (!is.null(input$select_data_by)) {
@@ -428,6 +438,7 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    p <- ggplotly(p)
    },
+   # TODO:  fix issues with multiple files
    RestingMetabolicRate = {
       component2 <- ""
       if (length(input$cvs) == 2) {
@@ -444,6 +455,8 @@ do_plotting <- function(file, input, exclusion, output) {
          component <- "HP2"
          component2 <- "HP"
       }
+      print("from RMR:")
+      print(colnames(finalC1))
       # first component, typically O2
       df <- data.frame(Values = finalC1[[component]],
          Group = `$`(finalC1, "Animal No._NA"),
@@ -497,17 +510,74 @@ do_plotting <- function(file, input, exclusion, output) {
       color = Component)) + geom_line() + facet_wrap(~Animal)
       finalC1 <- df_plot_total
    },
+
+   WeightVsEnergyExpenditure = {
+
+      #C1meta_tmp <- read.csv2("metadata_now.csv", sep=";")
+      C1meta_tmp <- C1meta
+      print(C1meta_tmp)
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      print("colnames metadata:")
+      print(colnames(C1meta_tmp))
+      print("colnames fin1lC1")
+      print(colnames(finalC1))
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA") # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.) how to force gui update before? TODO
+      df_to_plot["HP"] <- df_to_plot["HP"] / 24
+      p <- ggplot(df_to_plot, aes(x = `Weight..g.`, y = `HP`, color = `Animal No._NA`))
+      p <- p + geom_violin(trim = FALSE) + geom_jitter(position = position_jitter(0.2))
+      if (! is.null(input$statistics)) {
+         if (input$statistics == "mean_sdl") {
+         } else {
+            p <- p + stat_summary(fun.y = input$statistics, color = "red")
+         }
+      }
+
+   if (input$with_facets) {
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+         } else {
+            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+         }
+      }
+   }
+
+
+           p <- ggplotly(p)
+   },
    DayNightActivity = {
 
    convert <- function(x) {
       splitted <- strsplit(as.character(x), " ")
       paste(splitted[[1]][2], ":00", sep = "")
    }
+      C1meta_tmp <- C1meta
+      print(C1meta_tmp)
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      print("colnames metadata:")
+      print(colnames(C1meta_tmp))
+      print("colnames fin1lC1")
+      print(colnames(finalC1))
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
-   finalC1$Datetime <- lapply(finalC1$Datetime, convert)
-   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime)) * 60 + minute(hms(finalC1$Datetime)) < 720, "am", "pm")
-   finalC1$Animals <- as_factor(`$`(finalC1, "Animal No._NA"))
-   p <- ggplot(finalC1, aes(x = Animals, y = HP, fill = NightDay)) + geom_boxplot()
+
+   df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
+   df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
+   df_to_plot$Animals <- as_factor(`$`(df_to_plot, "Animal No._NA"))
+   p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_boxplot()
+
+  if (input$with_facets) {
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+         } else {
+            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+         }
+      }
+   }
+
+
+
    p <- ggplotly(p) %>% layout(boxmode = "group")
    },
    StackedBarPlotForRMRandNonRMR = {
@@ -586,13 +656,34 @@ do_plotting <- function(file, input, exclusion, output) {
    return(list("plot" = p, status = message, metadata = metadata))
    },
    Raw = {
-   write.csv2(finalC1, file = "finalC1.csv")
-   colors <- as_factor(`$`(finalC1, "Animal No._NA"))
-   finalC1$Animals <- colors
+
+      C1meta_tmp <- C1meta
+      print(C1meta_tmp)
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      print("colnames metadata:")
+      print(colnames(C1meta_tmp))
+      print("colnames fin1lC1")
+      print(colnames(finalC1))
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+
+   write.csv2(df_to_plot, file = "finalC1.csv")
+   colors <- as_factor(`$`(df_to_plot, "Animal No._NA"))
+   df_to_plot$Animals <- colors
    mylabel <- paste0(input$myr, sep = "", "_[%]")
-   names(finalC1)[names(finalC1) == mylabel] <- input$myr
-   names(finalC1)[names(finalC1) == "RER_NA"] <- "RER"
-   p <- ggplot(data = finalC1, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+   names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+   names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
+   p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+
+  if (input$with_facets) {
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+         } else {
+            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+         }
+      }
+   }
    p <- ggplotly(p)
    },
    TotalOverDay = {
