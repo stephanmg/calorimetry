@@ -7,5 +7,3 @@
 ## Demonstration of application
 [TSE-CaloSys Data Analysis](https://calorimetry.shinyapps.io/calorimetry/)
 
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)

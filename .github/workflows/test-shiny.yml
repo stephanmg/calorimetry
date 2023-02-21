@@ -1,4 +1,6 @@
-name: tests
+on: [push, pull_request]
+
+name: test-shiny
 
 jobs:
   test-shiny:
