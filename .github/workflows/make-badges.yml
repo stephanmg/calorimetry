@@ -1,0 +1,44 @@
+on: [push, pull_request]
+
+name: make-badges
+
+jobs:
+  make-badges:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: data
+
+      - name: Create badges
+        run: |
+          sudo apt-get install -y npm
+          npm install -g badge-maker
+          badge "last commit" "$(date '+%Y-%m-%d %H:%M:%S')" :green > mybadge.svg
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: Badges
+          path: mybadge.svg
+
+
+      - name: Commit
+        run: |
+          git add mybadge.svg
+          git config --global user.name 'CI'
+          git commit -am "Updating mybadge.svg"
+          git push
+
+      - uses: actions/checkout@v2
+        with:
+         ref: main
+
+      - name: Update README
+        run: |
+          echo -n "![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)" >> README.md
+
+          git add README.md
+          git config --global user.name 'CI'
+          git commit -am "Updating README.md"
+          git push

@@ -53,7 +53,7 @@ create_df <- function(df, component, M, N, percentage) {
    index <- c()
    for (i in 0:floor(N / M)) { # sub interval, get minimum EE in M intervals
       hp_val <- do_extract(df[seq(i * M, i * M + M), ], component, percentage, N)
-      # Minimum EE couldn't be extracted, but why? (TODO: End of intervals?)
+      # Minimum EE couldn't be extracted, but why? (End of intervals?)
       if (length(hp_val) != 0) {
          hp <- append(hp, hp_val)
          index <- append(index, i)
@@ -76,12 +76,12 @@ filename <- "test_O2.pdf"
 percentage <- 5
 
 ################################################################################
-# extract_rmr2
+# extract_rmr
 ################################################################################
 # data
 # M
 # PERCENTAGE
-extract_rmr2 <- function(data, M, PERCENTAGE) {
+extract_rmr <- function(data, M, PERCENTAGE) {
    N <- nrow(data)
    # TODO: Make M a parameter... a user might want to specify the sliding window
    M <- 5
@@ -92,26 +92,6 @@ extract_rmr2 <- function(data, M, PERCENTAGE) {
    df_foo <- data.frame(df$HP, seq(1, N))
    colnames(df_foo) <- c("HP", "Time")
    df_foo$HP <- df_foo$HP / 24 # TODO/FIXME: dubious constant?! over day? okay?!
-   df_foo$Time <- df_foo$Time
-   df_plot_total <- rbind(df_plot_O2, df_plot_CO2)
-   df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)),
-      rep("CO2", nrow(df_plot_CO2)))
-   return(list("df_plot_total" = df_plot_total, "df_foo" = df_foo))
-}
-
-################################################################################
-# extract_rmr: TODO: Old code. Remove
-################################################################################
-extract_rmr <- function(input_filename, M, PERCENTAGE, 
-   SLIDING_WINDOW_OF_PREPROCESSING = 10, SEP = ";") {
-   data <- read.csv2(input_filename, sep = SEP)
-   N <- nrow(data)
-   df <- data
-   df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)
-   df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
-   df_foo <- data.frame(df$HP, seq(1, N))
-   colnames(df_foo) <- c("HP", "Time")
-   df_foo$HP <- df_foo$HP / 24
    df_foo$Time <- df_foo$Time
    df_plot_total <- rbind(df_plot_O2, df_plot_CO2)
    df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)),

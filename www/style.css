@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab');
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa');
+
+* {
+	 font-family: 'Comfortaa', 'sans-serif'
+}
+
+.feature-table 
+td:nth-child(1) {
+	width: 2%;
+	text-align: center;
+}
+
+.feature-table 
+td:nth-child(2) {
+	width: 30%;
+}
+
+.feature-table 
+td:nth-child(3) {
+	width: 60%;
+}
+
+
+.feature-table
+td {
+	vertical-align: top;
+}
+.feature-table
+h3 {
+	padding: 0px;
+	margin: 0px;
+}
