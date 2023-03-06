@@ -11,4 +11,4 @@ Visit the following website: [TSE-CaloSys Data Analysis](https://calorimetry.shi
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 ![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
 
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
