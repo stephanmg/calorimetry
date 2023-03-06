@@ -166,7 +166,8 @@ do_plotting <- function(file, input, exclusion, output) {
                         as.is = TRUE, # avoid transformation character->vector
                         check.names = FALSE, # set the decimal separator
                         fileEncoding = "ISO-8859-1")
-   print(C1.head)
+   write.csv2(C1.head, "head_test2.csv")
+   write.csv2(C1, "full_test2.csv")
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 
    # unite data sets (unite in tidyverse package)
@@ -197,6 +198,8 @@ do_plotting <- function(file, input, exclusion, output) {
    # subtract the next value from first value and safe as variable "diff.sec)
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
+
+   write.csv2(C1,"test_group.csv")
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -318,6 +321,7 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    )
 
+   write.csv2(C1, "test_tabea.csv")
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                        VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
@@ -345,6 +349,15 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
    C1meta <- finalC1meta
 
+# rescale to kj or kcal
+   if (input$kj_or_kcal == "kJ") {
+      print("Rescale!!!")
+      finalC1$HP <- finalC1$HP * 4.184 # kcal to kj
+      finalC1$HP2 <- finalC1$HP2 * 4.184 # kcal to kj
+   }
+
+
+
    #############################################################################
    # Plotting
    #############################################################################
@@ -352,13 +365,7 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
-   # rescale to kj or kcal
-   if (input$kj_or_kcal == "kj") {
-      finalC1$HP <- finalC1$HP * 4184 # kcal to kj
-      finalC1$HP2 <- finalC1$HP2 * 4184 # kcal to kj
-   }
-
-   switch(plotType,
+      switch(plotType,
    CompareHeatProductionFormulas = {
 
    p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
@@ -710,6 +717,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
+
    list("plot" = p, "animals" = `$`(finalC1, "Animal No._NA"), "data" = finalC1, "metadata" = C1meta)
 }
 
