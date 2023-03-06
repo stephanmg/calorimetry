@@ -7,6 +7,11 @@ library("shinyWidgets")
 ################################################################################
 # First page: Introduction
 ################################################################################
+configuration_panel <- tabPanel(
+   "Settings"
+   # TODO: Allow for light cycle configuration
+)
+
 intro_panel <- tabPanel(
   "Introduction and Features",
   titlePanel("A reactive web-based application for the analysis of indirect calorimetry experiments"),
@@ -137,6 +142,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("light_cycle", "Lightcycle", c("Day", "Night"))),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
@@ -267,6 +273,7 @@ ui <- tagList(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
+  configuration_panel,
   validation,
   documentation,
   tutorial,

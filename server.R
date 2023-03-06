@@ -356,6 +356,20 @@ do_plotting <- function(file, input, exclusion, output) {
       finalC1$HP2 <- finalC1$HP2 * 4.184 # kcal to kj
    }
 
+   print("before filtering!")
+   print(colnames(finalC1))
+   if (! is.null(input$light_cycle)) {
+      #`$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
+      # filter finalC1 by light cycle
+      if (input$light_cycle == "Night") {
+         finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+      } else {
+         finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+      }
+   }
+
+
+
 
 
    #############################################################################
@@ -462,6 +476,7 @@ do_plotting <- function(file, input, exclusion, output) {
          component <- "HP2"
          component2 <- "HP"
       }
+
       print("from RMR:")
       print(colnames(finalC1))
       # first component, typically O2
