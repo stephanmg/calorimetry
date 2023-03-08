@@ -359,12 +359,14 @@ do_plotting <- function(file, input, exclusion, output) {
    print("before filtering!")
    print(colnames(finalC1))
    if (! is.null(input$light_cycle)) {
-      #`$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
-      # filter finalC1 by light cycle
-      if (input$light_cycle == "Night") {
-        # finalC1 <- filter(finalC1, `LightC_[%]` == "0")
-      } else {
-        # finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+      if ("LightC_[%]" %in% colnames(finalC1)) {
+         `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
+         # filter finalC1 by light cycle
+         if (input$light_cycle == "Night") {
+            finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+         } else {
+            finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+         }
       }
    }
 
