@@ -362,9 +362,9 @@ do_plotting <- function(file, input, exclusion, output) {
       #`$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
       # filter finalC1 by light cycle
       if (input$light_cycle == "Night") {
-         finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+        # finalC1 <- filter(finalC1, `LightC_[%]` == "0")
       } else {
-         finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+        # finalC1 <- filter(finalC1, `LightC_[%]` == "49")
       }
    }
 
