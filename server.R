@@ -33,11 +33,10 @@ convert <- function(x) {
 }
 
 ################################################################################
-# Export to CalR and Sable format
+# Export to CalR compatible file format and Excel
 ################################################################################
 do_export2 <- function(format, input, output, file_output) {
       # exports for now only the first data set to CalR data format
-      # TODO: Use combined data set (all_data.csv), reformat for xlsx/Sable
       file <- input$File1
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
@@ -59,8 +58,14 @@ do_export2 <- function(format, input, output, file_output) {
          for (v in ls(h)) {
             names(real_data$data)[names(real_data$data) == v] <- h[[v]]
          }
+         if (format == "CalR") {
          write.csv(real_data$data[values(h)], file = file_output, row.names = FALSE)
          writeLines(gsub(pattern = '"', replace = "", x = readLines(file_output)), con = file_output)
+         }
+
+         if (format == "Excel") {
+           write.xslx(real_data$data[values(h)], file = file_output)
+         }
       }
    }
 
@@ -95,13 +100,6 @@ do_export <- function(format, input, output) {
           con = fname)
       }
    }
-
-   if (format == "Sable") {
-      # TODO: Implement Sable system data import
-      output$message <- renderText("Sable system export not yet implemented!")
-      FALSE
-   }
-   FALSE
 }
 
 ################################################################################
@@ -134,15 +132,15 @@ do_plotting <- function(file, input, exclusion, output) {
    if (i == 1) {
       fileFormatTSE <- grepl("TSE", line[2])
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub(";", "", line[2]), sep = " "))
-   } else {
-      if (detectFileType(input[[paste0("File"), i]]) == "xlsx") {
-         print("Excel")
-      }
-      if (grepl("TSE", line[2]) != fileFormatTSE) {
-        # return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
-      }
-      # TODO: need to support also Jennifers and Tabeas dataformat
    }
+   #else {
+   #   if (detectFileType(input[[paste0("File", i)]]) == "xlsx") {
+   #      print("Excel")
+   #   }
+   #   if (grepl("TSE", line[2]) != fileFormatTSE) {
+   #     # return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
+   #   }
+      # TODO: need to support also Jennifers and Tabeas dataformat
    #########################################################################################################
    # Detect data type (TSE v6/v7 (akim, dominik) or v8 (rozman) or promethion/sable (.xlsx) (jennifer)) TODO
    #########################################################################################################
@@ -483,7 +481,7 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + scale_fill_brewer(palette = "Spectral")
 
    if (input$wmeans) {
-      p <- p + geom_smooth(method = "lm")
+      p <- p + geom_smooth(method = input$wmeans_choice)
    }
 
    if (input$wstats) {
@@ -495,15 +493,15 @@ do_plotting <- function(file, input, exclusion, output) {
    # Note this excludes only at beginning of measurement experiment currently in the visualization
    #p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
 
-  # if (input$with_facets) {
-  #    if (!is.null(input$facets_by_data_one)) {
-  #       if (input$orientation == "Horizontal") {
-  #          p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-  #       } else {
-  #          p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-  #       }
-  #    }
-  # }
+   if (input$with_facets) {
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+         } else {
+            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+         }
+      }
+   }
    p <- ggplotly(p)
    },
    # TODO:  fix issues with multiple files
@@ -801,7 +799,11 @@ server <- function(input, output, session) {
       if (! input$export_file_name == "") {
          paste(input$export_file_name, ".csv", sep = "")
       } else {
-         paste("data-", Sys.Date(), input$export_format, sep = "")
+         extension <- ".csv"
+         if (input$export_format == "Excel") {
+            extension <- ".xlsx"
+         }
+         paste("data-", Sys.Date(), input$export_format, extension, sep = "")
       }
       },
          content = function(file) {
@@ -910,6 +912,9 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
             output$wmeans <- renderUI(
                checkboxInput(inputId = "wmeans", label = "Display means"))
+
+            output$wmeans_choice <- renderUI(
+               selectInput(inputId = "wmeans_choice", label="Method", choices = c("lm", "glm", "gam", "loess")))
          })
 
    observeEvent(input$plot_type, {
@@ -936,17 +941,20 @@ server <- function(input, output, session) {
        if (input$export_format == "CalR") {
             status_okay <- do_export("CalR", input, output)
             if (!status_okay) {
-              output$message <- renderText("Error during data export, check logs")
+              output$message <- renderText("Error during data export to CalR, check logs")
             } else {
               output$message <- renderText(paste("Consolidated data exported to format >>",
               input$export_format, "<<", sep = " "))
             }
        }
-       if (input$export_format == "Sable") {
-           output$message <- renderText("Sable system export not yet implemented!")
-       }
-       if (input$export_format == "XLSX") {
-           output$message <- renderText("XLSX not yet implemented!")
+       if (input$export_format == "Excel") {
+            status_okay <- do_export2("Excel", input, output)
+            if (!status_okay) {
+              output$message <- renderText("Error during data export to Excel, check logs")
+            } else {
+              output$message <- renderText(paste("Consolidated data exported to format >>",
+              input$export_format, "<<", sep = " "))
+            }
         }
       })
 
