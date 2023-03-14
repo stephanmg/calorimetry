@@ -14,11 +14,13 @@ library(shinyWidgets)
 library(fs)
 library(hash)
 require(tidyverse)
+library(tools)
 
 # TODO: Cleanup file names and code in included source files
 source("helper.R") # helpers
 source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
+source("import_promethion_helper.R") # import for promethion/sable
 
 my_metadata <- "test test"
 
@@ -41,7 +43,7 @@ do_export2 <- function(format, input, output, file_output) {
          output$message <- renderText("Not any cohort data given by the user.")
       } else {
          file <- input$File1
-         real_data <- do_plotting(file$datapath, input, input$sick)
+         real_data <- do_plotting(file$datapath, input, input$sick, output)
          h <- hash()
 
          # Specific mapping of column names from TSE to CalR to produce
@@ -70,7 +72,7 @@ do_export <- function(format, input, output) {
          output$message <- renderText("Not any cohort data given by the user.")
       } else {
          file <- input$File1
-         real_data <- do_plotting(file$datapath, input, input$sick)
+         real_data <- do_plotting(file$datapath, input, input$sick, output)
          h <- hash()
 
          # Specific mapping of column names from TSE to CalR to produce
@@ -114,6 +116,11 @@ do_plotting <- function(file, input, exclusion, output) {
    theme(axis.text.x = element_text(angle = 45, hjust = 1))
    theme_set(theme_pubr_update)
 
+
+   print("there!!!")
+      detectFileType <- function(filename) {
+      file_ext(filename)
+      }
    # data read-in
    fileFormatTSE <- FALSE
    finalC1 <- c()
@@ -126,15 +133,19 @@ do_plotting <- function(file, input, exclusion, output) {
       line <- readLines(con, n = 2)
    if (i == 1) {
       fileFormatTSE <- grepl("TSE", line[2])
+      output$file_type_detected <- renderText(paste("Input file type detected:", gsub(";", "", line[2]), sep = " "))
    } else {
+      if (detectFileType(input[[paste0("File"), i]]) == "xlsx") {
+         print("Excel")
+      }
       if (grepl("TSE", line[2]) != fileFormatTSE) {
-         return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
+        # return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
       }
       # TODO: need to support also Jennifers and Tabeas dataformat
    }
-   #############################################################################
-   # Detect data type (TSE or Sable)
-   #############################################################################
+   #########################################################################################################
+   # Detect data type (TSE v6/v7 (akim, dominik) or v8 (rozman) or promethion/sable (.xlsx) (jennifer)) TODO
+   #########################################################################################################
    detectData <- function(filename) {
       con <- file(filename, "r")
       lineNo <- 1
@@ -149,14 +160,43 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
 
+
    # Skip metadata before data
    toSkip <- detectData(file)
+
+   # check file extension
+   fileExtension <- detectFileType(file)
+
+   print("file extension")
+   print(fileExtension)
+   ### TODO: reformat and write to temp file and re-read the file in case of excel
+   if (fileExtension == "xlsx") {
+      output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+      print("Excel!!!")
+      tmp_file <- tempfile()
+      import_promethion(file, tmp_file)
+      file <- tmp_file
+      print("tmp file is here...")
+      print(tmp_file)
+      toSkip <- detectData(file)
+   }
+
+   # Phenomaster V6 (default)
+   sep <- ";"
+   dec <- ","
+   # Phenomaster V7
+   if (grepl("V7", fileFormatTSE)) {
+      sep <- ","
+      dec <- "."
+   }
+
+   # Note: replaces read.csv with read table
    # File encoding matters: Shiny apps crashes due to undefined character entity
-   C1 <- read.csv2(file, header = FALSE, skip = toSkip + 1,
-      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = ";")
+   C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
+      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec=dec)
    # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
    C1meta <- read.csv2(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
-      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1")
+      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep=sep, dec=dec)
    # Curate data frame
    C1.head <- read.csv2(file, # input file
                         header = FALSE, # no header
@@ -165,9 +205,9 @@ do_plotting <- function(file, input, exclusion, output) {
                         na.strings = c("", "NA"), #transform missing units to NA
                         as.is = TRUE, # avoid transformation character->vector
                         check.names = FALSE, # set the decimal separator
-                        fileEncoding = "ISO-8859-1")
-   write.csv2(C1.head, "head_test2.csv")
-   write.csv2(C1, "full_test2.csv")
+                        fileEncoding = "ISO-8859-1",
+                        sep=sep,
+                        dec=dec)
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 
    # unite data sets (unite in tidyverse package)
@@ -362,9 +402,9 @@ do_plotting <- function(file, input, exclusion, output) {
       #`$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
       # filter finalC1 by light cycle
       if (input$light_cycle == "Night") {
-         finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+         #finalC1 <- filter(finalC1, `LightC_[%]` == "0")
       } else {
-         finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+         #finalC1 <- filter(finalC1, `LightC_[%]` == "49")
       }
    }
 
@@ -399,16 +439,21 @@ do_plotting <- function(file, input, exclusion, output) {
    colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
    print("filtered colnames.....")
    print(colnames(df_filtered))
+   write.csv2(df_filtered, "really_filtereddf.csv")
    ##finalC1 <- merge(finalC1, df_filtered, by = "Box_NA")
    # Note: merge should be done on unique Animal No!
+   print("filtering is fun...")
+   print(colnames(finalC1))
+   print(colnames(df_filtered))
    finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
+   write.csv2(finalC1, "really_finalC1.csv")
 
-   if (input$with_grouping) {
-      if (!is.null(input$select_data_by)) {
-         my_var <- input$condition_type
-         finalC1 <- finalC1[finalC1[[my_var]] == input$select_data_by, ]
-      }
-   }
+ #  if (input$with_grouping) {
+  #    if (!is.null(input$select_data_by)) {
+  #       my_var <- input$condition_type
+  #       finalC1 <- finalC1[finalC1[[my_var]] == input$select_data_by, ]
+   #   }
+   #}
 
    # TODO: This filters out first recordings on each day, probably not desired
    # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
@@ -446,17 +491,17 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + xlab("Time [h]")
    p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
    # Note this excludes only at beginning of measurement experiment currently in the visualization
-   p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
+   #p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
 
-   if (input$with_facets) {
-      if (!is.null(input$facets_by_data_one)) {
-         if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-         } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-         }
-      }
-   }
+  # if (input$with_facets) {
+  #    if (!is.null(input$facets_by_data_one)) {
+  #       if (input$orientation == "Horizontal") {
+  #          p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+  #       } else {
+  #          p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+  #       }
+  #    }
+  # }
    p <- ggplotly(p)
    },
    # TODO:  fix issues with multiple files
@@ -909,7 +954,7 @@ server <- function(input, output, session) {
    observeEvent(input$replotting, {
            output$plot <- renderPlotly({
            file <- input$File1
-           real_data <- do_plotting(file$datapath, input, exclusion = input$sick)
+           real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
            real_data$plot
            })
    })
@@ -946,7 +991,7 @@ server <- function(input, output, session) {
          } else {
            file <- input$File1
            print(file$datapath)
-           real_data <- do_plotting(file$datapath, input, input$sick)
+           real_data <- do_plotting(file$datapath, input, input$sick, output)
 
            print(real_data$status)
            if (! is.null(real_data$status)) {

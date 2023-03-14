@@ -120,7 +120,7 @@ def bland_altman(data1, data2, groups, groups_mapping, *args, **kwargs):
     mean = np.mean([data1, data2], axis=0)
     diff = data1 - data2  # Difference between data1 and data2
     md = np.mean(diff) # Mean of the difference diff / mean for percentage
-    if in_percentage: md = np.mean(diff/mean)
+    if in_percentage: md = np.mean(diff/mean) 
 
     sd = np.std(diff, axis=0)  # Standard deviation of the difference
     if in_percentage:
@@ -142,7 +142,7 @@ def bland_altman(data1, data2, groups, groups_mapping, *args, **kwargs):
     if not in_percentage:
        plt.text(5.0-5, float(md + 0.1), f"{abs(float(md)-0)}")
     else:
-       plt.text(5.0-2, float(md), f"{abs(float(md)-0)}")
+       plt.text(5.0-2, float(md), f"{100 * abs(float(md)-0)} %")
 
     plt.axhline(md + 1.96 * sd, color="red", linestyle="--")
     plt.axhline(md - 1.96 * sd, color="red", linestyle="--")

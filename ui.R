@@ -23,6 +23,7 @@ intro_panel <- tabPanel(
    tags$li("short therm/acute response experiments < 2 hours")
    ),
   p("For a non-exhaustive list of features, see the section below. Use top navigation bar to get started."),
+  p("Supported input file formats: Promethion/Sable, TSE PhenoMaster V7, TSE LabMaster V6"),
    hr(style = "width:75%;"),
    h1("List of selected app features"),
 
@@ -88,10 +89,10 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Energy expenditure")),
    column(2, style = "padding: 20px;",
-    actionButton("showTabHP", label = "", icon = icon("square-plus", "fa-3x"))
+    actionButton("showTabHP", label = "", icon = icon("square", "fa-3x"))
    ),
    column(2, style = "padding: 20px;",
-    actionButton("hideTabHP", label = "", icon = icon("square-minus", "fa-3x"))
+    actionButton("hideTabHP", label = "", icon = icon("square-o", "fa-3x"))
    ))),
    tabsetPanel(id = "tabsHP", type = "hidden",
       tabPanelBody("HP",
@@ -110,6 +111,7 @@ sidebar_content <- sidebarPanel(
    h3("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
+   span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
    )),
    hr(),
    fluidPage(
@@ -117,10 +119,10 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Plot configuration")),
    column(2, style = "padding: 20px;",
-    actionButton("showTabPC", label = "", icon = icon("square-plus", "fa-3x")),
+    actionButton("showTabPC", label = "", icon = icon("square", "fa-3x")),
    ),
    column(2, style = "padding: 20px;",
-    actionButton("hideTabPC", label = "", icon = icon("square-minus", "fa-3x")),
+    actionButton("hideTabPC", label = "", icon = icon("square-o", "fa-3x")),
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
@@ -154,10 +156,10 @@ sidebar_content <- sidebarPanel(
          h1("Data curation"),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("showTabDC", label = "", icon = icon("square-plus", "fa-3x")),
+         actionButton("showTabDC", label = "", icon = icon("square", "fa-3x")),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("hideTabDC", label = "", icon = icon("square-minus", "fa-3x")),
+         actionButton("hideTabDC", label = "", icon = icon("square-o", "fa-3x")),
          )
       )
    ),
@@ -179,10 +181,10 @@ sidebar_content <- sidebarPanel(
          h1("Data export"),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("showTabDE", label = "", icon = icon("square-plus", "fa-3x")),
+         actionButton("showTabDE", label = "", icon = icon("square", "fa-3x")),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("hideTabDE", label = "", icon = icon("square-minus", "fa-3x")),
+         actionButton("hideTabDE", label = "", icon = icon("square-o", "fa-3x")),
          )
       )
    ),
