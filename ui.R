@@ -42,7 +42,12 @@ intro_panel <- tabPanel(
    tags$tr(
       tags$td(icon("file-csv")),
       tags$td(icon("minus")),
-      tags$td("TSE Labmaster v6")
+      tags$td("TSE LabMaster v6")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE LabMaster v5")
    )
    ),
    br(),

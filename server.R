@@ -21,6 +21,7 @@ source("helper.R") # helpers
 source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 source("import_promethion_helper.R") # import for promethion/sable
+source("import_pheno_v8.R") # import for PhenoMaster V8
 
 my_metadata <- "test test"
 
@@ -130,17 +131,9 @@ do_plotting <- function(file, input, exclusion, output) {
       con <- file(file)
       line <- readLines(con, n = 2)
    if (i == 1) {
-      fileFormatTSE <- grepl("TSE", line[2])
-      output$file_type_detected <- renderText(paste("Input file type detected:", gsub(";", "", line[2]), sep = " "))
+      fileFormatTSE <- line[2]
+      output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
-   #else {
-   #   if (detectFileType(input[[paste0("File", i)]]) == "xlsx") {
-   #      print("Excel")
-   #   }
-   #   if (grepl("TSE", line[2]) != fileFormatTSE) {
-   #     # return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
-   #   }
-      # TODO: need to support also Jennifers and Tabeas dataformat
    #########################################################################################################
    # Detect data type (TSE v6/v7 (akim, dominik) or v8 (rozman) or promethion/sable (.xlsx) (jennifer)) TODO
    #########################################################################################################
@@ -151,13 +144,12 @@ do_plotting <- function(file, input, exclusion, output) {
          lineNo <- lineNo + 1
          line <- readLines(con, n = 1)
          print(length(line))
-         if (length(line) == 0 || length(grep("^;+$", line) != 0) ||
+         if (length(line) == 0 || length(grep("^[;,]+$", line) != 0) ||
           line == "") {
             return(lineNo)
          }
       }
    }
-
 
    # Skip metadata before data
    toSkip <- detectData(file)
@@ -165,38 +157,46 @@ do_plotting <- function(file, input, exclusion, output) {
    # check file extension
    fileExtension <- detectFileType(file)
 
-   print("file extension")
-   print(fileExtension)
-   ### TODO: reformat and write to temp file and re-read the file in case of excel
+   # Promethion/Sable input
    if (fileExtension == "xlsx") {
       output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
-      print("Excel!!!")
       tmp_file <- tempfile()
       import_promethion(file, tmp_file)
       file <- tmp_file
-      print("tmp file is here...")
-      print(tmp_file)
       toSkip <- detectData(file)
    }
 
-   # Phenomaster V6 (default)
+   # LabMaster V5 (potentially needs to be treated differently... TODO?)
+   sep <- ";"
+   dec <- "."
+
+   # LabMaster V6 (default)
    sep <- ";"
    dec <- ","
-   # Phenomaster V7
+
+   # Phenomaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
    if (grepl("V7", fileFormatTSE)) {
       sep <- ","
       dec <- "."
    }
 
+   # Phenomaster V8 (needs to be treated differently)
+   if (grepl("V8", fileFormatTSE)) {
+      tmp_file <- tempfile()
+      import_pheno_v8(file, tmp_file)
+      file <- tmp_file
+      toSkip <- detectData(file)
+   }
+
    # Note: replaces read.csv with read table
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
-      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec=dec)
+      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
-   C1meta <- read.csv2(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
-      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep=sep, dec=dec)
+   C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
+      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    # Curate data frame
-   C1.head <- read.csv2(file, # input file
+   C1.head <- read.table(file, # input file
                         header = FALSE, # no header
                         skip = toSkip - 1, # skip headers up to first animal
                         nrows = 2, # read only two rows (variable name + unit)
@@ -204,8 +204,8 @@ do_plotting <- function(file, input, exclusion, output) {
                         as.is = TRUE, # avoid transformation character->vector
                         check.names = FALSE, # set the decimal separator
                         fileEncoding = "ISO-8859-1",
-                        sep=sep,
-                        dec=dec)
+                        sep = sep,
+                        dec = dec)
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 
    # unite data sets (unite in tidyverse package)
@@ -237,7 +237,7 @@ do_plotting <- function(file, input, exclusion, output) {
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
 
-   write.csv2(C1,"test_group.csv")
+   write.csv2(C1, "test_group.csv")
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -401,9 +401,9 @@ do_plotting <- function(file, input, exclusion, output) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
          # filter finalC1 by light cycle
          if (input$light_cycle == "Night") {
-            finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+         #   finalC1 <- filter(finalC1, `LightC_[%]` == "0")
          } else {
-            finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+          #  finalC1 <- filter(finalC1, `LightC_[%]` == "49")
          }
       }
    }
@@ -626,7 +626,6 @@ do_plotting <- function(file, input, exclusion, output) {
       print("colnames fin1lC1")
       print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
 
    df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
    df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
