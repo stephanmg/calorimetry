@@ -5,6 +5,11 @@
 	 font-family: 'Comfortaa', 'sans-serif'
 }
 
+.fileformat-types td {
+	padding: 2px;
+	margin: 2px;
+}
+
 .feature-table 
 td:nth-child(1) {
 	width: 2%;
@@ -30,4 +35,20 @@ td {
 h3 {
 	padding: 0px;
 	margin: 0px;
+}
+
+a:link {
+	color: white;
+}
+
+a:visited {
+	color: white;
+}
+
+a:hover {
+	color: #800000;
+}
+
+a:active {
+	color: #800000;
 }

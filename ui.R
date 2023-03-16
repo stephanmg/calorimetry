@@ -22,11 +22,38 @@ intro_panel <- tabPanel(
    tags$li("long term observations over multiple hours"),
    tags$li("short therm/acute response experiments < 2 hours")
    ),
-  p("For a non-exhaustive list of features, see the section below. Use top navigation bar to get started."),
-  p("Supported input file formats: Promethion/Sable, TSE PhenoMaster V7, TSE LabMaster V6"),
+  h3("Supported input file formats"),
+  tags$table(class = "fileformat-types",
+   tags$tr(
+      tags$td(icon("file-excel")),
+      tags$td(icon("minus")),
+      tags$td("Promethion/Sable")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE PhenoMaster v7")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE PhenoMaster v8")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE LabMaster v6")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE LabMaster v5")
+   )
+   ),
+   br(),
+   p("For a non-exhaustive list of features, see the section below. Use top navigation bar to get started."),
    hr(style = "width:75%;"),
    h1("List of selected app features"),
-
    tags$table(class = "feature-table",
       tags$tr(
          tags$td(icon("timeline", "fa-3x")),
@@ -89,10 +116,10 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Energy expenditure")),
    column(2, style = "padding: 20px;",
-    actionButton("showTabHP", label = "", icon = icon("square", "fa-3x"))
+    actionButton("showTabHP", label = "", icon = icon("square-plus", "fa-3x"))
    ),
    column(2, style = "padding: 20px;",
-    actionButton("hideTabHP", label = "", icon = icon("square-o", "fa-3x"))
+    actionButton("hideTabHP", label = "", icon = icon("square-minus", "fa-3x"))
    ))),
    tabsetPanel(id = "tabsHP", type = "hidden",
       tabPanelBody("HP",
@@ -119,10 +146,10 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Plot configuration")),
    column(2, style = "padding: 20px;",
-    actionButton("showTabPC", label = "", icon = icon("square", "fa-3x")),
+    actionButton("showTabPC", label = "", icon = icon("square-plus", "fa-3x")),
    ),
    column(2, style = "padding: 20px;",
-    actionButton("hideTabPC", label = "", icon = icon("square-o", "fa-3x")),
+    actionButton("hideTabPC", label = "", icon = icon("square-minus", "fa-3x")),
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
@@ -138,6 +165,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
+   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
@@ -145,6 +173,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("light_cycle", "Lightcycle", c("Day", "Night"))),
+   h3("Time averaging of raw data"),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
@@ -156,10 +185,10 @@ sidebar_content <- sidebarPanel(
          h1("Data curation"),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("showTabDC", label = "", icon = icon("square", "fa-3x")),
+         actionButton("showTabDC", label = "", icon = icon("square-plus", "fa-3x")),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("hideTabDC", label = "", icon = icon("square-o", "fa-3x")),
+         actionButton("hideTabDC", label = "", icon = icon("square-minus", "fa-3x")),
          )
       )
    ),
@@ -181,16 +210,16 @@ sidebar_content <- sidebarPanel(
          h1("Data export"),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("showTabDE", label = "", icon = icon("square", "fa-3x")),
+         actionButton("showTabDE", label = "", icon = icon("square-plus", "fa-3x")),
          ),
          column(2, style = "padding: 20px;",
-         actionButton("hideTabDE", label = "", icon = icon("square-o", "fa-3x")),
+         actionButton("hideTabDE", label = "", icon = icon("square-minus", "fa-3x")),
          )
       )
    ),
    tabsetPanel(id = "tabsDE", type = "hidden",
       tabPanelBody("DE",
-   selectInput("export_format", "Format", choices = c("CalR", "Sable", "XLSX")),
+   selectInput("export_format", "Format", choices = c("CalR", "Excel")),
    h2("Folder"),
    textInput("export_file_name", "File name (Otherwise autogenerated)"),
    downloadButton("downloadData", "Download")
@@ -275,10 +304,10 @@ ui <- tagList(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
-  configuration_panel,
+  #configuration_panel,
   validation,
   documentation,
-  tutorial,
+  #tutorial,
   contact
    )
 )

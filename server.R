@@ -21,6 +21,7 @@ source("helper.R") # helpers
 source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 source("import_promethion_helper.R") # import for promethion/sable
+source("import_pheno_v8.R") # import for PhenoMaster V8
 
 my_metadata <- "test test"
 
@@ -33,11 +34,10 @@ convert <- function(x) {
 }
 
 ################################################################################
-# Export to CalR and Sable format
+# Export to CalR compatible file format and Excel
 ################################################################################
 do_export2 <- function(format, input, output, file_output) {
       # exports for now only the first data set to CalR data format
-      # TODO: Use combined data set (all_data.csv), reformat for xlsx/Sable
       file <- input$File1
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
@@ -59,8 +59,14 @@ do_export2 <- function(format, input, output, file_output) {
          for (v in ls(h)) {
             names(real_data$data)[names(real_data$data) == v] <- h[[v]]
          }
+         if (format == "CalR") {
          write.csv(real_data$data[values(h)], file = file_output, row.names = FALSE)
          writeLines(gsub(pattern = '"', replace = "", x = readLines(file_output)), con = file_output)
+         }
+
+         if (format == "Excel") {
+           write.xslx(real_data$data[values(h)], file = file_output)
+         }
       }
    }
 
@@ -95,13 +101,6 @@ do_export <- function(format, input, output) {
           con = fname)
       }
    }
-
-   if (format == "Sable") {
-      # TODO: Implement Sable system data import
-      output$message <- renderText("Sable system export not yet implemented!")
-      FALSE
-   }
-   FALSE
 }
 
 ################################################################################
@@ -132,16 +131,8 @@ do_plotting <- function(file, input, exclusion, output) {
       con <- file(file)
       line <- readLines(con, n = 2)
    if (i == 1) {
-      fileFormatTSE <- grepl("TSE", line[2])
-      output$file_type_detected <- renderText(paste("Input file type detected:", gsub(";", "", line[2]), sep = " "))
-   } else {
-      if (detectFileType(input[[paste0("File"), i]]) == "xlsx") {
-         print("Excel")
-      }
-      if (grepl("TSE", line[2]) != fileFormatTSE) {
-        # return(list("plot" = NULL, "animals" = NULL, "status" = FALSE))
-      }
-      # TODO: need to support also Jennifers and Tabeas dataformat
+      fileFormatTSE <- line[2]
+      output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
    # Detect data type (TSE v6/v7 (akim, dominik) or v8 (rozman) or promethion/sable (.xlsx) (jennifer)) TODO
@@ -153,13 +144,12 @@ do_plotting <- function(file, input, exclusion, output) {
          lineNo <- lineNo + 1
          line <- readLines(con, n = 1)
          print(length(line))
-         if (length(line) == 0 || length(grep("^;+$", line) != 0) ||
+         if (length(line) == 0 || length(grep("^[;,]+$", line) != 0) ||
           line == "") {
             return(lineNo)
          }
       }
    }
-
 
    # Skip metadata before data
    toSkip <- detectData(file)
@@ -167,38 +157,46 @@ do_plotting <- function(file, input, exclusion, output) {
    # check file extension
    fileExtension <- detectFileType(file)
 
-   print("file extension")
-   print(fileExtension)
-   ### TODO: reformat and write to temp file and re-read the file in case of excel
+   # Promethion/Sable input
    if (fileExtension == "xlsx") {
       output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
-      print("Excel!!!")
       tmp_file <- tempfile()
       import_promethion(file, tmp_file)
       file <- tmp_file
-      print("tmp file is here...")
-      print(tmp_file)
       toSkip <- detectData(file)
    }
 
-   # Phenomaster V6 (default)
+   # LabMaster V5 (potentially needs to be treated differently... TODO?)
+   sep <- ";"
+   dec <- "."
+
+   # LabMaster V6 (default)
    sep <- ";"
    dec <- ","
-   # Phenomaster V7
+
+   # Phenomaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
    if (grepl("V7", fileFormatTSE)) {
       sep <- ","
       dec <- "."
    }
 
+   # Phenomaster V8 (needs to be treated differently)
+   if (grepl("V8", fileFormatTSE)) {
+      tmp_file <- tempfile()
+      import_pheno_v8(file, tmp_file)
+      file <- tmp_file
+      toSkip <- detectData(file)
+   }
+
    # Note: replaces read.csv with read table
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
-      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec=dec)
+      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
-   C1meta <- read.csv2(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
-      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep=sep, dec=dec)
+   C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
+      na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    # Curate data frame
-   C1.head <- read.csv2(file, # input file
+   C1.head <- read.table(file, # input file
                         header = FALSE, # no header
                         skip = toSkip - 1, # skip headers up to first animal
                         nrows = 2, # read only two rows (variable name + unit)
@@ -206,8 +204,8 @@ do_plotting <- function(file, input, exclusion, output) {
                         as.is = TRUE, # avoid transformation character->vector
                         check.names = FALSE, # set the decimal separator
                         fileEncoding = "ISO-8859-1",
-                        sep=sep,
-                        dec=dec)
+                        sep = sep,
+                        dec = dec)
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 
    # unite data sets (unite in tidyverse package)
@@ -239,7 +237,7 @@ do_plotting <- function(file, input, exclusion, output) {
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
 
-   write.csv2(C1,"test_group.csv")
+   write.csv2(C1, "test_group.csv")
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -403,9 +401,9 @@ do_plotting <- function(file, input, exclusion, output) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
          # filter finalC1 by light cycle
          if (input$light_cycle == "Night") {
-            finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+         #   finalC1 <- filter(finalC1, `LightC_[%]` == "0")
          } else {
-            finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+          #  finalC1 <- filter(finalC1, `LightC_[%]` == "49")
          }
       }
    }
@@ -483,7 +481,7 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + scale_fill_brewer(palette = "Spectral")
 
    if (input$wmeans) {
-      p <- p + geom_smooth(method = "lm")
+      p <- p + geom_smooth(method = input$wmeans_choice)
    }
 
    if (input$wstats) {
@@ -495,15 +493,15 @@ do_plotting <- function(file, input, exclusion, output) {
    # Note this excludes only at beginning of measurement experiment currently in the visualization
    #p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
 
-  # if (input$with_facets) {
-  #    if (!is.null(input$facets_by_data_one)) {
-  #       if (input$orientation == "Horizontal") {
-  #          p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-  #       } else {
-  #          p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-  #       }
-  #    }
-  # }
+   if (input$with_facets) {
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+         } else {
+            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+         }
+      }
+   }
    p <- ggplotly(p)
    },
    # TODO:  fix issues with multiple files
@@ -628,7 +626,6 @@ do_plotting <- function(file, input, exclusion, output) {
       print("colnames fin1lC1")
       print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
 
    df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
    df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
@@ -801,7 +798,11 @@ server <- function(input, output, session) {
       if (! input$export_file_name == "") {
          paste(input$export_file_name, ".csv", sep = "")
       } else {
-         paste("data-", Sys.Date(), input$export_format, sep = "")
+         extension <- ".csv"
+         if (input$export_format == "Excel") {
+            extension <- ".xlsx"
+         }
+         paste("data-", Sys.Date(), input$export_format, extension, sep = "")
       }
       },
          content = function(file) {
@@ -910,6 +911,9 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
             output$wmeans <- renderUI(
                checkboxInput(inputId = "wmeans", label = "Display means"))
+
+            output$wmeans_choice <- renderUI(
+               selectInput(inputId = "wmeans_choice", label="Method", choices = c("lm", "glm", "gam", "loess")))
          })
 
    observeEvent(input$plot_type, {
@@ -936,17 +940,20 @@ server <- function(input, output, session) {
        if (input$export_format == "CalR") {
             status_okay <- do_export("CalR", input, output)
             if (!status_okay) {
-              output$message <- renderText("Error during data export, check logs")
+              output$message <- renderText("Error during data export to CalR, check logs")
             } else {
               output$message <- renderText(paste("Consolidated data exported to format >>",
               input$export_format, "<<", sep = " "))
             }
        }
-       if (input$export_format == "Sable") {
-           output$message <- renderText("Sable system export not yet implemented!")
-       }
-       if (input$export_format == "XLSX") {
-           output$message <- renderText("XLSX not yet implemented!")
+       if (input$export_format == "Excel") {
+            status_okay <- do_export2("Excel", input, output)
+            if (!status_okay) {
+              output$message <- renderText("Error during data export to Excel, check logs")
+            } else {
+              output$message <- renderText(paste("Consolidated data exported to format >>",
+              input$export_format, "<<", sep = " "))
+            }
         }
       })
 
