@@ -21,7 +21,7 @@ source("helper.R") # helpers
 source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 source("import_promethion_helper.R") # import for promethion/sable
-source("import_pheno_v8.R") # import for PhenoMaster V8
+source("import_pheno_v8_helper.R") # import for PhenoMaster V8
 
 my_metadata <- "test test"
 
