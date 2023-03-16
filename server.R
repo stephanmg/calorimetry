@@ -115,16 +115,15 @@ do_plotting <- function(file, input, exclusion, output) {
    theme(axis.text.x = element_text(angle = 45, hjust = 1))
    theme_set(theme_pubr_update)
 
-
-   print("there!!!")
-      detectFileType <- function(filename) {
+   detectFileType <- function(filename) {
       file_ext(filename)
-      }
+   }
    # data read-in
    fileFormatTSE <- FALSE
    finalC1 <- c()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
-   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.") # supported metadata fields
+   # Supported metadata fields from TSE LabMaster/PhenoMaster (Sable/Promethion must go through metadata sheet (TODO))
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
@@ -135,7 +134,7 @@ do_plotting <- function(file, input, exclusion, output) {
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
-   # Detect data type (TSE v6/v7 (akim, dominik) or v8 (rozman) or promethion/sable (.xlsx) (jennifer)) TODO
+   # Detect data type (TSE v6/v7, v5 (akim, dominik) or v8 (jan, tabea) or promethion/sable (.xlsx) (jenny)) 
    #########################################################################################################
    detectData <- function(filename) {
       con <- file(filename, "r")
@@ -143,7 +142,7 @@ do_plotting <- function(file, input, exclusion, output) {
       while (TRUE) {
          lineNo <- lineNo + 1
          line <- readLines(con, n = 1)
-         print(length(line))
+         # lines with either only ; or , or combination as spacer between metadata and data per convention in TSE files
          if (length(line) == 0 || length(grep("^[;,]+$", line) != 0) ||
           line == "") {
             return(lineNo)
@@ -157,7 +156,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # check file extension
    fileExtension <- detectFileType(file)
 
-   # Promethion/Sable input
+   # Promethion live/Sable input
    if (fileExtension == "xlsx") {
       output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
       tmp_file <- tempfile()
@@ -236,8 +235,6 @@ do_plotting <- function(file, input, exclusion, output) {
    # subtract the next value from first value and safe as variable "diff.sec)
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
-
-   write.csv2(C1, "test_group.csv")
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -359,7 +356,6 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    )
 
-   write.csv2(C1, "test_tabea.csv")
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                        VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
@@ -387,13 +383,13 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
    C1meta <- finalC1meta
 
-# rescale to kj or kcal
+   # rescale to kj or kcal
    if (input$kj_or_kcal == "kJ") {
-      print("Rescale!!!")
       finalC1$HP <- finalC1$HP * 4.184 # kcal to kj
       finalC1$HP2 <- finalC1$HP2 * 4.184 # kcal to kj
    }
 
+   # TODO: Put filtering for light cycle back in (useful for RMR calculation)
    print("before filtering!")
    print(colnames(finalC1))
    if (! is.null(input$light_cycle)) {
@@ -409,9 +405,6 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
 
-
-
-
    #############################################################################
    # Plotting
    #############################################################################
@@ -419,7 +412,7 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
-      switch(plotType,
+   switch(plotType,
    CompareHeatProductionFormulas = {
 
    p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
@@ -437,16 +430,9 @@ do_plotting <- function(file, input, exclusion, output) {
    df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
    colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
    colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
-   print("filtered colnames.....")
-   print(colnames(df_filtered))
-   write.csv2(df_filtered, "really_filtereddf.csv")
    ##finalC1 <- merge(finalC1, df_filtered, by = "Box_NA")
    # Note: merge should be done on unique Animal No!
-   print("filtering is fun...")
-   print(colnames(finalC1))
-   print(colnames(df_filtered))
    finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
-   write.csv2(finalC1, "really_finalC1.csv")
 
  #  if (input$with_grouping) {
   #    if (!is.null(input$select_data_by)) {
@@ -588,7 +574,9 @@ do_plotting <- function(file, input, exclusion, output) {
       print(colnames(C1meta_tmp))
       print("colnames fin1lC1")
       print(colnames(finalC1))
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA") # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.) how to force gui update before? TODO
+      # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.) 
+      # how to force gui update before? TODO
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA") 
       df_to_plot["HP"] <- df_to_plot["HP"] / 24
       p <- ggplot(df_to_plot, aes(x = `Weight..g.`, y = `HP`, color = `Animal No._NA`))
       p <- p + geom_violin(trim = FALSE) + geom_jitter(position = position_jitter(0.2))
