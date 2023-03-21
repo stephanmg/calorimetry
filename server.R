@@ -165,13 +165,17 @@ do_plotting <- function(file, input, exclusion, output) {
       toSkip <- detectData(file)
    }
 
-   # LabMaster V5 (potentially needs to be treated differently... TODO?)
-   sep <- ";"
-   dec <- "."
+   # LabMaster V5 (horizontal format?)
+   if (grepl("V5", fileFormatTSE)) {
+      sep <- ";"
+      dec <- "."
+   }
 
-   # LabMaster V6 (default)
-   sep <- ";"
-   dec <- ","
+   # LabMaster V6
+   if (grepl("V6", fileFormatTSE)) {
+      sep <- ";"
+      dec <- ","
+   }
 
    # Phenomaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
    if (grepl("V7", fileFormatTSE)) {
@@ -207,6 +211,7 @@ do_plotting <- function(file, input, exclusion, output) {
                         dec = dec)
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
 
+
    # unite data sets (unite in tidyverse package)
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
@@ -215,6 +220,9 @@ do_plotting <- function(file, input, exclusion, output) {
 
    # substitute "." by "/"
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
+
+   write.csv2(C1, "testen.csv")
+
 
    # transform into time format appropriate to experimenters
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
@@ -228,6 +236,8 @@ do_plotting <- function(file, input, exclusion, output) {
    mutate(MeasPoint = row_number())
    C1 <- C1[!is.na(C1$MeasPoint), ]
 
+
+
    # Step #1 - calculate the difference between consecutive dates
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>% # group by Animal ID
@@ -235,6 +245,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # subtract the next value from first value and safe as variable "diff.sec)
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
+
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -325,7 +336,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
-
+   # TODO: missing factor of 1000 ml here, but assumed in formular l
    #############################################################################
    # Heat production formula #2
    #############################################################################
@@ -355,6 +366,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
+
 
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
