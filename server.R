@@ -312,25 +312,25 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f1,
    Lusk = {
-      C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA
+      C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
+      C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
    },
    HP2 = {
-      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
+      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA
+      C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA
+      C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA
+      C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA
+      C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -342,25 +342,25 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f2,
    Lusk = {
-      C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA
+      C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP2 <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278
+      C1$HP2 <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
    },
    HP2 = {
-      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]`
+      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA
+      C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA
+      C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA
+      C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA
+      C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -446,12 +446,12 @@ do_plotting <- function(file, input, exclusion, output) {
    # Note: merge should be done on unique Animal No!
    finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
 
- #  if (input$with_grouping) {
-  #    if (!is.null(input$select_data_by)) {
-  #       my_var <- input$condition_type
-  #       finalC1 <- finalC1[finalC1[[my_var]] == input$select_data_by, ]
-   #   }
-   #}
+   if (input$with_grouping) {
+      if (!is.null(input$select_data_by)) {
+         my_var <- input$condition_type
+         finalC1 <- finalC1[finalC1[[my_var]] == input$select_data_by, ]
+     }
+  }
 
    # TODO: This filters out first recordings on each day, probably not desired
    # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
@@ -487,7 +487,8 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    p <- p + xlab("Time [h]")
-   p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
+   # p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
+   p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
    # Note this excludes only at beginning of measurement experiment currently in the visualization
    #p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
 
@@ -551,6 +552,7 @@ do_plotting <- function(file, input, exclusion, output) {
       write.csv2(df_new, file = "df_new.csv")
       colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
       colnames(df_to_plot2) <- c("RestingMetabolicRate2", "Animal", "Time")
+
       write.csv2(df_to_plot, file = "df_to_plot.csv")
 
       df_for_cov_analysis <- cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"),
@@ -569,10 +571,11 @@ do_plotting <- function(file, input, exclusion, output) {
       PERCENTAGE <- 1
       df_plot_total <- extract_rmr_helper()
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
-      df_plot_total$HP <- as.numeric(df_plot_total$HP)
+      df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
+      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
       finalC1 <- df_plot_total
    },
 
@@ -643,8 +646,9 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
 
+   p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
 
-   p <- ggplotly(p) %>% layout(boxmode = "group")
+   p <- ggplotly(p) # %>% layout(boxmode = "group")
    },
    StackedBarPlotForRMRandNonRMR = {
       # TODO: Implement stacked bar plot for RMR and non-RMR
@@ -737,9 +741,19 @@ do_plotting <- function(file, input, exclusion, output) {
    colors <- as_factor(`$`(df_to_plot, "Animal No._NA"))
    df_to_plot$Animals <- colors
    mylabel <- paste0(input$myr, sep = "", "_[%]")
+   myvar <- input$myr
+   if (startsWith(input$myr, "V")) {
+      mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") 
+      names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+   }
+   print("to plot names")
+   print(names(df_to_plot))
    names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
    p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+   mylabel <- gsub("_", " ", mylabel)
+   p <- p + ylab(mylabel)
+   p <- p + xlab("Time [h]")
 
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
@@ -752,6 +766,9 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    p <- ggplotly(p)
    },
+   # TODO only use full days, checkbox (an)
+   # TODO count days and average
+   # TODO: gruppierung nach condition/diet
    TotalOverDay = {
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
@@ -762,6 +779,9 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
+   # 60 / 15 minutes = 6
+   finalC1$HP <- finalC1$HP / 6
+   finalC1$HP2 <- finalC1$HP2 / 6
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE <- rbind(TEE1, TEE2)
@@ -770,6 +790,7 @@ do_plotting <- function(file, input, exclusion, output) {
    TEE$Days <- as_factor(TEE$Days)
    TEE$Animals <- as_factor(TEE$Animals)
    p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation)) + geom_boxplot() + geom_point(position = position_jitterdodge())
+  
    p <- ggplotly(p) %>% layout(boxmode = "group")
    },
    {
@@ -905,7 +926,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER")))
+         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2")))
     })
 
    observeEvent(input$plot_type, {
