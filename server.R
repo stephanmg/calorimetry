@@ -312,7 +312,7 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f1,
    Lusk = {
-      C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA / 1000
+      C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
       C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
@@ -321,16 +321,16 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA / 1000
+      C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA / 1000
+      C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA / 1000
+      C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA / 1000
+      C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -342,7 +342,7 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f2,
    Lusk = {
-      C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$RER_NA / 1000
+      C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
       C1$HP2 <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
@@ -351,16 +351,16 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` + 4.57 * C1$RER_NA / 1000
+      C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$RER_NA / 1000
+      C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$RER_NA / 1000
+      C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` + 4.6057 * C1$RER_NA / 1000
+      C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -766,9 +766,6 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    p <- ggplotly(p)
    },
-   # TODO only use full days, checkbox (an)
-   # TODO count days and average
-   # TODO: gruppierung nach condition/diet
    TotalOverDay = {
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
@@ -779,9 +776,11 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-   # 60 / 15 minutes = 6
+   # TODO: get time interval for rescaling 60 / 15 minutes = 6
    finalC1$HP <- finalC1$HP / 6
    finalC1$HP2 <- finalC1$HP2 / 6
+
+   # TODO: use input$only_full_days to filter out here no full days...
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE <- rbind(TEE1, TEE2)
@@ -791,7 +790,20 @@ do_plotting <- function(file, input, exclusion, output) {
    TEE$Animals <- as_factor(TEE$Animals)
    p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation)) + geom_boxplot() + geom_point(position = position_jitterdodge())
   
-   p <- ggplotly(p) %>% layout(boxmode = "group")
+  if (input$with_facets) {
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+         } else {
+            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+         }
+      }
+      p <- ggplotly(p)
+   } else {
+      p <- ggplotly(p) %>% layout(boxmode = "group")
+   }
+
+   # TODO: gruppierung nach condition/diet mit facets
    },
    {
 

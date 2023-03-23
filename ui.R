@@ -157,6 +157,7 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
+   conditionalPanel(condition = "input.plot_type == 'TotalOverDay'", checkboxInput(inputId="only_full_days", label="Only full days", value=TRUE)),
    conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
    h2("Advanced options"),
