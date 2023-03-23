@@ -576,6 +576,7 @@ do_plotting <- function(file, input, exclusion, output) {
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
+      ver
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
@@ -782,6 +783,12 @@ do_plotting <- function(file, input, exclusion, output) {
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
+         C1meta_tmp <- C1meta
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+
+
    convert <- function(x) {
       splitted <- strsplit(as.character(x), " ")
       paste(splitted[[1]][1], "", sep = "")
@@ -796,11 +803,25 @@ do_plotting <- function(file, input, exclusion, output) {
    # TODO if diet then group plot by diet
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+
+   if (input$with_facets) {
+      if (input$facets_by_data_one %in% names(finalC1)) {
+         TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+         TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+      }
+   }
+
    TEE <- rbind(TEE1, TEE2)
    names(TEE)[names(TEE) == "x"] <- "TEE"
    TEE$Equation <- as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
    TEE$Days <- as_factor(TEE$Days)
    TEE$Animals <- as_factor(TEE$Animals)
+     if (input$with_facets) {
+      if (input$facets_by_data_one %in% names(finalC1)) {
+         TEE$Facet <- as_factor(TEE$Facet)
+      }
+     }
+
    p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
    p <- p +  geom_text(check_overlap=TRUE, aes(label=Days), position=position_jitter(width=0.15))
    p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep=""))
@@ -808,9 +829,11 @@ do_plotting <- function(file, input, exclusion, output) {
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+           p <- p + facet_grid(as.formula(".~Facet"))
+          #  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
          } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+           # p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+            p <- p + facet_grid(as.formula("Facet~."))
          }
       }
    }
