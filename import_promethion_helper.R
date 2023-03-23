@@ -28,7 +28,7 @@ import_promethion <- function(file, file_out) {
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 5))
    boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", 4))
    header[nrow(header) + 1,] <- fileinfo
-   header[nrow(header) + 1,] <- extendedinfo
+      header[nrow(header) + 1,] <- extendedinfo
    header[nrow(header) + 1,] <- boxInfo
 
    data$Date <- sub("^(....)/(..)/(..)", "\\3.\\2.\\1", data$Date)

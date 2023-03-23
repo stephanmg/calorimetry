@@ -162,13 +162,16 @@ do_plotting <- function(file, input, exclusion, output) {
    sep <- ";"
    dec <- ","
 
+   scaleFactor <- 1
    # Promethion live/Sable input
    if (fileExtension == "xlsx") {
       output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+      output$study_description <- renderText("")
       tmp_file <- tempfile()
       import_promethion(file, tmp_file)
       file <- tmp_file
       toSkip <- detectData(file)
+      scaleFactor <- 60
    }
 
    # LabMaster V5 (horizontal format?)
@@ -312,25 +315,25 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f1,
    Lusk = {
-      C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
+      C1$HP <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
+      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
    },
    HP2 = {
-      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
+      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
+      C1$HP <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
+      C1$HP <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
+      C1$HP <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
+      C1$HP <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -342,25 +345,25 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f2,
    Lusk = {
-      C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP2 <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
+      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
    },
    HP2 = {
-      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
+      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -576,6 +579,7 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      p <- p + xlab("Time [minutes]")
       finalC1 <- df_plot_total
    },
 
@@ -648,7 +652,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
    if (input$with_facets) {
-      p <- ggplotly(p)
+      p <- ggplotly(p) %>% layout(boxmode = "group")
    } else {
       p <- ggplotly(p) %>% layout(boxmode = "group")
    }
@@ -749,6 +753,11 @@ do_plotting <- function(file, input, exclusion, output) {
       mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") 
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    }
+
+   if (startsWith(input$myr, "RER")) {
+      mylabel <- "RER"
+   }
+
    print("to plot names")
    print(names(df_to_plot))
    names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
@@ -784,6 +793,7 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1$HP2 <- finalC1$HP2 / 6
 
    # TODO: use input$only_full_days to filter out here no full days...
+   # TODO if diet then group plot by diet
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE <- rbind(TEE1, TEE2)
@@ -791,8 +801,10 @@ do_plotting <- function(file, input, exclusion, output) {
    TEE$Equation <- as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
    TEE$Days <- as_factor(TEE$Days)
    TEE$Animals <- as_factor(TEE$Animals)
-   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation)) + geom_boxplot() + geom_point(position = position_jitterdodge())
-  
+   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
+   p <- p +  geom_text(check_overlap=TRUE, aes(label=Days), position=position_jitter(width=0.15))
+   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep=""))
+   
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
@@ -801,10 +813,22 @@ do_plotting <- function(file, input, exclusion, output) {
             p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
          }
       }
-      p <- ggplotly(p)
-   } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group")
    }
+
+ # if (input$with_facets) {
+ #     if (!is.null(input$facets_by_data_one)) {
+ #        if (input$orientation == "Horizontal") {
+ #           p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+ #        } else {
+ #           p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+ #        }
+ #     }
+#
+ #     p <- ggplotly(p)
+ #  } else {
+      p <- ggplotly(p) %>% layout(boxmode = "group")
+ 
+ #  }
 
    # TODO: gruppierung nach condition/diet mit facets
    },
