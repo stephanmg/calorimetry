@@ -131,6 +131,8 @@ do_plotting <- function(file, input, exclusion, output) {
       line <- readLines(con, n = 2)
    if (i == 1) {
       fileFormatTSE <- line[2]
+      studyDescription <- line[1]
+      output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep= " "))
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
@@ -155,6 +157,10 @@ do_plotting <- function(file, input, exclusion, output) {
 
    # check file extension
    fileExtension <- detectFileType(file)
+
+   # default
+   sep <- ";"
+   dec <- ","
 
    # Promethion live/Sable input
    if (fileExtension == "xlsx") {
@@ -221,9 +227,6 @@ do_plotting <- function(file, input, exclusion, output) {
    # substitute "." by "/"
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
 
-   write.csv2(C1, "testen.csv")
-
-
    # transform into time format appropriate to experimenters
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
@@ -236,8 +239,6 @@ do_plotting <- function(file, input, exclusion, output) {
    mutate(MeasPoint = row_number())
    C1 <- C1[!is.na(C1$MeasPoint), ]
 
-
-
    # Step #1 - calculate the difference between consecutive dates
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>% # group by Animal ID
@@ -245,7 +246,6 @@ do_plotting <- function(file, input, exclusion, output) {
    # subtract the next value from first value and safe as variable "diff.sec)
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
-
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -647,8 +647,11 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
-
-   p <- ggplotly(p) # %>% layout(boxmode = "group")
+   if (input$with_facets) {
+      p <- ggplotly(p)
+   } else {
+      p <- ggplotly(p) %>% layout(boxmode = "group")
+   }
    },
    StackedBarPlotForRMRandNonRMR = {
       # TODO: Implement stacked bar plot for RMR and non-RMR

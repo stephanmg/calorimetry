@@ -139,6 +139,7 @@ sidebar_content <- sidebarPanel(
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
+   span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
    )),
    hr(),
    fluidPage(
