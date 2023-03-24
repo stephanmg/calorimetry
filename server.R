@@ -668,6 +668,7 @@ do_plotting <- function(file, input, exclusion, output) {
       width = 1200,
       height = 600
     )
+      )
    } else {
       p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
       format = "svg",
