@@ -1,10 +1,11 @@
 # Libraries
 library(shiny)
-library(xlsx)
+#library(xlsx)
 library(tidyr)
 library(ggplot2)
 library(data.table) # for filtering with %like%
 library(readxl)
+library(writexl)
 library(plotly)
 library(zoo) # running average methods
 library(ggpubr)
@@ -66,7 +67,7 @@ do_export2 <- function(format, input, output, file_output) {
          }
 
          if (format == "Excel") {
-           write.xlsx(real_data$data[values(h)], file = file_output)
+           write_xlsx(real_data$data[values(h)], path = file_output)
          }
       }
    }
@@ -1142,8 +1143,6 @@ server <- function(input, output, session) {
            }
 
                if (input$plot_type == "RestingMetabolicRate") {
-            # plot
-            write.csv2(real_data$data, "test_for_rmr.csv")
             # old bar plot
             #df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
             #p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
