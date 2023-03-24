@@ -1,5 +1,6 @@
 # Libraries
 library(shiny)
+library(xlsx)
 library(tidyr)
 library(ggplot2)
 library(data.table) # for filtering with %like%
@@ -65,7 +66,7 @@ do_export2 <- function(format, input, output, file_output) {
          }
 
          if (format == "Excel") {
-           write.xslx(real_data$data[values(h)], file = file_output)
+           write.xlsx(real_data$data[values(h)], file = file_output)
          }
       }
    }
@@ -823,7 +824,7 @@ do_plotting <- function(file, input, exclusion, output) {
      }
 
    p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
-   p <- p +  geom_text(check_overlap=TRUE, aes(label=Days), position=position_jitter(width=0.15))
+   p <- p +  geom_text(check_overlap=TRUE, aes(label=Days),  position=position_jitter(width=0.15))
    p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep=""))
    
   if (input$with_facets) {
@@ -889,7 +890,7 @@ server <- function(input, output, session) {
       }
       },
          content = function(file) {
-            status_okay <- do_export2("CalR", input, output, file)
+            status_okay <- do_export2(input$export_format, input, output, file)
       }
    )
 
@@ -1019,7 +1020,7 @@ server <- function(input, output, session) {
             renderText(paste(path_home(), input$export_folder$path[[2]], sep = "/")))
       })
 
-   observeEvent(input$export, {
+   observeEvent(input$downloadData, {
        if (input$export_format == "CalR") {
             status_okay <- do_export("CalR", input, output)
             if (!status_okay) {
