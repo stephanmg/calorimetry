@@ -577,7 +577,6 @@ do_plotting <- function(file, input, exclusion, output) {
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
-      ver
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
@@ -1144,10 +1143,18 @@ server <- function(input, output, session) {
 
                if (input$plot_type == "RestingMetabolicRate") {
             # plot
-            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
-            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
-            p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
-            p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
+            write.csv2(real_data$data, "test_for_rmr.csv")
+            # old bar plot
+            #df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
+            #p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
+            #p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
+            #p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
+            df <- real_data$data
+            df$Animal <- as.factor(df$Animal)
+            df$Component <- as.factor(df$Component)
+            p <- ggplot(df, aes(x=Animal, y=HP, color=Animal)) + geom_boxplot() + geom_point(position=position_jitter(0.1))
+            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/day]", sep=""))
+
 
        # explanation of plot
          output$explanation <- renderUI({
