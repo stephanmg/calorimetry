@@ -4,6 +4,7 @@ library(tidyr)
 library(ggplot2)
 library(data.table) # for filtering with %like%
 library(readxl)
+library(writexl)
 library(plotly)
 library(zoo) # running average methods
 library(ggpubr)
@@ -65,7 +66,7 @@ do_export2 <- function(format, input, output, file_output) {
          }
 
          if (format == "Excel") {
-           write.xslx(real_data$data[values(h)], file = file_output)
+           write_xlsx(real_data$data[values(h)], path = file_output)
          }
       }
    }
@@ -131,6 +132,8 @@ do_plotting <- function(file, input, exclusion, output) {
       line <- readLines(con, n = 2)
    if (i == 1) {
       fileFormatTSE <- line[2]
+      studyDescription <- line[1]
+      output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep= " "))
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
@@ -156,13 +159,20 @@ do_plotting <- function(file, input, exclusion, output) {
    # check file extension
    fileExtension <- detectFileType(file)
 
+   # default
+   sep <- ";"
+   dec <- ","
+
+   scaleFactor <- 1
    # Promethion live/Sable input
    if (fileExtension == "xlsx") {
       output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+      output$study_description <- renderText("")
       tmp_file <- tempfile()
       import_promethion(file, tmp_file)
       file <- tmp_file
       toSkip <- detectData(file)
+      scaleFactor <- 60
    }
 
    # LabMaster V5 (horizontal format?)
@@ -221,9 +231,6 @@ do_plotting <- function(file, input, exclusion, output) {
    # substitute "." by "/"
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
 
-   write.csv2(C1, "testen.csv")
-
-
    # transform into time format appropriate to experimenters
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
@@ -236,8 +243,6 @@ do_plotting <- function(file, input, exclusion, output) {
    mutate(MeasPoint = row_number())
    C1 <- C1[!is.na(C1$MeasPoint), ]
 
-
-
    # Step #1 - calculate the difference between consecutive dates
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>% # group by Animal ID
@@ -245,7 +250,6 @@ do_plotting <- function(file, input, exclusion, output) {
    # subtract the next value from first value and safe as variable "diff.sec)
    mutate(diff.sec = Datetime2 - lag(Datetime2, default = first(Datetime2)))
    C1$diff.sec <- as.numeric(C1$diff.sec) # change format from difftime->numeric
-
 
    # Step #2 - calc the cumulative time difference between consecutive dates
    C1 <- C1 %>%
@@ -312,25 +316,25 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f1,
    Lusk = {
-      C1$HP <- 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
+      C1$HP <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
+      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
    },
    HP2 = {
-      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
+      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP <- 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
+      C1$HP <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP <- 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
+      C1$HP <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP <- 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
+      C1$HP <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP <- 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
+      C1$HP <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -342,25 +346,25 @@ do_plotting <- function(file, input, exclusion, output) {
    #############################################################################
    switch(f2,
    Lusk = {
-      C1$HP2 <- 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP2 <- C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
+      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
    },
    HP2 = {
-      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * C1$`VO2(3)_[ml/h]` / 1000
+      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000
    },
    Weir = {
-      C1$HP2 <- 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
    },
    Elia = {
-      C1$HP2 <- 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
    },
    Brower = {
-      C1$HP2 <- 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
    },
    Ferrannini = {
-      C1$HP2 <- 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
+      C1$HP2 <- scaleFactor * 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
    },
    {
 
@@ -501,7 +505,12 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
-   p <- ggplotly(p)
+   p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    },
    # TODO:  fix issues with multiple files
    RestingMetabolicRate = {
@@ -576,6 +585,7 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      p <- p + xlab("Time [minutes]")
       finalC1 <- df_plot_total
    },
 
@@ -613,7 +623,12 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
 
-           p <- ggplotly(p)
+             p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    },
    DayNightActivity = {
 
@@ -647,8 +662,21 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
-
-   p <- ggplotly(p) # %>% layout(boxmode = "group")
+   if (input$with_facets) {
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+      )
+   } else {
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
+   }
    },
    StackedBarPlotForRMRandNonRMR = {
       # TODO: Implement stacked bar plot for RMR and non-RMR
@@ -715,7 +743,12 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- ggscatter(finalC1, x = "Weight", y = "HP", add = "reg.line",
     add.params = list(color = "blue", fill = "lightgray"), conf.int = TRUE)
    p <- p + xlab("Weight [g]") + ylab("Mean heat production")
-   p <- ggplotly(p)
+     p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    # TOOD: add summary statistics to plot
    print(summary(lm(HP ~ Weight, finalC1)))
    message <- NULL
@@ -746,6 +779,11 @@ do_plotting <- function(file, input, exclusion, output) {
       mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") 
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    }
+
+   if (startsWith(input$myr, "RER")) {
+      mylabel <- "RER"
+   }
+
    print("to plot names")
    print(names(df_to_plot))
    names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
@@ -764,11 +802,22 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
-   p <- ggplotly(p)
+     p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    },
    TotalOverDay = {
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
+
+         C1meta_tmp <- C1meta
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+
 
    convert <- function(x) {
       splitted <- strsplit(as.character(x), " ")
@@ -781,27 +830,63 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1$HP2 <- finalC1$HP2 / 6
 
    # TODO: use input$only_full_days to filter out here no full days...
+   # TODO if diet then group plot by diet
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+
+   if (input$with_facets) {
+      if (input$facets_by_data_one %in% names(finalC1)) {
+         TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+         TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+      }
+   }
+
    TEE <- rbind(TEE1, TEE2)
    names(TEE)[names(TEE) == "x"] <- "TEE"
    TEE$Equation <- as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
    TEE$Days <- as_factor(TEE$Days)
    TEE$Animals <- as_factor(TEE$Animals)
-   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation)) + geom_boxplot() + geom_point(position = position_jitterdodge())
-  
+     if (input$with_facets) {
+      if (input$facets_by_data_one %in% names(finalC1)) {
+         TEE$Facet <- as_factor(TEE$Facet)
+      }
+     }
+
+   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
+   p <- p +  geom_text(check_overlap=TRUE, aes(label=Days),  position=position_jitter(width=0.15))
+   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep=""))
+   
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+           p <- p + facet_grid(as.formula(".~Facet"))
+          #  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
          } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+           # p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+            p <- p + facet_grid(as.formula("Facet~."))
          }
       }
-      p <- ggplotly(p)
-   } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group")
    }
+
+ # if (input$with_facets) {
+ #     if (!is.null(input$facets_by_data_one)) {
+ #        if (input$orientation == "Horizontal") {
+ #           p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+ #        } else {
+ #           p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+ #        }
+ #     }
+#
+ #     p <- ggplotly(p)
+ #  } else {
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
+ 
+ #  }
 
    # TODO: gruppierung nach condition/diet mit facets
    },
@@ -839,7 +924,7 @@ server <- function(input, output, session) {
       }
       },
          content = function(file) {
-            status_okay <- do_export2("CalR", input, output, file)
+            status_okay <- do_export2(input$export_format, input, output, file)
       }
    )
 
@@ -969,7 +1054,7 @@ server <- function(input, output, session) {
             renderText(paste(path_home(), input$export_folder$path[[2]], sep = "/")))
       })
 
-   observeEvent(input$export, {
+   observeEvent(input$downloadData, {
        if (input$export_format == "CalR") {
             status_okay <- do_export("CalR", input, output)
             if (!status_okay) {
@@ -1092,11 +1177,17 @@ server <- function(input, output, session) {
            }
 
                if (input$plot_type == "RestingMetabolicRate") {
-            # plot
-            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
-            p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
-            p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
-            p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
+            # old bar plot
+            #df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
+            #p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
+            #p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
+            #p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
+            df <- real_data$data
+            df$Animal <- as.factor(df$Animal)
+            df$Component <- as.factor(df$Component)
+            p <- ggplot(df, aes(x=Animal, y=HP, color=Animal)) + geom_boxplot() + geom_point(position=position_jitter(0.1))
+            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/day]", sep=""))
+
 
        # explanation of plot
          output$explanation <- renderUI({

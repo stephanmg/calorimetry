@@ -139,6 +139,7 @@ sidebar_content <- sidebarPanel(
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
+   span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
    )),
    hr(),
    fluidPage(
@@ -283,14 +284,14 @@ documentation <- tabPanel(
 contact <- tabPanel(
    "Contact",
    titlePanel("Contact"),
-   p("SG (SG <AT> UNI <MINUS> BONN <DOT> DE")
+   p("Stephan Grein (stephan <DOT> grein <AT> UNI <MINUS> BONN <DOT> DE")
 )
 
 tutorial <- tabPanel(
    "Tutorial",
    titlePanel("Tutorial"),
-   p("A step by step guide on how to analyze indirect calorimetry data sets"),
-   p("TODO")
+   p("A step by step guide on how to analyze indirect calorimetry data sets by example"),
+   p("WIP... stay tuned!")
 )
 
 
