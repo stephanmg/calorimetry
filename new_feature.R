@@ -18,7 +18,7 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
    indices <- which.minn(df_ordered[[component]], n = N * percentage / 100)
    # extract a sub data frame from the indices
    sub_df <- df_ordered[indices, ]
-   print(sub_df)
+   # print(sub_df)
 
    # partial rowsum
    psum <- function(..., na.rm = FALSE) {
@@ -27,16 +27,16 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 
    # apply partial rowsum to CoV1 (O2) and CoV2 (CO2)
    dat <- transform(sub_df, sum = psum(CoV1, CoV2))
-   print(dat)
+   # print(dat)
 
    # TODO: return n > 1 best values, then create a binned scatter plot (y axis)
    index <- which.minn(dat$sum, n = 1)
    # plot data of minimum energy expenditure per interval with one index
-   print("RMR in this measurement (interval):")
+   # print("RMR in this measurement (interval):")
 
    # TODO: HP needs to be calculated with O2 and CO2 an all indices n > 1
    # HP means heat production, either sorted by O2 or CO2
-   print(dat[index, ]$HP)
+   # print(dat[index, ]$HP)
    dat[index, ]$HP
 }
 

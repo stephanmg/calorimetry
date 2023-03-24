@@ -1,6 +1,5 @@
 # Libraries
 library(shiny)
-#library(xlsx)
 library(tidyr)
 library(ggplot2)
 library(data.table) # for filtering with %like%
@@ -506,7 +505,12 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
-   p <- ggplotly(p)
+   p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    },
    # TODO:  fix issues with multiple files
    RestingMetabolicRate = {
@@ -619,7 +623,12 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
 
-           p <- ggplotly(p)
+             p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    },
    DayNightActivity = {
 
@@ -654,9 +663,18 @@ do_plotting <- function(file, input, exclusion, output) {
 
    p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
    if (input$with_facets) {
-      p <- ggplotly(p) %>% layout(boxmode = "group")
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
    } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group")
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    }
    },
    StackedBarPlotForRMRandNonRMR = {
@@ -724,7 +742,12 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- ggscatter(finalC1, x = "Weight", y = "HP", add = "reg.line",
     add.params = list(color = "blue", fill = "lightgray"), conf.int = TRUE)
    p <- p + xlab("Weight [g]") + ylab("Mean heat production")
-   p <- ggplotly(p)
+     p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    # TOOD: add summary statistics to plot
    print(summary(lm(HP ~ Weight, finalC1)))
    message <- NULL
@@ -778,7 +801,12 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
-   p <- ggplotly(p)
+     p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
    },
    TotalOverDay = {
    colors <- as_factor(`$`(finalC1, "Animal No._NA"))
@@ -850,7 +878,12 @@ do_plotting <- function(file, input, exclusion, output) {
 #
  #     p <- ggplotly(p)
  #  } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group")
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      format = "svg",
+      width = 1200,
+      height = 600
+    )
+  )
  
  #  }
 

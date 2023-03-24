@@ -20,7 +20,7 @@ extract_rmr_helper <- function() {
    colnames(total_data) <- c("HP", "Time", "Component", "Animal")
    total_data$Animal <- as.factor(total_data$Animal)
    total_data$Component <- as.factor(total_data$Component)
-   print(total_data)
+   #print(total_data)
    return(total_data)
    # TODO: double check, total data contain Heat production, not O2 and CO2?
 }
