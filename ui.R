@@ -284,14 +284,14 @@ documentation <- tabPanel(
 contact <- tabPanel(
    "Contact",
    titlePanel("Contact"),
-   p("SG (SG <AT> UNI <MINUS> BONN <DOT> DE")
+   p("Stephan Grein (stephan <DOT> grein <AT> UNI <MINUS> BONN <DOT> DE")
 )
 
 tutorial <- tabPanel(
    "Tutorial",
    titlePanel("Tutorial"),
-   p("A step by step guide on how to analyze indirect calorimetry data sets"),
-   p("TODO")
+   p("A step by step guide on how to analyze indirect calorimetry data sets by example"),
+   p("WIP... stay tuned!")
 )
 
 
