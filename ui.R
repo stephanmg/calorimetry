@@ -234,6 +234,7 @@ main_content <- mainPanel(
    tabsetPanel(
       tabPanel("Plot", plotlyOutput("plot")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
+      tabPanel("Details", plotlyOutput("details")),
       tabPanel("Help", htmlOutput("explanation"))
    )
 )

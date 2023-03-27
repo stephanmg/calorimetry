@@ -56,6 +56,7 @@ do_export2 <- function(format, input, output, file_output) {
          h[["HP"]] <- "RT_Kcal_hr_1"
          # caloric equivalent by 2nd formula (HeatProduction formula 2)
          h[["HP2"]] <- "RT_Kcal_hr_2"
+         # animal
          # rename data
          for (v in ls(h)) {
             names(real_data$data)[names(real_data$data) == v] <- h[[v]]
@@ -66,7 +67,8 @@ do_export2 <- function(format, input, output, file_output) {
          }
 
          if (format == "Excel") {
-           write_xlsx(real_data$data[values(h)], path = file_output)
+            tmp <- cbind(real_data$data[values(h)], real_data$animals)
+           write_xlsx(tmp, path = file_output)
          }
       }
    }
@@ -851,6 +853,7 @@ do_plotting <- function(file, input, exclusion, output) {
          TEE$Facet <- as_factor(TEE$Facet)
       }
      }
+     write.csv2(TEE, "tee.csv")
 
    p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
    p <- p +  geom_text(check_overlap=TRUE, aes(label=Days),  position=position_jitter(width=0.15))
@@ -1178,7 +1181,8 @@ server <- function(input, output, session) {
 
                if (input$plot_type == "RestingMetabolicRate") {
             # old bar plot
-            #df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
+            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
+            write.csv2(df_filtered, "rmr.csv")
             #p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
             #p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
             #p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
@@ -1186,7 +1190,7 @@ server <- function(input, output, session) {
             df$Animal <- as.factor(df$Animal)
             df$Component <- as.factor(df$Component)
             p <- ggplot(df, aes(x=Animal, y=HP, color=Animal)) + geom_boxplot() + geom_point(position=position_jitter(0.1))
-            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/day]", sep=""))
+            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep=""))
 
 
        # explanation of plot
@@ -1201,6 +1205,33 @@ server <- function(input, output, session) {
 
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
+
+            df1 <- read.csv2("rmr.csv")
+df2 <- read.csv2("tee.csv")
+df1 <- rename(df1, Animals=Animal)
+#df1 <- aggregate(Value~Component, df1, sum)
+#df1 <- df1 %>% distinct(Component, Value, cgroups, .keep_all=TRUE)
+#print(head(df1))
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO fixme: divide by days and measuring interval
+df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/15)
+
+df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
+df2$TEE <- as.factor(rep("RMR", nrow(df2)))
+
+df_total <- rbind(df1, df2)
+df_total$Animals <- as.factor(df_total$Animals)
+
+#inner_join(df1, df2, by='Animals')
+
+#totalB <- aggregate(Value~Component, df1, sum)
+#print(totalB)
+#total_df <- inner_join(df1, df2, by='Animals')
+
+
+p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill=TEE)) + geom_bar(stat="identity")
+p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
+
+            output$details <- renderPlotly(ggplotly(p2))
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
