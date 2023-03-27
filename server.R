@@ -321,13 +321,13 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
+      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600/1000)
    },
    HP2 = {
-      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000
+      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600/1000) / 1000
    },
    Weir = {
-      C1$HP <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
+      C1$HP <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
    },
    Elia = {
       C1$HP <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
@@ -351,13 +351,13 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP2 <- scaleFactor * 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000
+      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600/1000)
    },
    HP2 = {
-      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000
+      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600/1000) / 1000
    },
    Weir = {
-      C1$HP2 <- scaleFactor * 16.3 * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$RER_NA / 1000
+      C1$HP2 <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
    },
    Elia = {
       C1$HP2 <- scaleFactor * 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
@@ -402,9 +402,9 @@ do_plotting <- function(file, input, exclusion, output) {
    C1meta <- finalC1meta
 
    # rescale to kj or kcal
-   if (input$kj_or_kcal == "kJ") {
-      finalC1$HP <- finalC1$HP * 4.184 # kcal to kj
-      finalC1$HP2 <- finalC1$HP2 * 4.184 # kcal to kj
+   if (input$kj_or_kcal == "kcal") {
+      finalC1$HP <- finalC1$HP / 4.184 # kcal to kj
+      finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
    # TODO: Put filtering for light cycle back in (useful for RMR calculation)
