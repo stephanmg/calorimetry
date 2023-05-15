@@ -56,6 +56,7 @@ do_export2 <- function(format, input, output, file_output) {
          h[["HP"]] <- "RT_Kcal_hr_1"
          # caloric equivalent by 2nd formula (HeatProduction formula 2)
          h[["HP2"]] <- "RT_Kcal_hr_2"
+         h[["Animal No._NA"]] <- "Animal"
          # animal
          # rename data
          for (v in ls(h)) {
