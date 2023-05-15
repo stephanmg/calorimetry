@@ -438,8 +438,34 @@ do_plotting <- function(file, input, exclusion, output) {
    stat_smooth(method = "lm") + # add regression line and pearson product moment correlation
    stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
    },
+   GoxLox = {
+
+      C1meta_tmp <- C1meta
+      print(C1meta_tmp)
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      print("colnames metadata:")
+      print(colnames(C1meta_tmp))
+      print("colnames fin1lC1")
+      print(colnames(finalC1))
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+
+      if (input$goxlox == "Glucose oxidation") {
+         df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VCO2(3)_[ml/h]`
+      } else {
+         df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
+      }
+      colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
+      df_to_plot$Animals <- colors
+
+
+   p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+   p <- p + ylab("GoxLox quantity")
+   p <- p + xlab("Time [h]")
+
+   },
    CaloricEquivalentOverTime = {
-   colors <- as_factor(`$`(finalC1, "Animal No._NA"))
+   colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
    # get metadata from TSE header (should in fact use C1meta metadata from metadata sheet)
@@ -557,8 +583,8 @@ do_plotting <- function(file, input, exclusion, output) {
       # of rows for df_new and finalC1, then fails.
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
-      df_to_plot$Group <- as_factor(df_to_plot$Group)
-      df_to_plot2$Group <- as_factor(df_to_plot$Group)
+      df_to_plot$Group <- as.factor(df_to_plot$Group)
+      df_to_plot2$Group <- as.factor(df_to_plot$Group)
 
       write.csv2(df_new, file = "df_new.csv")
       colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
@@ -649,7 +675,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
    df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
-   df_to_plot$Animals <- as_factor(`$`(df_to_plot, "Animal No._NA"))
+   df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
    p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_boxplot()
 
   if (input$with_facets) {
@@ -773,7 +799,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    write.csv2(df_to_plot, file = "finalC1.csv")
-   colors <- as_factor(`$`(df_to_plot, "Animal No._NA"))
+   colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
    df_to_plot$Animals <- colors
    mylabel <- paste0(input$myr, sep = "", "_[%]")
    myvar <- input$myr
@@ -812,7 +838,7 @@ do_plotting <- function(file, input, exclusion, output) {
   )
    },
    TotalOverDay = {
-   colors <- as_factor(`$`(finalC1, "Animal No._NA"))
+   colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
          C1meta_tmp <- C1meta
@@ -845,12 +871,12 @@ do_plotting <- function(file, input, exclusion, output) {
 
    TEE <- rbind(TEE1, TEE2)
    names(TEE)[names(TEE) == "x"] <- "TEE"
-   TEE$Equation <- as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
-   TEE$Days <- as_factor(TEE$Days)
-   TEE$Animals <- as_factor(TEE$Animals)
+   TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+   TEE$Days <- as.factor(TEE$Days)
+   TEE$Animals <- as.factor(TEE$Animals)
      if (input$with_facets) {
       if (input$facets_by_data_one %in% names(finalC1)) {
-         TEE$Facet <- as_factor(TEE$Facet)
+         TEE$Facet <- as.factor(TEE$Facet)
       }
      }
      write.csv2(TEE, "tee.csv")

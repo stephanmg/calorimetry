@@ -154,7 +154,7 @@ sidebar_content <- sidebarPanel(
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Raw", "TotalOverDay", "RestingMetabolicRate", "WeightVsEnergyExpenditure")), #nolint
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Raw", "GoxLox", "TotalOverDay", "RestingMetabolicRate", "WeightVsEnergyExpenditure")), #nolint
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
@@ -171,6 +171,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
+   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices=c("Glucose oxidation", "Lipid oxidation"))),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
@@ -271,6 +272,14 @@ validation <- tabPanel(
 )
 
 ################################################################################
+# Validation panel
+################################################################################
+locomotion_panel <- tabPanel(
+   "Analyze locomotion",
+   titlePanel("Analyze locomotion of Sable System experiments")
+)
+
+################################################################################
 # Documentation
 ################################################################################
 documentation <- tabPanel(
@@ -307,6 +316,7 @@ ui <- tagList(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
+  locomotion_panel,
   #configuration_panel,
   validation,
   documentation,
