@@ -226,6 +226,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    # unite data sets (unite in tidyverse package)
+   print(C1)
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
          c(Date_NA, Time_NA), # columns to be combined
