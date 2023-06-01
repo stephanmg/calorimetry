@@ -168,6 +168,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    scaleFactor <- 1
    # Promethion live/Sable input
+   ## TODO: Add here COSMED import
    if (fileExtension == "xlsx") {
       output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
       output$study_description <- renderText("")
