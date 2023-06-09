@@ -795,6 +795,9 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    return(list("plot" = p, status = message, metadata = metadata))
    },
+   Locomotion = {
+      # TODO: Implement
+   },
    Raw = {
 
       C1meta_tmp <- C1meta
