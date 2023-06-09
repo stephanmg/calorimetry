@@ -23,6 +23,7 @@ source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 source("import_promethion_helper.R") # import for promethion/sable
 source("import_pheno_v8_helper.R") # import for PhenoMaster V8
+source("import_cosmed_helper.R") # import for COSMED
 
 my_metadata <- "test test"
 
@@ -140,7 +141,7 @@ do_plotting <- function(file, input, exclusion, output) {
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
-   # Detect data type (TSE v6/v7, v5 (akim, dominik) or v8 (jan, tabea) or promethion/sable (.xlsx) (jenny)) 
+   # Detect data type (TSE v6/v7, v5 (akim, dominik) or v8 (jan, tabea) or promethion/sable (.xlsx) (jenny))
    #########################################################################################################
    detectData <- function(filename) {
       con <- file(filename, "r")
@@ -170,10 +171,15 @@ do_plotting <- function(file, input, exclusion, output) {
    # Promethion live/Sable input
    ## TODO: Add here COSMED import
    if (fileExtension == "xlsx") {
-      output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
       output$study_description <- renderText("")
       tmp_file <- tempfile()
-      import_promethion(file, tmp_file)
+      if (length(excel_sheets(file)) == 2) {
+        output$file_type_detected <- renderText("Input file type detected as: COSMED")
+        import_cosmed(file, tmp_file)
+      } else {
+        output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+        import_promethion(file, tmp_file)
+      }
       file <- tmp_file
       toSkip <- detectData(file)
       scaleFactor <- 60
