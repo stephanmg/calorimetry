@@ -30,6 +30,11 @@ intro_panel <- tabPanel(
       tags$td("Promethion/Sable")
    ),
    tags$tr(
+      tags$td(icon("file-excel")),
+      tags$td(icon("minus")),
+      tags$td("COSMED")
+   ),
+   tags$tr(
       tags$td(icon("file-csv")),
       tags$td(icon("minus")),
       tags$td("TSE PhenoMaster v7")
@@ -154,7 +159,7 @@ sidebar_content <- sidebarPanel(
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Raw", "GoxLox", "TotalOverDay", "RestingMetabolicRate", "WeightVsEnergyExpenditure", "Locomotion Map")), #nolint
+   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Raw", "GoxLox", "TotalOverDay", "RestingMetabolicRate", "WeightVsEnergyExpenditure", "Locomotion")), #nolint
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),

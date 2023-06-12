@@ -24,6 +24,7 @@ source("new_feature2.R") # new feature2
 source("import_promethion_helper.R") # import for promethion/sable
 source("import_pheno_v8_helper.R") # import for PhenoMaster V8
 source("import_cosmed_helper.R") # import for COSMED
+source("locomotion.R") # for locomotion probabiltiy heatmap
 
 my_metadata <- "test test"
 
@@ -797,6 +798,11 @@ do_plotting <- function(file, input, exclusion, output) {
    },
    Locomotion = {
       # TODO: Implement
+      file <- input[[paste0("File", 1)]]
+      print("filename:")
+      print(file$datapath)
+      p <- plot_locomotion(file$datapath)
+      p
    },
    Raw = {
 
