@@ -799,9 +799,7 @@ do_plotting <- function(file, input, exclusion, output) {
    Locomotion = {
       # TODO: Implement
       file <- input[[paste0("File", 1)]]
-      print("filename:")
-      print(file$datapath)
-      p <- plot_locomotion(file$datapath)
+      p <- plot_locomotion(file$datapath, input$x_min_food, input$x_max_food, input$y_min_food, input$y_max_food, input$x_min_scale, input$x_max_scale, input$y_min_scale, input$y_max_scale, input$x_min_bottle, input$x_max_bottle, input$y_min_bottle, input$y_max_bottle)
       p
    },
    Raw = {
