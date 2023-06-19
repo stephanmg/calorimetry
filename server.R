@@ -16,6 +16,7 @@ library(fs)
 library(hash)
 require(tidyverse)
 library(tools)
+library(shinyalert)
 
 # TODO: Cleanup file names and code in included source files
 source("helper.R") # helpers
@@ -216,6 +217,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+
    # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -293,6 +295,26 @@ do_plotting <- function(file, input, exclusion, output) {
 
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+
+   if (input$negative_values) {
+      if (!(nrow(C1 %>% select(where(~any(. < 0)))) == 0)) {
+         shinyalert("Oops!", "Negative values encountered in measurements. Check your input data.", type = "error")
+      }
+   }
+
+
+   if (input$highly_varying_measurements) {
+      if (any(C1 %>% mutate(col_diff = `VO2(3)_[ml/h]` - lag(`VO2(3)_[ml/h]`)) > 0.5)) {
+         shinyalert("Oops!", "Highly varying input measurements detected in O2 signal", type = "error")
+      }
+
+      if (any(C1 %>% mutate(col_diff = `CO2(3)_[ml/h]` - lag(`CO2(3)_[ml/h]`)) > 0.5)) {
+         shinyalert("Oops!", "Highly varying input measurements detected in CO2 signal", type = "error")
+      }
+   }
+
+
 
    # Step #9 - define 1/n-hours steps
    # TODO: Check that this implementation is actually correct as taken from provided code
