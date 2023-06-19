@@ -496,7 +496,7 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + xlab("Time [h]")
 
    },
-   CaloricEquivalentOverTime = {
+   EnergyExpenditure = {
    colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
@@ -875,7 +875,7 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    },
-   TotalOverDay = {
+   TotalEnergyExpenditure = {
    colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
@@ -1305,7 +1305,7 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str5 <- "When heat production formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
-           } else if (input$plot_type == "CaloricEquivalentOverTime") {
+           } else if (input$plot_type == "EnergyExpenditure") {
              output$explanation <- renderUI({
             str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
             str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
@@ -1329,7 +1329,7 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Cohorts are usually strafified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
-           } else if (input$plot_type == "TotalOverDay") {
+           } else if (input$plot_type == "TotalEnergyExpenditure") {
             output$explanation <- renderUI({
                str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
                str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
