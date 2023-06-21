@@ -163,7 +163,7 @@ sidebar_content <- sidebarPanel(
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
    #selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "EnergyExpenditure", "DayNightActivity", "Raw", "GoxLox", "TotalEnergyExpenditure", "RestingMetabolicRate", "WeightVsEnergyExpenditure", "Locomotion")), #nolint
-   selectInput("plot_type", "Type:", factor(c('Raw', 'EnergyExpenditure', 'TotalEnergyExpenditure', 'RestingMetabolicRate', 'GoxLox', 'DayNight', 'Locomodtion', 'WeightVsEnergyExpenditure'))),
+   selectInput("plot_type", "Type:", factor(c('Raw', 'EnergyExpenditure', 'TotalEnergyExpenditure', 'RestingMetabolicRate', 'GoxLox', 'DayNightActivity', 'Locomotion', 'WeightVsEnergyExpenditure'))),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
