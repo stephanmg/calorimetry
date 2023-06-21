@@ -30,6 +30,11 @@ intro_panel <- tabPanel(
       tags$td("Promethion/Sable")
    ),
    tags$tr(
+      tags$td(icon("file-excel")),
+      tags$td(icon("minus")),
+      tags$td("COSMED")
+   ),
+   tags$tr(
       tags$td(icon("file-csv")),
       tags$td(icon("minus")),
       tags$td("TSE PhenoMaster v7")
@@ -135,6 +140,9 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
+   h3("Plausability checks"),
+   checkboxInput(inputId="negative_values", label = "Detect negative values", value=TRUE),
+   checkboxInput(inputId="highly_varying_measurements", label = "High variation measurements", value=TRUE),
    h3("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
@@ -154,23 +162,41 @@ sidebar_content <- sidebarPanel(
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "CaloricEquivalentOverTime", "DayNightActivity", "Raw", "TotalOverDay", "RestingMetabolicRate", "WeightVsEnergyExpenditure")), #nolint
+   #selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "EnergyExpenditure", "DayNightActivity", "Raw", "GoxLox", "TotalEnergyExpenditure", "RestingMetabolicRate", "WeightVsEnergyExpenditure", "Locomotion")), #nolint
+   selectInput("plot_type", "Type:", factor(c('Raw', 'EnergyExpenditure', 'TotalEnergyExpenditure', 'RestingMetabolicRate', 'GoxLox', 'DayNightActivity', 'Locomotion', 'WeightVsEnergyExpenditure'))),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
-   conditionalPanel(condition = "input.plot_type == 'TotalOverDay'", checkboxInput(inputId="only_full_days", label="Only full days", value=TRUE)),
+   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId="only_full_days", label="Only full days", value=TRUE)),
    conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
+   conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId="have_box_coordinates", label="Custom cage coordinates", value=FALSE)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", h2("Cage configuration")),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_x_min", label="Food hamper (x_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_x_max", label="Food hamper (x_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_y_min", label="Food hamper (y_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_y_max", label="Food hamper (y_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", hr()),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_x_min", label="Water bottle (x_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_x_max", label="Water bottle (x_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_y_min", label="Water bottle (y_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_y_max", label="Water bottle (y_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", hr()),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_x_min", label="Scale (x_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_x_max", label="Scale (x_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_y_min", label="Scale (y_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_y_max", label="Scale (y_max)", min=0, max=100, value=0)),
    h2("Advanced options"),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
-   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("myp")),
-   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans")),
-   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wmeans_choice")),
-   conditionalPanel(condition = "input.plot_type == 'CaloricEquivalentOverTime'", uiOutput("wstats")),
+   conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("myp")),
+   conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmeans")),
+   conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmeans_choice")),
+   conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
+   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices=c("Glucose oxidation", "Lipid oxidation"))),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
@@ -271,6 +297,14 @@ validation <- tabPanel(
 )
 
 ################################################################################
+# Validation panel
+################################################################################
+locomotion_panel <- tabPanel(
+   "Analyze locomotion",
+   titlePanel("Analyze locomotion of Sable System experiments")
+)
+
+################################################################################
 # Documentation
 ################################################################################
 documentation <- tabPanel(
@@ -307,6 +341,7 @@ ui <- tagList(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
+  locomotion_panel,
   #configuration_panel,
   validation,
   documentation,

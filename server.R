@@ -16,6 +16,7 @@ library(fs)
 library(hash)
 require(tidyverse)
 library(tools)
+library(shinyalert)
 
 # TODO: Cleanup file names and code in included source files
 source("helper.R") # helpers
@@ -23,6 +24,8 @@ source("new_feature.R") # new feature
 source("new_feature2.R") # new feature2
 source("import_promethion_helper.R") # import for promethion/sable
 source("import_pheno_v8_helper.R") # import for PhenoMaster V8
+source("import_cosmed_helper.R") # import for COSMED
+source("locomotion.R") # for locomotion probabiltiy heatmap
 
 my_metadata <- "test test"
 
@@ -56,6 +59,7 @@ do_export2 <- function(format, input, output, file_output) {
          h[["HP"]] <- "RT_Kcal_hr_1"
          # caloric equivalent by 2nd formula (HeatProduction formula 2)
          h[["HP2"]] <- "RT_Kcal_hr_2"
+         h[["Animal No._NA"]] <- "Animal"
          # animal
          # rename data
          for (v in ls(h)) {
@@ -139,7 +143,7 @@ do_plotting <- function(file, input, exclusion, output) {
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
-   # Detect data type (TSE v6/v7, v5 (akim, dominik) or v8 (jan, tabea) or promethion/sable (.xlsx) (jenny)) 
+   # Detect data type (TSE v6/v7, v5 (akim, dominik) or v8 (jan, tabea) or promethion/sable (.xlsx) (jenny))
    #########################################################################################################
    detectData <- function(filename) {
       con <- file(filename, "r")
@@ -167,11 +171,17 @@ do_plotting <- function(file, input, exclusion, output) {
 
    scaleFactor <- 1
    # Promethion live/Sable input
+   ## TODO: Add here COSMED import
    if (fileExtension == "xlsx") {
-      output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
       output$study_description <- renderText("")
       tmp_file <- tempfile()
-      import_promethion(file, tmp_file)
+      if (length(excel_sheets(file)) == 2) {
+        output$file_type_detected <- renderText("Input file type detected as: COSMED")
+        import_cosmed(file, tmp_file)
+      } else {
+        output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+        import_promethion(file, tmp_file)
+      }
       file <- tmp_file
       toSkip <- detectData(file)
       scaleFactor <- 60
@@ -207,6 +217,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+
    # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -225,6 +236,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    # unite data sets (unite in tidyverse package)
+   print(C1)
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
          c(Date_NA, Time_NA), # columns to be combined
@@ -283,6 +295,26 @@ do_plotting <- function(file, input, exclusion, output) {
 
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+
+   if (input$negative_values) {
+      if (!(nrow(C1 %>% select(where(~any(. < 0)))) == 0)) {
+         shinyalert("Oops!", "Negative values encountered in measurements. Check your input data.", type = "error")
+      }
+   }
+
+
+   if (input$highly_varying_measurements) {
+      if (any(C1 %>% mutate(col_diff = `VO2(3)_[ml/h]` - lag(`VO2(3)_[ml/h]`)) > 0.5)) {
+         shinyalert("Oops!", "Highly varying input measurements detected in O2 signal", type = "error")
+      }
+
+      if (any(C1 %>% mutate(col_diff = `CO2(3)_[ml/h]` - lag(`CO2(3)_[ml/h]`)) > 0.5)) {
+         shinyalert("Oops!", "Highly varying input measurements detected in CO2 signal", type = "error")
+      }
+   }
+
+
 
    # Step #9 - define 1/n-hours steps
    # TODO: Check that this implementation is actually correct as taken from provided code
@@ -438,8 +470,34 @@ do_plotting <- function(file, input, exclusion, output) {
    stat_smooth(method = "lm") + # add regression line and pearson product moment correlation
    stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
    },
-   CaloricEquivalentOverTime = {
-   colors <- as_factor(`$`(finalC1, "Animal No._NA"))
+   GoxLox = {
+
+      C1meta_tmp <- C1meta
+      print(C1meta_tmp)
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      print("colnames metadata:")
+      print(colnames(C1meta_tmp))
+      print("colnames fin1lC1")
+      print(colnames(finalC1))
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+
+      if (input$goxlox == "Glucose oxidation") {
+         df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VCO2(3)_[ml/h]`
+      } else {
+         df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
+      }
+      colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
+      df_to_plot$Animals <- colors
+
+
+   p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+   p <- p + ylab("GoxLox quantity")
+   p <- p + xlab("Time [h]")
+
+   },
+   EnergyExpenditure = {
+   colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
    # get metadata from TSE header (should in fact use C1meta metadata from metadata sheet)
@@ -557,8 +615,8 @@ do_plotting <- function(file, input, exclusion, output) {
       # of rows for df_new and finalC1, then fails.
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
-      df_to_plot$Group <- as_factor(df_to_plot$Group)
-      df_to_plot2$Group <- as_factor(df_to_plot$Group)
+      df_to_plot$Group <- as.factor(df_to_plot$Group)
+      df_to_plot2$Group <- as.factor(df_to_plot$Group)
 
       write.csv2(df_new, file = "df_new.csv")
       colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
@@ -649,7 +707,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
    df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
-   df_to_plot$Animals <- as_factor(`$`(df_to_plot, "Animal No._NA"))
+   df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
    p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_boxplot()
 
   if (input$with_facets) {
@@ -760,6 +818,12 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    return(list("plot" = p, status = message, metadata = metadata))
    },
+   Locomotion = {
+      # TODO: Implement
+      file <- input[[paste0("File", 1)]]
+      p <- plot_locomotion(file$datapath, input$x_min_food, input$x_max_food, input$y_min_food, input$y_max_food, input$x_min_scale, input$x_max_scale, input$y_min_scale, input$y_max_scale, input$x_min_bottle, input$x_max_bottle, input$y_min_bottle, input$y_max_bottle)
+      p
+   },
    Raw = {
 
       C1meta_tmp <- C1meta
@@ -773,7 +837,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    write.csv2(df_to_plot, file = "finalC1.csv")
-   colors <- as_factor(`$`(df_to_plot, "Animal No._NA"))
+   colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
    df_to_plot$Animals <- colors
    mylabel <- paste0(input$myr, sep = "", "_[%]")
    myvar <- input$myr
@@ -811,8 +875,8 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    },
-   TotalOverDay = {
-   colors <- as_factor(`$`(finalC1, "Animal No._NA"))
+   TotalEnergyExpenditure = {
+   colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
          C1meta_tmp <- C1meta
@@ -845,12 +909,12 @@ do_plotting <- function(file, input, exclusion, output) {
 
    TEE <- rbind(TEE1, TEE2)
    names(TEE)[names(TEE) == "x"] <- "TEE"
-   TEE$Equation <- as_factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
-   TEE$Days <- as_factor(TEE$Days)
-   TEE$Animals <- as_factor(TEE$Animals)
+   TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+   TEE$Days <- as.factor(TEE$Days)
+   TEE$Animals <- as.factor(TEE$Animals)
      if (input$with_facets) {
       if (input$facets_by_data_one %in% names(finalC1)) {
-         TEE$Facet <- as_factor(TEE$Facet)
+         TEE$Facet <- as.factor(TEE$Facet)
       }
      }
      write.csv2(TEE, "tee.csv")
@@ -1241,7 +1305,7 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str5 <- "When heat production formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
-           } else if (input$plot_type == "CaloricEquivalentOverTime") {
+           } else if (input$plot_type == "EnergyExpenditure") {
              output$explanation <- renderUI({
             str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
             str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
@@ -1265,7 +1329,7 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Cohorts are usually strafified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
-           } else if (input$plot_type == "TotalOverDay") {
+           } else if (input$plot_type == "TotalEnergyExpenditure") {
             output$explanation <- renderUI({
                str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
                str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
