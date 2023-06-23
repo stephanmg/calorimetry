@@ -187,6 +187,8 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_y_min", label="Scale (y_min)", min=0, max=100, value=0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_y_max", label="Scale (y_max)", min=0, max=100, value=0)),
    h2("Advanced options"),
+   sliderInput(inputId="light_cycle_start", label="Light cycle start", min=0, max=24, value=7),
+   sliderInput(inputId="light_cycle_stop", label="Light cycle stop", min=0, max=24, value=19),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
