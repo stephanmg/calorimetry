@@ -26,6 +26,7 @@ source("import_promethion_helper.R") # import for promethion/sable
 source("import_pheno_v8_helper.R") # import for PhenoMaster V8
 source("import_cosmed_helper.R") # import for COSMED
 source("locomotion.R") # for locomotion probabiltiy heatmap
+source("timeline.R")
 
 my_metadata <- "test test"
 
@@ -517,6 +518,7 @@ do_plotting <- function(file, input, exclusion, output) {
      }
   }
 
+
    # TODO: This filters out first recordings on each day, probably not desired
    # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
    # finalC1$TimeInHours <- hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime))
@@ -549,6 +551,14 @@ do_plotting <- function(file, input, exclusion, output) {
    if (input$wstats) {
       p <- p + stat_cor(method = "pearson")
    }
+
+
+  lights = data.frame(x=finalC1["running_total.hrs.halfhour"], y=finalC1["HP2"])
+  colnames(lights) <- c("x", "y")
+  print("lights:")
+  print(lights)
+  print(colnames(lights))
+  p <- draw_day_night_rectangles(lights, p, 7, 19, 0)
 
    p <- p + xlab("Time [h]")
    # p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
