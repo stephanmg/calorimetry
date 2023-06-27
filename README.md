@@ -15,4 +15,4 @@ Get docker image from Docker Hub or build own image with provided `Dockerfile`.
 <<<<<<< HEAD
 ![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
 
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
