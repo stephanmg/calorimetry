@@ -20,8 +20,8 @@ library(shinyalert)
 
 # TODO: Rename file names
 source("inc/helper.R") # helpers
-source("inc/new_feature.R") # new feature
-source("inc/new_feature2.R") # new feature2
+source("inc/extract_rmr.R") # rmr extraction
+source("inc/extract_rmr_helper.R") # rmr extraction helper
 source("inc/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/import_cosmed_helper.R") # import for COSMED data sets

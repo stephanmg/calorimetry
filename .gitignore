@@ -66,3 +66,6 @@ Comparison calimera/
 
 # Rprofile
 .Rprofile
+
+# vim backup files
+*un~
