@@ -18,8 +18,7 @@ require(tidyverse)
 library(tools)
 library(shinyalert)
 
-# TODO: Rename file names
-source("inc/helper.R") # helpers
+source("inc/helper.R") # helper methods
 source("inc/extract_rmr.R") # rmr extraction
 source("inc/extract_rmr_helper.R") # rmr extraction helper
 source("inc/import_promethion_helper.R") # import for SABLE/Promethion data sets
@@ -170,11 +169,10 @@ do_plotting <- function(file, input, exclusion, output) {
 
    scaleFactor <- 1
    # Promethion live/Sable input
-   ## TODO: Add here COSMED import
    if (fileExtension == "xlsx") {
       output$study_description <- renderText("")
       tmp_file <- tempfile()
-      if (length(excel_sheets(file)) == 2) {
+      if (length(excel_sheets(file)) == 2) { # TODO: Improve this check
         output$file_type_detected <- renderText("Input file type detected as: COSMED")
         import_cosmed(file, tmp_file)
       } else {
@@ -313,8 +311,6 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
 
-
-
    # Step #9 - define 1/n-hours steps
    # TODO: Check that this implementation is actually correct as taken from provided code
    if (input$averaging == 10) { # 1/6 hours
@@ -373,7 +369,6 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
    )
-   # TODO: missing factor of 1000 ml here, but assumed in formular l
    #############################################################################
    # Heat production formula #2
    #############################################################################
@@ -516,7 +511,6 @@ do_plotting <- function(file, input, exclusion, output) {
      }
   }
 
-
    # TODO: This filters out first recordings on each day, probably not desired
    # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
    # finalC1$TimeInHours <- hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime))
@@ -580,7 +574,7 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    },
-   # TODO:  fix issues with multiple files
+   # TODO: fix issues with multiple files
    RestingMetabolicRate = {
       component2 <- ""
       if (length(input$cvs) == 2) {
@@ -746,9 +740,6 @@ do_plotting <- function(file, input, exclusion, output) {
   )
    }
    },
-   StackedBarPlotForRMRandNonRMR = {
-      # TODO: Implement stacked bar plot for RMR and non-RMR
-   },
    ANCOVA = {
    # fall back covariate weight
    # (TODO: can be used from xlsx sheet not from the TSE file)
@@ -827,13 +818,12 @@ do_plotting <- function(file, input, exclusion, output) {
    return(list("plot" = p, status = message, metadata = metadata))
    },
    Locomotion = {
-      # TODO: Implement
+      # TODO: Fix plotly plot
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion(file$datapath, input$x_min_food, input$x_max_food, input$y_min_food, input$y_max_food, input$x_min_scale, input$x_max_scale, input$y_min_scale, input$y_max_scale, input$x_min_bottle, input$x_max_bottle, input$y_min_bottle, input$y_max_bottle)
       p
    },
    Raw = {
-
       C1meta_tmp <- C1meta
       print(C1meta_tmp)
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
@@ -842,7 +832,6 @@ do_plotting <- function(file, input, exclusion, output) {
       print("colnames fin1lC1")
       print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
 
    write.csv2(df_to_plot, file = "finalC1.csv")
    colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
@@ -887,12 +876,9 @@ do_plotting <- function(file, input, exclusion, output) {
    colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
-         C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
-
-
+   C1meta_tmp <- C1meta
+   colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+   finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
    convert <- function(x) {
       splitted <- strsplit(as.character(x), " ")
       paste(splitted[[1]][1], "", sep = "")
@@ -963,7 +949,7 @@ do_plotting <- function(file, input, exclusion, output) {
  
  #  }
 
-   # TODO: gruppierung nach condition/diet mit facets
+   # TODO: group by condition/diet with facets
    },
    {
 
