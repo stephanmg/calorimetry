@@ -18,17 +18,15 @@ require(tidyverse)
 library(tools)
 library(shinyalert)
 
-# TODO: Cleanup file names and code in included source files
-source("helper.R") # helpers
-source("new_feature.R") # new feature
-source("new_feature2.R") # new feature2
-source("import_promethion_helper.R") # import for promethion/sable
-source("import_pheno_v8_helper.R") # import for PhenoMaster V8
-source("import_cosmed_helper.R") # import for COSMED
-source("locomotion.R") # for locomotion probabiltiy heatmap
-source("timeline.R")
-
-my_metadata <- "test test"
+# TODO: Rename file names
+source("inc/helper.R") # helpers
+source("inc/new_feature.R") # new feature
+source("inc/new_feature2.R") # new feature2
+source("inc/import_promethion_helper.R") # import for SABLE/Promethion data sets
+source("inc/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
+source("inc/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/locomotion.R") # for locomotion probability heatmap
+source("inc/timeline.R") # for colorizing timeline by day/night rhythm
 
 ################################################################################
 # Helper functions

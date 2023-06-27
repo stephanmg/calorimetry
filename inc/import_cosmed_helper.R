@@ -61,5 +61,3 @@ import_cosmed  <- function(file, file_out) {
    full_data <- rbind(header, data)
    write.table(full_data, file_out, col.names=FALSE, row.names=FALSE, sep=";", quote=FALSE)
 }
-
-import_cosmed('Exported datafile example.xlsx', 'cosmed_import.csv')
