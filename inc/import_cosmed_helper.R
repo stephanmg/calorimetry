@@ -10,7 +10,7 @@ helper_fn <- function(time) {
 
 import_cosmed  <- function(file, file_out) {
    df <- read_excel(file)
-   print(length(excel_sheets(file)))
+   #print(length(excel_sheets(file)))
    
    # TODO: get duration and interval from excel sheet
    duration = 30 * 6 # 30 minutes and 6 mesasureents at 10 s intervals)

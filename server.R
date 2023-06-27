@@ -233,7 +233,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
 
    # unite data sets (unite in tidyverse package)
-   print(C1)
+   # print(C1)
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
          c(Date_NA, Time_NA), # columns to be combined
@@ -434,8 +434,8 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    # TODO: Put filtering for light cycle back in (useful for RMR calculation)
-   print("before filtering!")
-   print(colnames(finalC1))
+   # print("before filtering!")
+   # print(colnames(finalC1))
    if (! is.null(input$light_cycle)) {
       if ("LightC_[%]" %in% colnames(finalC1)) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
@@ -467,12 +467,12 @@ do_plotting <- function(file, input, exclusion, output) {
    GoxLox = {
 
       C1meta_tmp <- C1meta
-      print(C1meta_tmp)
+      #print(C1meta_tmp)
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      print("colnames metadata:")
-      print(colnames(C1meta_tmp))
-      print("colnames fin1lC1")
-      print(colnames(finalC1))
+      #print("colnames metadata:")
+      #print(colnames(C1meta_tmp))
+      #print("colnames fin1lC1")
+      #print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
 
@@ -547,9 +547,9 @@ do_plotting <- function(file, input, exclusion, output) {
 
   lights = data.frame(x=finalC1["running_total.hrs.halfhour"], y=finalC1["HP2"])
   colnames(lights) <- c("x", "y")
-  print("lights:")
-  print(lights)
-  print(colnames(lights))
+  #print("lights:")
+  #print(lights)
+  #print(colnames(lights))
   p <- draw_day_night_rectangles(lights, p, 7, 19, 0)
 
    p <- p + xlab("Time [h]")
@@ -592,8 +592,8 @@ do_plotting <- function(file, input, exclusion, output) {
          component2 <- "HP"
       }
 
-      print("from RMR:")
-      print(colnames(finalC1))
+      #print("from RMR:")
+      #print(colnames(finalC1))
       # first component, typically O2
       df <- data.frame(Values = finalC1[[component]],
          Group = `$`(finalC1, "Animal No._NA"),
@@ -655,12 +655,12 @@ do_plotting <- function(file, input, exclusion, output) {
 
       #C1meta_tmp <- read.csv2("metadata_now.csv", sep=";")
       C1meta_tmp <- C1meta
-      print(C1meta_tmp)
+      #print(C1meta_tmp)
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      print("colnames metadata:")
-      print(colnames(C1meta_tmp))
-      print("colnames fin1lC1")
-      print(colnames(finalC1))
+      #print("colnames metadata:")
+      #print(colnames(C1meta_tmp))
+      #print("colnames fin1lC1")
+      #print(colnames(finalC1))
       # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.) 
       # how to force gui update before? TODO
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA") 
@@ -699,12 +699,12 @@ do_plotting <- function(file, input, exclusion, output) {
       paste(splitted[[1]][2], ":00", sep = "")
    }
       C1meta_tmp <- C1meta
-      print(C1meta_tmp)
+      #print(C1meta_tmp)
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      print("colnames metadata:")
-      print(colnames(C1meta_tmp))
-      print("colnames fin1lC1")
-      print(colnames(finalC1))
+      #print("colnames metadata:")
+      #print(colnames(C1meta_tmp))
+      #print("colnames fin1lC1")
+      #print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
    df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
@@ -772,7 +772,7 @@ do_plotting <- function(file, input, exclusion, output) {
    metadata <- na.omit(metadata)
    names(metadata) <- c("Weight", "Animal No._NA", "Gender")
    metadata <- metadata[seq(2, nrow(metadata)), ]
-   print(metadata$Weight)
+   #print(metadata$Weight)
 
    # TODO: Make for loop more efficient somehow, perhaps with the following statement:
    # by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
@@ -809,7 +809,7 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    # TOOD: add summary statistics to plot
-   print(summary(lm(HP ~ Weight, finalC1)))
+   #print(summary(lm(HP ~ Weight, finalC1)))
    message <- NULL
    if (sum(is.na(finalC1)) > 0) {
       message <- paste("# ", sum(is.na(finalC1)),
@@ -825,12 +825,12 @@ do_plotting <- function(file, input, exclusion, output) {
    },
    Raw = {
       C1meta_tmp <- C1meta
-      print(C1meta_tmp)
+      #print(C1meta_tmp)
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      print("colnames metadata:")
-      print(colnames(C1meta_tmp))
-      print("colnames fin1lC1")
-      print(colnames(finalC1))
+      #print("colnames metadata:")
+      #print(colnames(C1meta_tmp))
+      #print("colnames fin1lC1")
+      #print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
    write.csv2(df_to_plot, file = "finalC1.csv")
@@ -847,8 +847,8 @@ do_plotting <- function(file, input, exclusion, output) {
       mylabel <- "RER"
    }
 
-   print("to plot names")
-   print(names(df_to_plot))
+   #print("to plot names")
+   #print(names(df_to_plot))
    names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
    p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
@@ -1174,14 +1174,14 @@ server <- function(input, output, session) {
    observeEvent(input$plotting, {
       output$plot <- renderPlotly({
          if (is.null(input$File1)) {
-            print("No cohort data given!")
+            # print("No cohort data given!")
             output$message <- renderText("Not any cohort data given")
          } else {
            file <- input$File1
-           print(file$datapath)
+           # print(file$datapath)
            real_data <- do_plotting(file$datapath, input, input$sick, output)
 
-           print(real_data$status)
+           # print(real_data$status)
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
                   output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.") #nolint
