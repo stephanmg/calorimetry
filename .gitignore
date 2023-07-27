@@ -49,3 +49,23 @@ Formeln/
 
 # project description and data
 project_description_and_data
+
+# renv
+renv/
+renv.lock
+
+# csv and images
+csvs/
+images/
+
+# comparison with calimera
+Comparison calimera/
+
+# osx stuff
+.DS_Store
+
+# Rprofile
+.Rprofile
+
+# vim backup files
+*un~
