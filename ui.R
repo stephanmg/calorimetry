@@ -141,8 +141,8 @@ sidebar_content <- sidebarPanel(
    numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
    h3("Plausability checks"),
-   checkboxInput(inputId="negative_values", label = "Detect negative values", value=TRUE),
-   checkboxInput(inputId="highly_varying_measurements", label = "High variation measurements", value=TRUE),
+   checkboxInput(inputId="negative_values", label = "Detect negative values", value=FALSE),
+   checkboxInput(inputId="highly_varying_measurements", label = "High variation measurements", value=FALSE),
    h3("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
@@ -163,7 +163,7 @@ sidebar_content <- sidebarPanel(
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
    #selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "EnergyExpenditure", "DayNightActivity", "Raw", "GoxLox", "TotalEnergyExpenditure", "RestingMetabolicRate", "WeightVsEnergyExpenditure", "Locomotion")), #nolint
-   selectInput("plot_type", "Type:", factor(c('Raw', 'EnergyExpenditure', 'TotalEnergyExpenditure', 'RestingMetabolicRate', 'GoxLox', 'DayNightActivity', 'Locomotion', 'WeightVsEnergyExpenditure'))),
+   selectInput("plot_type", "Type:", factor(c('Raw', 'EnergyExpenditure', 'TotalEnergyExpenditure', 'RestingMetabolicRate', 'GoxLox', 'DayNightActivity', 'Locomotion', 'LocomotionBudget', 'WeightVsEnergyExpenditure'))),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
