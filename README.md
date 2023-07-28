@@ -41,3 +41,4 @@ Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/c
 
 # Citation
 TODO add
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
