@@ -1,15 +1,44 @@
-# Web-based analysis of indirect calorimetry 
+# CALOR: A package for Calorimetric Analysis to Leverage Orderly data visualization using Shiny R 
 
-## Demonstration of application
-Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
+CALOR is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms (and thus file formats) during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
 
-## Deployment
-Get docker image from Docker Hub or build own image with provided `Dockerfile`.
-
-## Development
 [![Shiny app deployment](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml)
 [![test-shiny](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml)
 [![make-badges](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml)
 [![R](https://img.shields.io/badge/R%3E%3D-4.2.0-6666ff.svg)](https://cran.r-project.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
+
+
+# User manual
+
+## Option 1: DockerHub / Docker.io
+
+1. Pull CALOR image from remote
+```
+docker pull stephanmg/CALOR
+```
+2. Start container
+```
+docker run --name CALOR -it -p 1338:1338 stephanmg/CALOR
+```
+3. Open browser and navigate to: http://localhost:1338/
+
+Note that you can also build your own container from the `Dockerfile` provided with either `docker` or `podman`.
+
+## Option 2: ShinyApps.io 
+The CALOR application is also hosted on http://shinyapps.io/stephanmg/CALOR
+and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
+
+## Option 3: Development installation
+1. Clone *this* repository
+2. Install dependencies from `.github/workflows/ci.yml`.
+3. Run `Rscript startapp.R` from base directory (inside *this* respository)
+
+
+## Demonstration of application
+Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
+
+
+# Citation
+TODO add
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
