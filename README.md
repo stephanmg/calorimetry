@@ -4,8 +4,8 @@ CALOR is a holistic web application for data integration, visualization and stat
 
 [![Shiny app deployment](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml)
 [![Docker.io](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml)
-[![test-shiny](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml)
-[![make-badges](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml)
+[![Tests](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml)
+[![Badges](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml)
 [![R](https://img.shields.io/badge/R%3E%3D-4.2.0-6666ff.svg)](https://cran.r-project.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 
