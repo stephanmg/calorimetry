@@ -1,6 +1,6 @@
 library(shiny)
 library(shinyFiles)
-options(shiny.host = "127.0.0.1")
+options(shiny.host = "0.0.0.0")
 options(shiny.port = 1338)
 options(shiny.maxRequestSize = 30 * 1024^2)
 print(sessionInfo())
