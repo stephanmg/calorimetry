@@ -45,3 +45,4 @@ TODO add
 
 # Latest changes
 
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
