@@ -1,4 +1,3 @@
-# Libraries
 library(shiny)
 library(tidyr)
 library(ggplot2)
@@ -6,7 +5,7 @@ library(data.table) # for filtering with %like%
 library(readxl)
 library(writexl)
 library(plotly)
-library(zoo) # running average methods
+library(zoo) # for running average methods
 library(ggpubr)
 library(viridis)
 library(dplyr)
