@@ -1,4 +1,4 @@
-# CALOR: A package for Calorimetric Analysis to Leverage Orderly data visualization using Shiny R 
+# CALOR: A package for <ins>C</ins>alorimetric <ins>A</ins>nalysis to <ins>L</ins>everage <ins>O</ins>rderly data visualization using Shiny <ins>R</ins> 
 
 
 <img src="https://github.com/stephanmg/calorimetry/blob/data/logo_shiny.svg?raw=true" align="left" width="50" height="70"> 
