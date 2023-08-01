@@ -311,8 +311,10 @@ locomotion_panel <- tabPanel(
 ################################################################################
 documentation <- tabPanel(
    "Documentation",
-   titlePanel("Documentation of RMR estimation"),
-   tags$img(src = "overview_shiny.png")
+   #titlePanel("Documentation of RMR estimatio"),
+   titlePanel("Documentation for CALOR"),
+   p("TODO: Add here")
+   #tags$img(src = "overview_shiny.png")
 )
 
 ################################################################################
@@ -343,11 +345,10 @@ ui <- tagList(
   "Generalized Calorimetry Analysis",
   intro_panel,
   visualization,
-  locomotion_panel,
   #configuration_panel,
-  validation,
+  #validation,
   documentation,
-  #tutorial,
+  tutorial,
   contact
    )
 )
