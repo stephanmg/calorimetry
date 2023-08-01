@@ -127,7 +127,7 @@ do_plotting <- function(file, input, exclusion, output) {
    fileFormatTSE <- FALSE
    finalC1 <- c()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
-   # Supported metadata fields from TSE LabMaster/PhenoMaster (Sable/Promethion must go through metadata sheet (TODO))
+   # Supported metadata fields from TSE LabMaster/PhenoMaster (Sable/Promethion must should go through metadata sheet (TODO))
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
@@ -215,7 +215,7 @@ do_plotting <- function(file, input, exclusion, output) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
+   # TODO: C1meta obsolete when using metadata sheet, implement/use Lea's metadata sheet
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    # Curate data frame
