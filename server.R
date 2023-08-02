@@ -545,12 +545,11 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
 
-  lights = data.frame(x=finalC1["running_total.hrs.halfhour"], y=finalC1["HP2"])
+  lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
   colnames(lights) <- c("x", "y")
-  #print("lights:")
-  #print(lights)
-  #print(colnames(lights))
-  p <- draw_day_night_rectangles(lights, p, 7, 19, 0)
+  if (input$timeline) {
+   p <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+  }
 
    p <- p + xlab("Time [h]")
    # p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
@@ -918,10 +917,9 @@ do_plotting <- function(file, input, exclusion, output) {
      }
      write.csv2(TEE, "tee.csv")
 
-   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
-   p <- p +  geom_text(check_overlap=TRUE, aes(label=Days),  position=position_jitter(width=0.15))
-   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep=""))
-   
+  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
+  p <- p +  geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
+  p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
@@ -945,14 +943,14 @@ do_plotting <- function(file, input, exclusion, output) {
 #
  #     p <- ggplotly(p)
  #  } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>%
+      config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
     )
   )
- 
- #  }
+#  }
 
    # TODO: group by condition/diet with facets
    },

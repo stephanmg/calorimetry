@@ -20,7 +20,7 @@ options(shiny.maxRequestSize = maxRequestSize)
 ################################################################################
 # Debug session
 ################################################################################
-if (printSessinInfo) {
+if (printSessionInfo) {
    print(sessionInfo())
 }
 

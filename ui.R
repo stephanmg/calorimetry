@@ -158,6 +158,7 @@ sidebar_content <- sidebarPanel(
       tabPanelBody("PC",
    selectInput("plot_type", "Type:", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure"))),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
+   checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
    conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId = "only_full_days", label = "Only full days", value=TRUE)),
