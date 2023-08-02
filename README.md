@@ -1,6 +1,11 @@
-# CALOR: A package for Calorimetric Analysis to Leverage Orderly data visualization using Shiny R 
+# CALOR: A package for <ins>C</ins>alorimetric <ins>A</ins>nalysis to <ins>L</ins>everage <ins>O</ins>rderly data visualization using Shiny <ins>R</ins> 
 
+
+<img src="https://github.com/stephanmg/calorimetry/blob/data/logo_shiny.svg?raw=true" align="left" width="50" height="70"> 
 CALOR is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms (and thus file formats) during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
+
+<br clear="left"/>
+<hr/>
 
 [![Shiny app deployment](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml)
 [![Docker.io](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml)
@@ -8,6 +13,8 @@ CALOR is a holistic web application for data integration, visualization and stat
 [![Badges](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml)
 [![R](https://img.shields.io/badge/R%3E%3D-4.2.0-6666ff.svg)](https://cran.r-project.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
+
+<hr/>
 
 
 # User manual
@@ -44,3 +51,5 @@ Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/c
 TODO add
 
 # Latest changes
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
