@@ -3,6 +3,7 @@ library("plotly")
 library("shinybusy")
 library("shinythemes")
 library("shinyWidgets")
+library(cicerone)
 
 ################################################################################
 # First page: Introduction
@@ -119,7 +120,7 @@ sidebar_content <- sidebarPanel(
    ),
    column(2, style = "padding: 20px;",
     actionButton("hideTabHP", label = "", icon = icon("square-minus", "fa-3x"))
-   ))),
+   )),
    tabsetPanel(id = "tabsHP", type = "hidden",
       tabPanelBody("HP",
    add_busy_bar(color = "#FF0000"),
@@ -142,7 +143,7 @@ sidebar_content <- sidebarPanel(
    actionButton("reset", "Reset"),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
    span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
-   )),
+   ))),
    hr(),
    fluidPage(
    fluidRow(
@@ -274,6 +275,7 @@ main_content2 <- mainPanel(
 visualization <- tabPanel(
   "Visualization and statistical analysis",
   titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
+  actionButton("guide", "Guide (Click me)"),
   p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
     sidebar_content, main_content
@@ -320,11 +322,11 @@ contact <- tabPanel(
    p("Stephan Grein (stephan <DOT> grein <AT> UNI <MINUS> BONN <DOT> DE")
 )
 
-tutorial <- tabPanel(
+guide <- tabPanel(
    "Tutorial",
    titlePanel("Tutorial"),
-   p("A step by step guide on how to analyze indirect calorimetry data sets by example"),
-   p("TODO: WIP... stay tuned!")
+   h1("A step by step walk through the CALOR Shiny app"),
+   actionButton("guide", "Guide (Click me)")
 )
 
 
@@ -335,12 +337,12 @@ ui <- tagList(
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
   navbarPage(
+    header = list(use_cicerone()),
     theme = shinytheme("superhero"),
     "CALOR",
     intro_panel,
     visualization,
     documentation,
-    tutorial,
     contact
   )
 )

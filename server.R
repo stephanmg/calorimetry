@@ -26,6 +26,10 @@ source("inc/import_cosmed_helper.R") # import for COSMED data sets
 source("inc/locomotion.R") # for locomotion probability heatmap
 source("inc/timeline.R") # for colorizing timeline by day/night rhythm
 source("inc/locomotion_budget.R") # for locomotion budget
+source("inc/guide.R") # for guide
+
+
+
 
 ################################################################################
 # Helper functions
@@ -1375,4 +1379,29 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
    observeEvent(input$reset, {
       session$reload()
    })
+
+   #############################################################################
+   # Guide
+   #############################################################################
+   observeEvent(input$guide, {
+      # for guide, we need to see all components
+      lapply(
+         X = c("DC", "DE", "PC"),
+         FUN = function(i) {
+            showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
+         }
+      )
+      guide$init()$start()
+  })
+
+  observeEvent(input$guide_cicerone_next, {
+   if (!input$guide_cicerone_next$has_next) {
+      lapply(
+         X = c("DC", "DE", "PC"),
+         FUN = function(i) {
+            hideTab(inputId = paste0("tabs", i), target = i)
+         }
+      )
+    }
+  })
 }
