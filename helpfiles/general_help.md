@@ -1,9 +1,11 @@
 # General help for CALOR
 
 `Welcome to CALOR, an application for the visualization and analysis of indirect calorimetry data`.
-
+<img src="../www/logo_shiny.svg" align="left" width="50" height="70" style="padding-right: 10px">
 Please have a look at the overview of functions currently implemented in CALOR on the main page,
 i.e. navigate to the landing page `Introduction and Features` in the top navigation panel.
+<br clear="left"/>
+<hr style="width: 75%;"/>
 
 Below we detail in a nutshell how to use the CALOR application. If you need technical
 assistance, found bugs or have feature requests, feel free to reach out by email,
