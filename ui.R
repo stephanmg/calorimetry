@@ -3,6 +3,7 @@ library("plotly")
 library("shinybusy")
 library("shinythemes")
 library("shinyWidgets")
+library("shinyhelper")
 library(cicerone)
 
 ################################################################################
@@ -113,7 +114,10 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Energy expenditure")
+      h1("Energy expenditure"),
+      br(),
+      actionButton("guide", "Guide (Click me)", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      br(), br()
    ),
    column(2, style = "padding: 20px;",
     actionButton("showTabHP", label = "", icon = icon("square-plus", "fa-3x"))
@@ -133,6 +137,7 @@ sidebar_content <- sidebarPanel(
    uiOutput("heat_production_equations"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
+   p("Use the file choser dialog below to select an individual file to analyze"),
    numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
    h3("Plausability checks"),
@@ -255,6 +260,7 @@ sidebar_content <- sidebarPanel(
 ################################################################################
 main_content <- mainPanel(
    tabsetPanel(
+      id = "additional_content",
       tabPanel("Plot", plotlyOutput("plot")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
       tabPanel("Details", plotlyOutput("details")),
@@ -275,8 +281,6 @@ main_content2 <- mainPanel(
 visualization <- tabPanel(
   "Visualization and statistical analysis",
   titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
-  actionButton("guide", "Guide (Click me)"),
-  p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
     sidebar_content, main_content
   )
@@ -306,11 +310,19 @@ locomotion_panel <- tabPanel(
 # Documentation
 ################################################################################
 documentation <- tabPanel(
-   "Documentation",
-   #titlePanel("Documentation of RMR estimatio"),
-   titlePanel("Documentation for CALOR"),
-   p("TODO: Add here")
-   #tags$img(src = "overview_shiny.png")
+      "Getting help",
+      style="text-align: center",
+      titlePanel("Getting general help for CALOR:"),
+      div(style="width: 50%",
+      helpText("", style="text-align: right; padding-right: 20px") %>% helper(
+         type="markdown",
+         align="right",
+         content="general_help",
+         size= "l",
+         colour = "red",
+         style = "zoom: 300%; text-align: right"
+      )
+   ),
 )
 
 ################################################################################
@@ -318,15 +330,26 @@ documentation <- tabPanel(
 ################################################################################
 contact <- tabPanel(
    "Contact",
-   titlePanel("Contact"),
-   p("Stephan Grein (stephan <DOT> grein <AT> UNI <MINUS> BONN <DOT> DE")
-)
-
-guide <- tabPanel(
-   "Tutorial",
-   titlePanel("Tutorial"),
-   h1("A step by step walk through the CALOR Shiny app"),
-   actionButton("guide", "Guide (Click me)")
+   style = "text-align: center",
+   titlePanel("Contact the author of this page:"),
+   tags$address(
+      p("Stephan Grein", style = "display:inline; "),
+      tags$a(id = "contact_me", href = "", icon("fa-solid fa-square-envelope", "fa-1x"), style = "display:inline; "),
+      br(),
+      p("IRU Mathematics and Life Sciences", style = "display:inline; "),
+      br(),
+      p("LIMES/HCM, University of Bonn"),
+      tags$script(HTML(
+         "var encMail = 'c21nLmlydUBnbWFpbC5jb20K'; const form = document.getElementById('contact_me'); form.setAttribute('href', 'mailto:'.concat(atob(encMail)).concat('?subject=CALOR Shiny app'));"
+      ))
+   ),
+   h2("Follow us on:"),
+   tags$table(class = "contact", style = "margin-left: auto; margin-right: auto",
+      tags$tr(
+         tags$td(tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-3x"))),
+         tags$td(tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-twitter", "fa-3x")))
+      )
+   )
 )
 
 
@@ -339,7 +362,7 @@ ui <- tagList(
   navbarPage(
     header = list(use_cicerone()),
     theme = shinytheme("superhero"),
-    "CALOR",
+    "CALOR - A reactive web-based application for the analysis of indirect calorimetry experiments",
     intro_panel,
     visualization,
     documentation,

@@ -5,6 +5,19 @@
 	 font-family: 'Comfortaa', 'sans-serif'
 }
 
+.contact {
+	text-align: center;
+}
+
+.contact td {
+	padding: 2px;
+	margin: 2px;
+}
+
+.contact td a:hover {
+	color: orangered;
+}
+
 .fileformat-types td {
 	padding: 2px;
 	margin: 2px;
@@ -46,9 +59,9 @@ a:visited {
 }
 
 a:hover {
-	color: #800000;
+	color: orangered;
 }
 
 a:active {
-	color: #800000;
+	color: orangered;
 }

@@ -970,6 +970,8 @@ do_plotting <- function(file, input, exclusion, output) {
 # Create server
 ################################################################################
 server <- function(input, output, session) {
+   observe_helpers()
+
    output$metadatafile <- renderUI({
       html_ui <- " "
       html_ui <- paste0(html_ui,
@@ -1306,6 +1308,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str5 <- "When heat production formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "EnergyExpenditure") {
              output$explanation <- renderUI({
             str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
@@ -1314,6 +1318,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str4 <- "Cohorts are usually stratified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
             str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1322,6 +1328,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw data values are plotted </h3>"
@@ -1330,6 +1338,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Cohorts are usually strafified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
             output$explanation <- renderUI({
                str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
@@ -1338,12 +1348,17 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
             HTML(paste(str1, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else {
             output$summary <- renderPlotly(NULL)
             output$explanation <- renderUI({
                HTML("No information available yet.")
             })
            }
+           # hide tabs as we do not have Summary statistics or Details as of now
+           hideTab(inputId = "additional_content", target="Summary statistics")
+           hideTab(inputId = "additional_content", target="Details")
            # plot
            real_data$plot
         }
