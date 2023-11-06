@@ -69,3 +69,9 @@ Comparison calimera/
 
 # vim backup files
 *un~
+
+# pngs
+pngs/
+
+# csv files
+csv_files/

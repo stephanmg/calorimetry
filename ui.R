@@ -3,15 +3,12 @@ library("plotly")
 library("shinybusy")
 library("shinythemes")
 library("shinyWidgets")
+library("shinyhelper")
+library(cicerone)
 
 ################################################################################
 # First page: Introduction
 ################################################################################
-configuration_panel <- tabPanel(
-   "Settings"
-   # TODO: Allow for light cycle configuration
-)
-
 intro_panel <- tabPanel(
   "Introduction and Features",
   titlePanel("A reactive web-based application for the analysis of indirect calorimetry experiments"),
@@ -93,8 +90,6 @@ intro_panel <- tabPanel(
       )
    ),
    hr(style = "width:100%;")
-   # h1("Documentation and getting help"),
-   # p("Use the navigation bar to jump Contact, About or Help for this R Shiny app. Feel free to contact SG in case of any questions")
 )
 
 ################################################################################
@@ -114,18 +109,22 @@ sidebar_content3 <- sidebarPanel(
    uiOutput("fileInputs"),
 )
 
-# TODO/Note: Should change to table format
+# TODO/Note: Should change to table format for a better visual alignment
 sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Energy expenditure")),
+      h1("Energy expenditure"),
+      br(),
+      actionButton("guide", "Guide (Click me)", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      br(), br()
+   ),
    column(2, style = "padding: 20px;",
     actionButton("showTabHP", label = "", icon = icon("square-plus", "fa-3x"))
    ),
    column(2, style = "padding: 20px;",
     actionButton("hideTabHP", label = "", icon = icon("square-minus", "fa-3x"))
-   ))),
+   )),
    tabsetPanel(id = "tabsHP", type = "hidden",
       tabPanelBody("HP",
    add_busy_bar(color = "#FF0000"),
@@ -138,17 +137,18 @@ sidebar_content <- sidebarPanel(
    uiOutput("heat_production_equations"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
+   p("Use the file choser dialog below to select an individual file to analyze"),
    numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
    h3("Plausability checks"),
-   checkboxInput(inputId="negative_values", label = "Detect negative values", value=TRUE),
-   checkboxInput(inputId="highly_varying_measurements", label = "High variation measurements", value=TRUE),
+   checkboxInput(inputId = "negative_values", label = "Detect negative values", value=FALSE),
+   checkboxInput(inputId = "highly_varying_measurements", label = "High variation measurements", value=FALSE),
    h3("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
    span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
-   )),
+   ))),
    hr(),
    fluidPage(
    fluidRow(
@@ -162,33 +162,33 @@ sidebar_content <- sidebarPanel(
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   #selectInput("plot_type", "Type:", c("CompareHeatProductionFormulas", "EnergyExpenditure", "DayNightActivity", "Raw", "GoxLox", "TotalEnergyExpenditure", "RestingMetabolicRate", "WeightVsEnergyExpenditure", "Locomotion")), #nolint
-   selectInput("plot_type", "Type:", factor(c('Raw', 'EnergyExpenditure', 'TotalEnergyExpenditure', 'RestingMetabolicRate', 'GoxLox', 'DayNightActivity', 'Locomotion', 'WeightVsEnergyExpenditure'))),
+   selectInput("plot_type", "Type:", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure"))),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
+   checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
-   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId="only_full_days", label="Only full days", value=TRUE)),
+   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId = "only_full_days", label = "Only full days", value=TRUE)),
    conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
-   conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId="have_box_coordinates", label="Custom cage coordinates", value=FALSE)),
+   conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value=FALSE)),
    conditionalPanel(condition = "input.have_box_coordinates == true", h2("Cage configuration")),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_x_min", label="Food hamper (x_min)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_x_max", label="Food hamper (x_max)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_y_min", label="Food hamper (y_min)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="food_y_max", label="Food hamper (y_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_x_min", label = "Food hamper (x_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_x_max", label = "Food hamper (x_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_y_min", label = "Food hamper (y_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_y_max", label = "Food hamper (y_max)", min=0, max=100, value=0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", hr()),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_x_min", label="Water bottle (x_min)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_x_max", label="Water bottle (x_max)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_y_min", label="Water bottle (y_min)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="water_y_max", label="Water bottle (y_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_x_min", label = "Water bottle (x_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_x_max", label = "Water bottle (x_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_y_min", label = "Water bottle (y_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_y_max", label = "Water bottle (y_max)", min=0, max=100, value=0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", hr()),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_x_min", label="Scale (x_min)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_x_max", label="Scale (x_max)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_y_min", label="Scale (y_min)", min=0, max=100, value=0)),
-   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId="scale_y_max", label="Scale (y_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_min", label = "Scale (x_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_max", label = "Scale (x_max)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_min", label = "Scale (y_min)", min=0, max=100, value=0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_max", label = "Scale (y_max)", min=0, max=100, value=0)),
    h2("Advanced options"),
-   sliderInput(inputId="light_cycle_start", label="Light cycle start", min=0, max=24, value=7),
-   sliderInput(inputId="light_cycle_stop", label="Light cycle stop", min=0, max=24, value=19),
+   sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 7),
+   sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 19),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
@@ -198,7 +198,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
-   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices=c("Glucose oxidation", "Lipid oxidation"))),
+   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation"))),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
@@ -260,6 +260,7 @@ sidebar_content <- sidebarPanel(
 ################################################################################
 main_content <- mainPanel(
    tabsetPanel(
+      id = "additional_content",
       tabPanel("Plot", plotlyOutput("plot")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
       tabPanel("Details", plotlyOutput("details")),
@@ -280,7 +281,6 @@ main_content2 <- mainPanel(
 visualization <- tabPanel(
   "Visualization and statistical analysis",
   titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
-  p("Use the file choser dialog below to select an individual file to analyze"),
   sidebarLayout(
     sidebar_content, main_content
   )
@@ -310,9 +310,19 @@ locomotion_panel <- tabPanel(
 # Documentation
 ################################################################################
 documentation <- tabPanel(
-   "Documentation",
-   titlePanel("Documentation of RMR estimation"),
-   tags$img(src = "overview_shiny.png")
+      "Getting help",
+      style="text-align: center",
+      titlePanel("Getting general help for CALOR:"),
+      div(style="width: 50%",
+      helpText("", style="text-align: right; padding-right: 20px") %>% helper(
+         type="markdown",
+         align="right",
+         content="general_help",
+         size= "l",
+         colour = "red",
+         style = "zoom: 300%; text-align: right"
+      )
+   ),
 )
 
 ################################################################################
@@ -320,15 +330,26 @@ documentation <- tabPanel(
 ################################################################################
 contact <- tabPanel(
    "Contact",
-   titlePanel("Contact"),
-   p("Stephan Grein (stephan <DOT> grein <AT> UNI <MINUS> BONN <DOT> DE")
-)
-
-tutorial <- tabPanel(
-   "Tutorial",
-   titlePanel("Tutorial"),
-   p("A step by step guide on how to analyze indirect calorimetry data sets by example"),
-   p("WIP... stay tuned!")
+   style = "text-align: center",
+   titlePanel("Contact the author of this page:"),
+   tags$address(
+      p("Stephan Grein", style = "display:inline; "),
+      tags$a(id = "contact_me", href = "", icon("fa-solid fa-square-envelope", "fa-1x"), style = "display:inline; "),
+      br(),
+      p("IRU Mathematics and Life Sciences", style = "display:inline; "),
+      br(),
+      p("LIMES/HCM, University of Bonn"),
+      tags$script(HTML(
+         "var encMail = 'c21nLmlydUBnbWFpbC5jb20K'; const form = document.getElementById('contact_me'); form.setAttribute('href', 'mailto:'.concat(atob(encMail)).concat('?subject=CALOR Shiny app'));"
+      ))
+   ),
+   h2("Follow us on:"),
+   tags$table(class = "contact", style = "margin-left: auto; margin-right: auto",
+      tags$tr(
+         tags$td(tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-3x"))),
+         tags$td(tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-twitter", "fa-3x")))
+      )
+   )
 )
 
 
@@ -336,18 +357,15 @@ tutorial <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- tagList(
-   tags$head(tags$script(type = "text/javascript", src = "code.js")),
-   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
-   navbarPage(
-  theme = shinytheme("superhero"),
-  "Generalized Calorimetry Analysis",
-  intro_panel,
-  visualization,
-  locomotion_panel,
-  #configuration_panel,
-  validation,
-  documentation,
-  #tutorial,
-  contact
-   )
+  tags$head(tags$script(type = "text/javascript", src = "code.js")),
+  tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
+  navbarPage(
+    header = list(use_cicerone()),
+    theme = shinytheme("superhero"),
+    "CALOR - A reactive web-based application for the analysis of indirect calorimetry experiments",
+    intro_panel,
+    visualization,
+    documentation,
+    contact
+  )
 )

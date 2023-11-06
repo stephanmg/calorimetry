@@ -1,4 +1,3 @@
-# Libraries
 library(shiny)
 library(tidyr)
 library(ggplot2)
@@ -6,7 +5,7 @@ library(data.table) # for filtering with %like%
 library(readxl)
 library(writexl)
 library(plotly)
-library(zoo) # running average methods
+library(zoo) # for running average methods
 library(ggpubr)
 library(viridis)
 library(dplyr)
@@ -26,6 +25,11 @@ source("inc/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/import_cosmed_helper.R") # import for COSMED data sets
 source("inc/locomotion.R") # for locomotion probability heatmap
 source("inc/timeline.R") # for colorizing timeline by day/night rhythm
+source("inc/locomotion_budget.R") # for locomotion budget
+source("inc/guide.R") # for guide
+
+
+
 
 ################################################################################
 # Helper functions
@@ -127,7 +131,7 @@ do_plotting <- function(file, input, exclusion, output) {
    fileFormatTSE <- FALSE
    finalC1 <- c()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
-   # Supported metadata fields from TSE LabMaster/PhenoMaster (Sable/Promethion must go through metadata sheet (TODO))
+   # Supported metadata fields from TSE LabMaster/PhenoMaster (Sable/Promethion must should go through metadata sheet (TODO))
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
@@ -215,7 +219,7 @@ do_plotting <- function(file, input, exclusion, output) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   # TODO: C1meta obsolete when using metadata sheet, implement/use the sheet
+   # TODO: C1meta obsolete when using metadata sheet, implement/use Lea's metadata sheet
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    # Curate data frame
@@ -545,12 +549,11 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
 
-  lights = data.frame(x=finalC1["running_total.hrs.halfhour"], y=finalC1["HP2"])
+  lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
   colnames(lights) <- c("x", "y")
-  #print("lights:")
-  #print(lights)
-  #print(colnames(lights))
-  p <- draw_day_night_rectangles(lights, p, 7, 19, 0)
+  if (input$timeline) {
+   p <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+  }
 
    p <- p + xlab("Time [h]")
    # p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
@@ -818,9 +821,14 @@ do_plotting <- function(file, input, exclusion, output) {
    return(list("plot" = p, status = message, metadata = metadata))
    },
    Locomotion = {
-      # TODO: Fix plotly plot
+      # TODO: Implement / Fix for plotly plotting not supported yet of the given graph type
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion(file$datapath, input$x_min_food, input$x_max_food, input$y_min_food, input$y_max_food, input$x_min_scale, input$x_max_scale, input$y_min_scale, input$y_max_scale, input$x_min_bottle, input$x_max_bottle, input$y_min_bottle, input$y_max_bottle)
+      p
+   },
+   LocomotionBudget = {
+      file <- input[[paste0("File", 1)]]
+      p <- plot_locomotion_budget(file$datapath)
       p
    },
    Raw = {
@@ -913,10 +921,9 @@ do_plotting <- function(file, input, exclusion, output) {
      }
      write.csv2(TEE, "tee.csv")
 
-   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label=Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
-   p <- p +  geom_text(check_overlap=TRUE, aes(label=Days),  position=position_jitter(width=0.15))
-   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep=""))
-   
+  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
+  p <- p +  geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
+  p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
@@ -940,14 +947,14 @@ do_plotting <- function(file, input, exclusion, output) {
 #
  #     p <- ggplotly(p)
  #  } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>%
+      config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
     )
   )
- 
- #  }
+#  }
 
    # TODO: group by condition/diet with facets
    },
@@ -963,6 +970,8 @@ do_plotting <- function(file, input, exclusion, output) {
 # Create server
 ################################################################################
 server <- function(input, output, session) {
+   observe_helpers()
+
    output$metadatafile <- renderUI({
       html_ui <- " "
       html_ui <- paste0(html_ui,
@@ -1299,6 +1308,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str5 <- "When heat production formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "EnergyExpenditure") {
              output$explanation <- renderUI({
             str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
@@ -1307,6 +1318,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str4 <- "Cohorts are usually stratified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
             str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1315,6 +1328,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw data values are plotted </h3>"
@@ -1323,6 +1338,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Cohorts are usually strafified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
             output$explanation <- renderUI({
                str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
@@ -1331,12 +1348,17 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
             HTML(paste(str1, sep = "<br/>"))
             })
+               hideTab(inputId = "additional_content", target="Summary statistics")
+               hideTab(inputId = "additional_content", target="Details")
            } else {
             output$summary <- renderPlotly(NULL)
             output$explanation <- renderUI({
                HTML("No information available yet.")
             })
            }
+           # hide tabs as we do not have Summary statistics or Details as of now
+           hideTab(inputId = "additional_content", target="Summary statistics")
+           hideTab(inputId = "additional_content", target="Details")
            # plot
            real_data$plot
         }
@@ -1372,4 +1394,29 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
    observeEvent(input$reset, {
       session$reload()
    })
+
+   #############################################################################
+   # Guide
+   #############################################################################
+   observeEvent(input$guide, {
+      # for guide, we need to see all components
+      lapply(
+         X = c("DC", "DE", "PC"),
+         FUN = function(i) {
+            showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
+         }
+      )
+      guide$init()$start()
+  })
+
+  observeEvent(input$guide_cicerone_next, {
+   if (!input$guide_cicerone_next$has_next) {
+      lapply(
+         X = c("DC", "DE", "PC"),
+         FUN = function(i) {
+            hideTab(inputId = paste0("tabs", i), target = i)
+         }
+      )
+    }
+  })
 }
