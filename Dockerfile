@@ -5,7 +5,7 @@ RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfont
 RUN apt-get install -y libpng-dev libtiff5-dev libjpeg-dev
 
 RUN groupadd --system app
-RUN useradd --system --groups app app
+RUN useradd --system -g app app
 #RUN addaroup --system app \
 #   && adduser --system --ingroup app app
 
