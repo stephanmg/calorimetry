@@ -4,8 +4,10 @@ RUN apt-get update
 RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype-dev
 RUN apt-get install -y libpng-dev libtiff5-dev libjpeg-dev
 
-RUN addgroup --system app \
-   && adduser --system --ingroup app app
+RUN groupadd --system app
+RUN useradd --system --ingroup app app
+#RUN addaroup --system app \
+#   && adduser --system --ingroup app app
 
 COPY . /home/app/
 COPY inc/ /home/app/inc/
