@@ -1,7 +1,7 @@
 FROM r-base
 
 RUN apt-get update
-RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev=2.13.0 libpng-dev libtiff5-dev libjpeg-dev
+RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype6-dev=2.13.0+dfsg-1 libpng-dev libtiff5-dev libjpeg-dev
 
 RUN addgroup --system app \
    && adduser --system --ingroup app app
