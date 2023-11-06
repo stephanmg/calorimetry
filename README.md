@@ -51,4 +51,3 @@ Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/c
 TODO add
 
 # Latest changes
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
