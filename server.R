@@ -831,6 +831,53 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- plot_locomotion_budget(file$datapath)
       p
    },
+   EstimateRMR = {
+      C1meta_tmp <- C1meta
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+      endtime = input$rmr_method_begin # in minutes for ss methods
+stepwidth = 10 # in seconds (fixed?!)
+endindex = endtime * 60 / stepwidth
+n = nrow(df_to_plot) / endindex
+
+CV_RER_MAX = input$SS_method_RER # in %
+CV_VO2_MAX = input$SS_method_VO2 # in %
+CV_VCO2_MAX = input$SS_method_VCO2 # in %
+
+indices_to_keep = c()
+for (i in 1:n) {
+   indices = seq((i-1)+(endindex-1)*(i-1), i*(endindex)-1)
+   values = df_to_plot[indices, "RER_NA"]
+   cv_rer = 100 * (sd(values) / mean(values))
+   values = df_to_plot[indices, "VO2(3)_[ml/h]"]
+   cv_vo2 = 100 * (sd(values) / mean(values))
+   values = df_to_plot[indices, "VCO2(3)_[ml/h]"]
+   cv_vco2 = 100 * (sd(values) / mean(values))
+   if ( (cv_rer < CV_RER_MAX) && (cv_vo2 < CV_VO2_MAX) && (cv_vco2 < CV_VCO2_MAX)) {
+      indices_to_keep <- append(indices_to_keep, i)
+   }
+}
+
+total_indices = c()
+for (i in indices_to_keep) {
+   indices = seq((i-1)+(endindex-1)*(i-1), i*(endindex)-1)
+   total_indices <- append(total_indices, indices)
+}
+
+min_rer = min(df_to_plot[total_indices, "RER_NA"])
+min_vco2 = min(df_to_plot[total_indices, "VCO2(3)_[ml/h]"])
+min_vo2 = min(df_to_plot[total_indices, "VO2(3)_[ml/h]"])
+
+# weir formula
+rmr = 1440 * (3.9 * min_vo2 / 1000 + 1.1 * min_vco2 / 1000)
+
+
+      df = data.frame(c(rmr))
+      names(df) <- rmr
+      p <- ggplot(df, aes(x=rmr)) + geom_histogram()
+      ggplotly(p)
+   },
    Raw = {
       C1meta_tmp <- C1meta
       #print(C1meta_tmp)
