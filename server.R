@@ -846,6 +846,7 @@ CV_VO2_MAX = input$SS_method_VO2 # in %
 CV_VCO2_MAX = input$SS_method_VCO2 # in %
 
 indices_to_keep = c()
+indices_to_discard = c()
 for (i in 1:n) {
    indices = seq((i-1)+(endindex-1)*(i-1), i*(endindex)-1)
    values = df_to_plot[indices, "RER_NA"]
@@ -856,6 +857,8 @@ for (i in 1:n) {
    cv_vco2 = 100 * (sd(values) / mean(values))
    if ( (cv_rer < CV_RER_MAX) && (cv_vo2 < CV_VO2_MAX) && (cv_vco2 < CV_VCO2_MAX)) {
       indices_to_keep <- append(indices_to_keep, i)
+   } else {
+      indices_to_discard <- append(indices_to_keep, i)
    }
 }
 
@@ -865,9 +868,15 @@ for (i in indices_to_keep) {
    total_indices <- append(total_indices, indices)
 }
 
+if (input$rmr_method == "SS") {
 min_rer = min(df_to_plot[total_indices, "RER_NA"])
 min_vco2 = min(df_to_plot[total_indices, "VCO2(3)_[ml/h]"])
 min_vo2 = min(df_to_plot[total_indices, "VO2(3)_[ml/h]"])
+} else {
+   min_rer = min(df_to_plot[c(indices_to_discard, indices_to_keep), "RER_NA"])
+   min_vco2 = min(df_to_plot[c(indices_to_discard, indices_to_keep), "VCO2(3)_[ml/h]"])
+   min_vo2 = min(df_to_plot[c(indices_to_discard, indices_to_keep), "VO2(3)_[ml/h]"])
+}
 
 # weir formula
 rmr = 1440 * (3.9 * min_vo2 / 1000 + 1.1 * min_vco2 / 1000)
