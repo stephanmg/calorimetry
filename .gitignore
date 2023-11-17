@@ -75,3 +75,4 @@ pngs/
 
 # csv files
 csv_files/
+*csv
