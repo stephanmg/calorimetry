@@ -40,8 +40,8 @@ import_promethion <- function(file, file_out) {
    data$Date <- sub("^(....)/(..)/(..)", "\\3.\\2.\\1", data$Date)
    data$Time <- sub("(..):(..):(..)", "\\1:\\2", data$Time)
 
-   for (i in 1:nrow(animals_with_weights)) {
-      header[nrow(header) + 1,] <- c(animals_with_weights[i, ]["Animal"], animals_with_weights[i, ]["Animal"], animals_with_weights[i, ]["BodyMass_Mnz"], rep("", NUM_METADATA))
+   for (i in seq_len(nrow(animals_with_weights))) {
+      header[nrow(header) + 1, ] <- c(animals_with_weights[i, ]["Animal"], animals_with_weights[i, ]["Animal"], animals_with_weights[i, ]["BodyMass_Mnz"], rep("", NUM_METADATA))
    }
 
    # units must follow the column order in the compiled data datafame

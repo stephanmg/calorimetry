@@ -777,7 +777,7 @@ do_plotting <- function(file, input, exclusion, output) {
    metadata <- metadata[seq(2, nrow(metadata)), ]
    #print(metadata$Weight)
 
-   # TODO: Make for loop more efficient somehow, perhaps with the following statement:
+   # FIXME: Make for loop more efficient somehow, perhaps with the following statement:
    # by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
    for (i in 1:nrow(finalC1)) {
       js <- which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
@@ -887,12 +887,7 @@ do_plotting <- function(file, input, exclusion, output) {
    },
    Raw = {
       C1meta_tmp <- C1meta
-      #print(C1meta_tmp)
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      #print("colnames metadata:")
-      #print(colnames(C1meta_tmp))
-      #print("colnames fin1lC1")
-      #print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
    write.csv2(df_to_plot, file = "finalC1.csv")
@@ -914,8 +909,6 @@ do_plotting <- function(file, input, exclusion, output) {
       mylabel <- "RER"
    }
 
-   #print("to plot names")
-   #print(names(df_to_plot))
    names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
    p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
