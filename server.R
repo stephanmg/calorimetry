@@ -905,6 +905,11 @@ do_plotting <- function(file, input, exclusion, output) {
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    }
 
+   if (startsWith(input$myr, "Temp")) {
+      mylabel <- paste0(input$myr, sep = "", "_C") 
+      names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+   }
+
    if (startsWith(input$myr, "RER")) {
       mylabel <- "RER"
    }
@@ -1147,7 +1152,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2")))
+         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
     })
 
    observeEvent(input$plot_type, {
