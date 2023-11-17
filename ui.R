@@ -189,6 +189,7 @@ sidebar_content <- sidebarPanel(
    h2("Advanced options"),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", h3("Time Interval or Steady-State method to estimate RMR")),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
+   conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", sliderInput("rmr_method_frequency", "Frequency", min=0, max=30, value=10)),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", sliderInput("rmr_method_begin", "Duration", min=3, max=10, value=3)),
    conditionalPanel(condition = "input.rmr_method == 'SS'", h4("CVs")),
    conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VO2", "VO2", min=0, max=100, value=10)),
