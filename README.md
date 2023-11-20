@@ -46,9 +46,5 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 ## Demonstration of application
 Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
 
-
-# Citation
-TODO add after publication
-
 # Latest changes
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
