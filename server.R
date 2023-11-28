@@ -27,6 +27,7 @@ source("inc/locomotion.R") # for locomotion probability heatmap
 source("inc/timeline.R") # for colorizing timeline by day/night rhythm
 source("inc/locomotion_budget.R") # for locomotion budget
 source("inc/guide.R") # for guide
+source("inc/do_ancova.R")# for ancova
 
 
 
@@ -762,55 +763,57 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1[, "Weight"] <- NA
    finalC1[, "Gender"] <- NA
 
-   # The metadata from the excel spreadsheet
-   my_data <- read_excel(input$metadatafile$datapath)
+   if (!is.null(input$Metadatafile$datapath))
+   {
+      # The metadata from the excel spreadsheet
+      my_data <- read_excel(input$metadatafile$datapath)
 
-   df <- tbl_df(my_data) # TODO: use as_tibble (tbl_df deprecated)
-   # TODO: based on covariate extract a different line, weight is in line 26
-   # lean in 27 and fat in 28 line... (this data comes from the Excel metadata sheet)
-   a <- df[21, ] %>% slice(1) %>% unlist(., use.names = FALSE)
-   c <- df[23, ] %>% slice(1) %>% unlist(., use.names = FALSE)
-   b <- df[26, ] %>% slice(1) %>% unlist(., use.names = FALSE)
-   metadata <- data.frame(a, b, c)
-   metadata <- na.omit(metadata)
-   names(metadata) <- c("Weight", "Animal No._NA", "Gender")
-   metadata <- metadata[seq(2, nrow(metadata)), ]
-   #print(metadata$Weight)
+      df <- tbl_df(my_data) # TODO: use as_tibble (tbl_df deprecated)
+      # TODO: based on covariate extract a different line, weight is in line 26
+      # lean in 27 and fat in 28 line... (this data comes from the Excel metadata sheet)
+      a <- df[21, ] %>% slice(1) %>% unlist(., use.names = FALSE)
+      c <- df[23, ] %>% slice(1) %>% unlist(., use.names = FALSE)
+      b <- df[26, ] %>% slice(1) %>% unlist(., use.names = FALSE)
+      metadata <- data.frame(a, b, c)
+      metadata <- na.omit(metadata)
+      names(metadata) <- c("Weight", "Animal No._NA", "Gender")
+      metadata <- metadata[seq(2, nrow(metadata)), ]
+      #print(metadata$Weight)
 
-   # FIXME: Make for loop more efficient somehow, perhaps with the following statement:
-   # by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
-   for (i in 1:nrow(finalC1)) {
-      js <- which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
-      if (length(js) > 0) {
-         w <- metadata[js, "Weight"]
-         w2 <- metadata[js, "Gender"]
-         finalC1[i, "Weight"] <- as.numeric(w)
-         finalC1[i, "Gender"] <- w2
+      # FIXME: Make for loop more efficient somehow, perhaps with the following statement:
+      # by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
+      for (i in 1:nrow(finalC1)) {
+         js <- which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))
+         if (length(js) > 0) {
+            w <- metadata[js, "Weight"]
+            w2 <- metadata[js, "Gender"]
+            finalC1[i, "Weight"] <- as.numeric(w)
+            finalC1[i, "Gender"] <- w2
+         }
       }
-   }
-   # filter df by indexing
-   if (length(input$checkboxgroup_gender) == 0) {
-      finalC1 <- NA
-   } else {
-      if (! length(input$checkboxgroup_gender) == 2) {
-          finalC1 <- finalC1[finalC1$Gender == input$checkboxgroup_gender, ]
-    }
-   }
-   names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
-   finalC1$Animal <- as.factor(finalC1$Animal)
-   write.csv2(finalC1, file = "finalC1.csv")
-   finalC1 <- drop_na(finalC1)
-   finalC1 <- aggregate(finalC1, by = list(AnimalGroup = finalC1$Animal), FUN = mean)
+      # filter df by indexing
+      if (length(input$checkboxgroup_gender) == 0) {
+         finalC1 <- NA
+      } else {
+         if (! length(input$checkboxgroup_gender) == 2) {
+            finalC1 <- finalC1[finalC1$Gender == input$checkboxgroup_gender, ]
+      }
+      }
+      names(finalC1)[names(finalC1) == "Animal No._NA"] <- "Animal"
+      finalC1$Animal <- as.factor(finalC1$Animal)
+      write.csv2(finalC1, file = "finalC1.csv")
+      finalC1 <- drop_na(finalC1)
+      finalC1 <- aggregate(finalC1, by = list(AnimalGroup = finalC1$Animal), FUN = mean)
 
-   p <- ggscatter(finalC1, x = "Weight", y = "HP", add = "reg.line",
-    add.params = list(color = "blue", fill = "lightgray"), conf.int = TRUE)
-   p <- p + xlab("Weight [g]") + ylab("Mean heat production")
-     p <- ggplotly(p) %>% config( toImageButtonOptions = list(
-      format = "svg",
-      width = 1200,
-      height = 600
-    )
-  )
+      p <- ggscatter(finalC1, x = "Weight", y = "HP", add = "reg.line",
+      add.params = list(color = "blue", fill = "lightgray"), conf.int = TRUE)
+      p <- p + xlab("Weight [g]") + ylab("Mean heat production")
+      p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+         format = "svg",
+         width = 1200,
+         height = 600
+      ))
+   }
    # TOOD: add summary statistics to plot
    #print(summary(lm(HP ~ Weight, finalC1)))
    message <- NULL
@@ -820,6 +823,8 @@ do_plotting <- function(file, input, exclusion, output) {
    }
    return(list("plot" = p, status = message, metadata = metadata))
    },
+
+
    Locomotion = {
       # TODO: Implement / Fix for plotly plotting not supported yet of the given graph type
       file <- input[[paste0("File", 1)]]
@@ -973,7 +978,15 @@ do_plotting <- function(file, input, exclusion, output) {
      }
      write.csv2(TEE, "tee.csv")
 
-  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_boxplot() + geom_point() # position = position_jitterdodge())
+    my_covariate <- "Weight..g."
+
+   metadata <- data.frame(c(C1meta[my_covariate], C1meta["Diet"]), `$`(C1meta, "Animal.No."))
+   names(metadata) <- c("Weight", "Diet", "Animals")
+   print(metadata)
+   write.csv2(metadata, "tee_metadata.csv")
+
+
+  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_boxplot() # position = position_jitterdodge())
   p <- p +  geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
   if (input$with_facets) {
@@ -987,6 +1000,10 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
+   results = do_ancova(TEE, metadata)
+   pp <- results$plot_summary + ggtitle(paste("p-value (Diets): ", results$statistics$p))
+   output$summary <- renderPlotly(pp)
+   output$details <- renderPlotly(results$plot_details + ggtitle(paste("p-value (Diets): ", results$statistics$p)))
 
  # if (input$with_facets) {
  #     if (!is.null(input$facets_by_data_one)) {
@@ -1400,8 +1417,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
             HTML(paste(str1, sep = "<br/>"))
             })
-               hideTab(inputId = "additional_content", target="Summary statistics")
-               hideTab(inputId = "additional_content", target="Details")
+               showTab(inputId = "additional_content", target="Summary statistics")
+               showTab(inputId = "additional_content", target="Details")
            } else {
             output$summary <- renderPlotly(NULL)
             output$explanation <- renderUI({
@@ -1409,8 +1426,8 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
             })
            }
            # hide tabs as we do not have Summary statistics or Details as of now
-           hideTab(inputId = "additional_content", target="Summary statistics")
-           hideTab(inputId = "additional_content", target="Details")
+           #hideTab(inputId = "additional_content", target="Summary statistics")
+           #hideTab(inputId = "additional_content", target="Details")
            # plot
            real_data$plot
         }
