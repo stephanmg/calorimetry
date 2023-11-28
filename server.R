@@ -983,6 +983,9 @@ do_plotting <- function(file, input, exclusion, output) {
    metadata <- data.frame(c(C1meta[my_covariate], C1meta["Diet"]), `$`(C1meta, "Animal.No."))
    names(metadata) <- c("Weight", "Diet", "Animals")
    print(metadata)
+   metadata <- data.frame(lapply(metadata, function(x) {
+       gsub("\\.", ",", x)
+   }))
    write.csv2(metadata, "tee_metadata.csv")
 
 
@@ -1001,9 +1004,23 @@ do_plotting <- function(file, input, exclusion, output) {
       }
    }
    results = do_ancova(TEE, metadata)
-   pp <- results$plot_summary + ggtitle(paste("p-value (Diets): ", results$statistics$p))
+   pp <- results$plot_summary
    output$summary <- renderPlotly(pp)
-   output$details <- renderPlotly(results$plot_details + ggtitle(paste("p-value (Diets): ", results$statistics$p)))
+   output$details <- renderPlotly(results$plot_details)
+   output$explanation <- renderText(results$statistics$p)
+   output$explanation <- renderUI({
+   str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
+   str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
+   str3 <- "<hr/>"
+   str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+   str5 <- paste("<strong>Statistics</strong><br/><br/> p-value: ", results$statistics$p)
+   str6 <- paste("<br/><br/> p-value (adjusted): ", results$statistics$p.adj)
+   str7 <- paste("<br/><br/> significance:", results$statistics$p.adj.signif)
+   str8 <- paste("<br/> df: ", results$statistics$df)
+   str9 <- paste("<br/> statistic: ", results$statistics$statistic)
+   HTML(paste(str1, str2, str3, str4, str5, str6, str7, str8, str9, sep = "<br/>"))
+   })
+ 
 
  # if (input$with_facets) {
  #     if (!is.null(input$facets_by_data_one)) {
@@ -1410,13 +1427,13 @@ p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
                hideTab(inputId = "additional_content", target="Summary statistics")
                hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
-            output$explanation <- renderUI({
-               str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
-               str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
-               str3 <- "<hr/>"
-               str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-            HTML(paste(str1, sep = "<br/>"))
-            })
+            #output$explanation <- renderUI({
+            #   str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
+            #   str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
+            #   str3 <- "<hr/>"
+            #   str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+            #HTML(paste(str1, sep = "<br/>"))
+            #})
                showTab(inputId = "additional_content", target="Summary statistics")
                showTab(inputId = "additional_content", target="Details")
            } else {
