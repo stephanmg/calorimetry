@@ -481,11 +481,14 @@ do_plotting <- function(file, input, exclusion, output) {
       #print(colnames(finalC1))
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
-
+      # MK formulas
       if (input$goxlox == "Glucose oxidation") {
          df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VCO2(3)_[ml/h]`
-      } else {
+      } else if (input$goxlox == "Lipid oxidation") {
          df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
+      # Turku formulas
+      } else if (input$goxlox == "Nitrogen oxidation") {
+         df_to_plot$GoxLox <- 6.25 # this is constant 6.25 g N per minute
       }
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
       df_to_plot$Animals <- colors
