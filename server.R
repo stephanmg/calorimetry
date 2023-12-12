@@ -75,7 +75,8 @@ do_export2 <- function(format, input, output, file_output) {
 
          if (format == "Excel") {
             tmp <- cbind(real_data$data[values(h)], real_data$animals)
-           write_xlsx(tmp, path = file_output)
+            df <- read.csv2("finalC1.csv")
+           write_xlsx(df, path = file_output)
          }
       }
    }
