@@ -4,7 +4,7 @@
 <svg
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="1.2.2 (732a01da63, 2022-12-09, custom)"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
    width="192.73976pt"
    height="272.29871pt"
    sodipodi:docname="logo_shiny.svg"
@@ -30,11 +30,11 @@
   <defs
      id="defs5" />
   <sodipodi:namedview
-     inkscape:cy="297.23483"
-     inkscape:cx="25.244602"
+     inkscape:cy="219.46517"
+     inkscape:cx="47.639007"
      inkscape:zoom="1.2279853"
-     inkscape:window-height="1043"
-     inkscape:window-width="1920"
+     inkscape:window-height="1001"
+     inkscape:window-width="1728"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -43,8 +43,8 @@
      id="base"
      showguides="true"
      inkscape:guide-bbox="true"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
+     inkscape:window-x="2560"
+     inkscape:window-y="38"
      inkscape:current-layer="svg2"
      inkscape:showpageshadow="2"
      inkscape:pagecheckerboard="0"
@@ -54,7 +54,7 @@
      inkscape:window-maximized="1" />
   <g
      id="g4423"
-     transform="translate(-28.413498,-32.388013)">
+     transform="translate(-26.413498,-32.388013)">
     <path
        style="fill:#e73900;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1pt;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        d="M 58.954538,347.23395 C -9.0375362,242.85087 73.060087,233.52847 52.118826,90.624027 103.47625,158.04097 117.81456,240.73539 139.37527,265.19403 c 14.88035,19.20859 22.21919,42.39489 20.21849,66.21726 -0.20173,18.85366 23.6251,41.69831 17.1098,59.3005 -34.64389,-27.74877 -94.232504,-9.66226 -117.749022,-43.47784 z"
@@ -116,4 +116,11 @@
        id="path2067"
        sodipodi:nodetypes="ccc" />
   </g>
+  <rect
+     style="fill:none;stroke:#ff0000;stroke-width:2.33725;stroke-dasharray:none"
+     id="rect108468"
+     width="253.52312"
+     height="356.13019"
+     x="1.4973094"
+     y="3.4973099" />
 </svg>
