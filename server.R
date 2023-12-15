@@ -718,7 +718,7 @@ do_plotting <- function(file, input, exclusion, output) {
    df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
    df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
    df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
-   p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_boxplot()
+   p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
 
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
@@ -993,7 +993,7 @@ do_plotting <- function(file, input, exclusion, output) {
    write.csv2(metadata, "tee_metadata.csv")
 
 
-  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_boxplot() # position = position_jitterdodge())
+  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_violin() # position = position_jitterdodge())
   p <- p +  geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
   if (input$with_facets) {
@@ -1346,7 +1346,7 @@ server <- function(input, output, session) {
             df <- real_data$data
             df$Animal <- as.factor(df$Animal)
             df$Component <- as.factor(df$Component)
-            p <- ggplot(df, aes(x=Animal, y=HP, color=Animal)) + geom_boxplot() + geom_point(position=position_jitter(0.1))
+            p <- ggplot(df, aes(x=Animal, y=HP, color=Animal)) + geom_violin() + geom_point(position=position_jitter(0.1))
             p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep=""))
 
 
