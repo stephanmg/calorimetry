@@ -6,7 +6,7 @@ jobs:
   make-badges:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
         with:
           ref: data
 
