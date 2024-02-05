@@ -224,6 +224,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # TODO: C1meta obsolete when using metadata sheet, implement/use Lea's metadata sheet
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+
    # Curate data frame
    C1.head <- read.table(file, # input file
                         header = FALSE, # no header
@@ -236,7 +237,6 @@ do_plotting <- function(file, input, exclusion, output) {
                         sep = sep,
                         dec = dec)
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
-
 
    # unite data sets (unite in tidyverse package)
    # print(C1)
@@ -318,7 +318,6 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    # Step #9 - define 1/n-hours steps
-   # TODO: Check that this implementation is actually correct as taken from provided code
    if (input$averaging == 10) { # 1/6 hours
       C1 <- C1 %>%
       mutate(timeintervalinmin = case_when(minutes <= 10 ~ 0,
@@ -439,9 +438,7 @@ do_plotting <- function(file, input, exclusion, output) {
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
-   # TODO: Put filtering for light cycle back in (useful for RMR calculation)
-   # print("before filtering!")
-   # print(colnames(finalC1))
+   # TODO: For testing purposes. Add filtering for light cycle back in (useful for RMR calculation)
    if (! is.null(input$light_cycle)) {
       if ("LightC_[%]" %in% colnames(finalC1)) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
@@ -582,7 +579,7 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    },
-   # TODO: fix issues with multiple files
+   # TODO: Fix issues with multiple files
    RestingMetabolicRate = {
       component2 <- ""
       if (length(input$cvs) == 2) {
@@ -784,7 +781,7 @@ do_plotting <- function(file, input, exclusion, output) {
       metadata <- metadata[seq(2, nrow(metadata)), ]
       #print(metadata$Weight)
 
-      # FIXME: Make for loop more efficient somehow, perhaps with the following statement:
+      # FIXME: Make for loop more efficient somehow, perhaps the following will work:
       # by(finalC1, seq_len(nrow(finalC1)), function(row) row["Weight"] = which(`$`(metadata, "Animal No._NA") == row["Animal No._NA"] %>% pull("Animal No._NA")))
       for (i in 1:nrow(finalC1)) {
          js <- which(`$`(metadata, "Animal No._NA") == finalC1[i, "Animal No._NA"] %>% pull("Animal No._NA"))

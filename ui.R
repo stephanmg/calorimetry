@@ -109,7 +109,7 @@ sidebar_content3 <- sidebarPanel(
    uiOutput("fileInputs"),
 )
 
-# TODO/Note: Should change to table format for a better visual alignment
+# Note: Should change to table format for a better visual alignment of components
 sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
