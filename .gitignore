@@ -76,3 +76,6 @@ pngs/
 # csv files
 csv_files/
 *csv
+
+# pdf files
+*.pdf
