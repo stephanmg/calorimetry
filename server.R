@@ -29,9 +29,6 @@ source("inc/locomotion_budget.R") # for locomotion budget
 source("inc/guide.R") # for guide
 source("inc/do_ancova.R")# for ancova
 
-
-
-
 ################################################################################
 # Helper functions
 ################################################################################
