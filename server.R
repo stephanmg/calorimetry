@@ -542,14 +542,14 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    if (input$wstats) {
-      p <- p + stat_cor(method = "pearson")
+      p <- p + stat_cor(method = input$wmethod)
    }
 
 
   lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
   colnames(lights) <- c("x", "y")
   if (input$timeline) {
-   my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+   my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
    p <- p + my_lights
   }
 
@@ -899,7 +899,7 @@ do_plotting <- function(file, input, exclusion, output) {
   lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
   colnames(lights) <- c("x", "y")
   if (input$timeline) {
-      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
       p <- p + my_lights
   }
 
@@ -1179,6 +1179,12 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
             output$wstats <- renderUI(
                checkboxInput(inputId = "wstats", label = "Display statistics"))
+         })
+
+
+   observeEvent(input$plot_type, {
+            output$wmethod <- renderUI(
+               selectInput(inputId = "wmethod", label = "Statistic", choices = c("pearson", "kendall", "spearman")))
          })
 
    observeEvent(input$plot_type, {
