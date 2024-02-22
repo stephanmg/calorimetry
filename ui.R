@@ -4,6 +4,7 @@ library("shinybusy")
 library("shinythemes")
 library("shinyWidgets")
 library("shinyhelper")
+library("colourpicker")
 library(cicerone)
 
 ################################################################################
@@ -109,7 +110,7 @@ sidebar_content3 <- sidebarPanel(
    uiOutput("fileInputs"),
 )
 
-# TODO/Note: Should change to table format for a better visual alignment
+# Note: Should change to table format for a better visual alignment of components
 sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
@@ -165,7 +166,7 @@ sidebar_content <- sidebarPanel(
    selectInput("plot_type", "Type:", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "EstimateRMR"))),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
-   # TODO: Diet, Genotype, Sex, and other fields need to come from metadata
+   # TODO: Diet, Genotype, Sex, and other fields need to come from metadata data frame in a standardized way
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
    conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId = "only_full_days", label = "Only full days", value=TRUE)),
    conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
@@ -191,14 +192,17 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", sliderInput("rmr_method_frequency", "Frequency", min=0, max=30, value=10)),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", sliderInput("rmr_method_begin", "Duration", min=3, max=10, value=3)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", h4("CVs")),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VO2", "VO2", min=0, max=100, value=10)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VCO2", "VCO2", min=0, max=100, value=10)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_RER", "RER", min=0, max=100, value=5)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VE", "VE*", min=0, max=100, value=10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", h4("CVs")),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_VO2", "VO2", min=0, max=100, value=10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_VCO2", "VCO2", min=0, max=100, value=10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_RER", "RER", min=0, max=100, value=5)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_VE", "VE*", min=0, max=100, value=10)),
    h3("Light cycle configuration"),
+   checkboxInput(inputId = "override_metadata_light_cycle", label="Override"),
    sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 7),
    sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 19),
+   colourInput(inputId = "light_cycle_day_color", label = "Color day", "yellow"),
+   colourInput(inputId = "light_cycle_night_color", label = "Color night", "grey"),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
@@ -206,9 +210,10 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmeans")),
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wstats")),
+   conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmethod")),
    conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
-   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation"))),
+   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE)),
@@ -216,7 +221,7 @@ sidebar_content <- sidebarPanel(
    h3("Time averaging of raw data"),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
-   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
    )),
    hr(),
    fluidPage(
@@ -240,8 +245,6 @@ sidebar_content <- sidebarPanel(
    sliderInput("exclusion_start", "Exclude hours from end of measurements", 0, 24, 2, step = 1),
    checkboxInput(inputId = "outliers", label = "Remove outliers"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
-   h3("Plotting status"),
-   span(textOutput("message"), style = "color:red"),
    )),
    hr(),
   fluidPage(
@@ -261,10 +264,17 @@ sidebar_content <- sidebarPanel(
       tabPanelBody("DE",
    selectInput("export_format", "Format", choices = c("CalR", "Excel")),
    h2("Folder"),
-   textInput("export_file_name", "File name (Otherwise autogenerated)"),
+   textInput("export_file_name", "File name (Leave empty for auto-generation)"),
    downloadButton("downloadData", "Download")
-   ))
+   )),
+   hr(),
+    fluidPage(
+      fluidRow(
+         column(8, style = "padding: 0px;",
+         span(textOutput("message"), style = "color:red")
+    )))
 )
+
 ################################################################################
 # Main panel
 ################################################################################
@@ -274,7 +284,7 @@ main_content <- mainPanel(
       tabPanel("Plot", plotlyOutput("plot")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
       tabPanel("Details", plotlyOutput("details")),
-      tabPanel("Help", htmlOutput("explanation"))
+      tabPanel("Explanation", htmlOutput("explanation"))
    )
 )
 

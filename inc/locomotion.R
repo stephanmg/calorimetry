@@ -20,7 +20,8 @@ plot_locomotion <- function(file, x_min_food=2, x_max_food=9.5, y_min_food=4, y_
 	#print(cols)
 
 	df <- df[rep(seq(nrow(df)), df$Durat_Sec),]
-	p2 <- ggplot(df, aes(Y_cm, X_cm)) + geom_density_2d_filled(contour_var="ndensity") 
+	p2 <- ggplot(df, aes(Y_cm, X_cm)) + stat_density_2d(geom = "raster", aes(fill=after_stat(density)), contour=FALSE) +  scale_fill_viridis_c()
+
 	p2 <- p2 + facet_wrap(~ Animal, ncol=cols)
 	p2 <- p2 + xlab("Position Y [cm]")
 	p2 <- p2 + ylab("Position X [cm]")

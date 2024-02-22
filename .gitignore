@@ -75,4 +75,11 @@ pngs/
 
 # csv files
 csv_files/
-*csv
+*.csv
+csvs/
+
+# pdf files
+*.pdf
+
+# old stuff (backup)
+old/

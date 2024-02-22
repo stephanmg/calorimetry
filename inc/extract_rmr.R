@@ -29,12 +29,12 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
    dat <- transform(sub_df, sum = psum(CoV1, CoV2))
    # print(dat)
 
-   # TODO: return n > 1 best values, then create a binned scatter plot (y axis)
+   # FIXME: return n > 1 best values, then create a binned scatter plot (y axis)
    index <- which.minn(dat$sum, n = 1)
    # plot data of minimum energy expenditure per interval with one index
    # print("RMR in this measurement (interval):")
 
-   # TODO: HP needs to be calculated with O2 and CO2 an all indices n > 1
+   # FIXME: HP needs to be calculated with O2 and CO2 an all indices n > 1
    # HP means heat production, either sorted by O2 or CO2
    # print(dat[index, ]$HP)
    dat[index, ]$HP
@@ -66,8 +66,6 @@ create_df <- function(df, component, M, N, percentage) {
    df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
    # TODO: Check for scaling correctness
    df_plot$HP <- df_plot$HP / 24 / (60 / INTERVAL_LENGTH) / INTERVAL_LENGTH
-   #df_plot$HP <- df_plot$HP / 24 / 6
-   #df_plot$Time <- df_plot$Time * floor(N/M)
    df_plot
 }
 
@@ -91,7 +89,7 @@ extract_rmr <- function(data, M, PERCENTAGE) {
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
    df_foo <- data.frame(df$HP, seq(1, N))
    colnames(df_foo) <- c("HP", "Time")
-   df_foo$HP <- df_foo$HP / 24 # TODO/FIXME: dubious constant?! over day? okay?!
+   df_foo$HP <- df_foo$HP / 24 # Note normalize over day (24 hours)
    df_foo$Time <- df_foo$Time
    df_plot_total <- rbind(df_plot_O2, df_plot_CO2)
    df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)),
