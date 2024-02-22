@@ -467,7 +467,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
    geom_point() +
-   stat_smooth(method = "lm") + # add regression line and pearson product moment correlation
+   stat_smooth(method = "lm") + # adds regression line and pearson product moment correlation
    stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
    },
    GoxLox = {
@@ -478,10 +478,10 @@ do_plotting <- function(file, input, exclusion, output) {
       # MK formulas
       if (input$goxlox == "Glucose oxidation") {
          df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VCO2(3)_[ml/h]`
-      } else if (input$goxlox == "Lipid oxidation") {
+      } else if (input$goxlox == "Lipid oxidation" || input$goxlox == "Fat oxidation") {
          df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
       # Turku formulas
-      } else if (input$goxlox == "Nitrogen oxidation") {
+      } else if (input$goxlox == "Nitrogen oxidation" || input$goxlox == "Protein oxidation") {
          df_to_plot$GoxLox <- 6.25 # this is constant 6.25 g N per minute
       }
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
@@ -549,7 +549,8 @@ do_plotting <- function(file, input, exclusion, output) {
   lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
   colnames(lights) <- c("x", "y")
   if (input$timeline) {
-   p <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+   my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+   p <- p + my_lights
   }
 
    p <- p + xlab("Time [h]")
@@ -891,8 +892,18 @@ do_plotting <- function(file, input, exclusion, output) {
 
    names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
+
    p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
    mylabel <- gsub("_", " ", mylabel)
+
+  lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
+  colnames(lights) <- c("x", "y")
+  if (input$timeline) {
+      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0)
+      p <- p + my_lights
+  }
+
+
    p <- p + ylab(mylabel)
    p <- p + xlab("Time [h]")
 

@@ -191,12 +191,13 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", sliderInput("rmr_method_frequency", "Frequency", min=0, max=30, value=10)),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMR'", sliderInput("rmr_method_begin", "Duration", min=3, max=10, value=3)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", h4("CVs")),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VO2", "VO2", min=0, max=100, value=10)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VCO2", "VCO2", min=0, max=100, value=10)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_RER", "RER", min=0, max=100, value=5)),
-   conditionalPanel(condition = "input.rmr_method == 'SS'", sliderInput("SS_method_VE", "VE*", min=0, max=100, value=10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", h4("CVs")),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_VO2", "VO2", min=0, max=100, value=10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_VCO2", "VCO2", min=0, max=100, value=10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_RER", "RER", min=0, max=100, value=5)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMR'", sliderInput("SS_method_VE", "VE*", min=0, max=100, value=10)),
    h3("Light cycle configuration"),
+   checkboxInput(inputId = "override_metadata_light_cycle", label="Override"),
    sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 7),
    sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 19),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
@@ -216,7 +217,7 @@ sidebar_content <- sidebarPanel(
    h3("Time averaging of raw data"),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
-   conditionalPanel(condition = "input.plot.type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
    )),
    hr(),
    fluidPage(
@@ -265,6 +266,7 @@ sidebar_content <- sidebarPanel(
    downloadButton("downloadData", "Download")
    ))
 )
+
 ################################################################################
 # Main panel
 ################################################################################
