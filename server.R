@@ -863,7 +863,7 @@ do_plotting <- function(file, input, exclusion, output) {
       # plot RMR as histogram
       df <- data.frame(c(rmr))
       names(df) <- rmr
-      p <- ggplot(df, aes(x = rmr)) + geom_histogram()
+      p <- ggplot(df, aes(x = rmr)) + geom_histogram(fill="green")
       ggplotly(p)
    },
    Raw = {
