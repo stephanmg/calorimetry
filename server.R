@@ -229,7 +229,7 @@ do_plotting <- function(file, input, exclusion, output) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   # TODO: C1meta obsolete when using metadata sheet, implement/use Lea's metadata sheet for all data types
+   # TODO: C1meta obsolete when using metadata sheet, implement/use metadata sheet for all data types
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    #############################################################################
@@ -746,7 +746,7 @@ do_plotting <- function(file, input, exclusion, output) {
       # The metadata from the excel spreadsheet
       my_data <- read_excel(input$metadatafile$datapath)
 
-      df <- tbl_df(my_data) # TODO: use as_tibble (tbl_df deprecated)
+      df <- tbl_df(my_data) 
       # TODO: based on covariate extract a different line, weight is in line 26
       # lean in 27 and fat in 28 line... (this data comes from the Excel metadata sheet)
       a <- df[21, ] %>% slice(1) %>% unlist(., use.names = FALSE)
@@ -941,7 +941,7 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1$HP2 <- finalC1$HP2 / 6
 
    # TODO: use input$only_full_days to filter out here no full days...
-   # TODO if diet then group plot by diet
+   # TODO: if diet then group plot by diet
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
 
@@ -1357,7 +1357,7 @@ df1 <- rename(df1, Animals=Animal)
 #df1 <- aggregate(Value~Component, df1, sum)
 #df1 <- df1 %>% distinct(Component, Value, cgroups, .keep_all=TRUE)
 #print(head(df1))
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO fixme: divide by days and measuring interval
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO: divide by days and measuring interval
 df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/15)
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))

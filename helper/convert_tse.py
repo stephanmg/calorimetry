@@ -34,7 +34,7 @@ def prepend_line(file_name, line):
 
 def convert_tse():
     """Converts some non-standard TSE format to TSE format"""
-    # TODO: Need to adjust this depending on TSE file... perhaps automatically...
+    # Note: The indices might need to be adjust depending on TSE file type
     NUMBER_OF_SEPARATING_EMPTY_LINES = 1  # 3
     OFFSET_EMPTY_LINE_TO_STOP = 1  # 0
     DATA_OFFSET = 4  # 3
@@ -90,7 +90,7 @@ def convert_tse():
     ]
     animals = {key: [] for key in keys}
 
-    # TODO: Need to adjust this depending on TSE file...
+    # Note: The indices might need to be adjust depending on TSE file type
     identifiers = {
         "XY+YZ": 9,  # 0
         "Time": 1,  # 1
