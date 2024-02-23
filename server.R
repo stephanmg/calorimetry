@@ -802,9 +802,12 @@ do_plotting <- function(file, input, exclusion, output) {
    return(list("plot" = p, status = message, metadata = metadata))
    },
    Locomotion = {
-      # TODO: Implement / Fix for plotly plotting not supported yet of the given graph type
       file <- input[[paste0("File", 1)]]
-      p <- plot_locomotion(file$datapath, input$x_min_food, input$x_max_food, input$y_min_food, input$y_max_food, input$x_min_scale, input$x_max_scale, input$y_min_scale, input$y_max_scale, input$x_min_bottle, input$x_max_bottle, input$y_min_bottle, input$y_max_bottle)
+      if (input$have_box_coordinates) {
+         p <- plot_locomotion(file$datapath, input$x_min_food, input$x_max_food, input$y_min_food, input$y_max_food, input$x_min_scale, input$x_max_scale, input$y_min_scale, input$y_max_scale, input$x_min_bottle, input$x_max_bottle, input$y_min_bottle, input$y_max_bottle)
+      } else {
+         p <- plot_locomotion(file$datapath)
+      }
       p
    },
    LocomotionBudget = {

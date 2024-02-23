@@ -128,7 +128,7 @@ sidebar_content <- sidebarPanel(
    )),
    tabsetPanel(id = "tabsHP", type = "hidden",
       tabPanelBody("HP",
-   add_busy_bar(color = "#FF0000"),
+   add_busy_bar(color = "#0FFF50"), # #50C878, # #AAFF00
    withMathJax(),
    div("Chose two of the established equations for calculating the heat production in mW. Note that HP and HP2 refer to the Heldmaier equations reported in Journal of Comparative Physiology 1975, 102:115-122:"), #nolint
    selectInput("variable1", "Select first equation", choices = c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini")),
@@ -201,8 +201,8 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "override_metadata_light_cycle", label="Override"),
    sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 7),
    sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 19),
-   colourInput(inputId = "light_cycle_day_color", label = "Color day", "yellow"),
-   colourInput(inputId = "light_cycle_night_color", label = "Color night", "grey"),
+   colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
+   colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
