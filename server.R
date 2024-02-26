@@ -946,10 +946,11 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1$HP2 <- finalC1$HP2 / 6
 
    # TODO: use input$only_full_days to filter out here no full days...
-   # TODO: if diet then group plot by diet
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
 
+
+   # TODO: here we need to rename Facet = Animals or Diet or Genotype (coming from true metadata )
    if (input$with_facets) {
       if (input$facets_by_data_one %in% names(finalC1)) {
          TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
@@ -969,75 +970,66 @@ do_plotting <- function(file, input, exclusion, output) {
      }
      write.csv2(TEE, "tee.csv")
 
-    my_covariate <- "Weight..g."
-
-# TODO obsolete, should probably be removed as not all TSE files really report these metadata fields...
-   metadata <- data.frame(c(C1meta[my_covariate], C1meta["Diet"]), `$`(C1meta, "Animal.No."))
-   names(metadata) <- c("Weight", "Diet", "Animals")
-   print(metadata)
-   metadata <- data.frame(lapply(metadata, function(x) {
-       gsub("\\.", ",", x)
-   }))
-   write.csv2(metadata, "tee_metadata.csv")
-
-
   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_violin() # position = position_jitterdodge())
-  p <- p +  geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
+  p <- p + geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
            p <- p + facet_grid(as.formula(".~Facet"))
-          #  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+           #  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
          } else {
+           p <- p + facet_grid(as.formula("Facet~."))
            # p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-            p <- p + facet_grid(as.formula("Facet~."))
          }
       }
    }
 
    if (input$havemetadata) {
-   true_metadata <- get_true_metadata(input$metadatafile$datapath)
-   # TODO: read in metadata from metadata read in routine,  then offer ways to do ANOVA based on the MK use cases lean, fat and total body mass (see screenshot)
-   output$test <- renderUI({
-      tagList(
-         h4("Configuration"),
-         selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
-         selectInput("dep_var", "Dependent variable", choice=c("TEE")),
-         selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="genotype"),
-         selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
-         hr(style="width: 50%"),
-         h4("Advanced"),
-         selectInput("post_hoc_test", "Post-hoc test", choices=c("Bonferonni", "Tukey", "Spearman")),
-         sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
-         checkboxInput("check_test_assumptions", "Check test assumptions?"),
-         hr(style="width: 75%"),
-         renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
-      )
+      true_metadata <- get_true_metadata(input$metadatafile$datapath)
+      # TODO make use of these for facets above
+      #output$condition_type <- renderUI( { selectInput("condition_type", "Condition type", choices=colnames(true_metadata))})
+      #output$facets_by_data_one <- renderUI( { selectInput("factes_by_data_one", "Select a group as facet", choices=colnames(true_metadata))})
+      output$test <- renderUI({
+         tagList(
+            h4("Configuration"),
+            selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
+            selectInput("dep_var", "Dependent variable", choice=c("TEE")),
+            selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="genotype"),
+            selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
+            hr(style="width: 50%"),
+            h4("Advanced"),
+            selectInput("post_hoc_test", "Post-hoc test", choices=c("Bonferonni", "Tukey", "Spearman")),
+            sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
+            checkboxInput("check_test_assumptions", "Check test assumptions?"),
+            hr(style="width: 75%"),
+            renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+         )
       })
 
-   output$details <- renderUI({
-      results = do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
-      tagList(
-         h3("Effect size"),
-         renderPlotly(results$plot_details + xlab(input$indep_var)),
-         hr(style="width: 75%"),
-         h4("Statistics"),
-         tags$ul(
-            tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
-            tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
-            tags$li(paste("df: ", results$statistics$df)),
-            tags$li(paste("test-statistic: ", results$statistics$statistic))
+      output$details <- renderUI({
+         results = do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
+         tagList(
+            h3("Effect size"),
+            renderPlotly(results$plot_details + xlab(input$indep_var)),
+            hr(style="width: 75%"),
+            h4("Statistics"),
+            tags$ul(
+               tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
+               tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
+               tags$li(paste("df: ", results$statistics$df)),
+               tags$li(paste("test-statistic: ", results$statistics$statistic))
+            )
          )
-      )
-    })
-   output$explanation <- renderText(results$statistics$p)
-   output$explanation <- renderUI({
-   str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
-   str2 <- "Depending on the two heat production / energy expenditure formulas chosen (HP and HP2)"
-   str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-   HTML(paste(str1, str2, str3, sep = "<br/>"))
-   })
+      })
+
+      output$explanation <- renderText(results$statistics$p)
+      output$explanation <- renderUI({
+      str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
+      str2 <- "Depending on the two heat production / energy expenditure formulas chosen (HP and HP2)"
+      str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+      HTML(paste(str1, str2, str3, sep = "<br/>"))
+      })
    } 
 
  # if (input$with_facets) {
@@ -1351,6 +1343,7 @@ server <- function(input, output, session) {
             metadata <- real_data$metadata
             my_var <- input$condition_type
             diets <- unique(metadata[[my_var]])
+            # TODO: can also replace here diets with real metadata information from sheet
             output$select_data_by <- renderUI(
                selectInput("select_data_by", "Condition", choices = diets)
             )

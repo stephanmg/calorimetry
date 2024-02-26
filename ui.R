@@ -169,6 +169,8 @@ sidebar_content <- sidebarPanel(
    # TODO: Diet, Genotype, Sex, and other fields need to come from metadata data frame in a standardized way
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices=c("mean", "median", "mean_sdl"))),
    conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId = "only_full_days", label = "Only full days", value=TRUE)),
+   # TODO: selectInput Diet genotype needs to be replaced with uiOutput 
+   #conditionalPanel(condition = "input.with_grouping == true", uiOutput("condition_type")),
    conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value=FALSE)),
