@@ -1035,9 +1035,8 @@ do_plotting <- function(file, input, exclusion, output) {
    output$explanation <- renderUI({
    str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
    str2 <- "Depending on the two heat production / energy expenditure formulas chosen (HP and HP2)"
-   str3 <- "<hr/>"
-   str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-   HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+   str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+   HTML(paste(str1, str2, str3, sep = "<br/>"))
    })
    } 
 
@@ -1358,6 +1357,8 @@ server <- function(input, output, session) {
            }
 
                if (input$plot_type == "RestingMetabolicRate") {
+                 showTab(inputId = "additional_content", target="Summary statistics")
+
             # old bar plot
             df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
             write.csv2(df_filtered, "rmr.csv")
@@ -1387,6 +1388,8 @@ server <- function(input, output, session) {
             df1 <- read.csv2("rmr.csv")
 df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals=Animal)
+df1$Animals = as.factor(df1$Animals)
+df2$Animals = as.factor(df2$Animals)
 #df1 <- aggregate(Value~Component, df1, sum)
 #df1 <- df1 %>% distinct(Component, Value, cgroups, .keep_all=TRUE)
 #print(head(df1))
@@ -1409,7 +1412,45 @@ df_total$Animals <- as.factor(df_total$Animals)
 p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill=TEE)) + geom_bar(stat="identity")
 p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
 
-            output$details <- renderPlotly(ggplotly(p2))
+            output$summary <- renderPlotly(ggplotly(p2))
+
+if (input$havemetadata) {
+   true_metadata <- get_true_metadata(input$metadatafile$datapath)
+   # TODO: read in metadata from metadata read in routine,  then offer ways to do ANOVA based on the MK use cases lean, fat and total body mass (see screenshot)
+   output$test <- renderUI({
+      tagList(
+         h4("Configuration"),
+         selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
+         selectInput("dep_var", "Dependent variable", choice=c("RMR")),
+         selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="genotype"),
+         selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
+         hr(style="width: 50%"),
+         h4("Advanced"),
+         selectInput("post_hoc_test", "Post-hoc test", choices=c("Bonferonni", "Tukey", "Spearman")),
+         sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
+         checkboxInput("check_test_assumptions", "Check test assumptions?"),
+         hr(style="width: 75%"),
+         renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+      )
+      })
+
+   output$details <- renderUI({
+      results = do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)
+      tagList(
+         h3("Effect size"),
+         renderPlotly(results$plot_details + xlab(input$indep_var)),
+         hr(style="width: 75%"),
+         h4("Statistics"),
+         tags$ul(
+            tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
+            tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
+            tags$li(paste("df: ", results$statistics$df)),
+            tags$li(paste("test-statistic: ", results$statistics$statistic))
+         )
+      )
+    })
+}
+
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
