@@ -281,9 +281,10 @@ sidebar_content <- sidebarPanel(
 main_content <- mainPanel(
    tabsetPanel(
       id = "additional_content",
-      tabPanel("Plot", plotlyOutput("plot")),
+      tabPanel("Basic plot", plotlyOutput("plot")),
+      tabPanel("Statistical testing", uiOutput("test")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
-      tabPanel("Details", plotlyOutput("details")),
+      tabPanel("Details", uiOutput("details")),
       tabPanel("Explanation", htmlOutput("explanation"))
    )
 )
