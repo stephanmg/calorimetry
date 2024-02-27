@@ -4,7 +4,7 @@ library(rstatix)
 library(broom)
 library(emmeans)
 
-do_ancova_alternative <- function(df1, df2, indep_var, group) {
+do_ancova_alternative <- function(df1, df2, indep_var, group, adjust_method="bonferroni") {
   df <- df1 %>% full_join(y=df2, by=c("Animals")) %>% na.omit()
 
 if (is.null(indep_var)) {
@@ -37,7 +37,7 @@ res.aov <- df %>% anova_test(TEE ~ Weight + group)
 pwc <- df %>% 
   emmeans_test(
     TEE ~ group, covariate = Weight,
-    p.adjust.method = "bonferroni"
+    p.adjust.method = adjust_method
     )
 print("after statistics")
 print(pwc)
@@ -50,7 +50,15 @@ p = ggline(get_emmeans(pwc), x = "group", y = "emmean") +
     subtitle = get_test_label(res.aov, detailed = TRUE),
     caption = get_pwc_label(pwc)
   )
-   return(list("plot_details" = p, "plot_summary"=p2, "statistics"=pwc))
+
+# Fit the model, the covariate goes first
+model <- lm(TEE ~ Weight + group, data=df)
+model.metrics = augment(model)
+shapiro <- shapiro_test(model.metrics$.resid)
+levene <- model.metrics %>% levene_test(.resid ~ group)
+
+
+   return(list("plot_details" = p, "plot_summary"=p2, "statistics"=pwc, "shapiro"= shapiro, "levene"=levene))
 }
 
 #do_ancova <- function(df1, df2) {

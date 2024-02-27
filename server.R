@@ -987,7 +987,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
    if (input$havemetadata) {
       true_metadata <- get_true_metadata(input$metadatafile$datapath)
-      # TODO make use of these for facets above
+      # TODO: make use of these for facets above
       #output$condition_type <- renderUI( { selectInput("condition_type", "Condition type", choices=colnames(true_metadata))})
       #output$facets_by_data_one <- renderUI( { selectInput("factes_by_data_one", "Select a group as facet", choices=colnames(true_metadata))})
       output$test <- renderUI({
@@ -1001,7 +1001,7 @@ do_plotting <- function(file, input, exclusion, output) {
             h4("Advanced"),
             selectInput("post_hoc_test", "Post-hoc test", choices=c("Bonferonni", "Tukey", "Spearman")),
             sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
-            checkboxInput("check_test_assumptions", "Check test assumptions?"),
+            checkboxInput("check_test_assumptions", "Check test assumptions?", value=TRUE),
             hr(style="width: 75%"),
             renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
          )
@@ -1010,7 +1010,7 @@ do_plotting <- function(file, input, exclusion, output) {
       output$details <- renderUI({
          results = do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
          tagList(
-            h3("Effect size"),
+            h3("Post-hoc testing"),
             renderPlotly(results$plot_details + xlab(input$indep_var)),
             hr(style="width: 75%"),
             h4("Statistics"),
@@ -1019,6 +1019,11 @@ do_plotting <- function(file, input, exclusion, output) {
                tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
                tags$li(paste("df: ", results$statistics$df)),
                tags$li(paste("test-statistic: ", results$statistics$statistic))
+            ),
+            h4("Test assumptions"),
+            tags$ul(
+               tags$li(paste("Homogeneity of variances (Levene)", results$levene$p)),
+               tags$li(paste("Normality of residuals (Shapiro-Wilk)", results$shapiro$p.value))
             )
          )
       })
@@ -1419,9 +1424,9 @@ if (input$havemetadata) {
          selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
          hr(style="width: 50%"),
          h4("Advanced"),
-         selectInput("post_hoc_test", "Post-hoc test", choices=c("Bonferonni", "Tukey", "Spearman")),
+         selectInput("post_hoc_test", "Post-hoc test", choices=c("bonferroni", "tukey", "spearman")),
          sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
-         checkboxInput("check_test_assumptions", "Check test assumptions?"),
+         checkboxInput("check_test_assumptions", "Check test assumptions?", value=TRUE),
          hr(style="width: 75%"),
          renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
       )
@@ -1430,7 +1435,7 @@ if (input$havemetadata) {
    output$details <- renderUI({
       results = do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)
       tagList(
-         h3("Effect size"),
+         h3("Post-hoc testing"),
          renderPlotly(results$plot_details + xlab(input$indep_var)),
          hr(style="width: 75%"),
          h4("Statistics"),
@@ -1439,6 +1444,11 @@ if (input$havemetadata) {
             tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
             tags$li(paste("df: ", results$statistics$df)),
             tags$li(paste("test-statistic: ", results$statistics$statistic))
+         ),
+         h4("Test assumptions"),
+         tags$ul(
+            tags$li(paste("Homogeneity of variances (Levene)", results$levene$p)),
+            tags$li(paste("Normality of residuals (Shapiro-Wilk)", results$shapiro$p.value))
          )
       )
     })
