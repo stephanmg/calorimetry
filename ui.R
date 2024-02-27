@@ -171,7 +171,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId = "only_full_days", label = "Only full days", value=TRUE)),
    # TODO: selectInput Diet genotype needs to be replaced with uiOutput 
    #conditionalPanel(condition = "input.with_grouping == true", uiOutput("condition_type")),
-   conditionalPanel(condition = "input.with_grouping == true", selectInput("condition_type", "Group", choices = c("Diet", "Genotype", "Sex"))),
+   conditionalPanel(condition = "input.with_grouping == true", uiOutput("condition_type")),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value=FALSE)),
    conditionalPanel(condition = "input.have_box_coordinates == true", h2("Cage configuration")),

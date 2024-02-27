@@ -494,25 +494,14 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + xlab("Time [h]")
    },
    EnergyExpenditure = {
-   colors <- as.factor(`$`(finalC1, "Animal No._NA"))
-   finalC1$Animals <- colors
+      # colors for plotting as factor
+      finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
-   # get metadata from TSE header 
-   df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
-   df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
-   df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
-   colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-   colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
-   ##finalC1 <- merge(finalC1, df_filtered, by = "Box_NA")
-   # Note: merge should be done on unique Animal No!
-   finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
-
-   if (input$with_grouping) {
-      if (!is.null(input$select_data_by)) {
-         my_var <- input$condition_type
-         finalC1 <- finalC1[finalC1[[my_var]] == input$select_data_by, ]
-     }
-  }
+      true_metadata <- c("")
+      if (!is.null(input$havemetadata)) {
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+      }
+      finalC1 <- finalC1 %>% full_join(y=true_metadata, by=c("Animals")) %>% na.omit()
 
    # TODO: This filters out first recordings on each day, probably not desired
    # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
@@ -547,7 +536,6 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- p + stat_cor(method = input$wmethod)
    }
 
-
   lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
   colnames(lights) <- c("x", "y")
   if (input$timeline) {
@@ -561,6 +549,7 @@ do_plotting <- function(file, input, exclusion, output) {
    # Note this excludes only at beginning of measurement experiment currently in the visualization
    #p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
 
+   # group with group from metadata
    if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
@@ -570,6 +559,10 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
+
+   # filter conditions
+   
+
    p <- ggplotly(p) %>% config( toImageButtonOptions = list(
       format = "svg",
       width = 1200,
@@ -987,9 +980,6 @@ do_plotting <- function(file, input, exclusion, output) {
 
    if (input$havemetadata) {
       true_metadata <- get_true_metadata(input$metadatafile$datapath)
-      # TODO: make use of these for facets above
-      #output$condition_type <- renderUI( { selectInput("condition_type", "Condition type", choices=colnames(true_metadata))})
-      #output$facets_by_data_one <- renderUI( { selectInput("factes_by_data_one", "Select a group as facet", choices=colnames(true_metadata))})
       output$test <- renderUI({
          tagList(
             h4("Configuration"),
@@ -1319,21 +1309,16 @@ server <- function(input, output, session) {
            }
 
            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
-            df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
-            df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
-            df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
-            colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-            our_group_names <- unique(colnames(df_filtered))
-
-            output$facets_by_data_one <- renderUI(
+            if (!is.null(input$havemetadata)) {
+               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               output$facets_by_data_one <- renderUI(
+               selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+               selected = "Animals", choices = colnames(true_metadata)))
+            } else {
+               output$facets_by_data_one <- renderUI(
                selectInput(inputId = "facets_by_data_one", label = "Choose facet",
                selected = "Animals", choices = our_group_names))
-
-           # TODO: add this back to filter any group by a certain condition... is this useful at all?
-           # if (! is.null(input$condition_type)) {
-           # output$condition_type <- renderUI(
-           #    selectInput(inputId="condition_type", label="Group", selected="Diet", choices=our_group_names))
-           # }
+            }
            }
            observeEvent(input$condition_type, {
             metadata <- real_data$metadata
@@ -1345,12 +1330,20 @@ server <- function(input, output, session) {
            }
            )
         if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
-            metadata <- real_data$metadata
-            my_var <- input$condition_type
-            diets <- unique(metadata[[my_var]])
-            # TODO: can also replace here diets with real metadata information from sheet
+            true_metadata = c("Animals")
+            if (!is.null(input$havemetadata)) {
+               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+            }
+            #my_var <- input$condition_type
+            #diets <- unique(true_metadata[[my_var]])
+            #print("diets...")
+            #print(diets)
+            # TODO fix this...
             output$select_data_by <- renderUI(
-               selectInput("select_data_by", "Condition", choices = diets)
+               selectInput("select_data_by", "Condition", choices = levels(true_metadata[[input$condition_type]]))
+            )
+            output$condition_type <- renderUI(
+               selectInput("condition_type", "Group", choices = colnames(true_metadata))
             )
            }
 
@@ -1542,6 +1535,11 @@ if (input$havemetadata) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
    )
+
+   # on startup, no metadata available
+   # TODO make use of metadata
+   #output$condition_type <- renderUI( { selectInput("condition_type", "Condition type", choices=colnames(true_metadata))})
+    #output$facets_by_data_one <- renderUI( { selectInput("factes_by_data_one", "Select a group as facet", choices=colnames(true_metadata))})
 
    #############################################################################
    # Reset session
