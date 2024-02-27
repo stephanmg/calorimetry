@@ -140,7 +140,7 @@ do_plotting <- function(file, input, exclusion, output) {
    fileFormatTSE <- FALSE
    finalC1 <- c()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
-   # Supported metadata fields from TSE LabMaster/PhenoMaster
+   # Supported basic metadata fields from TSE LabMaster/PhenoMaster
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
@@ -231,7 +231,7 @@ do_plotting <- function(file, input, exclusion, output) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   # TODO: C1meta obsolete when using metadata sheet, implement/use metadata sheet for all data types
+   # Note: We will keep the basic metadata informatiom from TSE files 
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    #############################################################################
@@ -497,7 +497,7 @@ do_plotting <- function(file, input, exclusion, output) {
    colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
 
-   # get metadata from TSE header (should in fact use C1meta metadata from metadata sheet)
+   # get metadata from TSE header 
    df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
    df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
    df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
@@ -1003,7 +1003,7 @@ do_plotting <- function(file, input, exclusion, output) {
             sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
             checkboxInput("check_test_assumptions", "Check test assumptions?", value=TRUE),
             hr(style="width: 75%"),
-            renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+            renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
          )
       })
 
