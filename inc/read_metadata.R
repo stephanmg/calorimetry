@@ -56,7 +56,7 @@ get_true_metadata <- function(file) {
    diets$`1` <- NULL
    diets <- diets[!is.na(diets)]
 
-   df_meta <- data.frame(lean_mass=leans, fat_mass=fats, Animals=as.factor(samples), diet=diets, genotype=genotypes, body_weight=body_weights)
+   df_meta <- data.frame(lean_mass=leans, fat_mass=fats, Animals=as.factor(samples), Diet=diets, Genotype=genotypes, body_weight=body_weights)
    print(head(df_meta))
    write.csv(df_meta, "testen_meta.csv")
 

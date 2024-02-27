@@ -19,7 +19,6 @@ names(df)[names(df) == group] <- "group"
 names(df)[names(df) == indep_var] <- "Weight"
 
 df = df %>% select(c("Animals", "group", "Weight", "TEE"))
-print(df)
 df$Weight = as.numeric(df$Weight)
 df$TEE = as.numeric(df$TEE)
 
@@ -31,7 +30,6 @@ p2 <- ggscatter(
     aes(label =  paste(..eq.label.., ..rr.label.., sep = "~~~~"), color = group)
     )
 
-print("after scatter")
 
 res.aov <- df %>% anova_test(TEE ~ Weight + group)
 pwc <- df %>% 
@@ -39,8 +37,6 @@ pwc <- df %>%
     TEE ~ group, covariate = Weight,
     p.adjust.method = adjust_method
     )
-print("after statistics")
-print(pwc)
 # Visualization: line plots with p-values
 pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
 p = ggline(get_emmeans(pwc), x = "group", y = "emmean") +

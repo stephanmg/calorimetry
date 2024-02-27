@@ -493,84 +493,91 @@ do_plotting <- function(file, input, exclusion, output) {
    p <- p + ylab("GoxLox quantity")
    p <- p + xlab("Time [h]")
    },
+   #####################################################################################################################
+   ### Energy Expenditure
+   #####################################################################################################################
+   # TODO: This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
+   ## TODO: In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
-      true_metadata <- c("")
-      if (!is.null(input$havemetadata)) {
+      # join with metadata if supplied by user
+      if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         finalC1 <- finalC1 %>% full_join(y=true_metadata, by=c("Animals")) %>% na.omit()
       }
-      finalC1 <- finalC1 %>% full_join(y=true_metadata, by=c("Animals")) %>% na.omit()
 
-   # TODO: This filters out first recordings on each day, probably not desired
-   # finalC1$Datetime <- lapply(finalC1$Datetime, convert)
-   # finalC1$TimeInHours <- hour(hms(finalC1$Datetime))*60+minute(hms(finalC1$Datetime))
-   # finalC1 = filter(finalC1, TimeInHours > (60*as.numeric(input$exclusion)))
-   # print(finalC1$TimeInHours)
-   # p <- ggplot(data = finalC1, aes_string(x = C1$running_total.hrs.round, y = "HP2", color=finalC1$`Animal No._NA`, group=finalC1$`Animal No._NA`, color=finalC1$`Animal No._NA`)) + geom_point() #nolint
-   if (input$running_average > 0) {
-      p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
-      if (input$running_average_method == "Mean") {
-         p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-      } else if (input$running_average_method == "Max") {
-         p <- p + geom_line(aes(y = rollmax(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-      } else if (input$running_average_method == "Median") {
-         p <- p + geom_line(aes(y = rollmedian(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-      } else if (input$running_average_method == "Sum") {
-         p <- p + geom_line(aes(y = rollsum(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-      } else {
-         p <- p + geom_line(aes(y = HP2), group = "Animals")
-      }
-   } else {
-     p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
-     p <- p + geom_line()
-   }
-   p <- p + scale_fill_brewer(palette = "Spectral")
-
-   if (input$wmeans) {
-      p <- p + geom_smooth(method = input$wmeans_choice)
-   }
-
-   if (input$wstats) {
-      p <- p + stat_cor(method = input$wmethod)
-   }
-
-  lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
-  colnames(lights) <- c("x", "y")
-  if (input$timeline) {
-   my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-   p <- p + my_lights
-  }
-
-   p <- p + xlab("Time [h]")
-   # p <- p + ylab(paste("Caloric equivalent [", input$myp, "]"))
-   p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
-   # Note this excludes only at beginning of measurement experiment currently in the visualization
-   #p <- p + scale_x_continuous(limits = c(input$exclusion, NA))
-
-   # group with group from metadata
-   if (input$with_facets) {
-      if (!is.null(input$facets_by_data_one)) {
-         if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-         } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+      # filter conditions
+      if (input$with_grouping) {
+         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+            my_var <- input$condition_type
+            finalC1 <- finalC1 %>% filter(my_var == input$select_data_by)
          }
       }
-   }
 
-   # filter conditions
-   
+      # calculate running averages
+      if (input$running_average > 0) {
+         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
+         if (input$running_average_method == "Mean") {
+            p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+         } else if (input$running_average_method == "Max") {
+            p <- p + geom_line(aes(y = rollmax(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+         } else if (input$running_average_method == "Median") {
+            p <- p + geom_line(aes(y = rollmedian(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+         } else if (input$running_average_method == "Sum") {
+            p <- p + geom_line(aes(y = rollsum(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
+         } else {
+            p <- p + geom_line(aes(y = HP2), group = "Animals")
+         }
+      } else {
+         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
+         p <- p + geom_line()
+      }
+      p <- p + scale_fill_brewer(palette = "Spectral")
 
-   p <- ggplotly(p) %>% config( toImageButtonOptions = list(
-      format = "svg",
-      width = 1200,
-      height = 600
-    )
-  )
+      # add meanas
+      if (input$wmeans) {
+         p <- p + geom_smooth(method = input$wmeans_choice)
+      }
+
+      # add stats
+      if (input$wstats) {
+         p <- p + stat_cor(method = input$wmethod)
+      }
+
+     # add day / night annotation
+     lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
+     colnames(lights) <- c("x", "y")
+     if (input$timeline) {
+       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+       p <- p + my_lights
+    }
+
+      p <- p + xlab("Time [h]")
+      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+
+      # group with group from metadata
+      if (input$with_facets) {
+         if (!is.null(input$facets_by_data_one)) {
+            if (input$orientation == "Horizontal") {
+               p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+            } else {
+               p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+            }
+         }
+      }
+      
+      # create plotly for interactive plotting
+      p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+         format = "svg",
+         width = 1200,
+         height = 600
+      ))
    },
-   # TODO: Fix issues with multiple files
+   #####################################################################################################################
+   ### Energy Expenditure
+   #####################################################################################################################
    RestingMetabolicRate = {
       component2 <- ""
       if (length(input$cvs) == 2) {
@@ -607,8 +614,8 @@ do_plotting <- function(file, input, exclusion, output) {
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
 
       # FIXME: Code works in this way only if NO averaging present done for RMR
-      # depending on calculation of finalC1$HP values we have different number
-      # of rows for df_new and finalC1, then fails.
+      # depending on calculation of finalC1$HP values we have different number of
+      # rows for df_new and finalC1, then fails. Also multiple files problematic.
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot$Group <- as.factor(df_to_plot$Group)
@@ -864,6 +871,9 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- ggplot(df, aes(x = rmr)) + geom_histogram(fill="green")
       ggplotly(p)
    },
+   #####################################################################################################################
+   ### Raw
+   #####################################################################################################################
    Raw = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
@@ -921,6 +931,9 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    },
+   #####################################################################################################################
+   ### Total Energy Expenditure
+   #####################################################################################################################
    TotalEnergyExpenditure = {
    colors <- as.factor(`$`(finalC1, "Animal No._NA"))
    finalC1$Animals <- colors
@@ -985,7 +998,7 @@ do_plotting <- function(file, input, exclusion, output) {
             h4("Configuration"),
             selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
             selectInput("dep_var", "Dependent variable", choice=c("TEE")),
-            selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="genotype"),
+            selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="Genotype"),
             selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
             hr(style="width: 50%"),
             h4("Advanced"),
@@ -1309,7 +1322,7 @@ server <- function(input, output, session) {
            }
 
            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
-            if (!is.null(input$havemetadata)) {
+            if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$facets_by_data_one <- renderUI(
                selectInput(inputId = "facets_by_data_one", label = "Choose facet",
@@ -1317,21 +1330,21 @@ server <- function(input, output, session) {
             } else {
                output$facets_by_data_one <- renderUI(
                selectInput(inputId = "facets_by_data_one", label = "Choose facet",
-               selected = "Animals", choices = our_group_names))
+               selected = "Animals", choices = c("Diet", "Genotype", "Sex", "Box")))
             }
            }
            observeEvent(input$condition_type, {
-            metadata <- real_data$metadata
-            my_var <- input$condition_type
-            diets <- unique(metadata[[my_var]])
-            output$select_data_by <- renderUI(
-               selectInput("select_data_by", "Condition", choices = diets, selected=input$select_data_by)
-            )
+            if (input$havemetadata) {
+               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               output$select_data_by <- renderUI(selectInput("select_data_by", "Condition", choices = unique(true_metadata[[input$condition_type]]), selected=input$select_data_by))
+            } else {
+               output$select_data_by <- renderUI(selectInput("select_data_by", "Condition", choices = unique(true_metadata[[input$condition_type]]), selected=input$select_data_by))
+            }
            }
            )
         if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
             true_metadata = c("Animals")
-            if (!is.null(input$havemetadata)) {
+            if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
             }
             #my_var <- input$condition_type
@@ -1393,27 +1406,19 @@ df2$TEE <- as.factor(rep("RMR", nrow(df2)))
 df_total <- rbind(df1, df2)
 df_total$Animals <- as.factor(df_total$Animals)
 
-#inner_join(df1, df2, by='Animals')
-
-#totalB <- aggregate(Value~Component, df1, sum)
-#print(totalB)
-#total_df <- inner_join(df1, df2, by='Animals')
-
-
 p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill=TEE)) + geom_bar(stat="identity")
 p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
 
-            output$summary <- renderPlotly(ggplotly(p2))
+output$summary <- renderPlotly(ggplotly(p2))
 
 if (input$havemetadata) {
    true_metadata <- get_true_metadata(input$metadatafile$datapath)
-   # TODO: read in metadata from metadata read in routine,  then offer ways to do ANOVA based on the MK use cases lean, fat and total body mass (see screenshot)
    output$test <- renderUI({
       tagList(
          h4("Configuration"),
          selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
          selectInput("dep_var", "Dependent variable", choice=c("RMR")),
-         selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="genotype"),
+         selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="Genotype"),
          selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
          hr(style="width: 50%"),
          h4("Advanced"),
