@@ -451,6 +451,7 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    # TODO: For testing purposes. Add filtering for light cycle back in (useful for RMR calculation especially)
+   ## Or use day night information from tse header or metadata - some files use lightC (low values night and high values day)
    if (! is.null(input$light_cycle)) {
       if ("LightC_[%]" %in% colnames(finalC1)) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
@@ -674,6 +675,7 @@ do_plotting <- function(file, input, exclusion, output) {
       # used for testing purposes and have full control over data)
       M <- 1
       PERCENTAGE <- 1
+      INTERVAL_LENGTH <- time_diff # TODO: test interval length in extract_rmr_helper
       df_plot_total <- extract_rmr_helper()
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
@@ -919,6 +921,7 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
+   # TODO: check this, day night must come from either metadata sheet or true metadata (TSE header)
    finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < 720, "am", "pm")
 
    convert <- function(x) {

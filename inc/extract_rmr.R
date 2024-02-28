@@ -48,7 +48,7 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 # M, sliding window size, typically much smaller than N
 # N, total intervals
 # percentage, how many of best (minimum energy expenditure values) to consider
-create_df <- function(df, component, M, N, percentage) {
+create_df <- function(df, component, M, N, percentage, interval_length = 15) {
    hp <- c()
    index <- c()
    for (i in 0:floor(N / M)) { # sub interval, get minimum EE in M intervals
@@ -61,11 +61,8 @@ create_df <- function(df, component, M, N, percentage) {
    }
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
-   # TODO: Detect length from metadata or 1st two measurements (Time2-Time1): use diff_time from server.R
-   INTERVAL_LENGTH <- 15
-   df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
-   # TODO: Check for scaling correctness
-   df_plot$HP <- df_plot$HP / 24 / (60 / INTERVAL_LENGTH) / INTERVAL_LENGTH
+   df_plot$Time <- df_plot$Time * interval_length  * (M / interval_length)
+   df_plot$HP <- df_plot$HP / 24 / (60 / interval_length) / interval_length
    df_plot
 }
 
@@ -79,14 +76,14 @@ percentage <- 5
 # data
 # M
 # PERCENTAGE
-extract_rmr <- function(data, M, PERCENTAGE) {
+extract_rmr <- function(data, M, PERCENTAGE, interval_length=15) {
    N <- nrow(data)
    # TODO: Make M a parameter... a user might want to specify the sliding window
    M <- 5
    # actual data
    df <- data
-   df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE)
-   df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE)
+   df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE, interval_length)
+   df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE, interval_length)
    df_foo <- data.frame(df$HP, seq(1, N))
    colnames(df_foo) <- c("HP", "Time")
    df_foo$HP <- df_foo$HP / 24 # Note normalize over day (24 hours)
