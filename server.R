@@ -997,17 +997,6 @@ do_plotting <- function(file, input, exclusion, output) {
       })
    }
 
- # if (input$with_facets) {
- #     if (!is.null(input$facets_by_data_one)) {
- #        if (input$orientation == "Horizontal") {
- #           p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
- #        } else {
- #           p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
- #        }
- #     }
-#
- #     p <- ggplotly(p)
- #  } else {
       p <- ggplotly(p) %>% layout(boxmode = "group") %>%
       config(toImageButtonOptions = list(
       format = "svg",
@@ -1015,15 +1004,12 @@ do_plotting <- function(file, input, exclusion, output) {
       height = 600
     )
   )
-#  }
-
-   # TODO: group by condition/diet with facets
    },
    {
-
+      #all other options
    }
    )
-
+   # return data to ui
    list("plot" = p, "animals" = `$`(finalC1, "Animal No._NA"), "data" = finalC1, "metadata" = C1meta)
 }
 
