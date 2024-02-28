@@ -173,6 +173,9 @@ do_plotting <- function(file, input, exclusion, output) {
    # Skip metadata before data
    toSkip <- detectData(file)
 
+   # time diff (interval) or recordings
+   time_diff <- 5
+
    # check file extension
    fileExtension <- detectFileType(file)
 
@@ -258,6 +261,10 @@ do_plotting <- function(file, input, exclusion, output) {
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
+
+   time_diff <- get_time_diff(C1)
+
+
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
    arrange(Datetime2) %>%
@@ -497,6 +504,7 @@ do_plotting <- function(file, input, exclusion, output) {
    #####################################################################################################################
    # TODO: This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
    ## TODO: In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
+   ### TODO: This nicely illustrate how we need to proceed to support metadata from data (TSE header) and metadata sheet - implement in other functions below accordingly
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
@@ -505,13 +513,38 @@ do_plotting <- function(file, input, exclusion, output) {
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
          finalC1 <- finalC1 %>% full_join(y=true_metadata, by=c("Animals")) %>% na.omit()
+      } else {
+         df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
+         df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
+         df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
+         colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
+         colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
+         finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
       }
 
       # filter conditions
       if (input$with_grouping) {
-         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+         if (!input$havemetadata) {
+            if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+               my_var <- input$condition_type
+               colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
+               colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
+               print(head(finalC1))
+               finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+               colnames(finalC1)[colnames(finalC1) == "Animal.No."] <- "Animal.No._NA"
+               colnames(finalC1)[colnames(finalC1) == "Box"] <- "Box_NA.x"
+            }
+         } else {
             my_var <- input$condition_type
-            finalC1 <- finalC1 %>% filter(my_var == input$select_data_by)
+            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+         }
+      }
+
+      # prepare for facet usage when no metadata available
+      if (input$with_facets) {
+         if (!input$havemetadata) {
+            colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
+            colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
          }
       }
 
@@ -535,7 +568,7 @@ do_plotting <- function(file, input, exclusion, output) {
       }
       p <- p + scale_fill_brewer(palette = "Spectral")
 
-      # add meanas
+      # add means
       if (input$wmeans) {
          p <- p + geom_smooth(method = input$wmeans_choice)
       }
@@ -758,7 +791,7 @@ do_plotting <- function(file, input, exclusion, output) {
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
       endtime <- input$rmr_method_begin # in minutes for ss methods
-      stepwidth <- input$rmr_method_frequency # in seconds (fixed for COSMED?!)
+      stepwidth <- input$rmr_method_frequency # in seconds
       endindex <- endtime * 60 / stepwidth
       n <- nrow(df_to_plot) / endindex
 
@@ -891,10 +924,10 @@ do_plotting <- function(file, input, exclusion, output) {
       paste(splitted[[1]][1], "", sep = "")
    }
 
+
    finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-   # TODO: get time interval for rescaling 60 / 15 minutes = 6
-   finalC1$HP <- finalC1$HP / 6
-   finalC1$HP2 <- finalC1$HP2 / 6
+   finalC1$HP <- finalC1$HP / time_diff
+   finalC1$HP2 <- finalC1$HP2 / time_diff
 
    if (input$day_only && input$night_only) {
       # nothing to do we keep both night and day
@@ -1240,11 +1273,17 @@ server <- function(input, output, session) {
                }
             }
 
+            #############################################################################
+            # Outlier
+            #############################################################################
            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick <- renderUI(
               multiInput(inputId = "sick", label = "Remove outliers (sick animals, etc.) ", selected = "", choices = unique(real_data$animals)))
            }
 
+            #############################################################################
+            # Facets
+            #############################################################################
            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
             if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
@@ -1252,37 +1291,70 @@ server <- function(input, output, session) {
                selectInput(inputId = "facets_by_data_one", label = "Choose facet",
                selected = "Animals", choices = colnames(true_metadata)))
             } else {
+               df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
+               df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
+               df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
+               colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
+               our_group_names <- unique(colnames(df_filtered))
+
                output$facets_by_data_one <- renderUI(
-               selectInput(inputId = "facets_by_data_one", label = "Choose facet",
-               selected = "Animals", choices = c("Diet", "Genotype", "Sex", "Box")))
-            }
+                  selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+                  selected = "Animals", choices = our_group_names))
+               }
            }
+
+
+            #############################################################################
+            # Initializing
+            #############################################################################
+           if (! is.null(real_data$animals)) {
+               metadata <- real_data$metadata
+               output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(metadata), label="Condition"))
+           }
+           if (input$havemetadata) {
+               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(true_metadata), label="Condition"))
+           }
+
            observeEvent(input$condition_type, {
             if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Condition", choices = unique(true_metadata[[input$condition_type]]), selected=input$select_data_by))
+               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected=input$select_data_by))
             } else {
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Condition", choices = unique(true_metadata[[input$condition_type]]), selected=input$select_data_by))
+               metadata <- real_data$metadata
+               my_var <- input$condition_type
+               diets <- c()
+               if (is.null(my_var)) {
+                  diets <- unique(metadata %>% select(1) %>% pull())
+               } else {
+                  diets <- unique(metadata[[my_var]])
+               }
+               output$select_data_by <- renderUI(
+               selectInput("select_data_by", "Filter by", choices = diets, selected=input$select_data_by)
+            )
             }
            }
            )
-        if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
-            true_metadata = c("Animals")
-            if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
-            }
-            #my_var <- input$condition_type
-            #diets <- unique(true_metadata[[my_var]])
-            #print("diets...")
-            #print(diets)
-            # TODO fix this... if no metadata (sheet) given, how do populate condition choices (factors/levels (all genotypes) of a Group (e.g. Genotype))
-            output$select_data_by <- renderUI(
-               selectInput("select_data_by", "Condition", choices = levels(true_metadata[[input$condition_type]]))
-            )
-            output$condition_type <- renderUI(
-               selectInput("condition_type", "Group", choices = colnames(true_metadata))
-            )
-           }
+
+        #if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
+        #    if (input$havemetadata) {
+        #       true_metadata <- get_true_metadata(input$metadatafile$datapath)
+        #       output$select_data_by <- renderUI(
+        #       selectInput("select_data_by", "Filter by", choices = levels(true_metadata[[input$condition_type]])))
+        #    } else {
+        #       metadata <- real_data$metadata
+        #       my_var <- input$condition_type
+        #       diets <- c()
+        #       if (is.null(my_var)) {
+        #          diets <- unique(metadata %>% select(1) %>% pull())
+        #       } else {
+        #          diets <- unique(metadata[[my_var]])
+        #       }
+        #       output$select_data_by <- renderUI(
+        #          selectInput("select_data_by", "Filter by", choices = diets)
+        #       )
+        #    }
+        #   }
                if (input$plot_type == "RestingMetabolicRate") {
                  showTab(inputId = "additional_content", target="Summary statistics")
 
@@ -1416,13 +1488,6 @@ if (input$havemetadata) {
                hideTab(inputId = "additional_content", target="Summary statistics")
                hideTab(inputId = "additional_content", target="Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
-            #output$explanation <- renderUI({
-            #   str1 <- "<h3> Total energy expenditure (TEE) for animal per day is displayed </h3>"
-            #   str2 <- "Depending on the heat production formulas chosen (HP and HP2)"
-            #   str3 <- "<hr/>"
-            #   str4 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-            #HTML(paste(str1, sep = "<br/>"))
-            #})
                hideTab(inputId = "additional_content", target="Summary statistics")
                showTab(inputId = "additional_content", target="Details")
            } else {
@@ -1431,9 +1496,6 @@ if (input$havemetadata) {
                HTML("No information available yet.")
             })
            }
-           # hide tabs as we do not have Summary statistics or Details as of now
-           #hideTab(inputId = "additional_content", target="Summary statistics")
-           #hideTab(inputId = "additional_content", target="Details")
            # plot
            real_data$plot
         }

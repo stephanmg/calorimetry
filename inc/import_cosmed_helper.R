@@ -12,13 +12,11 @@ import_cosmed  <- function(file, file_out) {
    df <- read_excel(file)
    #print(length(excel_sheets(file)))
    
-   # TODO: get duration and interval from excel sheet
    duration <- 30 * 6 # 30 minutes and 6 mesasureents at 10 s intervals)
-   interval <- 10
+   interval <- 10 # always 10 minutes for COSMED data sets
    data <- df[seq(3, nrow(df)),seq(10, ncol(df))]
    units = df[1, seq(10, ncol(df))]
 
-   # TODO: Get ID and BMI from Excel sheet
    id <- 1
    bmi <- 25
    date <- colnames(df[1,5])

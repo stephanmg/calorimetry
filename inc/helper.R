@@ -59,3 +59,17 @@ reformat <- function(df_new) {
    }
    df_final
 }
+
+
+################################################################################
+# get_time_diff
+################################################################################
+get_time_diff <- function(df) {
+   id <- df %>% nth(1) %>% select("Animal No._NA")
+   start <- df %>% filter(`Animal No._NA` == id) %>% nth(1) %>% select(minutes) %>% pull()
+   end <- df %>% filter(`Animal No._NA` == id) %>% nth(2) %>% select(minutes) %>% pull()
+   if (end < start) {
+      return(60+end-start)
+   } 
+   return(end-start)
+}

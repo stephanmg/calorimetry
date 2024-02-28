@@ -56,18 +56,7 @@ get_true_metadata <- function(file) {
    diets$`1` <- NULL
    diets <- diets[!is.na(diets)]
 
+   # return compiled metadata
    df_meta <- data.frame(lean_mass=leans, fat_mass=fats, Animals=as.factor(samples), Diet=diets, Genotype=genotypes, body_weight=body_weights)
-   write.csv(df_meta, "testen_meta.csv")
-
-      # TODO: rename animal id no to id or vice versa before join
-   ## combine with actual data
-
-#   df_data <- read.csv2('finalC1.csv')
-#   print(head(df_data))
-
-#   all_data <- df_data %>% full_join(y=df_meta, by=c("id"))
-#   print(head(all_data))
-#   write.csv(all_data, "all_data_merged_with_metadata.csv")
-
    return(df_meta)
 }
