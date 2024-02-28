@@ -651,6 +651,9 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- p + xlab("Time [minutes]")
       finalC1 <- df_plot_total
    },
+   #####################################################################################################################
+   ### Weight vs Energy Expenditure
+   #####################################################################################################################
    WeightVsEnergyExpenditure = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
@@ -683,6 +686,9 @@ do_plotting <- function(file, input, exclusion, output) {
     )
   )
    },
+   #####################################################################################################################
+   ### Day Night Activity
+   #####################################################################################################################
    DayNightActivity = {
 
    convert <- function(x) {
@@ -725,6 +731,9 @@ do_plotting <- function(file, input, exclusion, output) {
   )
    }
    },
+   #####################################################################################################################
+   ### Locomotion
+   #####################################################################################################################
    Locomotion = {
       file <- input[[paste0("File", 1)]]
       if (input$have_box_coordinates) {
@@ -734,11 +743,18 @@ do_plotting <- function(file, input, exclusion, output) {
       }
       p
    },
+
+   #####################################################################################################################
+   ### Locomotion Budget
+   #####################################################################################################################
    LocomotionBudget = {
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion_budget(file$datapath)
       p
    },
+   #####################################################################################################################
+   ### Estimate RMR for COSMED
+   #####################################################################################################################
    EstimateRMRforCOSMED = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
@@ -979,7 +995,7 @@ do_plotting <- function(file, input, exclusion, output) {
       str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
       HTML(paste(str1, str2, str3, sep = "<br/>"))
       })
-   } 
+   }
 
  # if (input$with_facets) {
  #     if (!is.null(input$facets_by_data_one)) {
