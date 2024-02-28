@@ -57,7 +57,6 @@ get_true_metadata <- function(file) {
    diets <- diets[!is.na(diets)]
 
    df_meta <- data.frame(lean_mass=leans, fat_mass=fats, Animals=as.factor(samples), Diet=diets, Genotype=genotypes, body_weight=body_weights)
-   print(head(df_meta))
    write.csv(df_meta, "testen_meta.csv")
 
       # TODO: rename animal id no to id or vice versa before join
