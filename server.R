@@ -535,8 +535,10 @@ do_plotting <- function(file, input, exclusion, output) {
                colnames(finalC1)[colnames(finalC1) == "Box"] <- "Box_NA.x"
             }
          } else {
-            my_var <- input$condition_type
-            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+            if (!is.null(input$condition_type) && !is.null(input$select_data_by)) {
+               my_var <- input$condition_type
+               finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+            }
          }
       }
 
@@ -1307,14 +1309,23 @@ server <- function(input, output, session) {
             #############################################################################
             # Initializing
             #############################################################################
-           if (! is.null(real_data$animals)) {
+                     
+           if (input$havemetadata) {
+               if (is.null(input$condition_type)) {
+                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+                  output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(true_metadata), label="Condition"))
+               }
+           } else {
+             if (! is.null(real_data$animals)) {
                metadata <- real_data$metadata
                output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(metadata), label="Condition"))
+            }
+
            }
-           if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
-               output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(true_metadata), label="Condition"))
-           }
+
+            #############################################################################
+            # condition type and select data by
+            #############################################################################
 
            observeEvent(input$condition_type, {
             if (input$havemetadata) {
@@ -1335,26 +1346,6 @@ server <- function(input, output, session) {
             }
            }
            )
-
-        #if ((! is.null(real_data$animals)) && is.null(input$select_data_by)) {
-        #    if (input$havemetadata) {
-        #       true_metadata <- get_true_metadata(input$metadatafile$datapath)
-        #       output$select_data_by <- renderUI(
-        #       selectInput("select_data_by", "Filter by", choices = levels(true_metadata[[input$condition_type]])))
-        #    } else {
-        #       metadata <- real_data$metadata
-        #       my_var <- input$condition_type
-        #       diets <- c()
-        #       if (is.null(my_var)) {
-        #          diets <- unique(metadata %>% select(1) %>% pull())
-        #       } else {
-        #          diets <- unique(metadata[[my_var]])
-        #       }
-        #       output$select_data_by <- renderUI(
-        #          selectInput("select_data_by", "Filter by", choices = diets)
-        #       )
-        #    }
-        #   }
                if (input$plot_type == "RestingMetabolicRate") {
                  showTab(inputId = "additional_content", target="Summary statistics")
 
@@ -1389,9 +1380,6 @@ df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals=Animal)
 df1$Animals = as.factor(df1$Animals)
 df2$Animals = as.factor(df2$Animals)
-#df1 <- aggregate(Value~Component, df1, sum)
-#df1 <- df1 %>% distinct(Component, Value, cgroups, .keep_all=TRUE)
-#print(head(df1))
 df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO: divide by days and measuring interval
 df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/15)
 
@@ -1502,7 +1490,10 @@ if (input$havemetadata) {
       })
     })
 
-   # hide and show components
+
+   #############################################################################
+   # Helpers to hide/show components
+   #############################################################################
    lapply(
       X = c("DC", "HP", "DE", "PC"),
       FUN = function(i) {
@@ -1517,7 +1508,10 @@ if (input$havemetadata) {
       }
    )
 
-   # on startup, hide irrelevant components
+
+   #############################################################################
+   # Hide components on startup
+   #############################################################################
    lapply(
       X = c("DC", "DE", "PC"),
       FUN = function(i) {
