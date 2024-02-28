@@ -27,7 +27,7 @@ source("inc/locomotion.R") # for locomotion probability heatmap
 source("inc/timeline.R") # for colorizing timeline by day/night rhythm
 source("inc/locomotion_budget.R") # for locomotion budget
 source("inc/guide.R") # for guide
-source("inc/do_ancova.R") # for ancova
+source("inc/do_ancova.R") # for ancova without metadata
 source("inc/do_ancova_alternative.R") # for ancova with metadata
 source("inc/read_metadata.R") # for true metadata
 
@@ -300,7 +300,6 @@ do_plotting <- function(file, input, exclusion, output) {
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
 
-
    #############################################################################
    # Consistency check: Negative values
    #############################################################################
@@ -444,7 +443,7 @@ do_plotting <- function(file, input, exclusion, output) {
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
-   # TODO: For testing purposes. Add filtering for light cycle back in (useful for RMR calculation)
+   # TODO: For testing purposes. Add filtering for light cycle back in (useful for RMR calculation especially)
    if (! is.null(input$light_cycle)) {
       if ("LightC_[%]" %in% colnames(finalC1)) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
@@ -567,7 +566,6 @@ do_plotting <- function(file, input, exclusion, output) {
             }
          }
       }
-      
       # create plotly for interactive plotting
       p <- ggplotly(p) %>% config( toImageButtonOptions = list(
          format = "svg",
@@ -913,7 +911,7 @@ do_plotting <- function(file, input, exclusion, output) {
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
 
 
-   # TODO: here we need to rename Facet = Animals or Diet or Genotype (coming from true metadata )
+   # TODO: here we need to rename Facet = Animals or Diet or Genotype (coming from true metadata ) faceting with metadata does not work yet
    if (input$with_facets) {
       if (input$facets_by_data_one %in% names(finalC1)) {
          TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
@@ -1294,7 +1292,7 @@ server <- function(input, output, session) {
             #diets <- unique(true_metadata[[my_var]])
             #print("diets...")
             #print(diets)
-            # TODO fix this...
+            # TODO fix this... if no metadata (sheet) given, how do populate condition choices (factors/levels (all genotypes) of a Group (e.g. Genotype))
             output$select_data_by <- renderUI(
                selectInput("select_data_by", "Condition", choices = levels(true_metadata[[input$condition_type]]))
             )
@@ -1394,7 +1392,6 @@ if (input$havemetadata) {
       )
     })
 }
-
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
@@ -1483,11 +1480,6 @@ if (input$havemetadata) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
    )
-
-   # on startup, no metadata available
-   # TODO make use of metadata
-   #output$condition_type <- renderUI( { selectInput("condition_type", "Condition type", choices=colnames(true_metadata))})
-    #output$facets_by_data_one <- renderUI( { selectInput("factes_by_data_one", "Select a group as facet", choices=colnames(true_metadata))})
 
    #############################################################################
    # Reset session
