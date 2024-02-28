@@ -503,8 +503,8 @@ do_plotting <- function(file, input, exclusion, output) {
    ### Energy Expenditure
    #####################################################################################################################
    # TODO: This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
-   ## TODO: In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
-   ### TODO: This nicely illustrate how we need to proceed to support metadata from data (TSE header) and metadata sheet - implement in other functions below accordingly
+   ## In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
+   ## This nicely illustrate how we need to proceed to support metadata from data (TSE header) and metadata sheet - implement in other functions below accordingly
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
@@ -529,7 +529,6 @@ do_plotting <- function(file, input, exclusion, output) {
                my_var <- input$condition_type
                colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
                colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
-               print(head(finalC1))
                finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
                colnames(finalC1)[colnames(finalC1) == "Animal.No."] <- "Animal.No._NA"
                colnames(finalC1)[colnames(finalC1) == "Box"] <- "Box_NA.x"
@@ -586,8 +585,9 @@ do_plotting <- function(file, input, exclusion, output) {
      if (input$timeline) {
        my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
        p <- p + my_lights
-    }
+      }
 
+      # axis labels
       p <- p + xlab("Time [h]")
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
 
@@ -609,7 +609,7 @@ do_plotting <- function(file, input, exclusion, output) {
       ))
    },
    #####################################################################################################################
-   ### Energy Expenditure
+   ### RestingMetabolicRate
    #####################################################################################################################
    RestingMetabolicRate = {
       component2 <- ""

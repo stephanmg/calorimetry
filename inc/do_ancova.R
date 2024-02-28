@@ -12,10 +12,8 @@ df = df[-grep("HP2", df$Equation),]
 df = df %>% select(c("Animals", "group", "Weight", "TEE"))
 
 df$Animals = seq(1, length(df$Animals))
-print(df)
 write.csv2(df, "final_data_and_meta.csv")
 df = read.csv2("final_data_and_meta.csv")
-print(df)
 #group=group pretest=Weight posttest=TEE
 
 
@@ -35,7 +33,6 @@ pwc <- df %>%
     p.adjust.method = "bonferroni"
     )
 
-print(pwc)
 # Visualization: line plots with p-values
 pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
 p = ggline(get_emmeans(pwc), x = "group", y = "emmean") +

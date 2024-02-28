@@ -25,7 +25,6 @@ import_pheno_v8 <- function(file, file_out) {
    df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time)
    units <- df_selected[1,]
    units[is.na(units)] <- ''
-   print(units)
    df_selected <- df_selected[-1,]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VO2.3.")),]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VCO2.3.")),]

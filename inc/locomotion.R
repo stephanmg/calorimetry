@@ -12,14 +12,10 @@ plot_locomotion <- function(file, x_min_food=2, x_max_food=9.5, y_min_food=4, y_
 	df <- read_excel(file, sheet=sheet)
 	df <- na.omit(df)
 	animals = unique(df$Animal)
-	#print("animals:")
-	#print(animals)
 	rects <-  data.frame(xmin=c(2,20.5,20.5), xmax=c(9.5, 29, 28), ymin=c(4, 4.2, 12), ymax=c(16, 9.5, 15.5), r=c("Running Wheel", "Food Hopper", "Water Bottle"))
 	df <- df %>% group_by(Animal) %>% mutate(Durat_Sec_Norm = Durat_Sec/max(Durat_Sec))
 	rows = floor(sqrt(length(unique(df$Animal))))
 	cols = rows
-	#print("number of cols")
-	#print(cols)
 
 	df <- df[rep(seq(nrow(df)), df$Durat_Sec),]
 	p2 <- ggplot(df, aes(Y_cm, X_cm)) + stat_density_2d(geom = "raster", aes(fill = after_stat(density)), contour=FALSE) +  scale_fill_viridis_c()

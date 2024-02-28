@@ -34,7 +34,7 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
    # plot data of minimum energy expenditure per interval with one index
    # print("RMR in this measurement (interval):")
 
-   # FIXME: HP needs to be calculated with O2 and CO2 an all indices n > 1
+   # FIXME: HP needs to be calculated with O2 and CO2 an all indices n > 1 see above
    # HP means heat production, either sorted by O2 or CO2
    # print(dat[index, ]$HP)
    dat[index, ]$HP
