@@ -1160,13 +1160,6 @@ server <- function(input, output, session) {
                selectInput(inputId = "wmethod", label = "Statistic", choices = c("pearson", "kendall", "spearman")))
          })
 
-   observeEvent(input$plot_type, {
-      output$covariates <- renderUI(
-            selectInput(inputId = "covariates", label = "Chose a covariate",
-            selected = "Weight", choices = c("Weight", "Lean mass", "Fat mass")))
-   })
-
-
    #############################################################################
    # Observe export events
    #############################################################################
@@ -1234,26 +1227,16 @@ server <- function(input, output, session) {
    observeEvent(input$plotting, {
       output$plot <- renderPlotly({
          if (is.null(input$File1)) {
-            # print("No cohort data given!")
-            output$message <- renderText("Not any cohort data given")
+            output$message <- renderText("Not any cohort data given. Need at least one data set.")
          } else {
            file <- input$File1
-           # print(file$datapath)
            real_data <- do_plotting(file$datapath, input, input$sick, output)
 
-           # print(real_data$status)
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
                   output$message <- renderText("Input data incompatible, make sure you either supply only TSE or Sable system files not a combination of both file types.") #nolint
                } else {
                   output$message <- renderText(real_data$status)
-               }
-            }
-
-           # Caused an error before on deployment, need to check for null always.
-            if (!is.null(input$covariates)) {
-               if (! any(colnames(real_data$metadata) %like% input$covariates)) {
-                  output$message <- renderText("Covariate not present in (all) data sets, fallback to default (Weight [g])")
                }
             }
 
@@ -1300,7 +1283,6 @@ server <- function(input, output, session) {
                selectInput("condition_type", "Group", choices = colnames(true_metadata))
             )
            }
-
                if (input$plot_type == "RestingMetabolicRate") {
                  showTab(inputId = "additional_content", target="Summary statistics")
 

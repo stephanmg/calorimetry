@@ -219,7 +219,6 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmethod")),
-   conditionalPanel(condition = "input.plot_type == 'ANCOVA'", uiOutput("covariates")),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
    conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window", 2, 30, 10, step = 1)),
