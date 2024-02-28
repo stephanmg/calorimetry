@@ -1380,7 +1380,7 @@ df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals=Animal)
 df1$Animals = as.factor(df1$Animals)
 df2$Animals = as.factor(df2$Animals)
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO: divide by days and measuring interval
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO: divide by days and measuring interval, use diff_time from server.R
 df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/15)
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))

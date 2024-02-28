@@ -61,7 +61,7 @@ create_df <- function(df, component, M, N, percentage) {
    }
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
-   # TODO: Detect length from metadata or 1st two measurements (Time2-Time1)
+   # TODO: Detect length from metadata or 1st two measurements (Time2-Time1): use diff_time from server.R
    INTERVAL_LENGTH <- 15
    df_plot$Time <- df_plot$Time * INTERVAL_LENGTH  * (M / INTERVAL_LENGTH)
    # TODO: Check for scaling correctness
