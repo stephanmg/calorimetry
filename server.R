@@ -817,7 +817,7 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- plot_locomotion_budget(file$datapath)
       p
    },
-   EstimateRMR = {
+   EstimateRMRforCOSMED = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
@@ -941,6 +941,15 @@ do_plotting <- function(file, input, exclusion, output) {
    C1meta_tmp <- C1meta
    colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
    finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+   convert2 <- function(x) {
+      splitted <- strsplit(as.character(x), " ")
+      paste(splitted[[1]][2], ":00", sep = "")
+   }
+
+   finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
+   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < 720, "am", "pm")
+
    convert <- function(x) {
       splitted <- strsplit(as.character(x), " ")
       paste(splitted[[1]][1], "", sep = "")
@@ -950,6 +959,16 @@ do_plotting <- function(file, input, exclusion, output) {
    # TODO: get time interval for rescaling 60 / 15 minutes = 6
    finalC1$HP <- finalC1$HP / 6
    finalC1$HP2 <- finalC1$HP2 / 6
+
+   if (input$day_only && input$night_only) {
+      # nothing to do we keep both night and day
+   } else if (input$night_only) {
+      finalC1 <- finalC1 %>% filter(NightDay == 'pm')
+   } else if (input$day_only) {
+      finalC1 <- finalC1 %>% filter(NightDay == 'pm')
+   } else {
+
+   }
 
    # TODO: use input$only_full_days to filter out here no full days...
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
@@ -1192,7 +1211,7 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
             output$checkboxgroup_gender <- renderUI(
                checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chose gender",
-               choices = list("male" = "male", "female" = "female"), selected = c("malw", "female")))
+               choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
    observeEvent(input$plot_type, {
