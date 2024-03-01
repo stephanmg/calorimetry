@@ -1,7 +1,7 @@
 ################################################################################
 # extract_rmr_helper
 ################################################################################
-extract_rmr_helper <- function(interval_length=15) {
+extract_rmr_helper <- function(interval_length = 15) {
    df <- read.csv2("df_for_cov_analysis.csv")
    library(dplyr)
    source("inc/extract_rmr.R")

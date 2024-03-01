@@ -76,7 +76,7 @@ percentage <- 5
 # data
 # M
 # PERCENTAGE
-extract_rmr <- function(data, M, PERCENTAGE, interval_length=15) {
+extract_rmr <- function(data, M, PERCENTAGE, interval_length = 15) {
    N <- nrow(data)
    # TODO: Make M a parameter... a user might want to specify the sliding window
    M <- 5

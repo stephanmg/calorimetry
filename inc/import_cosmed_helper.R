@@ -5,20 +5,19 @@ library("lubridate")
 
 helper_fn <- function(time) {
    td <- seconds_to_period(time)
-   sprintf('%02d:%02d', minute(td), second(td))
+   sprintf("%02d:%02d", minute(td), second(td))
 }
 
 import_cosmed  <- function(file, file_out) {
    df <- read_excel(file)
-   
    duration <- 30 * 6 # 30 minutes and 6 mesasureents at 10 s intervals)
    interval <- 10 # always 10 minutes for COSMED data sets
    data <- df[seq(3, nrow(df)),seq(10, ncol(df))]
-   units = df[1, seq(10, ncol(df))]
+   units <- df[1, seq(10, ncol(df))]
 
    id <- 1
    bmi <- 25
-   date <- colnames(df[1,5])
+   date <- colnames(df[1, 5])
    date <- gsub('\\.', '/', date)
 
    data <- df %>% select(c("t", "VO2", "VCO2", "RQ"))
@@ -50,7 +49,7 @@ import_cosmed  <- function(file, file_out) {
    header[nrow(header) + 1, ] <- c(id, id, bmi, rep("", 3))
 
    units <- c("", "[ml/h]", "[ml/h]", rep("", 4))
-   header[nrow(header) + 1 ,] <- rep("", 7)
+   header[nrow(header) + 1, ] <- rep("", 7)
    header[nrow(header) + 1, ] <- colnames(header)
    header[nrow(header) + 1, ] <- units
 

@@ -11,17 +11,14 @@ library(plotly)
 get_constants <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
-   constant_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'constants'))) %>% pull(ind)
+   constant_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "constants"))) %>% pull(ind)
    constants <- df %>% slice(constant_index[2])
    constants$`1` <- NULL
    constants <- constants[!is.na(constants)]
-   constants_values <- df %>% slice(constant_index[2]+1)
+   constants_values <- df %>% slice(constant_index[2] + 1)
    constants_values$`1` <- NULL
    constants_values <- constants_values[!is.na(constants_values)]
-   df_meta <- data.frame(constant=constants, value=constants_values)
-   print(colnames(df_meta))
-   print(ncol(df_meta))
-   print(nrow(df_meta))
+   df_meta <- data.frame(constant = constants, value = constants_values)
    return(df_meta)
 }
 
@@ -32,17 +29,17 @@ get_true_metadata <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
 
-   from_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'Sample-Section'))) %>% pull(ind)
-   to_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'Sub-Sample Section'))) %>% pull(ind)
+   from_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sample-Section"))) %>% pull(ind)
+   to_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sub-Sample Section"))) %>% pull(ind)
 
    df <- df %>% slice(from_index:to_index[1])
 
-   lean_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'lean_mass'))) %>% pull(ind)
-   fat_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'fat_mass'))) %>% pull(ind)
-   id_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'personal_ID'))) %>% pull(ind)
-   diet_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'diet_group'))) %>% pull(ind)
-   genotype_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'genotype_group'))) %>% pull(ind)
-   body_weight_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'body weight'))) %>% pull(ind)
+   lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lean_mass"))) %>% pull(ind)
+   fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fat_mass"))) %>% pull(ind)
+   id_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "personal_ID"))) %>% pull(ind)
+   diet_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "diet_group"))) %>% pull(ind)
+   genotype_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "genotype_group"))) %>% pull(ind)
+   body_weight_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "body weight"))) %>% pull(ind)
 
    # number of samples
    ids <- df %>% slice(id_index)
@@ -75,6 +72,6 @@ get_true_metadata <- function(file) {
    diets <- diets[!is.na(diets)]
 
    # return compiled metadata
-   df_meta <- data.frame(lean_mass=leans, fat_mass=fats, Animals=as.factor(samples), Diet=diets, Genotype=genotypes, body_weight=body_weights)
+   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = diets, Genotype = genotypes, body_weight = body_weights)
    return(df_meta)
 }

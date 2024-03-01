@@ -24,9 +24,9 @@ guide <- Cicerone$
         "Indicate if you wish to filter out negative values in raw measurements"
     )$
     step(
-        "highly_varying_measurements", 
+        "highly_varying_measurements",
         "Data curation",
-        "Indicate if you wish to filter out highly (unphysiologically) varying raw measurements" 
+        "Indicate if you wish to filter out highly (unphysiologically) varying raw measurements"
     )$
     step(
         "plotting",

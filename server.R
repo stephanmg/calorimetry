@@ -116,7 +116,7 @@ do_export <- function(format, input, output) {
 ################################################################################
 # Create plotly plot
 ################################################################################
-do_plotting <- function(file, input, exclusion, output) {
+do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_linter.
    #############################################################################
    # Configure base plot look and feel with ggpubr
    #############################################################################
@@ -150,7 +150,7 @@ do_plotting <- function(file, input, exclusion, output) {
    if (i == 1) {
       fileFormatTSE <- line[2]
       studyDescription <- line[1]
-      output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep= " "))
+      output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
       output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
@@ -188,7 +188,7 @@ do_plotting <- function(file, input, exclusion, output) {
    if (fileExtension == "xlsx") {
       output$study_description <- renderText("")
       tmp_file <- tempfile()
-      if (length(excel_sheets(file)) == 2) { 
+      if (length(excel_sheets(file)) == 2) {
         if (check_for_cosmed(file)) {
             output$file_type_detected <- renderText("Input file type detected as: COSMED")
             import_cosmed(file, tmp_file)
@@ -222,7 +222,7 @@ do_plotting <- function(file, input, exclusion, output) {
       dec <- "."
    }
 
-   # Phenomaster V8 
+   # Phenomaster V8
    if (grepl("V8", fileFormatTSE)) {
       tmp_file <- tempfile()
       import_pheno_v8(file, tmp_file)
@@ -234,7 +234,7 @@ do_plotting <- function(file, input, exclusion, output) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   # Note: We will keep the basic metadata informatiom from TSE files 
+   # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
    #############################################################################
@@ -251,7 +251,7 @@ do_plotting <- function(file, input, exclusion, output) {
                         sep = sep, # separator for columns
                         dec = dec) # decimal separator
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
-   # unite data sets 
+   # unite data sets
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
          c(Date_NA, Time_NA), # columns to be combined
@@ -261,9 +261,8 @@ do_plotting <- function(file, input, exclusion, output) {
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
-
+   # time interval
    time_diff <- get_time_diff(C1)
-
 
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
@@ -364,10 +363,10 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600/1000)
+      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600 / 1000)
    },
    HP2 = {
-      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600/1000) / 1000
+      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
    },
    Weir = {
       C1$HP <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
@@ -393,10 +392,10 @@ do_plotting <- function(file, input, exclusion, output) {
       C1$HP2 <- scaleFactor * 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
    HP = {
-      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600/1000)
+      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600 / 1000)
    },
    HP2 = {
-      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600/1000) / 1000
+      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
    },
    Weir = {
       C1$HP2 <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
@@ -514,7 +513,7 @@ do_plotting <- function(file, input, exclusion, output) {
       # join with metadata if supplied by user
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         finalC1 <- finalC1 %>% full_join(y=true_metadata, by=c("Animals")) %>% na.omit()
+         finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
       } else {
          df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
          df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
@@ -553,7 +552,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
       # calculate running averages
       if (input$running_average > 0) {
-         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals")) 
+         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
          if (input$running_average_method == "Mean") {
             p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
          } else if (input$running_average_method == "Max") {
@@ -603,9 +602,8 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
 
-   
       # create plotly for interactive plotting
-      p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+      p <- ggplotly(p) %>% config(toImageButtonOptions = list(
          format = "svg",
          width = 1200,
          height = 600
@@ -660,7 +658,6 @@ do_plotting <- function(file, input, exclusion, output) {
       write.csv2(df_new, file = "df_new.csv")
       colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
       colnames(df_to_plot2) <- c("RestingMetabolicRate2", "Animal", "Time")
-
       write.csv2(df_to_plot, file = "df_to_plot.csv")
 
       df_for_cov_analysis <- cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"),
@@ -694,9 +691,9 @@ do_plotting <- function(file, input, exclusion, output) {
    WeightVsEnergyExpenditure = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.) 
+      # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.)
       # how to force gui update before? TODO
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA") 
+      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
       df_to_plot["HP"] <- df_to_plot["HP"] / 24
       p <- ggplot(df_to_plot, aes(x = `Weight..g.`, y = `HP`, color = `Animal No._NA`))
       p <- p + geom_violin(trim = FALSE) + geom_jitter(position = position_jitter(0.2))
@@ -716,7 +713,7 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
-   p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+   p <- ggplotly(p) %>% config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
@@ -753,14 +750,16 @@ do_plotting <- function(file, input, exclusion, output) {
 
    p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
    if (input$with_facets) {
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
+      config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
     )
       )
    } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>% config( toImageButtonOptions = list(
+      p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
+      config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
@@ -815,7 +814,7 @@ do_plotting <- function(file, input, exclusion, output) {
          cv_vo2 <- 100 * (sd(values) / mean(values))
          values <- df_to_plot[indices, "VCO2(3)_[ml/h]"]
          cv_vco2 <- 100 * (sd(values) / mean(values))
-         if ( (cv_rer < CV_RER_MAX) && (cv_vo2 < CV_VO2_MAX) && (cv_vco2 < CV_VCO2_MAX)) {
+         if ((cv_rer < CV_RER_MAX) && (cv_vo2 < CV_VO2_MAX) && (cv_vco2 < CV_VCO2_MAX)) {
             indices_to_keep <- append(indices_to_keep, i)
          } else {
             indices_to_discard <- append(indices_to_keep, i)
@@ -843,7 +842,7 @@ do_plotting <- function(file, input, exclusion, output) {
       # plot RMR as histogram
       df <- data.frame(c(rmr))
       names(df) <- rmr
-      p <- ggplot(df, aes(x = rmr)) + geom_histogram(fill="green")
+      p <- ggplot(df, aes(x = rmr)) + geom_histogram(fill = "green")
       ggplotly(p)
    },
    #####################################################################################################################
@@ -860,12 +859,12 @@ do_plotting <- function(file, input, exclusion, output) {
    mylabel <- paste0(input$myr, sep = "", "_[%]")
    myvar <- input$myr
    if (startsWith(input$myr, "V")) {
-      mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") 
+      mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    }
 
    if (startsWith(input$myr, "Temp")) {
-      mylabel <- paste0(input$myr, sep = "", "_C") 
+      mylabel <- paste0(input$myr, sep = "", "_C")
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
    }
 
@@ -886,7 +885,6 @@ do_plotting <- function(file, input, exclusion, output) {
       p <- p + my_lights
   }
 
-
    p <- p + ylab(mylabel)
    p <- p + xlab("Time [h]")
 
@@ -899,7 +897,7 @@ do_plotting <- function(file, input, exclusion, output) {
          }
       }
    }
-     p <- ggplotly(p) %>% config( toImageButtonOptions = list(
+     p <- ggplotly(p) %>% config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
@@ -939,7 +937,6 @@ do_plotting <- function(file, input, exclusion, output) {
       paste(splitted[[1]][1], "", sep = "")
    }
 
-
    finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
    finalC1$HP <- finalC1$HP / time_diff
    finalC1$HP2 <- finalC1$HP2 / time_diff
@@ -947,9 +944,9 @@ do_plotting <- function(file, input, exclusion, output) {
    if (input$day_only && input$night_only) {
       # nothing to do we keep both night and day
    } else if (input$night_only) {
-      finalC1 <- finalC1 %>% filter(NightDay == 'pm')
+      finalC1 <- finalC1 %>% filter(NightDay == "pm")
    } else if (input$day_only) {
-      finalC1 <- finalC1 %>% filter(NightDay == 'pm')
+      finalC1 <- finalC1 %>% filter(NightDay == "pm")
    } else {
       finalC1 <- NULL
    }
@@ -977,7 +974,7 @@ do_plotting <- function(file, input, exclusion, output) {
      write.csv2(TEE, "tee.csv")
 
   p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_violin() # position = position_jitterdodge())
-  p <- p + geom_text(check_overlap = TRUE, aes(label=Days),  position = position_jitter(width = 0.15))
+  p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
   p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
   if (input$with_facets) {
       if (!is.null(input$facets_by_data_one)) {
@@ -994,26 +991,26 @@ do_plotting <- function(file, input, exclusion, output) {
       output$test <- renderUI({
          tagList(
             h4("Configuration"),
-            selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
-            selectInput("dep_var", "Dependent variable", choice=c("TEE")),
-            selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="Genotype"),
-            selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
-            hr(style="width: 50%"),
+            selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
+            selectInput("dep_var", "Dependent variable", choice = c("TEE")),
+            selectInput("indep_var", "Independent grouping variable", choices = colnames(true_metadata), selected = "Genotype"),
+            selectInput("covar", "Covariate", choices = colnames(true_metadata), selected = "body_weight"),
+            hr(style = "width: 50%"),
             h4("Advanced"),
-            selectInput("post_hoc_test", "Post-hoc test", choices=c("Bonferonni", "Tukey", "Spearman")),
-            sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
-            checkboxInput("check_test_assumptions", "Check test assumptions?", value=TRUE),
-            hr(style="width: 75%"),
+            selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+            sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+            checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+            hr(style = "width: 75%"),
             renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
          )
       })
 
       output$details <- renderUI({
-         results = do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
+         results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
          tagList(
             h3("Post-hoc testing"),
             renderPlotly(results$plot_details + xlab(input$indep_var)),
-            hr(style="width: 75%"),
+            hr(style = "width: 75%"),
             h4("Statistics"),
             tags$ul(
                tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
@@ -1189,7 +1186,7 @@ server <- function(input, output, session) {
                checkboxInput(inputId = "wmeans", label = "Display means"))
 
             output$wmeans_choice <- renderUI(
-               selectInput(inputId = "wmeans_choice", label="Method", choices = c("lm", "glm", "gam", "loess")))
+               selectInput(inputId = "wmeans_choice", label = "Method", choices = c("lm", "glm", "gam", "loess")))
          })
 
    observeEvent(input$plot_type, {
@@ -1317,28 +1314,25 @@ server <- function(input, output, session) {
             #############################################################################
             # Initializing
             #############################################################################
-                     
            if (input$havemetadata) {
                if (is.null(input$condition_type)) {
                   true_metadata <- get_true_metadata(input$metadatafile$datapath)
-                  output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(true_metadata), label="Condition"))
+                  output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
            } else {
              if (! is.null(real_data$animals)) {
                metadata <- real_data$metadata
-               output$condition_type = renderUI(selectInput(inputId="condition_type", colnames(metadata), label="Condition"))
+               output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(metadata), label = "Condition"))
             }
-
            }
 
             #############################################################################
             # condition type and select data by
             #############################################################################
-
            observeEvent(input$condition_type, {
             if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected=input$select_data_by))
+               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
                metadata <- real_data$metadata
                my_var <- input$condition_type
@@ -1349,25 +1343,22 @@ server <- function(input, output, session) {
                   diets <- unique(metadata[[my_var]])
                }
                output$select_data_by <- renderUI(
-               selectInput("select_data_by", "Filter by", choices = diets, selected=input$select_data_by)
+               selectInput("select_data_by", "Filter by", choices = diets, selected = input$select_data_by)
             )
             }
            }
            )
                if (input$plot_type == "RestingMetabolicRate") {
-                 showTab(inputId = "additional_content", target="Summary statistics")
+                 showTab(inputId = "additional_content", target = "Summary statistics")
 
             # old bar plot
             df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
             write.csv2(df_filtered, "rmr.csv")
-            #p <- ggplot(df_filtered, aes(factor(Animal), Value, fill = Component))
-            #p <- p + geom_bar(stat = "identity", position = "dodge") + scale_fill_brewer(palette = "Set1")
-            #p <- p + xlab("Animal") + ylab("RMR (min) [kcal/day]")
             df <- real_data$data
             df$Animal <- as.factor(df$Animal)
             df$Component <- as.factor(df$Component)
-            p <- ggplot(df, aes(x=Animal, y=HP, color=Animal)) + geom_violin() + geom_point(position=position_jitter(0.1))
-            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep=""))
+            p <- ggplot(df, aes(x = Animal, y = HP, color = Animal)) + geom_violin() + geom_point(position = position_jitter(0.1))
+            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep = ""))
 
 
        # explanation of plot
@@ -1385,12 +1376,12 @@ server <- function(input, output, session) {
 
             df1 <- read.csv2("rmr.csv")
 df2 <- read.csv2("tee.csv")
-df1 <- rename(df1, Animals=Animal)
-df1$Animals = as.factor(df1$Animals)
-df2$Animals = as.factor(df2$Animals)
+df1 <- rename(df1, Animals = Animal)
+df1$Animals <- as.factor(df1$Animals)
+df2$Animals <- as.factor(df2$Animals)
 # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/diff_time)
-df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/diff_time)
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value) / diff_time)
+df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE) / diff_time)
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
 df2$TEE <- as.factor(rep("RMR", nrow(df2)))
@@ -1398,7 +1389,7 @@ df2$TEE <- as.factor(rep("RMR", nrow(df2)))
 df_total <- rbind(df1, df2)
 df_total$Animals <- as.factor(df_total$Animals)
 
-p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill=TEE)) + geom_bar(stat="identity")
+p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
 p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
 
 output$summary <- renderPlotly(ggplotly(p2))
@@ -1408,26 +1399,26 @@ if (input$havemetadata) {
    output$test <- renderUI({
       tagList(
          h4("Configuration"),
-         selectInput("test_statistic", "Test", choices=c("1-way ANCOVA")),
-         selectInput("dep_var", "Dependent variable", choice=c("RMR")),
-         selectInput("indep_var", "Independent grouping variable", choices=colnames(true_metadata), selected="Genotype"),
-         selectInput("covar", "Covariate", choices=colnames(true_metadata), selected="body_weight"),
-         hr(style="width: 50%"),
+         selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
+         selectInput("dep_var", "Dependent variable", choice = c("RMR")),
+         selectInput("indep_var", "Independent grouping variable", choices = colnames(true_metadata), selected = "Genotype"),
+         selectInput("covar", "Covariate", choices = colnames(true_metadata), selected = "body_weight"),
+         hr(style = "width: 50%"),
          h4("Advanced"),
-         selectInput("post_hoc_test", "Post-hoc test", choices=c("bonferroni", "tukey", "spearman")),
-         sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step=0.001),
-         checkboxInput("check_test_assumptions", "Check test assumptions?", value=TRUE),
-         hr(style="width: 75%"),
+         selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
+         sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+         checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+         hr(style = "width: 75%"),
          renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
       )
       })
 
    output$details <- renderUI({
-      results = do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)
+      results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)
       tagList(
          h3("Post-hoc testing"),
          renderPlotly(results$plot_details + xlab(input$indep_var)),
-         hr(style="width: 75%"),
+         hr(style = "width: 75%"),
          h4("Statistics"),
          tags$ul(
             tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
@@ -1452,8 +1443,8 @@ if (input$havemetadata) {
             str5 <- "When heat production formulas agree mostly, so there should visually not be too many large residuals from a line of slope 1 be apparent in the plot." #nolint
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
-               hideTab(inputId = "additional_content", target="Summary statistics")
-               hideTab(inputId = "additional_content", target="Details")
+               hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "EnergyExpenditure") {
              output$explanation <- renderUI({
             str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
@@ -1462,8 +1453,8 @@ if (input$havemetadata) {
             str4 <- "Cohorts are usually stratified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
-               hideTab(inputId = "additional_content", target="Summary statistics")
-               hideTab(inputId = "additional_content", target="Details")
+               hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
             str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1472,8 +1463,8 @@ if (input$havemetadata) {
             str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
-               hideTab(inputId = "additional_content", target="Summary statistics")
-               hideTab(inputId = "additional_content", target="Details")
+               hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw data values are plotted </h3>"
@@ -1482,11 +1473,11 @@ if (input$havemetadata) {
                str4 <- "Cohorts are usually strafified by animal ID by default"
             HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
             })
-               hideTab(inputId = "additional_content", target="Summary statistics")
-               hideTab(inputId = "additional_content", target="Details")
+               hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
-               hideTab(inputId = "additional_content", target="Summary statistics")
-               showTab(inputId = "additional_content", target="Details")
+               hideTab(inputId = "additional_content", target = "Summary statistics")
+               showTab(inputId = "additional_content", target = "Details")
            } else {
             output$summary <- renderPlotly(NULL)
             output$explanation <- renderUI({
