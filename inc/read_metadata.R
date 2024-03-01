@@ -14,9 +14,15 @@ get_constants <- function(file) {
    constant_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'constants'))) %>% pull(ind)
    constants <- df %>% slice(constant_index[2])
    constants$`1` <- NULL
+   constants <- constants[!is.na(constants)]
    constants_values <- df %>% slice(constant_index[2]+1)
    constants_values$`1` <- NULL
-   return(data.frame(constant=constants, value=constants_values))
+   constants_values <- constants_values[!is.na(constants_values)]
+   df_meta <- data.frame(constant=constants, value=constants_values)
+   print(colnames(df_meta))
+   print(ncol(df_meta))
+   print(nrow(df_meta))
+   return(df_meta)
 }
 
 ################################################################################
