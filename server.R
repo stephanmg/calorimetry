@@ -472,6 +472,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(finalC1, file = "finalC1.csv")
 
    switch(plotType,
+
+   #############################################################################
+   # CompareHeatProductionFormulas
+   #############################################################################
    CompareHeatProductionFormulas = {
 
    p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
@@ -479,6 +483,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    stat_smooth(method = "lm") + # adds regression line and pearson product moment correlation
    stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
    },
+
+   #############################################################################
+   # GoxLox
+   #############################################################################
    GoxLox = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
