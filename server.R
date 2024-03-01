@@ -450,6 +450,7 @@ do_plotting <- function(file, input, exclusion, output) {
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
+   # join metadata if available with dataframe, then filter... override light cycle as well if light cycle specified
    # TODO: For testing purposes. Add filtering for light cycle back in (useful for RMR calculation especially)
    ## Or use day night information from tse header or metadata - some files use lightC (low values night and high values day)
    if (! is.null(input$light_cycle)) {
@@ -924,10 +925,10 @@ do_plotting <- function(file, input, exclusion, output) {
    finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
    light_on <- 720
    if (input$havemetadata) {
-      light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(str_detect(constants, "light_on")) %>% select(2) %>% pull())
+      light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
    }
 
-   if (inputoverride_metadata_light_cycle) {
+   if (input$override_metadata_light_cycle) {
       light_on <- 60 * input$light_cycle_start
    }
 
@@ -950,15 +951,12 @@ do_plotting <- function(file, input, exclusion, output) {
    } else if (input$day_only) {
       finalC1 <- finalC1 %>% filter(NightDay == 'pm')
    } else {
-
+      finalC1 <- NULL
    }
 
-   # TODO: use input$only_full_days to filter out here that we have only full days in analysis
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
 
-   # TODO: We need to rename Facet = Animals or Diet or Genotype (comes from true metadata, see EnergyExpenditure above as an example)
-   # Currently faceting with true metadata is not working
    if (input$with_facets) {
       if (input$facets_by_data_one %in% names(finalC1)) {
          TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
@@ -985,10 +983,8 @@ do_plotting <- function(file, input, exclusion, output) {
       if (!is.null(input$facets_by_data_one)) {
          if (input$orientation == "Horizontal") {
            p <- p + facet_grid(as.formula(".~Facet"))
-           #  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
          } else {
            p <- p + facet_grid(as.formula("Facet~."))
-           # p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
          }
       }
    }
@@ -1042,7 +1038,7 @@ do_plotting <- function(file, input, exclusion, output) {
       })
    }
 
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>%
+      p <- ggplotly(p) %>% #layout(boxmode = "group") %>%
       config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
