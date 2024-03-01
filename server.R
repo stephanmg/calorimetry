@@ -188,7 +188,8 @@ do_plotting <- function(file, input, exclusion, output) {
    if (fileExtension == "xlsx") {
       output$study_description <- renderText("")
       tmp_file <- tempfile()
-      if (check_for_cosmed(file)) {
+      if (length(excel_sheets(file)) == 2) { 
+        if (check_for_cosmed(file)) {
             output$file_type_detected <- renderText("Input file type detected as: COSMED")
             import_cosmed(file, tmp_file)
         } else {
