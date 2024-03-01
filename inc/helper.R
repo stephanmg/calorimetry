@@ -74,8 +74,11 @@ get_time_diff <- function(df) {
    return(end-start)
 }
 
+
+################################################################################
+# check_for_cosmed
+################################################################################
 check_for_cosmed <- function(file) {
-   print("checking...")
    if (length(excel_sheets(file)) == 2) { 
         if ((excel_sheets(file)[1] == "Data") && (excel_sheets(file)[2] == "Results")) {
             first_col <- read_excel(file) %>% select(1)

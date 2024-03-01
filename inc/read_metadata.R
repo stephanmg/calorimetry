@@ -5,10 +5,24 @@ library(viridis)
 library(ggExtra)
 library(plotly)
 
+################################################################################
+# get constant and value pairs from metadata sheet
+################################################################################
+get_constants <- function(file) {
+   df <- read_excel(file)
+   colnames(df) <- seq(1, length(colnames(df)))
+   constant_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'constants'))) %>% pull(ind)
+   constants <- df %>% slice(constant_index[2])
+   constants$`1` <- NULL
+   constants_values <- df %>% slice(constant_index[2]+1)
+   constants_values$`1` <- NULL
+   return(data.frame(constant=constants, value=constants_values))
+}
 
+################################################################################
+# get full metadata
+################################################################################
 get_true_metadata <- function(file) {
-   ## read metadata
-   #file <- '/home/stephan/Downloads/MetaDataSheet_UCP1 KO_cb8eb8c0-aa63-4a25-a495-6eaa8dc4a243 (2).xlsx'
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
 
@@ -23,7 +37,6 @@ get_true_metadata <- function(file) {
    diet_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'diet_group'))) %>% pull(ind)
    genotype_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'genotype_group'))) %>% pull(ind)
    body_weight_index <- df %>% mutate(ind=row_number()) %>% filter(if_any(everything(), ~str_detect(., 'body weight'))) %>% pull(ind)
-
 
    # number of samples
    ids <- df %>% slice(id_index)
@@ -44,7 +57,6 @@ get_true_metadata <- function(file) {
    body_weights <- df %>% slice(body_weight_index)
    body_weights$`1` <- NULL
    body_weights <- body_weights[!is.na(body_weights)]
-
 
    # genotypes
    genotypes <- df %>% slice(genotype_index)

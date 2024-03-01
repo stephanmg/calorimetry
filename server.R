@@ -568,12 +568,9 @@ do_plotting <- function(file, input, exclusion, output) {
          p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
          p <- p + geom_line()
       }
-     #p <- p + scale_fill_brewer(palette = "Spectral")
-    
-    # TODO:
-    # add day / night annotation() averaging kills last value so we have trouble adding timeline with our method (NA))
+
+      # add light cycle annotation
      lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
-     print(lights)
      colnames(lights) <- c("x", "y")
      if (input$timeline) {
        my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
@@ -675,11 +672,11 @@ do_plotting <- function(file, input, exclusion, output) {
       p2 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV1, group = Animal))
       p3 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV2, group = Animal))
 
-      # TODO: Use actual user input values (The following has been
-      # used for testing purposes and have full control over data)
+      # FIXME: Use actual user input values again (The following settings used
+      # for testing and validation purposes and to have full control over data)
       M <- 1
       PERCENTAGE <- 1
-      INTERVAL_LENGTH <- time_diff # TODO: test interval length in extract_rmr_helper
+      INTERVAL_LENGTH <- time_diff
       df_plot_total <- extract_rmr_helper()
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
@@ -925,8 +922,16 @@ do_plotting <- function(file, input, exclusion, output) {
    }
 
    finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
-   # TODO: check this, day night must come from either metadata sheet or true metadata (TSE header)
-   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < 720, "am", "pm")
+   light_on <- 720
+   if (input$havemetadata) {
+      light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(str_detect(constants, "light_on")) %>% select(2) %>% pull())
+   }
+
+   if (inputoverride_metadata_light_cycle) {
+      light_on <- 60 * input$light_cycle_start
+   }
+
+   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
 
    convert <- function(x) {
       splitted <- strsplit(as.character(x), " ")
@@ -948,12 +953,12 @@ do_plotting <- function(file, input, exclusion, output) {
 
    }
 
-   # TODO: use input$only_full_days to filter out here no full days...
+   # TODO: use input$only_full_days to filter out here that we have only full days in analysis
    TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
    TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
 
-
-   # TODO: here we need to rename Facet = Animals or Diet or Genotype (coming from true metadata ) faceting with metadata does not work yet
+   # TODO: We need to rename Facet = Animals or Diet or Genotype (comes from true metadata, see EnergyExpenditure above as an example)
+   # Currently faceting with true metadata is not working
    if (input$with_facets) {
       if (input$facets_by_data_one %in% names(finalC1)) {
          TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
@@ -1387,8 +1392,9 @@ df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals=Animal)
 df1$Animals = as.factor(df1$Animals)
 df2$Animals = as.factor(df2$Animals)
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/15) # TODO: divide by days and measuring interval, use diff_time from server.R
-df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/15)
+# time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value)/diff_time)
+df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE)/diff_time)
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
 df2$TEE <- as.factor(rep("RMR", nrow(df2)))
