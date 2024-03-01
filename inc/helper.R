@@ -73,3 +73,13 @@ get_time_diff <- function(df) {
    } 
    return(end-start)
 }
+
+check_for_cosmed <- function(file) {
+   if (length(excel_sheets(file)) == 2) { 
+        if ((excel_sheets(file)[1] == "Data") && (excel_sheets(file)[2] == "Results")) {
+            first_col <- read_excel(file) %>% select(1)
+            FIELDS_TO_CHECK = data.frame(index=c(2,3,4,5,6,7,8), value=c("Last Name", "First Name", "Gender", "Age", "Height (cm)", "Weight (kg)", "D.O.B."))
+            return(all(apply(FIELDS_TO_CHECK, 1, function(x, output) return(x[2] == first_col %>% nth(x[1]) %>% pull()))))
+        }
+   }
+}

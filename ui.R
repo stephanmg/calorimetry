@@ -228,7 +228,7 @@ sidebar_content <- sidebarPanel(
    colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
    colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
    h3("Time averaging of raw data"),
-   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 1, 30, 10, step = 1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
    )),

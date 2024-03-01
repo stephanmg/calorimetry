@@ -188,8 +188,7 @@ do_plotting <- function(file, input, exclusion, output) {
    if (fileExtension == "xlsx") {
       output$study_description <- renderText("")
       tmp_file <- tempfile()
-      if (length(excel_sheets(file)) == 2) { 
-        if ((excel_sheets(file)[1] == "Data") && (excel_sheets(file)[2] == "Results")) {
+      if (check_for_cosmed(file)) {
             output$file_type_detected <- renderText("Input file type detected as: COSMED")
             import_cosmed(file, tmp_file)
         } else {
@@ -552,7 +551,7 @@ do_plotting <- function(file, input, exclusion, output) {
 
       # calculate running averages
       if (input$running_average > 0) {
-         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
+         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals")) 
          if (input$running_average_method == "Mean") {
             p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
          } else if (input$running_average_method == "Max") {
@@ -568,7 +567,17 @@ do_plotting <- function(file, input, exclusion, output) {
          p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
          p <- p + geom_line()
       }
-      p <- p + scale_fill_brewer(palette = "Spectral")
+     #p <- p + scale_fill_brewer(palette = "Spectral")
+    
+    # TODO:
+    # add day / night annotation() averaging kills last value so we have trouble adding timeline with our method (NA))
+     lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
+     print(lights)
+     colnames(lights) <- c("x", "y")
+     if (input$timeline) {
+       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+       p <- p + my_lights
+      }
 
       # add means
       if (input$wmeans) {
@@ -580,15 +589,7 @@ do_plotting <- function(file, input, exclusion, output) {
          p <- p + stat_cor(method = input$wmethod)
       }
 
-     # add day / night annotation
-     lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
-     colnames(lights) <- c("x", "y")
-     if (input$timeline) {
-       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-       p <- p + my_lights
-      }
-
-      # axis labels
+          # axis labels
       p <- p + xlab("Time [h]")
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
 
@@ -602,6 +603,8 @@ do_plotting <- function(file, input, exclusion, output) {
             }
          }
       }
+
+   
       # create plotly for interactive plotting
       p <- ggplotly(p) %>% config( toImageButtonOptions = list(
          format = "svg",
