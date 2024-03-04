@@ -449,17 +449,15 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
-   # join metadata if available with dataframe, then filter... override light cycle as well if light cycle specified
-   # TODO: For testing purposes. Add filtering for light cycle back in (useful for RMR calculation especially)
-   ## Or use day night information from tse header or metadata - some files use lightC (low values night and high values day)
+   # light cycle information should be present also in raw TSE files without any additional metadata provided through our sheet
    if (! is.null(input$light_cycle)) {
       if ("LightC_[%]" %in% colnames(finalC1)) {
          `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
          # filter finalC1 by light cycle
          if (input$light_cycle == "Night") {
-         #   finalC1 <- filter(finalC1, `LightC_[%]` == "0")
+            finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` < input$threshold_light_day)
          } else {
-          #  finalC1 <- filter(finalC1, `LightC_[%]` == "49")
+            finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` > input$threshold_light_day)
          }
       }
    }
