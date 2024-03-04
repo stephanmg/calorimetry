@@ -15,7 +15,7 @@ plot_locomotion <- function(file, x_min_food = 2, x_max_food = 9.5, y_min_food =
    rows <- floor(sqrt(length(unique(df$Animal))))
    cols <- rows
 
-   df <- df[rep(seq(nrow(df)), df$Durat_Sec), ]
+   df <- df[rep(seq_len(nrow(df)), df$Durat_Sec), ]
    p2 <- ggplot(df, aes(Y_cm, X_cm)) + stat_density_2d(geom = "raster", aes(fill = after_stat(density)), contour = FALSE) + scale_fill_viridis_c()
 
    p2 <- p2 + facet_wrap(~ Animal, ncol = cols)
@@ -23,7 +23,7 @@ plot_locomotion <- function(file, x_min_food = 2, x_max_food = 9.5, y_min_food =
    p2 <- p2 + ylab("Position X [cm]")
    p2 <- p2 + ggtitle(paste("Position (Y, X) probability heat map for ", length(unique(df$Animal)), " animals", sep = ""))
    p2 <- p2 + geom_rect(data = rects, inherit.aes = FALSE, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), color = "#FAF9F6", fill = NA)
-   p2 <- p2 + geom_text(data = rects, inherit.aes = FALSE, aes(x = xmin + (xmax - xmin) / 2, y = ymin + (ymax - ymin) / 2, label = r), color = "#FAF9F6", size=4)
+   p2 <- p2 + geom_text(data = rects, inherit.aes = FALSE, aes(x = xmin + (xmax - xmin) / 2, y = ymin + (ymax - ymin) / 2, label = r), color = "#FAF9F6", size = 4)
    p2 <- p2 + scale_y_continuous(breaks = c(0, 5, 10, 15, 20)) + scale_x_continuous(breaks = c(0, 5, 10, 15, 20, 25, 30))
    p2 <- p2 + guides(fill = guide_legend(title = "Probability"))
    p2

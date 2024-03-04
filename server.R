@@ -507,7 +507,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #####################################################################################################################
    ### Energy Expenditure
    #####################################################################################################################
-   # TODO: This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
+   # This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
    ## In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
    ## This nicely illustrate how we need to proceed to support metadata from data (TSE header) and metadata sheet - implement in other functions below accordingly
    EnergyExpenditure = {
