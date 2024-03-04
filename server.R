@@ -739,11 +739,20 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
-      # TODO: Add metadata frame to filter correctly if metadata available
-      df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
-      df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
       df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
+
+      df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
+      df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
+      light_on <- 720
+      if (input$havemetadata) {
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+      }
+
+      if (input$override_metadata_light_cycle) {
+         light_on <- 60 * input$light_cycle_start
+      }
+
+      df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime2)) * 60 + minute(hms(df_to_plot$Datetime2)) < light_on, "am", "pm")
 
       p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
       p <- p + ggtitle("Day Night Activity")
