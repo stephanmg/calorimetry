@@ -462,30 +462,29 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
    }
 
-   #############################################################################
-   # Plotting
-   #############################################################################
+   #####################################################################################################################
+   # Plotting and data output for downstream debugging
+   #####################################################################################################################
    plotType <- input$plot_type
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
    switch(plotType,
-
-   #############################################################################
+   #####################################################################################################################
    # CompareHeatProductionFormulas
-   #############################################################################
+   #####################################################################################################################
    CompareHeatProductionFormulas = {
-
-   p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2")) +
-   geom_point() +
-   stat_smooth(method = "lm") + # adds regression line and pearson product moment correlation
-   stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
+      p <- ggplot(data = finalC1, aes_string(x = "HP", y = "HP2"))
+      p <- p + geom_point() + stat_smooth(method = "lm")
+      p <- p + stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
+      p <- p + ggtitle("Pearson-correlation between energy expenditures as computed by two different formulas")
    },
 
-   #############################################################################
+   #####################################################################################################################
    # GoxLox
-   #############################################################################
+   #####################################################################################################################
    GoxLox = {
+      # Metadata from TSE file header should be enough, want to see oxidation of substrates by animals
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
@@ -502,9 +501,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
       df_to_plot$Animals <- colors
 
-   p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
-   p <- p + ylab("GoxLox quantity")
-   p <- p + xlab("Time [h]")
+      p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+      p <- p + ylab("GoxLox quantity") + xlab("Time [h]") + ggtitle(input$goxlox)
    },
    #####################################################################################################################
    ### Energy Expenditure
@@ -593,9 +591,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          p <- p + stat_cor(method = input$wmethod)
       }
 
-          # axis labels
+      # axis labels
       p <- p + xlab("Time [h]")
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+
+      # add title
+      p <- p + ggtitle("Energy expenditure")
 
       # group with group from metadata
       if (input$with_facets) {
@@ -687,6 +688,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
       p <- p + xlab("Time [minutes]")
+      p <- p + ggtitle("Resting metabolic rates")
       finalC1 <- df_plot_total
    },
    #####################################################################################################################
@@ -717,6 +719,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          }
       }
    }
+
+   p <- p + ggtitle("Weight vs Energy Expenditure")
    p <- ggplotly(p) %>% config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
@@ -728,48 +732,48 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ### Day Night Activity
    #####################################################################################################################
    DayNightActivity = {
-
-   convert <- function(x) {
-      splitted <- strsplit(as.character(x), " ")
-      paste(splitted[[1]][2], ":00", sep = "")
-   }
+      convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][2], ":00", sep = "")
+      }
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
-   df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
-   df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
-   df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
-   p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
+      # TODO: Add metadata frame to filter correctly if metadata available
+      df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
+      df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < 720, "am", "pm")
+      df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
 
-  if (input$with_facets) {
-      if (!is.null(input$facets_by_data_one)) {
-         if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-         } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-         }
+      p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
+      p <- p + ggtitle("Day Night Activity")
+
+      if (input$with_facets) {
+            if (!is.null(input$facets_by_data_one)) {
+               if (input$orientation == "Horizontal") {
+                  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+               } else {
+                  p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+               }
+            }
       }
-   }
 
-   p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
-   if (input$with_facets) {
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
-      config(toImageButtonOptions = list(
-      format = "svg",
-      width = 1200,
-      height = 600
-    )
-      )
-   } else {
-      p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
-      config(toImageButtonOptions = list(
-      format = "svg",
-      width = 1200,
-      height = 600
-    )
-  )
-   }
+      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      if (input$with_facets) {
+         p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
+         config(toImageButtonOptions = list(
+         format = "svg",
+         width = 1200,
+         height = 600
+      ))
+      } else {
+         p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
+         config(toImageButtonOptions = list(
+         format = "svg",
+         width = 1200,
+         height = 600
+      ))
+      }
    },
    #####################################################################################################################
    ### Locomotion
@@ -781,6 +785,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       } else {
          p <- plot_locomotion(file$datapath)
       }
+      p <- p + ggtitle("Probability density map of locomotion")
       p
    },
 
@@ -790,6 +795,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    LocomotionBudget = {
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion_budget(file$datapath)
+      p <- p + ggtitle("Locomotional budget")
       p
    },
    #####################################################################################################################
@@ -847,6 +853,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df <- data.frame(c(rmr))
       names(df) <- rmr
       p <- ggplot(df, aes(x = rmr)) + geom_histogram(fill = "green")
+      p <- p + ggtitle("Resting metabolic rate for COSMED")
       ggplotly(p)
    },
    #####################################################################################################################
@@ -857,207 +864,210 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
-   write.csv2(df_to_plot, file = "finalC1.csv")
-   colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
-   df_to_plot$Animals <- colors
-   mylabel <- paste0(input$myr, sep = "", "_[%]")
-   myvar <- input$myr
-   if (startsWith(input$myr, "V")) {
-      mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
+      write.csv2(df_to_plot, file = "finalC1.csv")
+      colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
+      df_to_plot$Animals <- colors
+      mylabel <- paste0(input$myr, sep = "", "_[%]")
+      myvar <- input$myr
+      if (startsWith(input$myr, "V")) {
+         mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
+         names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+      }
+
+      if (startsWith(input$myr, "Temp")) {
+         mylabel <- paste0(input$myr, sep = "", "_C")
+         names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+      }
+
+      if (startsWith(input$myr, "RER")) {
+         mylabel <- "RER"
+      }
+
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
-   }
+      names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
-   if (startsWith(input$myr, "Temp")) {
-      mylabel <- paste0(input$myr, sep = "", "_C")
-      names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
-   }
+      p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+      mylabel <- gsub("_", " ", mylabel)
 
-   if (startsWith(input$myr, "RER")) {
-      mylabel <- "RER"
-   }
+      lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
+      colnames(lights) <- c("x", "y")
+      if (input$timeline) {
+            my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+            p <- p + my_lights
+      }
 
-   names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
-   names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
+      p <- p + ylab(mylabel)
+      p <- p + xlab("Time [h]")
 
-   p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
-   mylabel <- gsub("_", " ", mylabel)
-
-  lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
-  colnames(lights) <- c("x", "y")
-  if (input$timeline) {
-      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-      p <- p + my_lights
-  }
-
-   p <- p + ylab(mylabel)
-   p <- p + xlab("Time [h]")
-
-  if (input$with_facets) {
-      if (!is.null(input$facets_by_data_one)) {
-         if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-         } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+      if (input$with_facets) {
+         if (!is.null(input$facets_by_data_one)) {
+            if (input$orientation == "Horizontal") {
+               p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+            } else {
+               p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+            }
          }
       }
-   }
-     p <- ggplotly(p) %>% config(toImageButtonOptions = list(
+
+      p <- p + ggtitle("Raw measuremeent")
+
+      p <- ggplotly(p) %>% config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
       height = 600
-    )
-  )
+      ))
    },
    #####################################################################################################################
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
-   colors <- as.factor(`$`(finalC1, "Animal No._NA"))
-   finalC1$Animals <- colors
+      colors <- as.factor(`$`(finalC1, "Animal No._NA"))
+      finalC1$Animals <- colors
 
-   C1meta_tmp <- C1meta
-   colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-   finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+      C1meta_tmp <- C1meta
+      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
-   convert2 <- function(x) {
-      splitted <- strsplit(as.character(x), " ")
-      paste(splitted[[1]][2], ":00", sep = "")
-   }
-
-   finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
-   light_on <- 720
-   if (input$havemetadata) {
-      light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-   }
-
-   if (input$override_metadata_light_cycle) {
-      light_on <- 60 * input$light_cycle_start
-   }
-
-   finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
-
-   convert <- function(x) {
-      splitted <- strsplit(as.character(x), " ")
-      paste(splitted[[1]][1], "", sep = "")
-   }
-
-   finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-   finalC1$HP <- finalC1$HP / time_diff
-   finalC1$HP2 <- finalC1$HP2 / time_diff
-
-   if (input$day_only && input$night_only) {
-      # nothing to do we keep both night and day
-   } else if (input$night_only) {
-      finalC1 <- finalC1 %>% filter(NightDay == "pm")
-   } else if (input$day_only) {
-      finalC1 <- finalC1 %>% filter(NightDay == "pm")
-   } else {
-      finalC1 <- NULL
-   }
-
-   TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
-   TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
-
-   if (input$with_facets) {
-      if (input$facets_by_data_one %in% names(finalC1)) {
-         TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
-         TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+      convert2 <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][2], ":00", sep = "")
       }
-   }
 
-   TEE <- rbind(TEE1, TEE2)
-   names(TEE)[names(TEE) == "x"] <- "TEE"
-   TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
-   TEE$Days <- as.factor(TEE$Days)
-   TEE$Animals <- as.factor(TEE$Animals)
-     if (input$with_facets) {
-      if (input$facets_by_data_one %in% names(finalC1)) {
-         TEE$Facet <- as.factor(TEE$Facet)
+      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
+      light_on <- 720
+      if (input$havemetadata) {
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
-     }
-     write.csv2(TEE, "tee.csv")
 
-  p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_violin() # position = position_jitterdodge())
-  p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
-  p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
-  if (input$with_facets) {
-      if (!is.null(input$facets_by_data_one)) {
-         if (input$orientation == "Horizontal") {
-           p <- p + facet_grid(as.formula(".~Facet"))
-         } else {
-           p <- p + facet_grid(as.formula("Facet~."))
+      if (input$override_metadata_light_cycle) {
+         light_on <- 60 * input$light_cycle_start
+      }
+
+      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
+
+      convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][1], "", sep = "")
+      }
+
+      finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
+      finalC1$HP <- finalC1$HP / time_diff
+      finalC1$HP2 <- finalC1$HP2 / time_diff
+
+      if (input$day_only && input$night_only) {
+         # nothing to do we keep both night and day
+      } else if (input$night_only) {
+         finalC1 <- finalC1 %>% filter(NightDay == "pm")
+      } else if (input$day_only) {
+         finalC1 <- finalC1 %>% filter(NightDay == "pm")
+      } else {
+         finalC1 <- NULL
+      }
+
+      TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+      TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+
+      if (input$with_facets) {
+         if (input$facets_by_data_one %in% names(finalC1)) {
+            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
          }
       }
-   }
 
-   if (input$havemetadata) {
-      true_metadata <- get_true_metadata(input$metadatafile$datapath)
-      output$test <- renderUI({
-         tagList(
-            h4("Configuration"),
-            selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
-            selectInput("dep_var", "Dependent variable", choice = c("TEE")),
-            selectInput("indep_var", "Independent grouping variable", choices = colnames(true_metadata), selected = "Genotype"),
-            selectInput("covar", "Covariate", choices = colnames(true_metadata), selected = "body_weight"),
-            hr(style = "width: 50%"),
-            h4("Advanced"),
-            selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
-            sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-            checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-            hr(style = "width: 75%"),
-            renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
-         )
-      })
+      TEE <- rbind(TEE1, TEE2)
+      names(TEE)[names(TEE) == "x"] <- "TEE"
+      TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+      TEE$Days <- as.factor(TEE$Days)
+      TEE$Animals <- as.factor(TEE$Animals)
+      if (input$with_facets) {
+         if (input$facets_by_data_one %in% names(finalC1)) {
+            TEE$Facet <- as.factor(TEE$Facet)
+         }
+      }
+      write.csv2(TEE, "tee.csv")
 
-      output$details <- renderUI({
-         results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
-         tagList(
-            h3("Post-hoc testing"),
-            renderPlotly(results$plot_details + xlab(input$indep_var)),
-            hr(style = "width: 75%"),
-            h4("Statistics"),
-            tags$ul(
-               tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
-               tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
-               tags$li(paste("df: ", results$statistics$df)),
-               tags$li(paste("test-statistic: ", results$statistics$statistic))
-            ),
-            h4("Test assumptions"),
-            tags$ul(
-               tags$li(paste("Homogeneity of variances (Levene)", results$levene$p)),
-               tags$li(paste("Normality of residuals (Shapiro-Wilk)", results$shapiro$p.value))
+      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_violin() # position = position_jitterdodge())
+      p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
+      p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
+      if (input$with_facets) {
+         if (!is.null(input$facets_by_data_one)) {
+            if (input$orientation == "Horizontal") {
+            p <- p + facet_grid(as.formula(".~Facet"))
+            } else {
+            p <- p + facet_grid(as.formula("Facet~."))
+            }
+         }
+      }
+
+      if (input$havemetadata) {
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         output$test <- renderUI({
+            tagList(
+               h4("Configuration"),
+               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
+               selectInput("dep_var", "Dependent variable", choice = c("TEE")),
+               selectInput("indep_var", "Independent grouping variable", choices = colnames(true_metadata), selected = "Genotype"),
+               selectInput("covar", "Covariate", choices = colnames(true_metadata), selected = "body_weight"),
+               hr(style = "width: 50%"),
+               h4("Advanced"),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+               hr(style = "width: 75%"),
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
-         )
-      })
+         })
 
-      output$explanation <- renderText(results$statistics$p)
-      output$explanation <- renderUI({
-      str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
-      str2 <- "Depending on the two heat production / energy expenditure formulas chosen (HP and HP2)"
-      str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-      HTML(paste(str1, str2, str3, sep = "<br/>"))
-      })
-   }
+         output$details <- renderUI({
+            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
+            tagList(
+               h3("Post-hoc testing"),
+               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               hr(style = "width: 75%"),
+               h4("Statistics"),
+               tags$ul(
+                  tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
+                  tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
+                  tags$li(paste("df: ", results$statistics$df)),
+                  tags$li(paste("test-statistic: ", results$statistics$statistic))
+               ),
+               h4("Test assumptions"),
+               tags$ul(
+                  tags$li(paste("Homogeneity of variances (Levene)", results$levene$p)),
+                  tags$li(paste("Normality of residuals (Shapiro-Wilk)", results$shapiro$p.value))
+               )
+            )
+         })
 
-      p <- ggplotly(p) %>% #layout(boxmode = "group") %>%
-      config(toImageButtonOptions = list(
-      format = "svg",
-      width = 1200,
-      height = 600
-    )
-  )
-   },
-   {
-      #all other options
-   }
+            output$explanation <- renderText(results$statistics$p)
+            output$explanation <- renderUI({
+            str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
+            str2 <- "Depending on the two heat production / energy expenditure formulas chosen (HP and HP2)"
+            str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+            HTML(paste(str1, str2, str3, sep = "<br/>"))
+            })
+         }
+
+         p <- p + ggtitle("Total energy expenditure")
+
+         p <- ggplotly(p) %>% #layout(boxmode = "group") %>%
+         config(toImageButtonOptions = list(
+         format = "svg",
+         width = 1200,
+         height = 600
+      ))
+      },
+      {
+         # all other options
+      }
    )
-   # return data to ui
+   # return data to UI
    list("plot" = p, "animals" = `$`(finalC1, "Animal No._NA"), "data" = finalC1, "metadata" = C1meta)
 }
 
-################################################################################
+#####################################################################################################################
 # Create server
-################################################################################
+#####################################################################################################################
 server <- function(input, output, session) {
    observe_helpers()
 
@@ -1097,9 +1107,9 @@ server <- function(input, output, session) {
       HTML(html_ui)
       })
 
-   #############################################################################
+   #####################################################################################################################
    # Observe heat production formula 1 and forumula 2
-   #############################################################################
+   #####################################################################################################################
    observeEvent(c(input$variable1, input$variable2), {
          text1 <- ""
          text2 <- ""
@@ -1164,9 +1174,9 @@ server <- function(input, output, session) {
             )
          )
    })
-   #############################################################################
+   #####################################################################################################################
    # Observe plot type
-   #############################################################################
+   #####################################################################################################################
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
@@ -1204,9 +1214,9 @@ server <- function(input, output, session) {
                selectInput(inputId = "wmethod", label = "Statistic", choices = c("pearson", "kendall", "spearman")))
          })
 
-   #############################################################################
+   #####################################################################################################################
    # Observe export events
-   #############################################################################
+   #####################################################################################################################
    observeEvent(input$export_folder, {
        output$folder_name_export <- renderUI(
             renderText(paste(path_home(), input$export_folder$path[[2]], sep = "/")))

@@ -169,7 +169,7 @@ sidebar_content <- sidebarPanel(
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
    div("A general workflow: First inspect raw data, then calculate energy expenditures and compare TEE and RMR. If locomotion data available plot the budget and probability density maps. Export compiled data sets to Excel or CalR."),
-   selectInput("plot_type", "Type:", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "EstimateRMRforCOSMED"))),
+   selectInput("plot_type", "Type:", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas"))),
    hr(),
    h2("Grouping and filtering"),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
