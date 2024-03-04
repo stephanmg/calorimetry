@@ -11,14 +11,17 @@ library(patchwork)
 # M specifies the number of intervals one wishes to find a minimum energy exp.
 # percentage specifies how many of the minimum values should be considered
 do_extract <- function(df, component = "O2", percentage = 5, N) {
+   # best n RMR intervals
+   best_rmr_intervals <- 1
+
    # order df by component O2
    df_ordered <- df[order(df[[component]]), ]
 
    # indices of minimum energy expenditure
    indices <- which.minn(df_ordered[[component]], n = N * percentage / 100)
+
    # extract a sub data frame from the indices
    sub_df <- df_ordered[indices, ]
-   # print(sub_df)
 
    # partial rowsum
    psum <- function(..., na.rm = FALSE) {
@@ -27,16 +30,11 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 
    # apply partial rowsum to CoV1 (O2) and CoV2 (CO2)
    dat <- transform(sub_df, sum = psum(CoV1, CoV2))
-   # print(dat)
 
-   # FIXME: return n > 1 best values, then create a binned scatter plot (y axis)
-   index <- which.minn(dat$sum, n = 1)
-   # plot data of minimum energy expenditure per interval with one index
-   # print("RMR in this measurement (interval):")
-
-   # FIXME: HP needs to be calculated with O2 and CO2 an all indices n > 1 see above
-   # HP means heat production, either sorted by O2 or CO2
-   # print(dat[index, ]$HP)
+   # we take the very best only for each of the intervals of the RMRs
+   # we could also think here to use instead n > 1 intervals, then
+   # do a binned RMR plot for intervals instead
+   index <- which.minn(dat$sum, n = best_rmr_intervals)
    dat[index, ]$HP
 }
 
@@ -48,7 +46,7 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 # M, sliding window size, typically much smaller than N
 # N, total intervals
 # percentage, how many of best (minimum energy expenditure values) to consider
-create_df <- function(df, component, M, N, percentage, interval_length = 15) {
+create_df <- function(df, component, M, N, percentage = 1, interval_length = 15) {
    hp <- c()
    index <- c()
    for (i in 0:floor(N / M)) { # sub interval, get minimum EE in M intervals
@@ -76,10 +74,8 @@ percentage <- 5
 # data
 # M
 # PERCENTAGE
-extract_rmr <- function(data, M, PERCENTAGE, interval_length = 15) {
+extract_rmr <- function(data, M = 5, PERCENTAGE = 5, interval_length = 15) {
    N <- nrow(data)
-   # TODO: Make M a parameter... a user might want to specify the sliding window
-   M <- 5
    # actual data
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE, interval_length)

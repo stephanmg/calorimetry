@@ -655,9 +655,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
 
-      # FIXME: Code works in this way only if NO averaging present done for RMR
-      # depending on calculation of finalC1$HP values we have different number of
-      # rows for df_new and finalC1, then fails. Also multiple files problematic.
+      # FIXME: Code works in this way only reliably if NO averaging done before
+      # RMR calculation. Depending on calculation of finalC1$HP different number
+      # of rows for df_new and finalC1, then fails. Also multiple files problematic.
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot$Group <- as.factor(df_to_plot$Group)
@@ -678,10 +678,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       p2 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV1, group = Animal))
       p3 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV2, group = Animal))
 
-      # FIXME: Use actual user input values again (The following settings used
-      # for testing and validation purposes and to have full control over data)
-      M <- 1
-      PERCENTAGE <- 1
+      M <- input$window
+      PERCENTAGE <- input$percentage_best
       INTERVAL_LENGTH <- time_diff
       df_plot_total <- extract_rmr_helper()
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
@@ -1382,14 +1380,20 @@ server <- function(input, output, session) {
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
 
+
+            time_diff <- 5
+            if (input$havemetadata) {
+               time_diff <- get_time_diff(finalC1)
+            }
+
             df1 <- read.csv2("rmr.csv")
 df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals = Animal)
 df1$Animals <- as.factor(df1$Animals)
 df2$Animals <- as.factor(df2$Animals)
 # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value) / diff_time)
-df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE) / diff_time)
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value) / time_diff)
+df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE) / time_diff)
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
 df2$TEE <- as.factor(rep("RMR", nrow(df2)))
