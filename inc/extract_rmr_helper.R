@@ -1,10 +1,10 @@
+library(dplyr)
+source("inc/extract_rmr.R")
 ################################################################################
 # extract_rmr_helper
 ################################################################################
 extract_rmr_helper <- function(interval_length = 15, percentage_best = 1, M = 1) {
    df <- read.csv2("df_for_cov_analysis.csv")
-   library(dplyr)
-   source("inc/extract_rmr.R")
    res <- df %>%
       group_by(Animal) %>%
       group_map(~ extract_rmr(.x, M, percentage_best, interval_length))

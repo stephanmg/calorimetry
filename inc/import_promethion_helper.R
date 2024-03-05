@@ -3,6 +3,9 @@ library("dplyr")
 library("tidyr")
 library("lubridate")
 
+################################################################################
+# import_promethion
+################################################################################
 import_promethion <- function(file, file_out) {
    # when adding more metadata or columns need to be increased by 1
    NUM_METADATA <- 3

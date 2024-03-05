@@ -3,11 +3,17 @@ library("dplyr")
 library("tidyr")
 library("lubridate")
 
-helper_fn <- function(time) {
+################################################################################
+# reformat_time_for_cosmed
+################################################################################
+reformat_time_for_cosmed <- function(time) {
    td <- seconds_to_period(time)
    sprintf("%02d:%02d", minute(td), second(td))
 }
 
+################################################################################
+# import_cosmed
+################################################################################
 import_cosmed  <- function(file, file_out) {
    df <- read_excel(file)
    duration <- 30 * 6 # 30 minutes and 6 mesasureents at 10 s intervals)
@@ -35,7 +41,7 @@ import_cosmed  <- function(file, file_out) {
    data <- data %>% rename("RER" = "RQ")
    data <- data %>% rename("Time" = "t")
 
-   data <- data %>% mutate(Time = helper_fn(Time))
+   data <- data %>% mutate(Time = reformat_time_for_cosmed(Time))
    colnames(header) <- colnames(data)
 
    fileinfo <- c(file, rep("", 6))

@@ -5,6 +5,9 @@ library(viridis)
 library(ggExtra)
 library(stringr)
 
+################################################################################
+# plot_locomotion_budget
+################################################################################
 plot_locomotion_budget <- function(file) {
    sheet <- "Behavior_List"
    df <- read_excel(file, sheet = sheet)

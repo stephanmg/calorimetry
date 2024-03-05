@@ -1,5 +1,8 @@
 library(ggplot2)
 
+################################################################################
+# draw_day_night_rectangles
+################################################################################
 draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey") {
    intervals <- seq(min(df$x), max(df$x), 12)
    light_on <- TRUE
