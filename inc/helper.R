@@ -28,7 +28,7 @@ partition <- function(mydf) {
 cv <- function(mydf, window = 2) {
    df <- mydf
    df_new <- data.frame()
-   for (i in 1:ncol(df)) {
+   for (i in seq_len(ncol(df))) {
       values <- df[, i]
       covs <- c()
       for (j in seq(from = 1, to = length(values), by = 1)) {
@@ -53,7 +53,7 @@ cv <- function(mydf, window = 2) {
 # df_new, data
 reformat <- function(df_new) {
    df_final <- data.frame(HP = c(), Group = c())
-   for (i in 1:ncol(df_new)) {
+   for (i in seq_len(ncol(df_new))) {
       df_tmp <- data.frame(HP=df_new[, i], Group=rep(colnames(df_new)[i], length(df_new[, i]))) #nolint
       df_final <- rbind(df_final, df_tmp)
    }
@@ -82,7 +82,7 @@ check_for_cosmed <- function(file) {
    if (length(excel_sheets(file)) == 2) {
         if ((excel_sheets(file)[1] == "Data") && (excel_sheets(file)[2] == "Results")) {
             first_col <- read_excel(file) %>% select(1)
-            FIELDS_TO_CHECK <-  data.frame(index = c(1, 2, 3, 4, 5 ,6), value = c("Last Name", "First Name", "Gender", "Age", "Height (cm)", "Weight (kg)"))
+            FIELDS_TO_CHECK <-  data.frame(index = c(1, 2, 3, 4, 5, 6), value = c("Last Name", "First Name", "Gender", "Age", "Height (cm)", "Weight (kg)"))
             return(all(apply(FIELDS_TO_CHECK, 1, function(x, output) return(x[2] == (first_col %>% nth(as.integer(x[1])) %>% pull())))))
         }
    }
