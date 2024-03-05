@@ -640,6 +640,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df <- data.frame(Values = finalC1[[component]],
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
+
+      write.csv2(df, "data_for_unittests_input.csv")
       df_new <- partition(df)
       df_new <- cv(df_new, input$window)
       df_new <- reformat(df_new)
