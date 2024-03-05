@@ -17,19 +17,24 @@ require(tidyverse)
 library(tools)
 library(shinyalert)
 
-source("inc/helper.R") # helper methods
-source("inc/extract_rmr.R") # rmr extraction
-source("inc/extract_rmr_helper.R") # rmr extraction helper
-source("inc/import_promethion_helper.R") # import for SABLE/Promethion data sets
-source("inc/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
-source("inc/import_cosmed_helper.R") # import for COSMED data sets
-source("inc/locomotion.R") # for locomotion probability heatmap
-source("inc/timeline.R") # for colorizing timeline by day/night rhythm
-source("inc/locomotion_budget.R") # for locomotion budget
-source("inc/guide.R") # for guide
-source("inc/do_ancova.R") # for ancova without metadata
-source("inc/do_ancova_alternative.R") # for ancova with metadata
-source("inc/read_metadata.R") # for true metadata
+source("inc/rmr/helper.R") # rmr helper methods
+source("inc/rmr/extract_rmr.R") # rmr extraction
+source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
+
+source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
+source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
+source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+
+source("inc/locomotion/locomotion.R") # for locomotion probability heatmap
+source("inc/locomotion/locomotion_budget.R") # for locomotion budget
+
+source("inc/annotations/timeline.R") # for colorizing timeline by day/night rhythm
+source("inc/annotations/guide.R") # for guide
+
+source("inc/statistics/do_ancova.R") # for ancova without metadata
+source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
+
+source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
 ################################################################################
 # Helper functions

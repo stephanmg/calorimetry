@@ -2,7 +2,7 @@ library(testthat)
 source("../../inc/read_metadata.R")
 
 ################################################################################
-### data tests
+### metadata tests
 ################################################################################
 test_that("get_true_metadata", {
    df <- get_true_metadata("../data/metadata.xslx")
