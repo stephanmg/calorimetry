@@ -71,9 +71,6 @@ percentage <- 5
 ################################################################################
 # extract_rmr
 ################################################################################
-# data
-# M
-# PERCENTAGE
 extract_rmr <- function(data, M = 5, PERCENTAGE = 5, interval_length = 15) {
    N <- nrow(data)
    # actual data

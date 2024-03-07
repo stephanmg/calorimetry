@@ -1020,17 +1020,18 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
+               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("TEE")),
                selectInput("indep_var", "Independent grouping variable", choices = colnames(true_metadata), selected = "Genotype"),
-               selectInput("covar", "Covariate", choices = colnames(true_metadata), selected = "body_weight"),
+               selectInput("covar", "Covariate #1", choices = colnames(true_metadata), selected = "body_weight"),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = colnames(true_metadata), selected = "body_weight")),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
 

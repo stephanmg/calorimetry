@@ -7,11 +7,15 @@ library(emmeans)
 ################################################################################
 # do_ancova_alternative
 ################################################################################
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, group, adjust_method = "bonferroni") {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, adjust_method = "bonferroni") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit()
 
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
+  }
+
+  if (is.null(indep_var2)) {
+    indep_var2 <- "body_weight"
   }
 
   if (is.null(group)) {
@@ -20,9 +24,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, group, adjust
 
   names(df)[names(df) == group] <- "group"
   names(df)[names(df) == indep_var] <- "Weight"
+  names(df)[names(df) == indep_var] <- "Weight2"
 
-  df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+  df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
   df$Weight <- as.numeric(df$Weight)
+  df$Weight2 <- as.numeric(df$Weight2)
   df$TEE <- as.numeric(df$TEE)
 
   p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
@@ -30,7 +36,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, group, adjust
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
   pwc <- df %>%
     emmeans_test(
-      TEE ~ group, covariate = Weight,
+      TEE ~ group, covariate = c(Weight),
       p.adjust.method = adjust_method
     )
 
