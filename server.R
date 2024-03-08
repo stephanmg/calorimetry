@@ -534,7 +534,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_to_plot$Animals <- colors
 
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
-      p <- p + ylab("GoxLox quantity") + xlab("Time [h]") + ggtitle(input$goxlox)
+      p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Time [h]") + ggtitle(input$goxlox)
    },
    #####################################################################################################################
    ### Energy Expenditure
