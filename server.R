@@ -268,12 +268,28 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1$minutes <- minute(C1$Datetime2)
    # time interval
    time_diff <- get_time_diff(C1)
+   # get date ranges
+   time_start_end <- NULL
+
+   # if null we will set custom ranges for current file
+   start_date <-  "1970-01-01"
+   end_date <- Sys.Date()
+   if (!is.null(input$daterange)) {
+      start_date <- input$daterange[[1]]
+      end_date <- input$daterange[[2]]
+   }
+
+   if (!is.null(time_start_end)) {
+      start_date <- time_start_end$date_start
+      end_date <- time_start_end$date_end
+   }
+   output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = start_date, end = end_date))
 
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
    arrange(Datetime2) %>%
-   filter(Datetime2 >= input$daterange[[1]] & # From
-            Datetime2 <= input$daterange[[2]]) %>% # To
+   filter(Datetime2 >= start_date & # From
+            Datetime2 <= end_date) %>% # To
    mutate(MeasPoint = row_number())
    C1 <- C1[!is.na(C1$MeasPoint), ]
    # Step #1 - calculate the difference between consecutive dates
@@ -443,6 +459,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
+   time_start_end <- get_date_range(finalC1)
    }
    # step 13 (debugging: save all cohort means)
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
@@ -466,6 +483,16 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          }
       }
    }
+
+   # update selection of dates
+   #time_start_end <- get_date_range(finalC1)
+   #output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
+
+
+   # gender choice
+   output$checkboxgroup_gender <- renderUI(
+      checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chose gender",
+      choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
 
    #####################################################################################################################
    # Plotting and data output for downstream debugging
@@ -515,14 +542,20 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
    ## In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
    ## This nicely illustrate how we need to proceed to support metadata from data (TSE header) and metadata sheet - implement in other functions below accordingly
+   ## TODO: use this template to add metadata to other functions
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-
-      # join with metadata if supplied by user
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         print(unique(true_metadata$Animals))
+         print(head(finalC1))
+         print(unique(finalC1$Animals))
+         # Note: full_join is correct, however do not omit rows containing only a single NA, might be two different data frames (TSE files) have different columns!
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
+         write.csv2(finalC1, "bogus_finalC1.csv")
+         print("animals with metadata")
+         print(unique(finalC1$Animals))
       } else {
          df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
          df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
@@ -1067,7 +1100,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
          p <- p + ggtitle("Total energy expenditure")
 
-         p <- ggplotly(p) %>% #layout(boxmode = "group") %>%
+         p <- ggplotly(p) %>% #%>% layout(boxmode = "group") %>%
          config(toImageButtonOptions = list(
          format = "svg",
          width = 1200,
@@ -1547,10 +1580,10 @@ if (input$havemetadata) {
 
 
    #############################################################################
-   # Hide components on startup
+   # Hide certain components on startup
    #############################################################################
    lapply(
-      X = c("DC", "DE", "PC"),
+      X = c("DE", "PC"),
       FUN = function(i) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
