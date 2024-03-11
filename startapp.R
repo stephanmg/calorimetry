@@ -22,7 +22,6 @@ options(shiny.maxRequestSize = maxRequestSize)
 if (printSessionInfo) {
    print(sessionInfo())
 }
-print(packageVersion("plotly"))
 
 ################################################################################
 # Start application

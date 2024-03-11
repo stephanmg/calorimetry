@@ -82,9 +82,6 @@ get_date_range <- function(df) {
  date_last <- df %>% select(Datetime) %>% last() %>% pull()
  date_first <- paste(rev(str_split(str_split(date_first, " ")[[1]][1], "/")[[1]]), collapse = "-")
  date_last <- paste(rev(str_split(str_split(date_last, " ")[[1]][1], "/")[[1]]), collapse = "-")
- print("in helper")
- print(date_last)
- print(date_first)
  return(list("date_start" = date_first, "date_end" = date_last))
 }
 

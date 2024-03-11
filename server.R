@@ -983,7 +983,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          light_on <- 60 * input$light_cycle_start
       }
 
-      print(finalC1)
       finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
 
       convert <- function(x) {
