@@ -1089,8 +1089,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             })
          }
 
-         p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ")", sep=""))
-
+         p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ")", sep = ""))
          p <- ggplotly(p) %>% #%>% layout(boxmode = "group") %>%
          config(toImageButtonOptions = list(
          format = "svg",
