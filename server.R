@@ -1224,7 +1224,7 @@ server <- function(input, output, session) {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
                label = "Chose prefered method for calculating caloric equivalent over time",
-               selected = input$variable1, choices = c(input$variable1, input$variable2)))
+               selected = "HP2", choices = c(input$variable1, input$variable2)))
          })
 
    observeEvent(input$plot_type, {
@@ -1408,8 +1408,12 @@ server <- function(input, output, session) {
                if (input$plot_type == "RestingMetabolicRate") {
                  showTab(inputId = "additional_content", target = "Summary statistics")
 
-            # old bar plot
-            df_filtered <- real_data$data %>% group_by(Animal, Component) %>% summarize(Value = min(HP), cgroups = c(Animal, Component))
+            # bar plot rmr vs non-rmr
+            df_filtered <- real_data$data %>%
+               filter(Component != input$cvs) %>%
+               select(!Component) %>%
+               group_by(Animal) %>%
+               summarize(Value = min(HP), cgroups = c(Animal))
             write.csv2(df_filtered, "rmr.csv")
             df <- real_data$data
             df$Animal <- as.factor(df$Animal)
@@ -1434,7 +1438,7 @@ server <- function(input, output, session) {
 
             time_diff <- 5
             if (input$havemetadata) {
-               time_diff <- get_time_diff(finalC1)
+               # time_diff <- get_time_diff(finalC1)
             }
 
             df1 <- read.csv2("rmr.csv")
@@ -1443,14 +1447,19 @@ df1 <- rename(df1, Animals = Animal)
 df1$Animals <- as.factor(df1$Animals)
 df2$Animals <- as.factor(df2$Animals)
 # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value) / time_diff)
-df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE) / time_diff)
+# Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
+df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE) / time_diff)
+df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE) / time_diff)
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
 df2$TEE <- as.factor(rep("RMR", nrow(df2)))
+print(df1)
+
+print(df2)
 
 df_total <- rbind(df1, df2)
 df_total$Animals <- as.factor(df_total$Animals)
+write.csv2(df_total, "rmr_vs_tee.csv")
 
 p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
 p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
@@ -1472,12 +1481,12 @@ if (input$havemetadata) {
          sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
          checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
          hr(style = "width: 75%"),
-         renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+         renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
       )
       })
 
    output$details <- renderUI({
-      results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$indep_var)
+      results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
       tagList(
          h3("Post-hoc testing"),
          renderPlotly(results$plot_details + xlab(input$indep_var)),
