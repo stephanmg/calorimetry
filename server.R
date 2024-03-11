@@ -548,14 +548,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         print(unique(true_metadata$Animals))
-         print(head(finalC1))
-         print(unique(finalC1$Animals))
          # Note: full_join is correct, however do not omit rows containing only a single NA, might be two different data frames (TSE files) have different columns!
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
          write.csv2(finalC1, "bogus_finalC1.csv")
-         print("animals with metadata")
-         print(unique(finalC1$Animals))
       } else {
          df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
          df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
@@ -737,8 +732,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    WeightVsEnergyExpenditure = {
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      # Animal No. NA would be correct, but not updated in user interface (old value Animal.No.)
-      # how to force gui update before? TODO
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
       df_to_plot["HP"] <- df_to_plot["HP"] / 24
       p <- ggplot(df_to_plot, aes(x = `Weight..g.`, y = `HP`, color = `Animal No._NA`))
@@ -959,7 +952,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
 
       p <- p + ggtitle("Raw measuremeent")
-
       p <- ggplotly(p) %>% config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
