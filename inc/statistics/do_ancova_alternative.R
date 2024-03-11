@@ -13,22 +13,21 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
+  names(df)[names(df) == indep_var] <- "Weight"
 
-  if (is.null(indep_var2)) {
-    indep_var2 <- "body_weight"
-  }
+  #if (is.null(indep_var2)) {
+  #  indep_var2 <- "body_weight"
+  #}
+  #names(df)[names(df) == indep_var2] <- "Weight2"
 
   if (is.null(group)) {
-    group <- "genotype"
+    group <- "Genotype"
   }
-
   names(df)[names(df) == group] <- "group"
-  names(df)[names(df) == indep_var] <- "Weight"
-  names(df)[names(df) == indep_var] <- "Weight2"
 
-  df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
+  df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   df$Weight <- as.numeric(df$Weight)
-  df$Weight2 <- as.numeric(df$Weight2)
+  #df$Weight2 <- as.numeric(df$Weight2)
   df$TEE <- as.numeric(df$TEE)
 
   p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
@@ -36,7 +35,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
   pwc <- df %>%
     emmeans_test(
-      TEE ~ group, covariate = c(Weight),
+      TEE ~ group, covariate = Weight,
       p.adjust.method = adjust_method
     )
 

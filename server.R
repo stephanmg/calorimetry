@@ -984,6 +984,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          light_on <- 60 * input$light_cycle_start
       }
 
+      print(finalC1)
       finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
 
       convert <- function(x) {
@@ -1061,7 +1062,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          })
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$indep_var)
+            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)
             tagList(
                h3("Post-hoc testing"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
