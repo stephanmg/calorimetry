@@ -674,7 +674,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
 
-      write.csv2(df, "data_for_unittests_input.csv")
       df_new <- partition(df)
       df_new <- cv(df_new, input$window)
       df_new <- reformat(df_new)
@@ -1091,7 +1090,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             })
          }
 
-         p <- p + ggtitle("Total energy expenditure")
+         p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ")", sep=""))
 
          p <- ggplotly(p) %>% #%>% layout(boxmode = "group") %>%
          config(toImageButtonOptions = list(
@@ -1415,11 +1414,15 @@ server <- function(input, output, session) {
                group_by(Animal) %>%
                summarize(Value = min(HP), cgroups = c(Animal))
             write.csv2(df_filtered, "rmr.csv")
+
             df <- real_data$data
             df$Animal <- as.factor(df$Animal)
             df$Component <- as.factor(df$Component)
             p <- ggplot(df, aes(x = Animal, y = HP, color = Animal)) + geom_violin() + geom_point(position = position_jitter(0.1))
             p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep = ""))
+            if (!input$havemetadata) {
+               output$test <- renderUI(renderPlotly(p))
+            }
 
 
        # explanation of plot
@@ -1435,13 +1438,18 @@ server <- function(input, output, session) {
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
 
-
             time_diff <- 5
             if (input$havemetadata) {
-               # time_diff <- get_time_diff(finalC1)
+               df_diff <- read.csv2("finalC1.csv")
+               names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
+               time_diff <- get_time_diff(df_diff, 1, 3)
+               if (time_diff == 0) {
+                  time_diff <- 5
+               }
             }
 
-            df1 <- read.csv2("rmr.csv")
+how_many_days <- length(levels(df1$Days))
+df1 <- read.csv2("rmr.csv")
 df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals = Animal)
 df1$Animals <- as.factor(df1$Animals)
@@ -1453,17 +1461,13 @@ df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE) / tim
 
 df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
 df2$TEE <- as.factor(rep("RMR", nrow(df2)))
-print(df1)
-
-print(df2)
 
 df_total <- rbind(df1, df2)
 df_total$Animals <- as.factor(df_total$Animals)
-write.csv2(df_total, "rmr_vs_tee.csv")
 
 p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
 p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-
+p2 <- p2 + ggtitle(paste("Total energy expenditure (over ", how_many_days, ")", sep = ""))
 output$summary <- renderPlotly(ggplotly(p2))
 
 if (input$havemetadata) {
