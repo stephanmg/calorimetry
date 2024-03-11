@@ -15,6 +15,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
   names(df)[names(df) == indep_var] <- "Weight"
 
+  # FIXME: add two-way ANCOVA
   #if (is.null(indep_var2)) {
   #  indep_var2 <- "body_weight"
   #}
