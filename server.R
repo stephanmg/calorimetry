@@ -1150,7 +1150,7 @@ server <- function(input, output, session) {
    #####################################################################################################################
    # Observe heat production formula 1 and forumula 2
    #####################################################################################################################
-   observeEvent(c(input$variable1, input$variable2), {
+   observeEvent(c(input$variable1, input$variable2, input$plot_type), {
          text1 <- ""
          text2 <- ""
          switch(input$variable1,
@@ -1205,14 +1205,24 @@ server <- function(input, output, session) {
          }
          )
 
-         output$heat_production_equations <- renderUI(
-            tagList(
-            withMathJax(),
-            div("Chosen first (1) and second (2) equation for plotting"),
-            div(text1),
-            div(text2)
+         if (input$plot_type == "CompareHeatProductionFormulas") {
+            output$heat_production_equations <- renderUI(
+               tagList(
+               withMathJax(),
+               div("Chosen equations for calculation of heat production"),
+               div(text1),
+               div(text2)
+               )
             )
-         )
+         } else {
+            output$heat_production_equations <- renderUI(
+               tagList(
+               withMathJax(),
+               div("Chosen equation for calculation of heat production"),
+               div(text1)
+               )
+            )
+         }
    })
    #####################################################################################################################
    # Observe plot type
