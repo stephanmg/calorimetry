@@ -36,6 +36,7 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 
 source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
+use_example_data <- FALSE
 ################################################################################
 # Helper functions
 ################################################################################
@@ -141,15 +142,23 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
    #############################################################################
    # Data read-in
+   # FIXME: Could be improve if more example data sets are required.
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
+   num_files <- 1
+   if (!use_example_data) {
+      num_files <- input$nFiles
+   }
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
+      if (use_example_data) {
+         file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data_1.csv", sep = "")
+      }
       con <- file(file)
       line <- readLines(con, n = 2)
    if (i == 1) {
@@ -1137,10 +1146,13 @@ server <- function(input, output, session) {
       }
    )
 
+   # Draw initial number of files -> typically one file
+   output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1))
+
    # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs <- renderUI({
       html_ui <- " "
-      for (i in 1:input$nFiles) {
+      for (i in seq_along(input$nFiles)) {
          html_ui <- paste0(html_ui, fileInput(paste0("File", i),
             label = paste0("Cohort ", i)))
          }
@@ -1330,11 +1342,11 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$plotting, {
       output$plot <- renderPlotly({
-         if (is.null(input$File1)) {
+         if (is.null(input$File1) && !use_example_data) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
          } else {
-           file <- input$File1
-           real_data <- do_plotting(file$datapath, input, input$sick, output)
+            file_datapath <- input$File1$datapath
+            real_data <- do_plotting(file_datapath, input, input$sick, output)
 
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
@@ -1622,16 +1634,33 @@ if (input$havemetadata) {
          }
       )
       guide$init()$start()
-  })
+   })
 
-  observeEvent(input$guide_cicerone_next, {
-   if (!input$guide_cicerone_next$has_next) {
-      lapply(
-         X = c("DC", "DE", "PC"),
-         FUN = function(i) {
-            hideTab(inputId = paste0("tabs", i), target = i)
+   observeEvent(input$guide_cicerone_next, {
+      # if next pressed
+      if (!input$guide_cicerone_next$has_next) {
+         lapply(
+            X = c("DC", "DE", "PC"),
+            FUN = function(i) {
+               hideTab(inputId = paste0("tabs", i), target = i)
+            }
+         )
+      }
+    })
+   #############################################################################
+   # Load example data
+   #############################################################################
+   observeEvent(input$example_data_single, {
+    use_example_data <<- TRUE
+    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1))
+
+    output$fileInputs <- renderUI({
+      html_ui <- " "
+      for (i in seq_along(input$nFiles)) {
+         html_ui <- paste0(html_ui, fileInput(paste0("File", i),
+            label = paste0("Example data set ", i), placeholder = "example data set 1.csv"))
          }
-      )
-    }
-  })
+      HTML(html_ui)
+      })
+   })
 }

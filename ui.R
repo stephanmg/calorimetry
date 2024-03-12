@@ -117,7 +117,8 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Main Configuration"),
       br(),
-      actionButton("guide", "Guide (Click me)", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      actionButton("example_data_single", "Load example data sets", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       br(), br()
    ),
    column(2, style = "padding: 20px;",
@@ -144,7 +145,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    h3("Data sets"),
    p("Use the file choser dialog below to select an individual file to analyze"),
-   numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
+   uiOutput("nFiles"),
    uiOutput("fileInputs"),
    h3("Data consistency checks"),
    div("In case of any detected inconsistency in the raw data, a warning is generated, and further analysis is postponed if boxes are checked."),
