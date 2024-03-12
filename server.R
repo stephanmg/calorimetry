@@ -950,7 +950,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          }
       }
 
-      p <- p + ggtitle("Raw measuremeent")
+      p <- p + ggtitle(paste("Raw measurement: ", mylabel, sep = ""))
       p <- ggplotly(p) %>% config(toImageButtonOptions = list(
       format = "svg",
       width = 1200,
