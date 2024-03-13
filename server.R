@@ -6,7 +6,7 @@ library(readxl)
 library(writexl)
 library(plotly)
 library(zoo) # for running average methods
-#library(ggpubr)
+library(ggpubr)
 library(viridis)
 library(dplyr)
 library(lubridate)
@@ -125,12 +125,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #############################################################################
    # Configure base plot look and feel with ggpubr
    #############################################################################
-   #theme_pubr_update <- theme_pubr(base_size = 8.5) +
-   #theme(legend.key.size = unit(0.3, "cm")) +
-   #theme(strip.background = element_blank()) +
-   #theme(strip.text = element_text(hjust = 0)) +
-   #theme(axis.text.x = element_text(angle = 45, hjust = 1))
-   #theme_set(theme_pubr_update)
+   theme_pubr_update <- theme_pubr(base_size = 8.5) +
+   theme(legend.key.size = unit(0.3, "cm")) +
+   theme(strip.background = element_blank()) +
+   theme(strip.text = element_text(hjust = 0)) +
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+   theme_set(theme_pubr_update)
 
    #############################################################################
    # Detect file type
@@ -379,61 +379,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #############################################################################
    # Heat production formula #1
    #############################################################################
-   switch(f1,
-   Lusk = {
-      C1$HP <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
-   },
-   HP = {
-      C1$HP <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600 / 1000)
-   },
-   HP2 = {
-      C1$HP <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
-   },
-   Weir = {
-      C1$HP <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
-   },
-   Elia = {
-      C1$HP <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
-   },
-   Brower = {
-      C1$HP <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
-   },
-   Ferrannini = {
-      C1$HP <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
-   },
-   {
+   C1 <- calc_heat_production(f2, C1, "HP", scaleFactor)
 
-   }
-   )
    #############################################################################
    # Heat production formula #2 (for comparison in scatter plots)
    #############################################################################
-   switch(f2,
-   Lusk = {
-      C1$HP2 <- scaleFactor * 15.79 * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
-   },
-   HP = {
-      C1$HP2 <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600 / 1000)
-   },
-   HP2 = {
-      C1$HP2 <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
-   },
-   Weir = {
-      C1$HP2 <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
-   },
-   Elia = {
-      C1$HP2 <- scaleFactor * 15.8 * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
-   },
-   Brower = {
-      C1$HP2 <- scaleFactor * 16.07 * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
-   },
-   Ferrannini = {
-      C1$HP2 <- scaleFactor * 16.37117 * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
-   },
-   {
-
-   }
-   )
+   C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor)
 
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2

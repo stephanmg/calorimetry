@@ -98,3 +98,37 @@ check_for_cosmed <- function(file) {
         }
    }
 }
+
+################################################################################
+# calc_heat_production
+################################################################################
+calc_heat_production <- function(choice, C1, variable, scaleFactor) {
+   df <- C1
+   switch(choice,
+   Lusk = {
+      df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
+   },
+   HP = {
+      df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600 / 1000)
+   },
+   HP2 = {
+      df[[variable]] <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
+   },
+   Weir = {
+      df[[variable]] <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
+   },
+   Elia = {
+      df[[variable]] <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * C1$RER_NA / 1000
+   },
+   Brower = {
+      df[[variable]] <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 * C1$RER_NA / 1000
+   },
+   Ferrannini = {
+      df[[variable]] <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$RER_NA / 1000
+   },
+   {
+
+   }
+   )
+   return(df)
+}
