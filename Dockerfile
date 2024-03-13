@@ -12,6 +12,9 @@ RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y r-base
 RUN groupadd --system app
 RUN useradd --system -g app app
 
+# for example data sets (assets)
+ENV SHINY_DATA_FOLDER=/home/app/
+
 COPY . /home/app/
 COPY inc/ /home/app/inc/
 WORKDIR /home/app
