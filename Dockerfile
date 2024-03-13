@@ -2,7 +2,12 @@ FROM ubuntu:20.04
 
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y dist-upgrade
-RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev r-base libnlopt-dev libxml2-dev libarchive-dev libpq-dev libatlas-base-dev libeigen3-dev libfreetype6-dev libgeos-dev libgmp3-dev libhdf5-dev libjpeg-dev libpng-dev libtiff5-dev
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libnlopt-dev libxml2-dev libarchive-dev libpq-dev libatlas-base-dev libeigen3-dev libfreetype6-dev libgeos-dev libgmp3-dev libhdf5-dev libjpeg-dev libpng-dev libtiff5-dev
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+RUN add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y r-base
 
 RUN groupadd --system app
 RUN useradd --system -g app app
