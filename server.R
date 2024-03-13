@@ -6,7 +6,7 @@ library(readxl)
 library(writexl)
 library(plotly)
 library(zoo) # for running average methods
-library(ggpubr)
+#library(ggpubr)
 library(viridis)
 library(dplyr)
 library(lubridate)
@@ -125,12 +125,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #############################################################################
    # Configure base plot look and feel with ggpubr
    #############################################################################
-   theme_pubr_update <- theme_pubr(base_size = 8.5) +
-   theme(legend.key.size = unit(0.3, "cm")) +
-   theme(strip.background = element_blank()) +
-   theme(strip.text = element_text(hjust = 0)) +
-   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-   theme_set(theme_pubr_update)
+   #theme_pubr_update <- theme_pubr(base_size = 8.5) +
+   #theme(legend.key.size = unit(0.3, "cm")) +
+   #theme(strip.background = element_blank()) +
+   #theme(strip.text = element_text(hjust = 0)) +
+   #theme(axis.text.x = element_text(angle = 45, hjust = 1))
+   #theme_set(theme_pubr_update)
 
    #############################################################################
    # Detect file type

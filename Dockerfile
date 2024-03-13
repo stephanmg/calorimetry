@@ -11,8 +11,10 @@ COPY . /home/app/
 COPY inc/ /home/app/inc/
 WORKDIR /home/app
 
-RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles', 'shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker', 'dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate', 'zoo', 'fs', 'hash', 'tools', 'cicerone'))"
-RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2', 'ggpubr'))"
+RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles', 'shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker', 'dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate', 'zoo', 'fs', 'hash', 'tools', 'cicerone', 'tidyverse'))"
+RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2'))"
+RUN Rscript -e "install.packages(c('doBy', 'stringr', 'broom', 'rstatix', 'emmeans', 'ggExtra'))"
+# (ggpubr); stringr, ggExtra, emmeaans, doBy, stringr, broom, rstatix
 
 EXPOSE 1338
 CMD ["Rscript", "startapp.R"]
