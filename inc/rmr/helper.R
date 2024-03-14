@@ -71,6 +71,12 @@ get_time_diff <- function(df, from = 1, to = 2) {
    if (end < start) {
       return(60 + end - start)
    }
+
+   # FIXME: get time diff not detected correctly. need to sort data to  get time interval
+   if (end - start == 0) {
+      return(5)
+   }
+   
    return(end - start)
 }
 

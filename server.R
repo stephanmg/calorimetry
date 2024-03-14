@@ -36,6 +36,7 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 
 source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
+time_diff <- 5
 ################################################################################
 # Helper functions
 ################################################################################
@@ -179,7 +180,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    toSkip <- detectData(file)
 
    # time diff (interval) or recordings
-   time_diff <- 5
+   time_diff <<- 5
 
    # check file extension
    fileExtension <- detectFileType(file)
@@ -239,6 +240,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
+   print(C1)
+
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -267,7 +270,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
    # time interval
-   time_diff <- get_time_diff(C1)
+   time_diff <<- get_time_diff(C1)
    # get date ranges
    time_start_end <- NULL
 
@@ -941,6 +944,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          paste(splitted[[1]][1], "", sep = "")
       }
 
+      time_diff <<- get_time_diff(finalC1)
+
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
       finalC1$HP <- finalC1$HP / time_diff
       finalC1$HP2 <- finalC1$HP2 / time_diff
@@ -1407,8 +1412,8 @@ server <- function(input, output, session) {
                }
             }
 
-how_many_days <- length(levels(df1$Days))
 df1 <- read.csv2("rmr.csv")
+how_many_days <- length(levels(df1$Days))
 df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals = Animal)
 df1$Animals <- as.factor(df1$Animals)
