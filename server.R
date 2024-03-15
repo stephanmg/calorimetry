@@ -441,7 +441,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
    }
 
-     # TODO update selection of dates
+   # TODO: update selection of dates
    #time_start_end <- get_date_range(finalC1)
    #output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
 
@@ -1067,7 +1067,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             })
          }
 
-         # FIXME: how many days is not correct, simply counts all days across cohorts, i.e. cohort might have 4 days, cohort number 2 might have 3 days, so total is over 7 days, but this is wrong, fix this
          p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ")", sep = ""))
          p <- ggplotly(p) %>% #%>% layout(boxmode = "group") %>%
          config(toImageButtonOptions = list(
@@ -1439,7 +1438,6 @@ server <- function(input, output, session) {
 df1 <- read.csv2("rmr.csv")
 df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals = Animal)
-# FIXME: how many days is not correct, simply counts all days across cohorts, i.e. cohort might have 4 days, cohort number 2 might have 3 days, so total is over 7 days, but this is wrong, fix this
 how_many_days <- length(levels(as.factor(df2$Days)))
 df1$Animals <- as.factor(df1$Animals)
 df2$Animals <- as.factor(df2$Animals)
