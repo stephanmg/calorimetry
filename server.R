@@ -463,6 +463,11 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
    }
 
+   # curate data if desired
+   if (input$curate) {
+      finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
+   }
+
    switch(plotType,
    #####################################################################################################################
    # CompareHeatProductionFormulas

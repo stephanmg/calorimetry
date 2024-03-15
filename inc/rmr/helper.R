@@ -177,3 +177,39 @@ filter_full_days <- function(df, time_diff, threshold) {
    df_final <- df_final %>% select(-c("DaysCount"))
    return(df_final)
 }
+
+
+################################################################################
+# trim_front_end
+################################################################################
+convert_to_day_only <- function(x) {
+   splitted <- strsplit(as.character(x), "/")
+   paste(splitted[[1]][1], splitted[[1]][2], splitted[[1]][3], sep = "-")
+}
+
+trim_front_end <- function(df, end_trim, front_trim) {
+   df$Date <- lapply(df$Datetime, convert_to_days)
+   df$Date <- lapply(df$Date, convert_to_day_only)
+   splitted <- df %>% group_by(`Animal No._NA`) %>% group_split(`Animal No._NA`)
+   df_final <- NULL
+   print("blubb")
+
+   for (s in splitted) {
+      last_row <- s %>% arrange(Date) %>% nth(nrow(s)) %>% select(Date) %>% pull() # assumed last date for animal
+      first_row <- s %>% arrange(Date) %>% nth(1) %>% select(Date) %>% pull() # assumed first date for animal
+
+      hours_start_1 <- s %>% filter(Date == first_row[[1]][1]) %>% select(hour) %>% unique() %>% nth(1) %>% pull()
+      hours_start_2 <- s %>% filter(Date == first_row[[1]][1]) %>% select(hour) %>% unique() %>% last() %>% pull()
+
+      hours_end_1 <- s %>% filter(Date == last_row[[1]][1]) %>% select(hour) %>% unique() %>% nth(1) %>% pull()
+      hours_end_2 <- s %>% filter(Date == last_row[[1]][1]) %>% select(hour) %>% unique() %>% last() %>% pull()
+
+      # TODO: Check that this filter condition is correct -> seems correct.
+      df_filtered <- s %>% filter(!((Date == last_row[[1]][1] & hour > (hours_end_2 - end_trim)) | (Date == first_row[[1]][1] & hour < (hours_start_1 + front_trim))))
+      df_filtered <- df_filtered %>% ungroup()
+      df_filtered <- df_filtered %>% arrange(Datetime2)
+      df_filtered <- df_filtered %>% select(-c("Date"))
+      df_final <- bind_rows(df_final, df_filtered)
+   }
+   return(df_final)
+}
