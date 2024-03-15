@@ -269,8 +269,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
-   # time interval
-   time_diff <<- get_time_diff(C1)
    # get date ranges
    time_start_end <- NULL
 
@@ -329,6 +327,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+   # time interval
+   time_diff <<- get_time_diff(C1)
 
    #############################################################################
    # Consistency check: Negative values
@@ -634,23 +635,31 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
 
-      df_new <- partition(df)
+      write.csv2(df, "to_test_rmr.csv")
+
+      df_new <- partition2(df)
       df_new <- cv(df_new, input$window)
       df_new <- reformat(df_new)
+
+      write.csv2(df_new, "df_new.csv")
 
       # second component, typically CO2
       df2 <- data.frame(Values = finalC1[[component2]],
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
-      df_new2 <- partition(df2)
+      df_new2 <- partition2(df2)
       df_new2 <- cv(df_new2, input$window)
       df_new2 <- reformat(df_new2)
 
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
 
-      # FIXME: Code works in this way only reliably if NO averaging done before
-      # RMR calculation. Depending on calculation of finalC1$HP different number
-      # of rows for df_new and finalC1, then fails. Also multiple files problematic.
+      # if coefficient of variation is used in analysis, we might end up with 1 or multiple time points less,
+      # thus we need to make sure to always take the minimum of these three dataframes
+      do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
+      finalC1 <- finalC1 %>%  slice(1:do_select_n)
+      df_new <- df_new %>%  slice(1:do_select_n)
+      df_new2 <- df_new2 %>%  slice(1:do_select_n)
+
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot$Group <- as.factor(df_to_plot$Group)
@@ -668,8 +677,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
 
-      p2 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV1, group = Animal))
-      p3 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV2, group = Animal))
+      #p2 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV1, group = Animal))
+      #p3 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV2, group = Animal))
 
       M <- input$window
       PERCENTAGE <- input$percentage_best
@@ -680,7 +689,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
-      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      p <- p + ylab(paste("RMR [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
       p <- p + xlab("Time [minutes]")
       p <- p + ggtitle("Resting metabolic rates")
       finalC1 <- df_plot_total
@@ -1051,6 +1060,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             })
          }
 
+         # FIXME: how many days is not correct, simply counts all days across cohorts, i.e. cohort might have 4 days, cohort number 2 might have 3 days, so total is over 7 days, but this is wrong, fix this
          p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ")", sep = ""))
          p <- ggplotly(p) %>% #%>% layout(boxmode = "group") %>%
          config(toImageButtonOptions = list(
@@ -1193,7 +1203,7 @@ server <- function(input, output, session) {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
                label = "Chose prefered method for calculating caloric equivalent over time",
-               selected = "HP2", choices = c(input$variable1, input$variable2)))
+               choices = c(input$variable1, input$variable2), selected = input$variable1))
          })
 
    observeEvent(input$plot_type, {
@@ -1377,11 +1387,12 @@ server <- function(input, output, session) {
                if (input$plot_type == "RestingMetabolicRate") {
                  showTab(inputId = "additional_content", target = "Summary statistics")
 
-            # bar plot rmr vs non-rmr
+            # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
             df_filtered <- real_data$data %>%
                filter(Component != input$cvs) %>%
                select(!Component) %>%
                group_by(Animal) %>%
+               na.omit() %>%
                summarize(Value = min(HP), cgroups = c(Animal))
             write.csv2(df_filtered, "rmr.csv")
 
@@ -1419,9 +1430,10 @@ server <- function(input, output, session) {
             }
 
 df1 <- read.csv2("rmr.csv")
-how_many_days <- length(levels(df1$Days))
 df2 <- read.csv2("tee.csv")
 df1 <- rename(df1, Animals = Animal)
+# FIXME: how many days is not correct, simply counts all days across cohorts, i.e. cohort might have 4 days, cohort number 2 might have 3 days, so total is over 7 days, but this is wrong, fix this
+how_many_days <- length(levels(as.factor(df2$Days)))
 df1$Animals <- as.factor(df1$Animals)
 df2$Animals <- as.factor(df2$Animals)
 # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)

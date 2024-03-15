@@ -46,4 +46,9 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 ## Demonstration of application
 Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
 
+## Caveats
+
+- Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments
+
+
 # Latest changes

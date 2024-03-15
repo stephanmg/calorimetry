@@ -13,12 +13,42 @@ partition <- function(mydf) {
         if (nrow(df_new) == 0) {
             df_new <- data.frame(c(i$Values))
         } else {
+            print(df_new)
+            print(c(i$Values))
             df_new <- cbind(df_new, c(i$Values))
         }
    }
    colnames(df_new) <- unique(df$Group)
    df_new
 }
+
+partition2 <- function(mydf) {
+   df <- mydf
+   data <- df %>% group_split(Group)
+   df_new <- data.frame()
+   m = max(sapply(data, nrow))
+   for (i in data) {
+      diff = m - length(i$Values) 
+      if (nrow(df_new) == 0) {
+         if (length(c(i$Values)) != m) {
+           df_new <- data.frame(c(i$Values, rep("NA", diff)))
+         } else {
+           df_new <- data.frame(c(i$Values))
+         }
+      } else {
+         if (length(c(i$Values)) != m) {
+            df_new <- cbind(df_new, c(i$Values, rep("NA", diff)))
+         } else {
+            print("there")
+            df_new <- cbind(df_new, c(i$Values))
+         }
+      }
+   }
+   colnames(df_new) <- unique(df$Group)
+   df_new
+}
+
+
 
 ################################################################################
 # cv
@@ -29,11 +59,11 @@ cv <- function(mydf, window = 2) {
    df <- mydf
    df_new <- data.frame()
    for (i in seq_len(ncol(df))) {
-      values <- df[, i]
+      values <- as.numeric(df[, i])
       covs <- c()
       for (j in seq(from = 1, to = length(values), by = 1)) {
-         m <- mean(values[seq(from = j, to = j + window - 1, by = 1)])
-         s <- sd(values[seq(from = j, to = j + window - 1, by = 1)])
+         m <- mean(values[seq(from = j, to = j + window - 1, by = 1)], na.rm = TRUE)
+         s <- sd(values[seq(from = j, to = j + window - 1, by = 1)], na.rm = TRUE)
          covs <- append(covs, s / m)
          # find the m index which is lowest in CoV and energy expenditure
       }
@@ -64,20 +94,17 @@ reformat <- function(df_new) {
 ################################################################################
 # get_time_diff
 ################################################################################
-get_time_diff <- function(df, from = 1, to = 2) {
+get_time_diff <- function(df, from = 2, to = 3) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
-   start <- df %>% filter(`Animal No._NA` == id) %>% nth(from) %>% select(minutes) %>% pull()
-   end <- df %>% filter(`Animal No._NA` == id) %>% nth(to) %>% select(minutes) %>% pull()
-   if (end < start) {
-      return(60 + end - start)
+   time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% nth(from) %>% select(diff.sec) %>% pull()
+   time_diff2 <- df %>% filter(`Animal No._NA` == id) %>% nth(to) %>% select(diff.sec) %>% pull()
+   if (time_diff1 != time_diff2) {
+      print("WARNING: Time difference different in cohorts!")
+      print("This could happen if you do not average cohorts when sampling interval of IC experiments is different between cohorts")
+      return(max(time_diff1, time_diff2) / 60)
+   } else {
+      return(time_diff1 / 60)
    }
-
-   # FIXME: get time diff not detected correctly. need to sort data to  get time interval
-   if (end - start == 0) {
-      return(5)
-   }
-   
-   return(end - start)
 }
 
 ################################################################################
