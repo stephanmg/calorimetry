@@ -4,31 +4,13 @@ library(ggplot2)
 ################################################################################
 # partition
 ################################################################################
-# mydf, data
 partition <- function(mydf) {
    df <- mydf
    data <- df %>% group_split(Group)
    df_new <- data.frame()
+   m <- max(sapply(data, nrow))
    for (i in data) {
-        if (nrow(df_new) == 0) {
-            df_new <- data.frame(c(i$Values))
-        } else {
-            print(df_new)
-            print(c(i$Values))
-            df_new <- cbind(df_new, c(i$Values))
-        }
-   }
-   colnames(df_new) <- unique(df$Group)
-   df_new
-}
-
-partition2 <- function(mydf) {
-   df <- mydf
-   data <- df %>% group_split(Group)
-   df_new <- data.frame()
-   m = max(sapply(data, nrow))
-   for (i in data) {
-      diff = m - length(i$Values) 
+      diff <- m - length(i$Values)
       if (nrow(df_new) == 0) {
          if (length(c(i$Values)) != m) {
            df_new <- data.frame(c(i$Values, rep("NA", diff)))
@@ -39,7 +21,6 @@ partition2 <- function(mydf) {
          if (length(c(i$Values)) != m) {
             df_new <- cbind(df_new, c(i$Values, rep("NA", diff)))
          } else {
-            print("there")
             df_new <- cbind(df_new, c(i$Values))
          }
       }
@@ -47,7 +28,6 @@ partition2 <- function(mydf) {
    colnames(df_new) <- unique(df$Group)
    df_new
 }
-
 
 
 ################################################################################
@@ -99,6 +79,7 @@ get_time_diff <- function(df, from = 2, to = 3) {
    # note first time diff might be 0 if sorted ascending, thus pick 2 and 3 to check for consistency
    time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(desc(diff.sec)) %>% nth(from) %>% select(diff.sec) %>% pull()
    time_diff2 <- df %>% filter(`Animal No._NA` == id) %>% arrange(desc(diff.sec)) %>% nth(to) %>% select(diff.sec) %>% pull()
+   print("here?")
    if (time_diff1 != time_diff2) {
       print("WARNING: Time difference different in cohorts!")
       print("This could happen if you do not average cohorts when sampling interval of IC experiments is different between cohorts")
@@ -166,4 +147,33 @@ calc_heat_production <- function(choice, C1, variable, scaleFactor) {
    }
    )
    return(df)
+}
+
+################################################################################
+# filter_full_days
+################################################################################
+convert_to_days <- function(x) {
+   splitted <- strsplit(as.character(x), " ")
+   paste(splitted[[1]][1])
+}
+
+filter_full_days <- function(df, time_diff, threshold) {
+   df$DaysCount <- lapply(df$Datetime, convert_to_days)
+   df$`Animal No._NA` <- as.factor(df$`Animal No._NA`)
+   splitted <- df %>% group_by(`Animal No._NA`) %>% group_split(`Animal No._NA`)
+   ls <- c()
+   for (s in splitted) { # for each animal
+      ls <- append(ls, lapply(s %>% group_split(DaysCount), nrow)) # count hours for days
+   }
+
+   df_final <- NULL
+   for (s in splitted) {
+      df_part <- s %>% group_by(DaysCount) %>% mutate(FullDay = length(`Animal No._NA`))
+      df_part <- df_part %>% filter(FullDay > (threshold / 100) * 60 * 24 / time_diff)
+      df_final <- bind_rows(df_final, df_part)
+   }
+   df_final <- df_final %>% select(-c("FullDay"))
+   df_final <- df_final %>% ungroup()
+   df_final <- df_final %>% select(-c("DaysCount"))
+   return(df_final)
 }

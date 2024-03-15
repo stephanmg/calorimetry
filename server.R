@@ -331,6 +331,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # time interval
    time_diff <<- get_time_diff(C1)
 
+
+
    #############################################################################
    # Consistency check: Negative values
    #############################################################################
@@ -439,10 +441,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
    }
 
-   # update selection of dates
+     # TODO update selection of dates
    #time_start_end <- get_date_range(finalC1)
    #output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
-
 
    # gender choice
    output$checkboxgroup_gender <- renderUI(
@@ -455,6 +456,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    plotType <- input$plot_type
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
+
+    # filter out whole days with given threshold
+   if (input$only_full_days) {
+      time_diff <- get_time_diff(finalC1)
+      finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
+   }
 
    switch(plotType,
    #####################################################################################################################
