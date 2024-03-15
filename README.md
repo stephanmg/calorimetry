@@ -49,6 +49,7 @@ Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/c
 ## Caveats
 
 - Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments
+- IC experiments might have not the same length of time, currently plots are thus not equal in length on the time axis
 
 
 # Latest changes
