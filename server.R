@@ -37,6 +37,9 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
 time_diff <- 5
+time_start_end <- NULL
+start_date <- "1970-01-01"
+end_date <- Sys.Date()
 ################################################################################
 # Helper functions
 ################################################################################
@@ -269,23 +272,18 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
-   # get date ranges
-   time_start_end <- NULL
-
-   # if null we will set custom ranges for current file
-   start_date <-  "1970-01-01"
-   end_date <- Sys.Date()
-   if (!is.null(input$daterange)) {
-      start_date <- input$daterange[[1]]
-      end_date <- input$daterange[[2]]
-   }
 
    if (!is.null(time_start_end)) {
-      start_date <- time_start_end$date_start
-      end_date <- time_start_end$date_end
+      start_date <<- time_start_end$date_start
+      end_date <<- time_start_end$date_end
    }
-   output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = start_date, end = end_date))
+   print(start_date)
+   print(end_date)
 
+   if (!input$do_select_date_range) {
+      start_date <<- "1970-01-01"
+      end_date <<- Sys.Date()
+   }
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
    arrange(Datetime2) %>%
@@ -327,10 +325,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
-
-   # time interval
-   time_diff <<- get_time_diff(C1)
-
 
 
    #############################################################################
@@ -416,7 +410,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
-   time_start_end <- get_date_range(finalC1)
    }
    # step 13 (debugging: save all cohort means)
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
@@ -428,22 +421,28 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
+   # TODO: fails for some TSE files... check why
    # light cycle information should be present also in raw TSE files without any additional metadata provided through our sheet
-   if (! is.null(input$light_cycle)) {
-      if ("LightC_[%]" %in% colnames(finalC1)) {
-         `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
-         # filter finalC1 by light cycle
-         if (input$light_cycle == "Night") {
-            finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` < input$threshold_light_day)
-         } else {
-            finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` > input$threshold_light_day)
-         }
-      }
-   }
+   #if (! is.null(input$light_cycle)) {
+   #   if ("LightC_[%]" %in% colnames(finalC1)) {
+   #      `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
+   #      # filter finalC1 by light cycle
+   #      if (input$light_cycle == "Night") {
+   #         finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` < input$threshold_light_day)
+   #      } else {
+   #         finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` > input$threshold_light_day)
+   #      }
+   #   }
+   #}
 
-   # TODO: update selection of dates
-   #time_start_end <- get_date_range(finalC1)
-   #output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
+   # time interval diff for finalC1
+   time_diff <<- get_time_diff(finalC1)
+
+   # set the time date ranges once for the final data frame
+   if (is.null(time_start_end)) {
+      time_start_end <<- get_date_range(finalC1)
+      output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
+   }
 
    # gender choice
    output$checkboxgroup_gender <- renderUI(
@@ -649,7 +648,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       write.csv2(df, "to_test_rmr.csv")
 
-      df_new <- partition2(df)
+      df_new <- partition(df)
       df_new <- cv(df_new, input$window)
       df_new <- reformat(df_new)
 
@@ -659,7 +658,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df2 <- data.frame(Values = finalC1[[component2]],
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
-      df_new2 <- partition2(df2)
+      df_new2 <- partition(df2)
       df_new2 <- cv(df_new2, input$window)
       df_new2 <- reformat(df_new2)
 
@@ -1279,10 +1278,11 @@ server <- function(input, output, session) {
    #############################################################################
    # Refresh plot (action button's action)
    #############################################################################
-   observeEvent(input$replotting, {
+   observeEvent(c(input$replotting, input$daterange), {
            output$plot <- renderPlotly({
            file <- input$File1
            real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
+           time_start_end <<- get_date_range(real_data$data)
            real_data$plot
            })
    })
