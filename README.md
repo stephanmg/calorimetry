@@ -13,6 +13,7 @@ CALOR is a holistic web application for data integration, visualization and stat
 [![Badges](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/make-badges.yml)
 [![R](https://img.shields.io/badge/R%3E%3D-4.2.0-6666ff.svg)](https://cran.r-project.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
+[![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)]()
 
 <hr/>
 
