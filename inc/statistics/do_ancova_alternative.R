@@ -15,11 +15,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # TODO: add two-way ANCOVA
-  #if (is.null(indep_var2)) {
-  #  indep_var2 <- "body_weight"
-  #}
-  #names(df)[names(df) == indep_var2] <- "Weight2"
+  # 2-way ANCOVA requires second indepent variable
+  if (!is.null(indep_var2)) {
+    names(df)[names(df) == indep_var2] <- "Weight2"
+    df$Weight2 <- as.numeric(df$Weight2)
+  }
 
   if (is.null(group)) {
     group <- "Genotype"
@@ -28,7 +28,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   df$Weight <- as.numeric(df$Weight)
-  #df$Weight2 <- as.numeric(df$Weight2)
   df$TEE <- as.numeric(df$TEE)
 
   p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")

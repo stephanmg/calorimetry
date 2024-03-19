@@ -421,7 +421,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
-   # TODO: fails for some TSE files... check why
+   # FIXME: fails for some TSE files... check why this is the case...
    # light cycle information should be present also in raw TSE files without any additional metadata provided through our sheet
    #if (! is.null(input$light_cycle)) {
    #   if ("LightC_[%]" %in% colnames(finalC1)) {
