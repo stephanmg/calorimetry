@@ -243,7 +243,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   print(C1)
 
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
@@ -277,8 +276,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       start_date <<- time_start_end$date_start
       end_date <<- time_start_end$date_end
    }
-   print(start_date)
-   print(end_date)
 
    if (!input$do_select_date_range) {
       start_date <<- "1970-01-01"
@@ -331,8 +328,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # Consistency check: Negative values
    #############################################################################
    if (input$negative_values) {
-      if (!(nrow(C1 %>% select(where(~any(. < 0)))) == 0)) {
-         shinyalert("Oops!", "Negative values encountered in measurements. Check your input data.", type = "error")
+      if (!(nrow(C1 %>% na.omit() %>% select(where(~any(. < 0)))) == 0)) {
+         shinyalert("Error", "Negative values encountered in measurements. Check your input data.", type = "error")
       }
    }
 
@@ -341,11 +338,11 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #############################################################################
    if (input$highly_varying_measurements) {
       if (any(C1 %>% mutate(col_diff = `VO2(3)_[ml/h]` - lag(`VO2(3)_[ml/h]`)) > 0.5)) {
-         shinyalert("Oops!", "Highly varying input measurements detected in O2 signal", type = "error")
+         shinyalert("Error", "Highly varying input measurements detected in O2 signal", type = "error")
       }
 
       if (any(C1 %>% mutate(col_diff = `CO2(3)_[ml/h]` - lag(`CO2(3)_[ml/h]`)) > 0.5)) {
-         shinyalert("Oops!", "Highly varying input measurements detected in CO2 signal", type = "error")
+         shinyalert("Error", "Highly varying input measurements detected in CO2 signal", type = "error")
       }
    }
 
@@ -515,12 +512,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
          # Note: full_join is correct, however do not omit rows containing only a single NA, might be two different data frames (TSE files) have different columns!
-         print(colnames(true_metadata))
-         print(colnames(finalC1))
          write.csv2(finalC1, "before_join2.csv")
          write.csv2(true_metadata, "before_join1.csv")
-         print(true_metadata)
-         print(finalC1)
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) # %>% na.omit()
          write.csv2(finalC1, "bogus_finalC1.csv")
       } else {
