@@ -328,8 +328,17 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # Consistency check: Negative values
    #############################################################################
    if (input$negative_values) {
-      if (!(nrow(C1 %>% na.omit() %>% select(where(~any(. < 0)))) == 0)) {
-         shinyalert("Error", "Negative values encountered in measurements. Check your input data.", type = "error")
+      C1_test <- C1
+      if ("Ref.TD_[°C]" %in% colnames(C1)) {
+         C1_test <- C1_test %>% select(!`Ref.TD_[°C]`)
+      }
+      if ("TD_[°C]" %in% colnames(C1)) {
+         C1_test <- C1_test %>% select(!`TD_[°C]`)
+      }
+
+      invalid_data <- nrow(C1_test %>% filter(if_any(everything(), ~.x < 0)))
+      if (invalid_data > 0) {
+         shinyalert("Error", paste("Negative values encountered in measurements", invalid_data, ".Check your input data.", sep = ""), type = "warning", showCancelButton = TRUE)
       }
    }
 
@@ -337,12 +346,14 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # Consistency check: Highly fluctuating measurements
    #############################################################################
    if (input$highly_varying_measurements) {
-      if (any(C1 %>% mutate(col_diff = `VO2(3)_[ml/h]` - lag(`VO2(3)_[ml/h]`)) > 0.5)) {
-         shinyalert("Error", "Highly varying input measurements detected in O2 signal", type = "error")
+      invalid_data <- nrow(C1 %>% mutate(col_diff = abs(`VO2(3)_[ml/h]` - lag(`VO2(3)_[ml/h]`) / max(`VO2(3)_[ml/h]`, lag(`VO2(3)_[ml/h]`), na.rm = TRUE))) %>% select(col_diff) %>% filter(col_diff > input$threshold_for_highly_varying_measurements))
+      if (invalid_data > 0) {
+         shinyalert("Error", paste("Highly varying input measurements detected in O2 signal: ", invalid_data, ". Check your input data", sep = ""), type = "warning", showCancelButton = TRUE)
       }
 
-      if (any(C1 %>% mutate(col_diff = `CO2(3)_[ml/h]` - lag(`CO2(3)_[ml/h]`)) > 0.5)) {
-         shinyalert("Error", "Highly varying input measurements detected in CO2 signal", type = "error")
+      invalid_data <- nrow(C1 %>% mutate(col_diff = abs(`VCO2(3)_[ml/h]` - lag(`VCO2(3)_[ml/h]`) / max(`VCO2(3)_[ml/h]`, lag(`VCO2(3)_[ml/h]`), na.rm = TRUE))) %>% select(col_diff) %>% filter(col_diff > input$threshold_for_highly_varying_measurements))
+      if (invalid_data > 0) {
+         shinyalert("Error", paste("Highly varying input measurements detected in CO2 signal: ", invalid_data, ". Check cour input data", sep = ""), type = "warning", showCancelButton = TRUE)
       }
    }
 
@@ -758,6 +769,19 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
 
       df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime2)) * 60 + minute(hms(df_to_plot$Datetime2)) < light_on, "am", "pm")
+      df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
+
+      if (input$day_only && input$night_only) {
+         # nothing to do we keep both night and day
+      } else if (input$night_only) {
+         df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
+      } else if (input$day_only) {
+         df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
+      } else {
+         df_to_plot <- NULL
+      }
+
+
 
       p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
       p <- p + ggtitle("Day Night Activity")
@@ -1085,6 +1109,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 #####################################################################################################################
 server <- function(input, output, session) {
    observe_helpers()
+
 
    output$metadatafile <- renderUI({
       html_ui <- " "
