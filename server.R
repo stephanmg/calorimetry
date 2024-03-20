@@ -36,6 +36,8 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 
 source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
+source("inc/exporters/default_exporter.R") # for data export
+
 time_diff <- 5
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -46,80 +48,6 @@ end_date <- Sys.Date()
 convert <- function(x) {
     splitted <- strsplit(as.character(x), " ")
     paste(splitted[[1]][2], ":00", sep = "")
-}
-
-################################################################################
-# Export to CalR compatible file format and Excel (alternative method)
-################################################################################
-do_export_alternative <- function(format, input, output, file_output) {
-      file <- input$File1
-      if (is.null(input$File1)) {
-         output$message <- renderText("Not any cohort data given by the user.")
-      } else {
-         file <- input$File1
-         real_data <- do_plotting(file$datapath, input, input$sick, output)
-         h <- hash()
-         # Specific mapping of column names from TSE to CalR to produce
-         # a compatible .csv file
-         h[["Datetime"]] <- "Date_Time"
-         h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
-         h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"
-         # caloric equivalent by 1st formula (HeatProduction formula 1)
-         h[["HP"]] <- "RT_Kcal_hr_1"
-         # caloric equivalent by 2nd formula (HeatProduction formula 2)
-         h[["HP2"]] <- "RT_Kcal_hr_2"
-         h[["Animal No._NA"]] <- "Animal"
-         # animal
-         # rename data
-         for (v in ls(h)) {
-            names(real_data$data)[names(real_data$data) == v] <- h[[v]]
-         }
-         if (format == "CalR") {
-         write.csv(real_data$data[values(h)], file = file_output, row.names = FALSE)
-         writeLines(gsub(pattern = '"', replace = "", x = readLines(file_output)), con = file_output)
-         }
-
-         if (format == "Excel") {
-            tmp <- cbind(real_data$data[values(h)], real_data$animals)
-            df <- read.csv2("finalC1.csv")
-           write_xlsx(df, path = file_output)
-         }
-      }
-   }
-
-################################################################################
-# Export to CalR compatible file format and Excel
-################################################################################
-do_export <- function(format, input, output) {
-   if (format == "CalR") {
-      file <- input$File1
-      if (is.null(input$File1)) {
-         output$message <- renderText("Not any cohort data given by the user.")
-      } else {
-         file <- input$File1
-         real_data <- do_plotting(file$datapath, input, input$sick, output)
-         h <- hash()
-
-         # Specific mapping of column names from TSE to CalR to produce
-         # a compatible .csv file
-         h[["Datetime"]] <- "Date_Time"
-         h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
-         h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"
-         # caloric equivalent by 1st formula (HeatProduction formula 1)
-         h[["HP"]] <- "RT_Kcal_hr_1"
-         # caloric equivalent by 2nd formula (HeatProduction formula 2)
-         h[["HP2"]] <- "RT_Kcal_hr_2"
-         # rename data
-         for (v in ls(h)) {
-            names(real_data$data)[names(real_data$data) == v] <- h[[v]]
-         }
-         fname <- paste(paste(path_home(), input$export_folder$path[[2]],
-            sep <- "/"), input$export_file_name, sep <- "/")
-         write.csv(real_data$data[values(h)], file = fname, row.names = FALSE)
-         writeLines(gsub(pattern = '"', replace = "", x = readLines(fname)),
-          con = fname)
-      }
-   }
 }
 
 ################################################################################
@@ -898,6 +826,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ### Raw
    #####################################################################################################################
    Raw = {
+      # TODO: Add reasonable subset of finalC1 data frames columns to chose to plot from here, not all, and with clean names
+       # output$myr <- renderUI(
+    #    selectInput(inputId = "myr", label = "Chose raw data to plot", choices = colnames(finalC1)))
+
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
@@ -1133,7 +1065,7 @@ server <- function(input, output, session) {
       }
       },
          content = function(file) {
-            status_okay <- do_export_alternative(input$export_format, input, output, file)
+            status_okay <- do_export_alternative(input$export_format, input, output, file, do_plotting)
       }
    )
 
@@ -1240,6 +1172,9 @@ server <- function(input, output, session) {
                choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
+
+   # TODO: Add reasonable subset of finalC1 data frames columns to chose to plot from here, not all.
+   # check if finalC1 colnames are not empty then assign to choices, otherwise use default choices
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
          selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
@@ -1274,7 +1209,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$downloadData, {
        if (input$export_format == "CalR") {
-            status_okay <- do_export("CalR", input, output)
+            status_okay <- do_export("CalR", input, output, do_plotting)
             if (!status_okay) {
               output$message <- renderText("Error during data export to CalR, check logs")
             } else {
@@ -1283,7 +1218,7 @@ server <- function(input, output, session) {
             }
        }
        if (input$export_format == "Excel") {
-            status_okay <- do_export_alternative("Excel", input, output)
+            status_okay <- do_export_alternative("Excel", input, output, do_plotting)
             if (!status_okay) {
               output$message <- renderText("Error during data export to Excel, check logs")
             } else {

@@ -150,7 +150,7 @@ sidebar_content <- sidebarPanel(
    div("In case of any detected inconsistency in the raw data, a warning is generated, and further analysis is postponed if boxes are checked."),
    checkboxInput(inputId = "negative_values", label = "Detect negative values", value = TRUE),
    checkboxInput(inputId = "highly_varying_measurements", label = "High variation measurements", value = FALSE),
-   conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold", min = 0, max = 200, step = 10, value = 200)),
+   conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
    h3("Plotting control"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
