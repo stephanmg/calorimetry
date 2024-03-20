@@ -989,6 +989,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
+         # FIXME: Add back analysis without metadata sheet for TEE
 
          output$details <- renderUI({
             results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)
@@ -1433,6 +1434,8 @@ if (input$havemetadata) {
          renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
       )
       })
+
+         # FIXME: Add back analysis without metadata sheet for TEE
 
    output$details <- renderUI({
       results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
