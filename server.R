@@ -121,7 +121,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    dec <- ","
 
    scaleFactor <- 1
-   # Promethion live/Sable input needs scale factor of 60 (1 unit is 60 seconds)
+   # Promethion Live/Sable input needs scale factor of 60 (1 unit is 60 seconds)
    if (fileExtension == "xlsx") {
       output$study_description <- renderText("")
       tmp_file <- tempfile()
@@ -1102,7 +1102,7 @@ server <- function(input, output, session) {
          Elia = {
             text1 <- "$$ \\tag{1} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
-         Brower = {
+         Brouwer = {
             text1 <- "$$ \\tag{1} 16.07 \\times VO2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
          },
          Ferrannini = {
@@ -1128,7 +1128,7 @@ server <- function(input, output, session) {
          Elia = {
             text2 <- "$$ \\tag{2} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
-         Brower = {
+         Brouwer = {
             text2 <- "$$ \\tag{2} 16.07 \\times VO2[\\frac{ml}{h}] + 4.69 \\times RER $$"
          },
          Ferrannini = {
