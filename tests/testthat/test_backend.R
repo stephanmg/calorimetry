@@ -1,5 +1,5 @@
 library(testthat)
-source("../../inc/read_metadata.R")
+source("../../inc/metadata/read_metadata.R")
 
 ################################################################################
 ### metadata tests
