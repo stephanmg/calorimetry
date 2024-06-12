@@ -5,7 +5,7 @@ source("../../inc/metadata/read_metadata.R")
 ### metadata tests
 ################################################################################
 test_that("get_true_metadata", {
-   df <- get_true_metadata("../data/metadata.xslx")
+   df <- get_true_metadata("../data/metadata.xlsx")
    expect_equal(ncol(df), 6)
    expect_equal(nrow(df), 16)
    expect_equal(colnames(df), c("lean_mass", "fat_mass", "Animals", "Diet", "Genotype", "body_weight"))
@@ -40,6 +40,6 @@ test_that("get_rmr", {
    total_data$Animal <- as.factor(total_data$Animal)
    total_data$Component <- as.factor(total_data$Component)
 
-   df_ground_truth <- read.csv2("../output_rmr_for_testing.csv")
+   df_ground_truth <- read.csv2("../data/output_rmr_for_testing.csv")
    expect_equal(df_ground_truth, total_data)
 })
