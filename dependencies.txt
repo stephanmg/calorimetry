@@ -1,0 +1,3 @@
+shiny, plotly, shinybusy,"shinyFiles", "dplyr", "ggpubr", "zoo", "shinyalert", "tidyr", shinythemes, shinyWidgets, shinyhelper, colourpicker,cicerone, readxl, viridis, lubridate, hash, doBy, patchwork, tidyverse, ggExtra, emmeans
+
+on ubuntu 20.04
