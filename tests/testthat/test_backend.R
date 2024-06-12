@@ -1,8 +1,4 @@
 library(testthat)
-source("../../inc/metadata/read_metadata.R")
-source("../../inc/rmr/extract_rmr_helper.R")
-source("../../inc/rmr/extract_rmr.R")
-source("../../inc/rmr/helper.R")
 
 ################################################################################
 ### metadata tests
@@ -26,6 +22,11 @@ test_that("get_constants", {
 ### RMR tests
 ################################################################################
 test_that("get_rmr", {
+   source("../../inc/metadata/read_metadata.R")
+   source("../../inc/rmr/extract_rmr_helper.R")
+   source("../../inc/rmr/extract_rmr.R")
+   source("../../inc/rmr/helper.R")
+
    df <- read.csv2("../data/input_rmr_for_testing.csv")
    res <- df %>%
       group_by(Animal) %>%
