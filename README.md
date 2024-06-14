@@ -39,7 +39,7 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 
 ## Option 3: Development installation
 1. Clone *this* repository
-2. Install dependencies from `.github/workflows/ci.yml`.
+2. Install dependencies with `Rscript -e "library(renv); renv::restore()"` from the current working directory
 3. Run `Rscript startapp.R` from base directory (inside *this* respository)
 
 
