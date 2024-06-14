@@ -1,19 +1,29 @@
-FROM r-base
+FROM ubuntu:20.04
 
-RUN apt-get update --fix-missing
-RUN apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libfreetype-dev
-RUN apt-get install -y libpng-dev libtiff5-dev libjpeg-dev
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y dist-upgrade
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libnlopt-dev libxml2-dev libarchive-dev libpq-dev libatlas-base-dev libeigen3-dev libfreetype6-dev libgeos-dev libgmp3-dev libhdf5-dev libjpeg-dev libpng-dev libtiff5-dev gnupg2 software-properties-common
+
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+RUN add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y r-base
 
 RUN groupadd --system app
 RUN useradd --system -g app app
-#RUN addaroup --system app \
-#   && adduser --system --ingroup app app
+
+# for example data sets (assets)
+ENV SHINY_DATA_FOLDER=/home/app/
 
 COPY . /home/app/
 COPY inc/ /home/app/inc/
 WORKDIR /home/app
 
-RUN Rscript -e "install.packages('versions'); library(versions); install.packages(c('rstatix', 'broom', 'emmeans', 'Deriv', 'here', 'doBy', 'ragg', 'microbenchmark', 'patchwork', 'zoo','listenv', 'parallelly', 'future', 'globals', 'future.apply', 'progressr', 'SQUAREM', 'lava', 'prodlim', 'bit', 'ps', 'evaluate', 'highr', 'xfun', 'proxy', 'iterators', 'ipred', 'timeDate', 'rematch', 'bit64', 'prettyunits', 'processx',  'sys', 'cpp11', 'pkgconfig', 'numDeriv', 'knitr', 'sp', 'minqa', 'e1071', 'ModelMetrics', 'plyr', 'pROC', 'recipes', 'reshape2', 'backports', 'assertthat', 'blob', 'DBI', 'gargle', 'uuid', 'cellranger', 'ids', 'rematch2', 'utf8', 'vroom', 'tzdb', 'progress', 'callr', 'rmarkdown', 'selectr', 'stringi', 'jquerylib', 'rappdirs', 'askpass', 'scales', 'httr', 'magrittr', 'digest', 'viridisLite', 'base64enc', 'htmltools', 'htmlwidgets', 'tidyr', 'vctrs', 'tibble', 'lazyeval', 'crosstalk', 'purrr', 'data.table', 'promises', 'fs', 'Rcpp', 'pbkrtest', 'quantreg', 'maptools', 'lme4', 'matrixStats', 'caret', 'ggrepel', 'ggsci', 'ggsignif', 'gridExtra', 'glue', 'polynom', 'rstatix', 'broom', 'crayon', 'dbplyr', 'dtplyr', 'forcats', 'googledrive', 'googlesheets4', 'haven', 'hms', 'lubridate', 'modelr', 'pillar', 'readr', 'readxl', 'writexl', 'reprex', 'rstudioapi', 'rvest', 'stringr', 'xml2', 'ellipsis', 'generics', 'lifecycle', 'R6', 'withr', 'httpuv', 'mime', 'xtable', 'fontawesome', 'shinythemes', 'sourcetools', 'later', 'fastmap', 'colourpicker', 'commonmark', 'bslib', 'cachem', 'sass', 'curl', 'openssl', 'packrat', 'yaml', 'hash', 'plotly', 'shinyFiles', 'MatrixModels', 'RcppArmadillo', 'RcppEigen', 'SparseM', 'abind', 'car', 'carData', 'conquer', 'cowplot', 'corrplot', 'ggpubr', 'RColorBrewer', 'tidyverse', 'cli', 'viridis', 'dplyr', 'shinyalert', 'colorspace', 'fansi', 'farver', 'ggplot2', 'gtable', 'isoband', 'labeling', 'munsell', 'shiny', 'shinyWidgets', 'rsconnect', 'shinybusy', 'shinyjs', 'miniUI', 'ggExtra', 'colourpicker'))"
+RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles', 'shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker', 'dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate', 'zoo', 'fs', 'hash', 'tools', 'cicerone', 'tidyverse'))"
+RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2'))"
+RUN Rscript -e "install.packages(c('doBy', 'stringr', 'broom', 'rstatix', 'emmeans', 'ggExtra'))"
+RUN Rscript -e "install.packages(c('patchwork'))"
+RUN Rscript -e "install.packages(c('ggpubr'))"
 
 EXPOSE 1338
 CMD ["Rscript", "startapp.R"]
