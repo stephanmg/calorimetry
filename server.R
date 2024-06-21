@@ -16,6 +16,7 @@ library(hash)
 require(tidyverse)
 library(tools)
 library(shinyalert)
+library(shinyjs)
 
 source("inc/rmr/helper.R") # rmr helper methods
 source("inc/rmr/extract_rmr.R") # rmr extraction
@@ -919,6 +920,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          paste(splitted[[1]][1], "", sep = "")
       }
 
+
+
       time_diff <<- get_time_diff(finalC1)
 
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
@@ -934,6 +937,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       } else {
          finalC1 <- NULL
       }
+
+
 
       TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
       TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
@@ -1042,7 +1047,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 #####################################################################################################################
 server <- function(input, output, session) {
    observe_helpers()
-
 
    output$metadatafile <- renderUI({
       html_ui <- " "
@@ -1352,6 +1356,7 @@ server <- function(input, output, session) {
                if (input$plot_type == "RestingMetabolicRate") {
                  showTab(inputId = "additional_content", target = "Summary statistics")
 
+            write.csv2(real_data$data, "before_rmr_written.csv")
             # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
             df_filtered <- real_data$data %>%
                filter(Component != input$cvs) %>%
@@ -1512,9 +1517,14 @@ if (input$havemetadata) {
            real_data$plot
         }
       })
+
+      # scroll to top after click on plot
+      shinyjs::runjs("window.scrollTo(0,50);")
+
     })
 
 
+ 
    #############################################################################
    # Helpers to hide/show components
    #############################################################################

@@ -4,6 +4,7 @@ library("shinybusy")
 library("shinythemes")
 library("shinyWidgets")
 library("shinyhelper")
+library(shinyjs)
 library("colourpicker")
 library(cicerone)
 
@@ -401,6 +402,7 @@ contact <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- tagList(
+  useShinyjs(),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
   navbarPage(
