@@ -511,13 +511,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          p <- p + geom_line()
       }
 
-      # add light cycle annotation
-     lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
-     colnames(lights) <- c("x", "y")
-     if (input$timeline) {
-       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-       p <- p + my_lights
-      }
 
       # add means
       if (input$wmeans) {
@@ -532,6 +525,17 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # axis labels
       p <- p + xlab("Time [h]")
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+
+     # add light cycle annotation
+     lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
+     colnames(lights) <- c("x", "y")
+     
+     if (input$timeline) {
+       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+       p <- p + my_lights
+      }
+
+
 
       # add title
       p <- p + ggtitle("Energy expenditure")
@@ -627,7 +631,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       M <- input$window
       PERCENTAGE <- input$percentage_best
       INTERVAL_LENGTH <- time_diff
-      df_plot_total <- extract_rmr_helper()
+      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, 1, 1)
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
@@ -1418,7 +1422,7 @@ df_total$Animals <- as.factor(df_total$Animals)
 
 p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
 p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-p2 <- p2 + ggtitle(paste("Total energy expenditure (over ", how_many_days, ")", sep = ""))
+p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, ")", sep = ""))
 output$summary <- renderPlotly(ggplotly(p2))
 
 if (input$havemetadata) {
