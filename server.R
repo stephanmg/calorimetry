@@ -1524,7 +1524,6 @@ if (input$havemetadata) {
 
       # scroll to top after click on plot
       shinyjs::runjs("window.scrollTo(0,50);")
-
     })
 
 
