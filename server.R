@@ -18,6 +18,8 @@ library(tools)
 library(shinyalert)
 library(shinyjs)
 
+source("inc/util.R") # general utility methods
+
 source("inc/rmr/helper.R") # rmr helper methods
 source("inc/rmr/extract_rmr.R") # rmr extraction
 source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
@@ -981,19 +983,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          }
       }
 
-      get_factor_columns <- function(df) {
-         return(names(df)[sapply(df, is.factor)])
-      }
-
-      get_non_factor_columns <- function(df) {
-         return(names(df)[sapply(df, Negate(is.factor))])
-      }
-      
+     
 
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         # TODO: Filter out based on column type, change in get true metadata diet and genotype to as.factor(...)
-         print(sapply(true_metadata, class))
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
