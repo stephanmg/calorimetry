@@ -72,6 +72,6 @@ get_true_metadata <- function(file) {
    diets <- diets[!is.na(diets)]
 
    # return compiled metadata
-   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = diets, Genotype = genotypes, body_weight = body_weights)
+   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights)
    return(df_meta)
 }
