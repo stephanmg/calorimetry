@@ -1489,10 +1489,11 @@ if (input$havemetadata) {
    output$test <- renderUI({
       tagList(
          h4("Configuration"),
-         selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
+         selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
          selectInput("dep_var", "Dependent variable", choice = c("RMR")),
-         selectInput("indep_var", "Independent grouping variable", choices = colnames(true_metadata), selected = "Genotype"),
-         selectInput("covar", "Covariate", choices = colnames(true_metadata), selected = "body_weight"),
+         selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
+         selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+         conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
          hr(style = "width: 50%"),
          h4("Advanced"),
          selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
@@ -1508,20 +1509,72 @@ if (input$havemetadata) {
    output$details <- renderUI({
       results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
       tagList(
-         h3("Post-hoc testing"),
+         h3("Post-hoc analysis"),
          renderPlotly(results$plot_details + xlab(input$indep_var)),
          hr(style = "width: 75%"),
-         h4("Statistics"),
-         tags$ul(
-            tags$li(paste("p-value (adjusted): ", results$statistics$p.adj)),
-            tags$li(paste("singificance level: ", results$statistics$p.adj.signif)),
-            tags$li(paste("df: ", results$statistics$df)),
-            tags$li(paste("test-statistic: ", results$statistics$statistic))
+         h4("Results of statistical testing"),
+         tags$table(
+            tags$thead(
+               tags$tr(
+                  tags$th("p-value", style="width: 100px"),
+                  tags$th("p-value (adjusted)", style="width: 100px"),
+                  tags$th("significance level", style="width: 100px"),
+                  tags$th("degrees of freedom", style="width: 100px" ),
+                  tags$th("test statistic", style="width: 100px")
+               )
+            ),
+            tags$tbody(
+               tags$tr(
+                  tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
+                  tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
+                  tags$td(results$statistics$p.adj.signif, style="width: 100px"),
+                  tags$td(results$statistics$df, style="width: 100px"),
+                  tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+               )
+            )
          ),
+
          h4("Test assumptions"),
-         tags$ul(
-            tags$li(paste("Homogeneity of variances (Levene)", results$levene$p)),
-            tags$li(paste("Normality of residuals (Shapiro-Wilk)", results$shapiro$p.value))
+         tags$table(
+                  tags$thead(
+                     tags$tr(
+                        tags$th("Description", style="width:200px"),
+                        tags$th("Name of significance test", style="width:200px"),
+                        tags$th("Null hypothesis", style="width:400px"),
+                        tags$th("p-value", style="width:200px"),
+                        tags$th("Status", style="width:200px")
+                     )
+                  ),
+                  tags$tbody(
+                     tags$tr(
+                        tags$td("Homogeneity of variances", style="width:200px"),
+                        tags$td("Levene's test", style="width:200px"),
+                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
+                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
+                        tags$td(
+                           if (as.numeric(results$levene$p) < as.numeric(input$alpha_level)) {
+                              icon("times")
+                           } else {
+                              icon("check")
+                           }
+                        ,style="width: 200px"
+                        )
+                     ),
+                     tags$tr(
+                        tags$td("Normality of residuals", style="width:200px"),
+                        tags$td("Shapiro-Wilk test", style="width:200px"),
+                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
+                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
+                        tags$td(
+                         if (as.numeric(results$shapiro$p.value) < 0.05) {
+                              icon("times")
+                           } else {
+                              icon("check")
+                           }
+                        ,style="width: 200px"
+                        )
+                     )
+                  )
          )
       )
     })
