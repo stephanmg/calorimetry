@@ -4,6 +4,12 @@ library(rstatix)
 library(broom)
 library(emmeans)
 
+get_r_squared_clean <- function(rvalue) {
+  r_squared_value <- sub(".*italic\\(R\\)\\^2\\s=\\s(-?[0-9.]+).*", "\\1", rvalue)
+  return(as.numeric(r_squared_value))
+}
+
+
 ################################################################################
 # do_ancova_alternative
 ################################################################################
@@ -23,6 +29,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(group)) {
     group <- "Genotype"
   }
+
   names(df)[names(df) == group] <- "group"
 
   df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
@@ -30,7 +37,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   df$TEE <- as.numeric(df$TEE)
 
   p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
-  p2 <- p2 + stat_regline_equation(aes(label =  paste(..eq.label.., ..rr.label.., sep = "~~~~"), color = group))
+  #p2 <- p2 + stat_regline_equation(aes(label =  paste(after_stat(rr.label), after_stat(eq.label), sep = ",   "), color = group), label.x=25, label.y=c(50, 48), geom="text", output.type = "text", parse=FALSE)
+  p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+  p2 <- p2 + labs(colour=group)
+
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
   pwc <- df %>%
     emmeans_test(

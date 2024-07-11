@@ -966,7 +966,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
       write.csv2(TEE, "tee.csv")
 
-      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, fill = Equation, label = Days)) + geom_point() + geom_violin() # position = position_jitterdodge())
+      TEE <- TEE %>% filter(Equation == input$variable1)
+
+      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF") # position = position_jitterdodge())
       p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
       p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
       if (input$with_facets) {
@@ -1030,7 +1032,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             })
          }
 
-         p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ")", sep = ""))
+         p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
          p <- ggplotly(p) %>% #%>% layout(boxmode = "group") %>%
          config(toImageButtonOptions = list(
          format = "svg",
@@ -1500,13 +1502,13 @@ if (input$havemetadata) {
                hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
-               str1 <- "<h3> Raw data values are plotted </h3>"
-               str2 <- "According to the recorded data, line graphs are displayed"
-               str3 <- "<hr/>"
-               str4 <- "Cohorts are usually strafified by animal ID by default"
-            HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+               str1 <- "<h3> Raw measurements and derived quantities </h3>"
+               str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
+               str3 <- "Note that oxygen consumption, carbondioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by the drop-down menu on the left-hand side."
+            HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
