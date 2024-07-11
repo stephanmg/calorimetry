@@ -897,6 +897,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
+      # TODO: use this template to make statistics and details also look good in other panels like RMR
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
