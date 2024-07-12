@@ -404,6 +404,7 @@ contact <- tabPanel(
 ################################################################################
 ui <- tagList(
   useShinyjs(),
+  # Note that this is inline CSS and HTML code, can also be done as in code.js and style.css in external files
   tags$head(
    tags$style(HTML("
    .logo-container {
