@@ -404,6 +404,20 @@ contact <- tabPanel(
 ################################################################################
 ui <- tagList(
   useShinyjs(),
+  tags$head(
+   tags$style(HTML("
+   .logo-container {
+   position: absolute;
+   top: 5px; left: 10px;
+   z-index: 2147483647;
+   }
+   .navbar {
+     padding-left: 30px;
+   }
+   "
+   ))
+  ),
+  div(class="logo-container", img(src="shiny_logo.png", height="30px")),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
   navbarPage(
