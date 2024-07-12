@@ -1,7 +1,7 @@
 # CALOR: A package for <ins>C</ins>alorimetric <ins>A</ins>nalysis to <ins>L</ins>everage <ins>O</ins>rderly data visualization using Shiny <ins>R</ins> 
 
 
-<img src="https://github.com/stephanmg/calorimetry/blob/data/logo_shiny.svg?raw=true" align="left" width="50" height="70"> 
+<img src="https://github.com/stephanmg/calorimetry/blob/data/logo_shiny.png?raw=true" align="left" width="50" height="70"> 
 CALOR is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
 
 <br clear="left"/>
