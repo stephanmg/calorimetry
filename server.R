@@ -455,10 +455,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         write.csv2(finalC1, "before_join2.csv")
-         write.csv2(true_metadata, "before_join1.csv")
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) # %>% na.omit()
-         write.csv2(finalC1, "bogus_finalC1.csv")
       } else {
          df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
          df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
@@ -578,7 +575,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
 
-      write.csv2(df, "to_test_rmr.csv")
 
       df_new <- partition(df)
       df_new <- cv(df_new, input$window)
@@ -619,9 +615,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_for_cov_analysis$Group <- df_to_plot$Group
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
-
-      #p2 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV1, group = Animal))
-      #p3 <- ggplot(data = df_for_cov_analysis, aes(x = Time, y = CoV2, group = Animal))
 
       M <- input$window
       PERCENTAGE <- input$percentage_best
@@ -1596,6 +1589,7 @@ if (input$havemetadata) {
                hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
+               showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
            } else {
             output$summary <- renderPlotly(NULL)

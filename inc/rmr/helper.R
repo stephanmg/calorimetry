@@ -79,7 +79,6 @@ get_time_diff <- function(df, from = 2, to = 3) {
    # note first time diff might be 0 if sorted ascending, thus pick 2 and 3 to check for consistency
    time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(desc(diff.sec)) %>% nth(from) %>% select(diff.sec) %>% pull()
    time_diff2 <- df %>% filter(`Animal No._NA` == id) %>% arrange(desc(diff.sec)) %>% nth(to) %>% select(diff.sec) %>% pull()
-   print("here?")
    if (time_diff1 != time_diff2) {
       print("WARNING: Time difference different in cohorts!")
       print("This could happen if you do not average cohorts when sampling interval of IC experiments is different between cohorts")
