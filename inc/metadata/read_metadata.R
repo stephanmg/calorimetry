@@ -23,7 +23,7 @@ get_constants <- function(file) {
 }
 
 ################################################################################
-# get full metadata
+# get full metadata from metadata sheet
 ################################################################################
 get_true_metadata <- function(file) {
    df <- read_excel(file)

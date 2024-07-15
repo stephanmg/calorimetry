@@ -1099,7 +1099,7 @@ server <- function(input, output, session) {
       })
 
    #####################################################################################################################
-   # Observe heat production formula 1 and forumula 2
+   # Observe heat production formula 1 and forumula 2 and print formular to label
    #####################################################################################################################
    observeEvent(c(input$variable1, input$variable2, input$plot_type), {
          text1 <- ""
