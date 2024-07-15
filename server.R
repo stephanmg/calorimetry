@@ -873,7 +873,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
-      # TODO: use this template to make statistics and details also look good in other panels like RMR
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
@@ -1205,8 +1204,6 @@ server <- function(input, output, session) {
          })
 
 
-   # TODO: Add reasonable subset of finalC1 data frames columns to chose to plot from here, not all.
-   # check if finalC1 colnames are not empty then assign to choices, otherwise use default choices
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
          selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
