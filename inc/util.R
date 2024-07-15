@@ -1,4 +1,4 @@
-source("constants.R")
+source("inc/constants.R")
 
 ################################################################################
 # get factor columns

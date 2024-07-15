@@ -907,10 +907,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          paste(splitted[[1]][1], "", sep = "")
       }
 
-
-
       time_diff <<- get_time_diff(finalC1)
-
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
       finalC1$HP <- finalC1$HP / time_diff
       finalC1$HP2 <- finalC1$HP2 / time_diff
@@ -924,8 +921,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       } else {
          finalC1 <- NULL
       }
-
-
 
       TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
       TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
@@ -948,7 +943,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          }
       }
       write.csv2(TEE, "tee.csv")
-
       TEE <- TEE %>% filter(Equation == input$variable1)
 
       p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF") # position = position_jitterdodge())
@@ -963,8 +957,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             }
          }
       }
-
-     
 
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
@@ -1585,6 +1577,7 @@ if (input$havemetadata) {
             HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
