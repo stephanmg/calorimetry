@@ -575,7 +575,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
 
-
       df_new <- partition(df)
       df_new <- cv(df_new, input$window)
       df_new <- reformat(df_new)
@@ -697,8 +696,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          df_to_plot <- NULL
       }
 
-
-
       p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
       p <- p + ggtitle("Day Night Activity")
 
@@ -721,9 +718,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
          config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       }
-
-
-
    },
    #####################################################################################################################
    ### Locomotion
@@ -1040,18 +1034,17 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
             )
          })
 
-            output$explanation <- renderText(results$statistics$p)
-            output$explanation <- renderUI({
-            str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
-            str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
-            str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-            str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
-            HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
-            })
-         }
-
-         p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
-         p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+         output$explanation <- renderText(results$statistics$p)
+         output$explanation <- renderUI({
+         str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
+         str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
+         str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+         str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
+         HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+         })
+      }
+      p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
+      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       },
       {
          # all other options
@@ -1065,8 +1058,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 # Create server
 #####################################################################################################################
 server <- function(input, output, session) {
+   # observer helpers
    observe_helpers()
 
+   # observer metadata field
    output$metadatafile <- renderUI({
       html_ui <- " "
       html_ui <- paste0(html_ui,
@@ -1196,7 +1191,6 @@ server <- function(input, output, session) {
                choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
-
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
          selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
@@ -1215,7 +1209,6 @@ server <- function(input, output, session) {
                checkboxInput(inputId = "wstats", label = "Display statistics"))
          })
 
-
    observeEvent(input$plot_type, {
             output$wmethod <- renderUI(
                selectInput(inputId = "wmethod", label = "Statistic", choices = c("pearson", "kendall", "spearman")))
@@ -1230,25 +1223,27 @@ server <- function(input, output, session) {
       })
 
    observeEvent(input$downloadData, {
-       if (input$export_format == "CalR") {
-            status_okay <- do_export("CalR", input, output, do_plotting)
-            if (!status_okay) {
-              output$message <- renderText("Error during data export to CalR, check logs")
-            } else {
-              output$message <- renderText(paste("Consolidated data exported to format >>",
-              input$export_format, "<<", sep = " "))
-            }
+      # CalR
+      if (input$export_format == "CalR") {
+           status_okay <- do_export("CalR", input, output, do_plotting)
+           if (!status_okay) {
+             output$message <- renderText("Error during data export to CalR, check logs")
+           } else {
+             output$message <- renderText(paste("Consolidated data exported to format >>",
+             input$export_format, "<<", sep = " "))
+           }
+      }
+      # Excel
+      if (input$export_format == "Excel") {
+           status_okay <- do_export_alternative("Excel", input, output, do_plotting)
+          if (!status_okay) {
+             output$message <- renderText("Error during data export to Excel, check logs")
+           } else {
+             output$message <- renderText(paste("Consolidated data exported to format >>",
+             input$export_format, "<<", sep = " "))
+           }
        }
-       if (input$export_format == "Excel") {
-            status_okay <- do_export_alternative("Excel", input, output, do_plotting)
-            if (!status_okay) {
-              output$message <- renderText("Error during data export to Excel, check logs")
-            } else {
-              output$message <- renderText(paste("Consolidated data exported to format >>",
-              input$export_format, "<<", sep = " "))
-            }
-        }
-      })
+     })
 
    #############################################################################
    # Refresh plot (action button's action)
@@ -1305,53 +1300,52 @@ server <- function(input, output, session) {
             #############################################################################
             # Outlier
             #############################################################################
-           if ((! is.null(real_data$animals)) && is.null(input$sick)) {
+            if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick <- renderUI(
               multiInput(inputId = "sick", label = "Remove outliers (sick animals, etc.) ", selected = "", choices = unique(real_data$animals)))
-           }
+            }
 
             #############################################################################
             # Facets
             #############################################################################
-           if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
-            if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
-               output$facets_by_data_one <- renderUI(
-               selectInput(inputId = "facets_by_data_one", label = "Choose facet",
-               selected = "Animals", choices = colnames(true_metadata)))
-            } else {
-               df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
-               df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
-               df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
-               colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-               our_group_names <- unique(colnames(df_filtered))
-
-               output$facets_by_data_one <- renderUI(
+            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
+               if (input$havemetadata) {
+                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+                  output$facets_by_data_one <- renderUI(
                   selectInput(inputId = "facets_by_data_one", label = "Choose facet",
-                  selected = "Animals", choices = our_group_names))
-               }
-           }
+                  selected = "Animals", choices = colnames(true_metadata)))
+                } else {
+                  df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
+                  df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
+                  df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
+                  colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
+                  our_group_names <- unique(colnames(df_filtered))
 
+                  output$facets_by_data_one <- renderUI(
+                     selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+                     selected = "Animals", choices = our_group_names))
+                  }
+             }  
 
             #############################################################################
             # Initializing
             #############################################################################
-           if (input$havemetadata) {
+            if (input$havemetadata) {
                if (is.null(input$condition_type)) {
                   true_metadata <- get_true_metadata(input$metadatafile$datapath)
                   output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
-           } else {
-             if (! is.null(real_data$animals)) {
-               metadata <- real_data$metadata
-               output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(metadata), label = "Condition"))
+            } else {
+               if (! is.null(real_data$animals)) {
+                  metadata <- real_data$metadata
+                  output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(metadata), label = "Condition"))
+               }
             }
-           }
 
             #############################################################################
             # condition type and select data by
             #############################################################################
-           observeEvent(input$condition_type, {
+            observeEvent(input$condition_type, {
             if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
@@ -1365,47 +1359,45 @@ server <- function(input, output, session) {
                   diets <- unique(metadata[[my_var]])
                }
                output$select_data_by <- renderUI(
-               selectInput("select_data_by", "Filter by", choices = diets, selected = input$select_data_by)
-            )
+               selectInput("select_data_by", "Filter by", choices = diets, selected = input$select_data_by))
             }
-           }
-           )
-               if (input$plot_type == "RestingMetabolicRate") {
-                 showTab(inputId = "additional_content", target = "Summary statistics")
+            })
 
-            write.csv2(real_data$data, "before_rmr_written.csv")
-            # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
-            df_filtered <- real_data$data %>%
-               filter(Component != input$cvs) %>%
-               select(!Component) %>%
-               group_by(Animal) %>%
-               na.omit() %>%
-               summarize(Value = min(HP), cgroups = c(Animal))
-            write.csv2(df_filtered, "rmr.csv")
+            if (input$plot_type == "RestingMetabolicRate") {
+              showTab(inputId = "additional_content", target = "Summary statistics")
+               write.csv2(real_data$data, "before_rmr_written.csv")
+               # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
+               df_filtered <- real_data$data %>%
+                  filter(Component != input$cvs) %>%
+                  select(!Component) %>%
+                  group_by(Animal) %>%
+                  na.omit() %>%
+                  summarize(Value = min(HP), cgroups = c(Animal))
+               write.csv2(df_filtered, "rmr.csv")
 
-            df <- real_data$data
-            df$Animal <- as.factor(df$Animal)
-            df$Component <- as.factor(df$Component)
-            p <- ggplot(df, aes(x = Animal, y = HP, color = Animal)) + geom_violin() + geom_point(position = position_jitter(0.1))
-            p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep = ""))
-            if (!input$havemetadata) {
-               output$test <- renderUI(renderPlotly(p))
-            }
+               df <- real_data$data
+               df$Animal <- as.factor(df$Animal)
+               df$Component <- as.factor(df$Component)
+               p <- ggplot(df, aes(x = Animal, y = HP, color = Animal)) + geom_violin() + geom_point(position = position_jitter(0.1))
+               p <- p + xlab("Animal") + ylab(paste("RMR [", input$kj_or_kcal, "/h]", sep = ""))
+               if (!input$havemetadata) {
+                  output$test <- renderUI(renderPlotly(p))
+               }
 
-
-       # explanation of plot
-         output$explanation <- renderUI({
-            str1 <- "<h3> RMR estimation </h3>"
-            str2 <- "Resting metabolic rate (RMR) has been estimated based on the coefficient of variation of the O2 and CO2 signal."
-            str3 <- "Bar plots show minimum over whole recorded time (experiment), see Summary statistics tab."
-            str4 <- "<hr/>"
-            str5 <- "Time traces are available in the Plot tab, displaying RMR over time for each animal in cohort(s)."
-            HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
-         })
+            # explanation of plot
+            output$explanation <- renderUI({
+               str1 <- "<h3> RMR estimation </h3>"
+               str2 <- "Resting metabolic rate (RMR) has been estimated based on the coefficient of variation of the O2 and CO2 signal."
+               str3 <- "Bar plots show minimum over whole recorded time (experiment), see Summary statistics tab."
+               str4 <- "<hr/>"
+               str5 <- "Time traces are available in the Plot tab, displaying RMR over time for each animal in cohort(s)."
+               HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
+            })
 
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
 
+            # if we have metadata, check time diff again
             time_diff <- 5
             if (input$havemetadata) {
                df_diff <- read.csv2("finalC1.csv")
@@ -1416,123 +1408,123 @@ server <- function(input, output, session) {
                }
             }
 
-df1 <- read.csv2("rmr.csv")
-df2 <- read.csv2("tee.csv")
-df1 <- rename(df1, Animals = Animal)
-how_many_days <- length(levels(as.factor(df2$Days)))
-df1$Animals <- as.factor(df1$Animals)
-df2$Animals <- as.factor(df2$Animals)
-# time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-# Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
-df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE) / time_diff)
-df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE) / time_diff)
+         df1 <- read.csv2("rmr.csv")
+         df2 <- read.csv2("tee.csv")
+         df1 <- rename(df1, Animals = Animal)
+         how_many_days <- length(levels(as.factor(df2$Days)))
+         df1$Animals <- as.factor(df1$Animals)
+         df2$Animals <- as.factor(df2$Animals)
+         # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
+         # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
+         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE) / time_diff)
+         df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE) / time_diff)
 
-df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
-df2$TEE <- as.factor(rep("RMR", nrow(df2)))
+         df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
+         df2$TEE <- as.factor(rep("RMR", nrow(df2)))
 
-df_total <- rbind(df1, df2)
-df_total$Animals <- as.factor(df_total$Animals)
+         df_total <- rbind(df1, df2)
+         df_total$Animals <- as.factor(df_total$Animals)
 
-p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
-p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, ")", sep = ""))
-output$summary <- renderPlotly(ggplotly(p2))
+         p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
+         p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
+         p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, ")", sep = ""))
+         output$summary <- renderPlotly(ggplotly(p2))
 
-if (input$havemetadata) {
-   true_metadata <- get_true_metadata(input$metadatafile$datapath)
-   output$test <- renderUI({
-      tagList(
-         h4("Configuration"),
-         selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-         selectInput("dep_var", "Dependent variable", choice = c("RMR")),
-         selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-         selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-         conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
-         hr(style = "width: 50%"),
-         h4("Advanced"),
-         selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
-         sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-         checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-         hr(style = "width: 75%"),
-         renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
-      )
-      })
+            if (input$havemetadata) {
+               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               output$test <- renderUI({
+                  tagList(
+                     h4("Configuration"),
+                     selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
+                     selectInput("dep_var", "Dependent variable", choice = c("RMR")),
+                     selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
+                     selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+                     hr(style = "width: 50%"),
+                     h4("Advanced"),
+                     selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
+                     sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+                     checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+                     hr(style = "width: 75%"),
+                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+                  )
+                  })
 
-   # FIXME: Add back analysis without metadata sheet for RMR calculations
+               # FIXME: Add back analysis without metadata sheet for RMR calculations
 
-   output$details <- renderUI({
-      results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
-      tagList(
-         h3("Post-hoc analysis"),
-         renderPlotly(results$plot_details + xlab(input$indep_var)),
-         hr(style = "width: 75%"),
-         h4("Results of statistical testing"),
-         tags$table(
-            tags$thead(
-               tags$tr(
-                  tags$th("p-value", style="width: 100px"),
-                  tags$th("p-value (adjusted)", style="width: 100px"),
-                  tags$th("significance level", style="width: 100px"),
-                  tags$th("degrees of freedom", style="width: 100px" ),
-                  tags$th("test statistic", style="width: 100px")
-               )
-            ),
-            tags$tbody(
-               tags$tr(
-                  tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                  tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                  tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                  tags$td(results$statistics$df, style="width: 100px"),
-                  tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-               )
-            )
-         ),
-
-         h4("Test assumptions"),
-         tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("Description", style="width:200px"),
-                        tags$th("Name of significance test", style="width:200px"),
-                        tags$th("Null hypothesis", style="width:400px"),
-                        tags$th("p-value", style="width:200px"),
-                        tags$th("Status", style="width:200px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td("Homogeneity of variances", style="width:200px"),
-                        tags$td("Levene's test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                        tags$td(
-                           if (as.numeric(results$levene$p) < as.numeric(input$alpha_level)) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
+               output$details <- renderUI({
+                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
+                  tagList(
+                     h3("Post-hoc analysis"),
+                     renderPlotly(results$plot_details + xlab(input$indep_var)),
+                     hr(style = "width: 75%"),
+                     h4("Results of statistical testing"),
+                     tags$table(
+                        tags$thead(
+                           tags$tr(
+                              tags$th("p-value", style="width: 100px"),
+                              tags$th("p-value (adjusted)", style="width: 100px"),
+                              tags$th("significance level", style="width: 100px"),
+                              tags$th("degrees of freedom", style="width: 100px" ),
+                              tags$th("test statistic", style="width: 100px")
+                           )
+                        ),
+                        tags$tbody(
+                           tags$tr(
+                              tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
+                              tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
+                              tags$td(results$statistics$p.adj.signif, style="width: 100px"),
+                              tags$td(results$statistics$df, style="width: 100px"),
+                              tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+                           )
                         )
                      ),
-                     tags$tr(
-                        tags$td("Normality of residuals", style="width:200px"),
-                        tags$td("Shapiro-Wilk test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                        tags$td(
-                         if (as.numeric(results$shapiro$p.value) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
+
+                     h4("Test assumptions"),
+                     tags$table(
+                              tags$thead(
+                                 tags$tr(
+                                    tags$th("Description", style="width:200px"),
+                                    tags$th("Name of significance test", style="width:200px"),
+                                    tags$th("Null hypothesis", style="width:400px"),
+                                    tags$th("p-value", style="width:200px"),
+                                    tags$th("Status", style="width:200px")
+                                 )
+                              ),
+                              tags$tbody(
+                                 tags$tr(
+                                    tags$td("Homogeneity of variances", style="width:200px"),
+                                    tags$td("Levene's test", style="width:200px"),
+                                    tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
+                                    tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
+                                    tags$td(
+                                       if (as.numeric(results$levene$p) < as.numeric(input$alpha_level)) {
+                                          icon("times")
+                                       } else {
+                                          icon("check")
+                                       }
+                                    ,style="width: 200px"
+                                    )
+                                 ),
+                                 tags$tr(
+                                    tags$td("Normality of residuals", style="width:200px"),
+                                    tags$td("Shapiro-Wilk test", style="width:200px"),
+                                    tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
+                                    tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
+                                    tags$td(
+                                    if (as.numeric(results$shapiro$p.value) < 0.05) {
+                                          icon("times")
+                                       } else {
+                                          icon("check")
+                                       }
+                                    ,style="width: 200px"
+                                    )
+                                 )
+                              )
                      )
                   )
-         )
-      )
-    })
-}
+               })
+              }
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
@@ -1568,12 +1560,12 @@ if (input$havemetadata) {
                hideTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
-            str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
-            str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
-            str3 <- "<hr/>"
-            str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
-            HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
-            })
+               str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
+               str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
+               str3 <- "<hr/>"
+               str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
+               HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
+               })
                hideTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
@@ -1603,8 +1595,6 @@ if (input$havemetadata) {
       # scroll to top after click on plot
       shinyjs::runjs("window.scrollTo(0,50);")
     })
-
-
  
    #############################################################################
    # Helpers to hide/show components
@@ -1642,7 +1632,7 @@ if (input$havemetadata) {
    })
 
    #############################################################################
-   # Guide
+   # Start guide
    #############################################################################
    observeEvent(input$guide, {
       # for guide, we need to see all components
@@ -1655,14 +1645,17 @@ if (input$havemetadata) {
       guide$init()$start()
   })
 
-  observeEvent(input$guide_cicerone_next, {
-   if (!input$guide_cicerone_next$has_next) {
-      lapply(
-         X = c("DC", "DE", "PC"),
-         FUN = function(i) {
-            hideTab(inputId = paste0("tabs", i), target = i)
-         }
-      )
-    }
-  })
+   #############################################################################
+   # Observe guide
+   #############################################################################
+   observeEvent(input$guide_cicerone_next, {
+      if (!input$guide_cicerone_next$has_next) {
+         lapply(
+            X = c("DC", "DE", "PC"),
+            FUN = function(i) {
+               hideTab(inputId = paste0("tabs", i), target = i)
+            }
+         )
+      }
+   })
 }
