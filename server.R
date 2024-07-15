@@ -361,19 +361,21 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
    }
 
-   # FIXME: fails for some TSE files... check why this is the case...
-   # light cycle information should be present also in raw TSE files without any additional metadata provided through our sheet
-   #if (! is.null(input$light_cycle)) {
-   #   if ("LightC_[%]" %in% colnames(finalC1)) {
-   #      `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
-   #      # filter finalC1 by light cycle
-   #      if (input$light_cycle == "Night") {
-   #         finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` < input$threshold_light_day)
-   #      } else {
-   #         finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` > input$threshold_light_day)
-   #      }
-   #   }
-   #}
+   # override light cycle configuration from metadata 
+   if (input$override_metadata_light_cycle) {
+      # Force override by user from data files if demanded (not all TSE files have light cycle configuration data)
+      if (! is.null(input$light_cycle)) {
+         if ("LightC_[%]" %in% colnames(finalC1)) {
+            `$`(finalC1, "LightC_[%]") <- as.numeric(`$`(finalC1, "LightC_[%]"))
+            # filter finalC1 by light cycle
+            if (input$light_cycle == "Night") {
+               finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` < input$threshold_light_day)
+            } else {
+               finalC1 <- mutate(`LightC_[%]` = as.numeric(`LightC_[%]`)) %>% filter(finalC1, `LightC_[%]` > input$threshold_light_day)
+            }
+         }
+      }
+   }
 
    # time interval diff for finalC1
    time_diff <<- get_time_diff(finalC1)
@@ -445,16 +447,14 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #####################################################################################################################
    ### Energy Expenditure
    #####################################################################################################################
-   # This is an example on how to use the metadata, note that finalC1 to be build still requires valid TSE data file with metadata in header
-   ## In create data frame we could join already with metadata if metadata available, but better require valid tse format in case no metadata available
-   ## This nicely illustrate how we need to proceed to support metadata from data (TSE header) and metadata sheet - implement in other functions below accordingly
-   ## TODO: use this template to add metadata to other functions
+   # This is an example on how to use the metadata (sheet) in different functions.
+   ## The metadata from the data files (e.g. TSE) could be joined directly with the metadata sheet. For compability, we 
+   # currently require a valid TSE metadata header corresponding with entries in the columns of metadata sheet, issue #62.
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         # Note: full_join is correct, however do not omit rows containing only a single NA, might be two different data frames (TSE files) have different columns!
          write.csv2(finalC1, "before_join2.csv")
          write.csv2(true_metadata, "before_join1.csv")
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) # %>% na.omit()
@@ -817,10 +817,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ### Raw
    #####################################################################################################################
    Raw = {
-      # TODO: Add reasonable subset of finalC1 data frames columns to chose to plot from here, not all, and with clean names
-       # output$myr <- renderUI(
-    #    selectInput(inputId = "myr", label = "Chose raw data to plot", choices = colnames(finalC1)))
-
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
@@ -977,7 +973,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
-         # FIXME: Add back analysis without metadata sheet for TEE
+
+         # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
             results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)
@@ -1471,7 +1468,7 @@ if (input$havemetadata) {
       )
       })
 
-         # FIXME: Add back analysis without metadata sheet for TEE
+   # FIXME: Add back analysis without metadata sheet for RMR calculations
 
    output$details <- renderUI({
       results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
