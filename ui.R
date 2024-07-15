@@ -408,9 +408,7 @@ ui <- tagList(
   tags$head(
    tags$style(HTML("
    .logo-container {
-   position: absolute;
-   top: 5px; left: 10px;
-   z-index: 2147483647;
+   position: absolute; top: 5px; left: 10px; z-index: 2147483647;
    }
    .navbar {
      padding-left: 30px;
