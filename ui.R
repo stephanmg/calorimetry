@@ -231,7 +231,6 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmethod")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window size", min = 1, max = 30, value = 5, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 5, step = 1)),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("binned_best", "Binned best", min = 1, max = 10, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE, selected = "O2")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("light_cycle", "Lightcycle", c("Day", "Night"), multiple = TRUE, selected = c("Day", "Night"))),
@@ -241,7 +240,7 @@ sidebar_content <- sidebarPanel(
    sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 19),
    colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
    colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
-   h3("Time averaging of raw data"),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h3("Time averaging of raw data")),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint

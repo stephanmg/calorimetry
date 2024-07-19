@@ -578,7 +578,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_new <- partition(df)
       print(df_new)
       write.csv2(df_new, "df_new_before.csv")
-      # Note that this might introduce NAs by coercicon through cv(...) method.
+      # Note that this might introduce NAs by coercion through cv(...) method.
       ## This is correct, since the time length of recordings per sample are not identical typically
       df_new <- cv(df_new, input$window)
       write.csv2(df_new, "df_new_after.csv")
@@ -592,37 +592,24 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
       df_new2 <- partition(df2)
-      # Note that this might introduce NAs by coercicon through cv(...) method.
+      # Note that this might introduce NAs by coercion through cv(...) method.
       ## This is correct, since the time length of recordings per sample are not identical typically
       df_new2 <- cv(df_new2, input$window)
       df_new2 <- reformat(df_new2) %>% na.omit()
 
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
 
-      # if coefficient of variation is used in analysis, we might end up with 1 or multiple time points less,
-      # thus we need to make sure to always take the minimum of these three dataframes
+      # if coefficient of variation is used in analysis, we might end up with 1 less timepoint
+      # thus we need to make sure to always take the minimum of these three dataframes or pad accordingly each sample
+      ## Note that this happens when input$window 
       do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
-      to_pad <- nrow(finalC1) - nrow(df_new)
-      for (x in 1:to_pad) {
-         print("padding!")
-         df_new <- rbind(df_new, data.frame(HP=0, Group=2262))
-         df_new2 <- rbind(df_new, data.frame(HP=0, Group=2262))
-      }
-      #write.csv2(df_new, "df_new_after_padded.csv")
-      #do_select_n <- nrow(finalC1)
+      to_pad <- nrow(finalC1) - nrow(df_new) # difference is exactly the number of samples as only 1 point misses 
+      df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
+      df_new2 <- padding_helper(df_new2) # padas by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
 
-      print("infos:")
-      print(nrow(finalC1))
-      print(nrow(df_new))
-      print(nrow(df_new2))
-      print("how many to select")
-      print(do_select_n)
-      finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging
-      df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) # 
+      finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
+      df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) 
       df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
-      write.csv2(df_new, "df_new_after_select.csv")
-      print("no rows in finalC1")
-      print(nrow(finalC1))
 
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
@@ -644,7 +631,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       M <- input$window
       PERCENTAGE <- input$percentage_best
       INTERVAL_LENGTH <- time_diff
-      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, 1, 1)
+      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, PERCENTAGE, M)
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)

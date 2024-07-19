@@ -2,6 +2,39 @@ library(dplyr)
 library(ggplot2)
 
 ################################################################################
+# padding_helper
+################################################################################
+padding_helper <- function(df) {
+   print(colnames(df))
+   # Find the last row for each group
+df_max_index <- df %>%
+  group_by(Group) %>%
+  slice(n()) %>%
+  ungroup()
+
+# Function to insert a row after the max index for each group
+insert_row <- function(data, row, after) {
+  data <- rbind(data[1:after, ], row, data[(after + 1):nrow(data), ])
+  return(data)
+}
+
+# Initialize a new data frame to store the results
+new_df <- df
+
+# Loop through each group to insert the new row
+for (i in seq_len(nrow(df_max_index))) {
+  row_to_insert <- df_max_index[i, ]
+  group_rows <- which(df$Group == df_max_index$Group[i])
+  max_index <- max(group_rows)
+  new_df <- insert_row(new_df, row_to_insert, max_index)
+
+}
+print(new_df)
+return(new_df)
+}
+
+
+################################################################################
 # partition
 ################################################################################
 partition <- function(mydf) {
