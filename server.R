@@ -631,8 +631,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       M <- input$window
       PERCENTAGE <- input$percentage_best
       INTERVAL_LENGTH <- time_diff
-      # TODO: 1, 1 seems a reasonable choice to reconstruct RMR, but needs to be validated
-      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, 1, 1)
+      # Note 1, 1 seems a reasonable choice to reconstruct RMR, but needs to be validated, thus set as default for now
+      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, PERCENTAGE, M)
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
