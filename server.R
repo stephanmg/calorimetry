@@ -631,7 +631,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       M <- input$window
       PERCENTAGE <- input$percentage_best
       INTERVAL_LENGTH <- time_diff
-      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, PERCENTAGE, M)
+      # TODO: 1, 1 seems a reasonable choice to reconstruct RMR, but needs to be validated
+      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, 1, 1)
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
@@ -1460,14 +1461,14 @@ server <- function(input, output, session) {
                      sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
-                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$dep_var, input$post_hoc_test, input$test_statistic)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
                   )
                   })
 
                # FIXME: Add back analysis without metadata sheet for RMR calculations
 
                output$details <- renderUI({
-                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var)
+                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$dep_var)
                   tagList(
                      h3("Post-hoc analysis"),
                      renderPlotly(results$plot_details + xlab(input$indep_var)),

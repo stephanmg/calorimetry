@@ -15,7 +15,7 @@ get_r_squared_clean <- function(rvalue) {
 ################################################################################
 # do_ancova_alternative
 ################################################################################
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, adjust_method = "bonferroni", test_type="1-way ANCOVA") {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, dep_var, adjust_method = "bonferroni", test_type="1-way ANCOVA") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit()
 
   if (is.null(indep_var)) {
@@ -34,12 +34,19 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
-  df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
+  if (dep_var == "TEE") {
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
+  } else {
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+  }
+
   df$Weight <- as.numeric(df$Weight)
   df$TEE <- as.numeric(df$TEE)
 
   if (test_type == "1-way ANCOVA") {
-    df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+    if (dep_var == "TEE") {
+      df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+    }
   }
 
   p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
