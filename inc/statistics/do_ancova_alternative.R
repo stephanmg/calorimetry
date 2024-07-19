@@ -23,7 +23,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # 2-way ANCOVA requires second indepent variable
+  # 2-way ANCOVA requires second independent variable
   if (!is.null(indep_var2)) {
     names(df)[names(df) == indep_var2] <- "Weight2"
   }

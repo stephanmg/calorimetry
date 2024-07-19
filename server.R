@@ -455,7 +455,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) # %>% na.omit()
+         finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
       } else {
          df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
          df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
@@ -576,8 +576,14 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Values2 = finalC1$HP)
 
       df_new <- partition(df)
+      print(df_new)
+      write.csv2(df_new, "df_new_before.csv")
+      # Note that this might introduce NAs by coercicon through cv(...) method.
+      ## This is correct, since the time length of recordings per sample are not identical typically
       df_new <- cv(df_new, input$window)
-      df_new <- reformat(df_new)
+      write.csv2(df_new, "df_new_after.csv")
+      df_new <- reformat(df_new) %>% na.omit()
+      write.csv2(df_new, "df_new_after_reformat.csv")
 
       write.csv2(df_new, "df_new.csv")
 
@@ -586,17 +592,37 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Group = `$`(finalC1, "Animal No._NA"),
          Values2 = finalC1$HP)
       df_new2 <- partition(df2)
+      # Note that this might introduce NAs by coercicon through cv(...) method.
+      ## This is correct, since the time length of recordings per sample are not identical typically
       df_new2 <- cv(df_new2, input$window)
-      df_new2 <- reformat(df_new2)
+      df_new2 <- reformat(df_new2) %>% na.omit()
 
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
 
       # if coefficient of variation is used in analysis, we might end up with 1 or multiple time points less,
       # thus we need to make sure to always take the minimum of these three dataframes
       do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
-      finalC1 <- finalC1 %>%  slice(1:do_select_n)
-      df_new <- df_new %>%  slice(1:do_select_n)
-      df_new2 <- df_new2 %>%  slice(1:do_select_n)
+      to_pad <- nrow(finalC1) - nrow(df_new)
+      for (x in 1:to_pad) {
+         print("padding!")
+         df_new <- rbind(df_new, data.frame(HP=0, Group=2262))
+         df_new2 <- rbind(df_new, data.frame(HP=0, Group=2262))
+      }
+      #write.csv2(df_new, "df_new_after_padded.csv")
+      #do_select_n <- nrow(finalC1)
+
+      print("infos:")
+      print(nrow(finalC1))
+      print(nrow(df_new))
+      print(nrow(df_new2))
+      print("how many to select")
+      print(do_select_n)
+      finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging
+      df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) # 
+      df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
+      write.csv2(df_new, "df_new_after_select.csv")
+      print("no rows in finalC1")
+      print(nrow(finalC1))
 
       df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
