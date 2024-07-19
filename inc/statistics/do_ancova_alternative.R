@@ -44,9 +44,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   df$Weight <- as.numeric(df$Weight)
   df$TEE <- as.numeric(df$TEE)
 
-  write.csv2(df, "test_for_2way_ancova.csv")
-  print("test type:")
-  print(test_type)
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
@@ -93,7 +90,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    # TODO: get all statistics into table for 2-way ANCOVA
+    # TODO: get all statistics into table for 2-way ANCOVA, more than one comparison of course.
     pwc <- pwc %>% first()
   }
 
@@ -108,9 +105,5 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   model.metrics <- augment(model)
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
-  print("blubbi")
-  print(pwc)
-  print(shapiro)
-  print(levene)
   return(list("plot_details" = p, "plot_summary" = p2, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))
 }
