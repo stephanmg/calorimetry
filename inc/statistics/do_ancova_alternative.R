@@ -15,7 +15,7 @@ get_r_squared_clean <- function(rvalue) {
 ################################################################################
 # do_ancova_alternative
 ################################################################################
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, adjust_method = "bonferroni") {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, adjust_method = "bonferroni", test_type="1-way ANCOVA") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit()
 
   if (is.null(indep_var)) {
@@ -34,22 +34,40 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
-  df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+  df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   df$Weight <- as.numeric(df$Weight)
   df$TEE <- as.numeric(df$TEE)
+
+  if (test_type == "1-way ANCOVA") {
+    df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+  }
 
   p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
   p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
   p2 <- p2 + labs(colour=group)
 
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
+  if (test_type != "1-way ANCOVA") {
+    res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
+  }
+
+
   pwc <- df %>%
     emmeans_test(
       TEE ~ group, covariate = Weight,
       p.adjust.method = adjust_method
     )
 
-  # Visualization of assumptions
+  # TODO: Implement 2-way ANCOVA with 2nd grouping variable
+  if (test_type != "1-way ANCOVA") {
+    #print(colnames(df))
+    #model <- lm(TEE ~ group * Days + Weight, data=df)
+    #pwc <- emmeans_test(model, pairwise ~ group * Days, covariate=Weight)
+  }
+
+  p <- NULL
+
+  # Visualization of estimated marginal means for 1-way ancova
   pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
   p <- ggline(get_emmeans(pwc), x = "group", y = "emmean") +
     geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
@@ -59,8 +77,21 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       caption = get_pwc_label(pwc)
     )
 
+
+  # TODO: visualization has to change for a 2-way ancova analysis
+  if (test_type != "1-way ANCOVA") {
+   # p <- ggplot(get_emmeans(pwc), aes(x="group", y = "emmean", fill = "Days")) +
+   # geom_bar(stat = "identity") +
+   # geom_errorbar(aes(ymin=emmean - SE, ymax = emmean+SE))
+  }
+
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
+  if (test_type != "1-way ANCOVA") {
+    model <- lm(TEE ~ Weight + group * Days, data = df)
+  }
+
+  # Check test assumptions met
   model.metrics <- augment(model)
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)

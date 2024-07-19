@@ -960,23 +960,24 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                h4("Configuration"),
                selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("TEE")),
-               selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
+               selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+               #conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$post_hoc_test, input$test_statistic)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
 
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var)
+            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$post_hoc_test, input$test_statistic)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
