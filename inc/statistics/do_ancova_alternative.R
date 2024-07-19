@@ -15,7 +15,8 @@ get_r_squared_clean <- function(rvalue) {
 ################################################################################
 # do_ancova_alternative
 ################################################################################
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, dep_var, adjust_method = "bonferroni", test_type="1-way ANCOVA") {
+
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit()
 
   if (is.null(indep_var)) {
@@ -43,6 +44,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   df$Weight <- as.numeric(df$Weight)
   df$TEE <- as.numeric(df$TEE)
 
+  write.csv2(df, "test_for_2way_ancova.csv")
+  print("test type:")
+  print(test_type)
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
@@ -53,26 +57,20 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
   p2 <- p2 + labs(colour=group)
 
+  # 1-way ANCOVA
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
-  if (test_type != "1-way ANCOVA") {
+  if (test_type == "2-way ANCOVA") {
     res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
   }
 
-
-  pwc <- df %>%
-    emmeans_test(
-      TEE ~ group, covariate = Weight,
-      p.adjust.method = adjust_method
-    )
-
-  # TODO: Implement 2-way ANCOVA with 2nd grouping variable
-  if (test_type != "1-way ANCOVA") {
-    #print(colnames(df))
-    #model <- lm(TEE ~ group * Days + Weight, data=df)
-    #pwc <- emmeans_test(model, pairwise ~ group * Days, covariate=Weight)
-  }
-
   p <- NULL
+  pwc <- NULL
+  if (test_type == "1-way ANCOVA") {
+    pwc <- df %>%
+      emmeans_test(
+        TEE ~ group, covariate = Weight,
+        p.adjust.method = adjust_method
+      )
 
   # Visualization of estimated marginal means for 1-way ancova
   pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
@@ -83,24 +81,36 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-
-
-  # TODO: visualization has to change for a 2-way ancova analysis
-  if (test_type != "1-way ANCOVA") {
-   # p <- ggplot(get_emmeans(pwc), aes(x="group", y = "emmean", fill = "Days")) +
-   # geom_bar(stat = "identity") +
-   # geom_errorbar(aes(ymin=emmean - SE, ymax = emmean+SE))
   }
+
+  if (test_type == "2-way ANCOVA") {
+    pwc <- df %>% group_by(group) %>% emmeans_test(TEE ~ Days, covariate=Weight)
+    pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
+    p <- ggline(get_emmeans(pwc), x = "group", y="emmean", color="Days") 
+    p <- p + geom_errorbar(aes(ymin=conf.low, ymax=conf.high, color=Days), width=0.1)
+    p <- p + stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
+    labs(
+      subtitle = get_test_label(res.aov, detailed = TRUE),
+      caption = get_pwc_label(pwc)
+    )
+    # TODO: get all statistics into table for 2-way ANCOVA
+    pwc <- pwc %>% first()
+  }
+
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
-  if (test_type != "1-way ANCOVA") {
+  if (test_type == "2-way ANCOVA") {
     model <- lm(TEE ~ Weight + group * Days, data = df)
   }
 
-  # Check test assumptions met
+  # Check test assumptions met in general
   model.metrics <- augment(model)
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
+  print("blubbi")
+  print(pwc)
+  print(shapiro)
+  print(levene)
   return(list("plot_details" = p, "plot_summary" = p2, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))
 }

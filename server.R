@@ -881,6 +881,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
+      print("meta columns:")
+      print(colnames(finalC1))
+
       convert2 <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
@@ -971,14 +974,14 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$post_hoc_test, input$test_statistic)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
 
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$post_hoc_test, input$test_statistic)
+            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
@@ -1444,8 +1447,7 @@ server <- function(input, output, session) {
          p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
          p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, ")", sep = ""))
          output$summary <- renderPlotly(ggplotly(p2))
-
-            if (input$havemetadata) {
+         if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$test <- renderUI({
                   tagList(
@@ -1454,21 +1456,22 @@ server <- function(input, output, session) {
                      selectInput("dep_var", "Dependent variable", choice = c("RMR")),
                      selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                      selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+                     #conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
                      hr(style = "width: 50%"),
                      h4("Advanced"),
                      selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
                      sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
-                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$dep_var, input$post_hoc_test, input$test_statistic)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
                   )
                   })
 
                # FIXME: Add back analysis without metadata sheet for RMR calculations
 
                output$details <- renderUI({
-                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$dep_var)
+                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test)
                   tagList(
                      h3("Post-hoc analysis"),
                      renderPlotly(results$plot_details + xlab(input$indep_var)),
