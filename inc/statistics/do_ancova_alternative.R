@@ -24,7 +24,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  write.csv2(df, "test_goxlox.csv")
+  #write.csv2(df, "test_goxlox.csv")
 
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
@@ -43,15 +43,21 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   print("group:")
   print(group)
   names(df)[names(df) == group] <- "group"
+  print(names(df))
 
   if (dep_var == "TEE") {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else if (dep_var == "GoxLox") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
+  } else if (dep_var == "HP") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
+
+  print("here?!")
 
   df$Weight <- as.numeric(df$Weight)
   if (dep_var == "TEE") {
@@ -67,10 +73,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     } else if (dep_var == "GoxLox") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+    } else if (dep_var == "HP") {
+      # TODO: Needs to be grouped correctly...
+      # df = df %>% group_by(Animals, group) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first)) %>% ungroup() %>% group_by(Animals)
     } else {
-
     }
   }
+  print(df)
 
   print("more")
 
@@ -85,6 +94,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   p2 <- p2 + labs(colour=group)
 
   # 1-way ANCOVA
+  print("before ancova...")
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
   if (test_type == "2-way ANCOVA") {
     res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)

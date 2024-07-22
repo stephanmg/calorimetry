@@ -441,7 +441,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
       df_to_plot$Animals <- colors
 
-
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][1], "", sep = "")
@@ -810,6 +809,114 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime2)) * 60 + minute(hms(df_to_plot$Datetime2)) < light_on, "am", "pm")
       df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
+      print(names(df_to_plot))
+
+      convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][1], "", sep = "")
+      }
+
+      df_to_plot$Days <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+
+
+ if (input$havemetadata) {
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         output$test <- renderUI({
+            tagList(
+               h4("Configuration"),
+               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "3-way ANCOVA")),
+               selectInput("dep_var", "Dependent variable", choice = c("HP")),
+               selectInput("indep_var", "Independent grouping variable #1", choices = "NightDay", selected = "NightDay"),
+               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+               #conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+               hr(style = "width: 50%"),
+               h4("Advanced"),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+               hr(style = "width: 75%"),
+               renderPlotly(do_ancova_alternative(df_to_plot, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+            )
+         })
+ }
+
+         # FIXME: Add back analysis without metadata sheet for TEE calculations
+
+output$details <- renderUI({
+            results <- do_ancova_alternative(df_to_plot, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)
+            tagList(
+               h3("Post-hoc analysis"),
+               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               hr(style = "width: 75%"),
+               h4("Results of statistical testing"),
+               tags$table(
+                  tags$thead(
+                     tags$tr(
+                        tags$th("p-value", style="width: 100px"),
+                        tags$th("p-value (adjusted)", style="width: 100px"),
+                        tags$th("significance level", style="width: 100px"),
+                        tags$th("degrees of freedom", style="width: 100px" ),
+                        tags$th("test statistic", style="width: 100px")
+                     )
+                  ),
+                  tags$tbody(
+                     tags$tr(
+                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
+                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
+                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
+                        tags$td(results$statistics$df, style="width: 100px"),
+                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+                     )
+                  )
+               ),
+               h4("Test assumptions"),
+               tags$table(
+                  tags$thead(
+                     tags$tr(
+                        tags$th("Description", style="width:200px"),
+                        tags$th("Name of significance test", style="width:200px"),
+                        tags$th("Null hypothesis", style="width:400px"),
+                        tags$th("p-value", style="width:200px"),
+                        tags$th("Status", style="width:200px")
+                     )
+                  ),
+                  tags$tbody(
+                     tags$tr(
+                        tags$td("Homogeneity of variances", style="width:200px"),
+                        tags$td("Levene's test", style="width:200px"),
+                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
+                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
+                        tags$td(
+                           if (as.numeric(results$levene$p) < 0.05) {
+                              icon("times")
+                           } else {
+                              icon("check")
+                           }
+                        ,style="width: 200px"
+                        )
+                     ),
+                     tags$tr(
+                        tags$td("Normality of residuals", style="width:200px"),
+                        tags$td("Shapiro-Wilk test", style="width:200px"),
+                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
+                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
+                        tags$td(
+                         if (as.numeric(results$shapiro$p.value) < 0.05) {
+                              icon("times")
+                           } else {
+                              icon("check")
+                           }
+                        ,style="width: 200px"
+                        )
+                     )
+                  )
+               ),
+            )
+         })
+
+
+
 
       if (input$day_only && input$night_only) {
          # nothing to do we keep both night and day
@@ -823,6 +930,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
       p <- p + ggtitle("Day Night Activity")
+
 
       if (input$with_facets) {
             if (!is.null(input$facets_by_data_one)) {
@@ -1695,9 +1803,9 @@ server <- function(input, output, session) {
                str4 <- "Cohorts are usually stratified by animal ID and day night activity by default"
                HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
                })
-               hideTab(inputId = "additional_content", target = "Statistical testing")
+               showTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Summary statistics")
-               hideTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw measurements and derived quantities </h3>"
