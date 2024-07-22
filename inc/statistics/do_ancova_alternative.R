@@ -43,6 +43,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
+      write.csv2(df, "test_for_raw.csv")
+
   # TODO: make this general by renaming TEE to dependent_variable
   if (dep_var == "TEE") {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
@@ -50,6 +52,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else if (dep_var == "HP") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
+  } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else {
@@ -65,6 +70,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
 
+
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
@@ -73,7 +79,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     } else if (dep_var == "HP") {
       # TODO: Needs to be grouped correctly...
       # df = df %>% group_by(Animals, group) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first)) %>% ungroup() %>% group_by(Animals)
-    } else {
+    } else if (dep_var == "Raw") {
+      df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     }
   }
   print(df)
