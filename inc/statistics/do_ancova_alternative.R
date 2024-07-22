@@ -17,7 +17,14 @@ get_r_squared_clean <- function(rvalue) {
 ################################################################################
 
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
-  df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit()
+  df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
+  if (! "Genotype" %in% names(df)) {
+    if ("Genotype.x" %in% names(df)) {
+      df <- df %>% rename(Genotype = `Genotype.x`)
+    }
+  }
+
+  write.csv2(df, "test_goxlox.csv")
 
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
@@ -33,25 +40,48 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     group <- "Genotype"
   }
 
+  print("group:")
+  print(group)
   names(df)[names(df) == group] <- "group"
 
   if (dep_var == "TEE") {
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
+  } else if (dep_var == "GoxLox") {
+    names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
 
   df$Weight <- as.numeric(df$Weight)
-  df$TEE <- as.numeric(df$TEE)
+  if (dep_var == "TEE") {
+   df$TEE <- as.numeric(df$TEE)
+  } else {
+   df$TEE <- as.numeric(df$TEE)
+  }
+
+  print("there")
 
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+    } else if (dep_var == "GoxLox") {
+      df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+    } else {
+
     }
   }
 
-  p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
-  p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+  print("more")
+
+  p2 <- NULL
+  if (dep_var == "TEE") {
+    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
+    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+  } else {
+    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
+    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+  }
   p2 <- p2 + labs(colour=group)
 
   # 1-way ANCOVA
