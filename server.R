@@ -524,7 +524,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       # axis labels
       p <- p + xlab("Time [h]")
-      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", sep = " "))
 
      # add light cycle annotation
      lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
@@ -536,7 +536,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
      }
 
      # add title
-     p <- p + ggtitle("Energy expenditure")
+     p <- p + ggtitle(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", input$myp))
 
      # group with group from metadata
      if (input$with_facets) {
@@ -636,6 +636,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
+
+      # df_plot_total <- df_plot_total %>% filter(Component %in% input$cvs)
+
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
       color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("RMR [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
@@ -1445,7 +1448,7 @@ server <- function(input, output, session) {
 
          p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
          p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-         p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, ")", sep = ""))
+         p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, " days)", sep = ""))
          output$summary <- renderPlotly(ggplotly(p2))
          if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
