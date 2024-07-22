@@ -438,6 +438,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       } else if (input$goxlox == "Nitrogen oxidation" || input$goxlox == "Protein oxidation") {
          df_to_plot$GoxLox <- 6.25 # this is constant 6.25 g N per minute
       }
+
+      # df to plot prepared for a line plot over time, next few lines sum over whole day
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
       df_to_plot$Animals <- colors
 
@@ -446,10 +448,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          paste(splitted[[1]][1], "", sep = "")
       }
 
+      # df to plot now contains the summed oxidation over individual days   
       df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
       GoxLox <- GoxLox %>% rename(GoxLox = x)
-      write.csv2(GoxLox, "test_goxlox_input.csv")
 
     if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
@@ -807,23 +809,24 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          light_on <- 60 * input$light_cycle_start
       }
 
+      # df already prepared to be day and night summed activities
       df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime2)) * 60 + minute(hms(df_to_plot$Datetime2)) < light_on, "am", "pm")
       df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
-      print(names(df_to_plot))
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][1], "", sep = "")
       }
 
+      # insert day to group by different days in ANCOVA
       df_to_plot$Days <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-
 
  if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
+               # TODO: needs potentially a 3-way ANCOVA, on Days, Genotype and NightDay
                selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "3-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("HP")),
                selectInput("indep_var", "Independent grouping variable #1", choices = "NightDay", selected = "NightDay"),

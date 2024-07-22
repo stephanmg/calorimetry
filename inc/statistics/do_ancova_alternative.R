@@ -18,6 +18,7 @@ get_r_squared_clean <- function(rvalue) {
 
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
+  # TODO: might not be necessary, check first
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
       df <- df %>% rename(Genotype = `Genotype.x`)
@@ -40,11 +41,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     group <- "Genotype"
   }
 
-  print("group:")
-  print(group)
   names(df)[names(df) == group] <- "group"
-  print(names(df))
 
+  # TODO: make this general by renaming TEE to dependent_variable
   if (dep_var == "TEE") {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else if (dep_var == "GoxLox") {
@@ -57,7 +56,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
 
-  print("here?!")
 
   df$Weight <- as.numeric(df$Weight)
   if (dep_var == "TEE") {
@@ -66,7 +64,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
    df$TEE <- as.numeric(df$TEE)
   }
 
-  print("there")
 
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
