@@ -45,7 +45,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
       write.csv2(df, "test_for_raw.csv")
 
-  # TODO: make this general by renaming TEE to dependent_variable
+  # TODO: make this general by renaming TEE to dependent_variable, easier to build ANCOVA models below
   if (dep_var == "TEE") {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else if (dep_var == "GoxLox") {
