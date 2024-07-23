@@ -74,8 +74,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
 
-  print("there!")
-
   df$Weight <- as.numeric(df$Weight)
   df$TEE <- as.numeric(df$TEE)
 
@@ -120,7 +118,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     # 2-way ANCOVA for now uses Days as second group always
     res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
   }
-
 
   p <- NULL
   pwc <- NULL
