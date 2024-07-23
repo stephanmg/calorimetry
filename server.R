@@ -1274,20 +1274,6 @@ output$details <- renderUI({
       write.csv2(TEE, "tee.csv")
       TEE <- TEE %>% filter(Equation == input$variable1)
 
-       convert <- function(x) {
-                 splitted <- strsplit(as.character(x), " ")
-                paste(splitted[[1]][1], "", sep = "")
-                }
-                # df to plot now contains the summed oxidation over individual days   
-               df_unique_days <- TEE %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days))
-         TEE <- left_join(TEE, df_unique_days, by = "Animals")
-         # calculate averages of TEE over number of given days
-         TEE <- TEE %>% mutate(TEE = TEE / unique_days)
-
-      write.csv2(TEE, "tee_after_mutate.csv")
-
-
-
       p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF") # position = position_jitterdodge())
       p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
       p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
