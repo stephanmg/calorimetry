@@ -399,7 +399,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(finalC1, file = "finalC1.csv")
 
    # filter out whole days with given threshold
-   # TODO: Seems not to work correctly to filter out non-full days
+   # TODO: Seems not to work correctly to filter out non-full days?
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)

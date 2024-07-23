@@ -13,10 +13,20 @@ get_r_squared_clean <- function(rvalue) {
 }
 
 ################################################################################
+# Calculate statistic based on provided method
+################################################################################
+calculate_statistic <- function(data, method) {
+  switch(method,
+    mean = mean(data),
+    median = median(data),
+    mean(data))
+}
+
+################################################################################
 # do_ancova_alternative
 ################################################################################
 
-# TODO: Add method to mean, average, etc. the values in case of Days as a grouping factor
+# TODO: Add different methods to average over days, mean, min, max, median? use calculate_statistic function from above
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # TODO: might not be necessary, check first before removing
