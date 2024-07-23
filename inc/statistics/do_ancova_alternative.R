@@ -57,6 +57,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
+  } else if (dep_var == "RMR") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   } else {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
@@ -80,6 +83,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       # TODO: Needs to be grouped correctly...
       # df = df %>% group_by(Animals, group) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first)) %>% ungroup() %>% group_by(Animals)
     } else if (dep_var == "Raw") {
+      df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+    } else if (dep_var == "RMR") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     }
   }

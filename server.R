@@ -746,6 +746,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
 
+      # TODO: This seems problematic when using TEE to compare with, why? Only one component really needed.
       # df_plot_total <- df_plot_total %>% filter(Component %in% input$cvs)
 
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
@@ -1777,12 +1778,14 @@ server <- function(input, output, session) {
          p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
          p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, " days)", sep = ""))
          output$summary <- renderPlotly(ggplotly(p2))
+         df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
+         write.csv2(df_total, "test_for_rmr.csv")
          if (input$havemetadata) {
                true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$test <- renderUI({
                   tagList(
                      h4("Configuration"),
-                     selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
+                     selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
                      selectInput("dep_var", "Dependent variable", choice = c("RMR")),
                      selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                      selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
