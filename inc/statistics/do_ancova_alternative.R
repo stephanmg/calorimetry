@@ -40,7 +40,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     group <- "Genotype"
   }
 
-  # TODO: add second grouping variable below for 2-way ANCOVA
+  # TODO: add second grouping variable below for 2-way ANCOVA or 3-way ANCOVA in case of Days as factor
   if (is.null(group2)) {
     group2 <- "Days"
   }
