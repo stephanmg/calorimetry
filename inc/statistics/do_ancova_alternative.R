@@ -25,36 +25,35 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       df <- df %>% rename(Genotype = `Genotype.x`)
     }
   }
-  print(names(df))
-  print(df)
 
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # TODO: Add ANCOVA which uses multiple covariate to correct for in below code
+  # TODO: Add ANCOVA which uses multiple covariate to correct for a dependent variable in below code
   if (!is.null(indep_var2)) {
     names(df)[names(df) == indep_var2] <- "Weight2"
   }
 
-  # first grouping variable
+  # first grouping variable, set some sensible default
   if (is.null(group)) {
     group <- "Genotype"
   }
 
-  # TODO: add second grouping variable below for 2-way ANCOVA 
+  # TODO: add second grouping variable below for 2-way ANCOVA, set some senible default
   if (is.null(group2)) {
     group2 <- "Days"
   }
 
   names(df)[names(df) == group] <- "group"
+
+  # for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed, see TODOs below
   if (dep_var == "HP") {
     df <- df %>% select(-Days)
     names(df)[names(df) == group2] <- "Days"
   }
 
-  print("before select")
   # TODO: make this general by renaming TEE to dependent_variable, easier to build ANCOVA models below
   # TODO: also rename Days to group2 independent grouping variable
   if (dep_var == "TEE") {
@@ -68,20 +67,17 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
-  } else if (dep_var == "RMR") {
-    names(df)[names(df) == dep_var] <- "TEE"
+  } else if (dep_var == "RMR") { # TODO: Add 2-way ANCOVA for RMR
+    names(df)[names(df) == dep_var] <- "TEE" 
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
-  } else {
+  } else { # other quantities are supported only by 1-way ANCOVA
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
-  print("after select")
+
+  print("there!")
 
   df$Weight <- as.numeric(df$Weight)
-  if (dep_var == "TEE") {
-   df$TEE <- as.numeric(df$TEE)
-  } else {
-   df$TEE <- as.numeric(df$TEE)
-  }
+  df$TEE <- as.numeric(df$TEE)
 
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
@@ -103,9 +99,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  print("df to plot:")
-  print(df)
-  write.csv2(df, "test_for_emmeans.csv")
   p2 <- NULL
   if (dep_var == "TEE") {
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
@@ -115,22 +108,19 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
   }
 
-  print("after scatter?")
   p2 <- p2 + labs(colour=group)
 
-  print("1-way before?")
   # 1-way ANCOVA based on user input grouping variable
   res.aov <- NULL
   if (test_type == "1-way ANCOVA") {
    res.aov <- df %>% anova_test(TEE ~ Weight + group)
   }
-  print("1-way?")
+
   if (test_type == "2-way ANCOVA") {
     # 2-way ANCOVA for now uses Days as second group always
     res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
   }
 
-  print("blubb?")
 
   p <- NULL
   pwc <- NULL
@@ -166,7 +156,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     pwc <- pwc %>% first()
   }
 
-  print("here?")
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)

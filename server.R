@@ -1820,7 +1820,7 @@ server <- function(input, output, session) {
                      selectInput("dep_var", "Dependent variable", choice = c("RMR")),
                      selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                      selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Diet", get_factor_columns(true_metadata)), selected = "Days")),
                      hr(style = "width: 50%"),
                      h4("Advanced"),
                      selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
