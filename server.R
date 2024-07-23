@@ -821,26 +821,34 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       # insert day to group by different days in ANCOVA
       df_to_plot$Days <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+      df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+
+      #DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), unique_days = n_distinct(Days), Days=Days) %>% na.omit()
+      DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), Days=Days) %>% na.omit()
+      df_unique_days <- df_to_plot %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Datetime))
+      DayNight <- left_join(DayNight, df_unique_days, by = "Animals")
+      DayNight <- DayNight %>% mutate(HP = HP / unique_days) 
+      DayNight$NightDay <- as.factor(DayNight$NightDay)
+      write.csv2(apply(DayNight, 2, as.character), "test_before_day_night.csv")
 
  if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
-               # TODO: needs potentially a 3-way ANCOVA, on Days, Genotype and NightDay
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "3-way ANCOVA")),
+               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("HP")),
                selectInput("indep_var", "Independent grouping variable #1", choices = "NightDay", selected = "NightDay"),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-               conditionalPanel("input.test_statistic == '3-way ANCOVA'", selectInput("indep_var3", "Independent grouping variable #3", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Genotype", get_factor_columns(true_metadata)), selected = "Days")),
+               conditionalPanel("input.test_statistic == '3-way ANCOVA'", selectInput("indep_var3", "Independent grouping variable #3", choices = c("Genotype", get_factor_columns(true_metadata)), selected = "Days")),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(df_to_plot, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
  }
@@ -848,7 +856,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
 output$details <- renderUI({
-            results <- do_ancova_alternative(df_to_plot, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)
+            results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
