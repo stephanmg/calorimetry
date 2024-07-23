@@ -18,32 +18,34 @@ get_r_squared_clean <- function(rvalue) {
 
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
-  # TODO: might not be necessary, check first
+  # TODO: might not be necessary, check first before removing
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
       df <- df %>% rename(Genotype = `Genotype.x`)
     }
   }
 
-  #write.csv2(df, "test_goxlox.csv")
-
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # 2-way ANCOVA requires second independent variable
+  # TODO: Add ANCOVA which uses multiple covariate to correct for in below code
   if (!is.null(indep_var2)) {
     names(df)[names(df) == indep_var2] <- "Weight2"
   }
 
+  # first grouping variable
   if (is.null(group)) {
     group <- "Genotype"
   }
 
-  names(df)[names(df) == group] <- "group"
+  # TODO: add second grouping variable below for 2-way ANCOVA
+  if (is.null(group2)) {
+    group2 <- "Days"
+  }
 
-      write.csv2(df, "test_for_raw.csv")
+  names(df)[names(df) == group] <- "group"
 
   # TODO: make this general by renaming TEE to dependent_variable, easier to build ANCOVA models below
   if (dep_var == "TEE") {
@@ -64,15 +66,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   }
 
-
   df$Weight <- as.numeric(df$Weight)
   if (dep_var == "TEE") {
    df$TEE <- as.numeric(df$TEE)
   } else {
    df$TEE <- as.numeric(df$TEE)
   }
-
-
 
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
@@ -88,9 +87,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     }
   }
-  print(df)
-
-  print("more")
 
   p2 <- NULL
   if (dep_var == "TEE") {
@@ -102,10 +98,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
   p2 <- p2 + labs(colour=group)
 
-  # 1-way ANCOVA
-  print("before ancova...")
+  # 1-way ANCOVA based on user input grouping variable
   res.aov <- df %>% anova_test(TEE ~ Weight + group)
   if (test_type == "2-way ANCOVA") {
+    # 2-way ANCOVA for now uses Days as second group always
     res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
   }
 
@@ -139,7 +135,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    # TODO: get all statistics into table for 2-way ANCOVA, more than one comparison of course.
+    # TODO: get all statistics into table for 2-way ANCOVA, more than one comparison of course, thus multiple to report in table format
     pwc <- pwc %>% first()
   }
 
