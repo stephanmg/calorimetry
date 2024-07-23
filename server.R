@@ -398,7 +398,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
-    # filter out whole days with given threshold
+   # filter out whole days with given threshold
+   # TODO: Seems not to work correctly to filter out non-full days
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
@@ -1273,6 +1274,20 @@ output$details <- renderUI({
       write.csv2(TEE, "tee.csv")
       TEE <- TEE %>% filter(Equation == input$variable1)
 
+       convert <- function(x) {
+                 splitted <- strsplit(as.character(x), " ")
+                paste(splitted[[1]][1], "", sep = "")
+                }
+                # df to plot now contains the summed oxidation over individual days   
+               df_unique_days <- TEE %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days))
+         TEE <- left_join(TEE, df_unique_days, by = "Animals")
+         # calculate averages of TEE over number of given days
+         TEE <- TEE %>% mutate(TEE = TEE / unique_days)
+
+      write.csv2(TEE, "tee_after_mutate.csv")
+
+
+
       p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF") # position = position_jitterdodge())
       p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
       p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
@@ -1743,27 +1758,52 @@ server <- function(input, output, session) {
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
 
-            # if we have metadata, check time diff again
+            # if we have metadata, check time diff again to be consistent
+            # TODO: should always be double checked, not only if metadata available
             time_diff <- 5
+            df_diff <- read.csv2("finalC1.csv")
             if (input$havemetadata) {
-               df_diff <- read.csv2("finalC1.csv")
                names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
                time_diff <- get_time_diff(df_diff, 1, 3)
                if (time_diff == 0) {
                   time_diff <- 5
                }
+              
             }
+          convert <- function(x) {
+                 splitted <- strsplit(as.character(x), " ")
+                paste(splitted[[1]][1], "", sep = "")
+                }
+                # df to plot now contains the summed oxidation over individual days   
+               df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
+               df_unique_days <- df_diff %>% group_by(`Animal No._NA`) %>% summarize(unique_days = n_distinct(Datetime)) %>% rename(Animals = `Animal No._NA`)
+               write.csv2(df_unique_days, "before_averaging_for_rmr.csv")
+
+
+
 
          df1 <- read.csv2("rmr.csv")
          df2 <- read.csv2("tee.csv")
+
+         print(names(df_unique_days))
+
          df1 <- rename(df1, Animals = Animal)
+         print(names(df1))
          how_many_days <- length(levels(as.factor(df2$Days)))
          df1$Animals <- as.factor(df1$Animals)
+         df_unique_days$Animals = as.factor(df_unique_days$Animals)
          df2$Animals <- as.factor(df2$Animals)
          # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
          df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE) / time_diff)
          df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE) / time_diff)
+
+         df1 <- left_join(df1, df_unique_days, by = "Animals")
+         df2 <- left_join(df2, df_unique_days, by = "Animals")
+
+         # calculate averages of RMR over number of given days
+         df1 <- df1 %>% mutate(EE = EE / unique_days)
+         df2 <- df2 %>% mutate(EE = EE / unique_days)
 
          df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
          df2$TEE <- as.factor(rep("RMR", nrow(df2)))
@@ -1773,7 +1813,7 @@ server <- function(input, output, session) {
 
          p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
          p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-         p2 <- p2 + ggtitle(paste("Energy expenditure (over ", how_many_days, " days)", sep = ""))
+         p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
          output$summary <- renderPlotly(ggplotly(p2))
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")
