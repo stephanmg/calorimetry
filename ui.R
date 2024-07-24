@@ -137,9 +137,22 @@ sidebar_content <- sidebarPanel(
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal")),
    withMathJax(),
+   tags$head(
+      tags$script(type = "text/x-mathjax-config", HTML(
+         'MathJax.Hub.Config({
+         TeX: {
+            equationNumbers: {
+               autoNumber: "AMS",
+               formatNumber: function (n) { return "[" + n + "]"; }
+               }
+            }
+            });'
+         )
+      )
+   ),
    uiOutput("heat_production_equations"),
    h3("Metadata"),
-   div("Additional metadata might be provided through upload of a standardized, using the controlled vocabulary, filled-in Excel metadata sheet for the (whole) experiment. Check the box below if you wish to provide some complementing metadata for analysis."),
+   div("Provided through a standardized Metadatasheet (7)"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    h3("Data sets"),
