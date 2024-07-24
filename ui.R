@@ -131,8 +131,7 @@ sidebar_content <- sidebarPanel(
       tabPanelBody("HP",
    add_busy_bar(color = "#0FFF50"), # #50C878, # #AAFF00
    withMathJax(),
-   h3("Equations"),
-   div("Chose two established equations for calculating the heat production respectively energy expenditure. Note that the abbreviations HP and HP2 refer to Heldmaier's equations as reported in the publication J Comp Physiol B 102, 115–122 (1975)."),
+   h3("Energy expenditure equation"),
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("HP", "HP2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),

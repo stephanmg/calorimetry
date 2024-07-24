@@ -1461,25 +1461,25 @@ server <- function(input, output, session) {
          text2 <- ""
          switch(input$variable1,
          Weir = {
-            text1 <- "$$ \\tag{1} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$"
+            text1 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times RER $$"
          },
          HP = {
-            text1 <- "$$ \\tag{1} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
+            text1 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          HP2 = {
-            text1 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"
+            text1 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O2[\\frac{ml}{h}] $$"
          },
          Lusk = {
-            text1 <- "$$ \\tag{1} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$"
+            text1 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
          },
          Elia = {
-            text1 <- "$$ \\tag{1} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
+            text1 <- "$$ \\tag{5} 15.8 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
          Brouwer = {
-            text1 <- "$$ \\tag{1} 16.07 \\times VO2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
+            text1 <- "$$ \\tag{6} 16.07 \\times \\dot{V}O2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
          },
          Ferrannini = {
-            text1 <- "$$ \\tag{1} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
+            text1 <- "$$ \\tag{3} 16.37117 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
          },
          {
          }
@@ -1487,25 +1487,25 @@ server <- function(input, output, session) {
 
          switch(input$variable2,
          Weir = {
-            text2 <- "$$ \\tag{2} 16.3 \\times VO2[\\frac{ml}{h}] + 4.57 \\times RER $$"
+            text2 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.57 \\times RER $$"
          },
          HP = {
-            text2 <- "$$ \\tag{2} VO2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
+            text2 <- "$$ \\tag{1} \\dot{V}O2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          HP2 = {
-            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + VO2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O2[\\frac{ml}{h}] $$"
          },
          Lusk = {
-            text2 <- "$$ \\tag{2} 15.79 \\times VO2[\\frac{ml}{h}] + 5.09 \\times RER $$"
+            text2 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
          },
          Elia = {
-            text2 <- "$$ \\tag{2} 15.8 \\times VO2[\\frac{ml}{h}] + 5.18 \\times RER $$"
+            text2 <- "$$ \\tag{5} 15.8 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
          Brouwer = {
-            text2 <- "$$ \\tag{2} 16.07 \\times VO2[\\frac{ml}{h}] + 4.69 \\times RER $$"
+            text2 <- "$$ \\tag{6} 16.07 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.69 \\times RER $$"
          },
          Ferrannini = {
-            text2 <- "$$ \\tag{2} 16.37117 \\times VO2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
+            text2 <- "$$ \\tag{3} 16.37117 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
          },
          {
          }
@@ -1928,13 +1928,61 @@ server <- function(input, output, session) {
                HTML(paste(str1, str2, sep = "<br/>"))
             })
            } else if (input$plot_type == "EnergyExpenditure") {
+       highlight_style <- "background-color: #FFB3BA;"
+         # Function to create a table row with optional highlighting
+         create_row <- function(name, equation, unit, reference, highlight = FALSE) {
+            style <- if (highlight) highlight_style else ""
+            paste0(
+            '<tr style="', style, '">',
+            '<td style="border:1px solid black; padding: 5px;">', name, '</td>',
+            '<td style="border:1px solid black; padding: 5px;">\\(', equation, '\\)</td>',
+            '<td style="border:1px solid black; padding: 5px;">\\(', unit, '\\)</td>',
+            '<td style="border:1px solid black; padding: 5px;">[', reference, ']</td>',
+            '</tr>'
+            )
+         }
+
+         # List of table rows
+         rows <- list(
+            '<h3> Energy expenditure equations and references </h3>',
+            create_row("Heldmaier's first", "(4.44 + 1.43 \\times RER) + \\dot{V}O_2", "\\frac{ml}{h}", "1", input$variable1 == "HP"),
+            create_row("Heldmaier's second", "\\dot{V}O_2 \\times (6 + RER + 15.3) \\times 0.278", "\\frac{ml}{h}", "1", input$variable1 == "HP2"),
+            create_row("Weir", "16.3 \\times \\dot{V}O_2 + 4.57 \\times RER", "\\frac{ml}{h}", "2", input$variable1 == "Weir"),
+            create_row("Ferrannini", "16.37117 \\times \\dot{V}O_2 + 4.6057 \\times RER", "\\frac{ml}{h}", "3", input$variable1 == "Ferrannini"),
+            create_row("Lusk", "15.79 \\times \\dot{V}O_2 + 5.09 \\times RER", "\\frac{ml}{h}", "4", input$variable1 == "Lusk"),
+            create_row("Elia", "15.8 \\times \\dot{V}O_2 + 5.18 \\times RER", "\\frac{ml}{h}", "5", input$variable1 == "Elia"),
+            create_row("Brouwer", "16.07 \\times \\dot{V}O_2 + 4.69 \\times RER", "\\frac{ml}{h}", "6", input$variable1 == "Brouwer")
+         )
+
+         # Combine rows into a single HTML string
+         table_html <- paste0(
+            '<table style="width:100%; border:1px solid black; border-collapse: collapse;">',
+            '<tr>',
+            '<th style="border:1px solid black; padding: 5px;"><strong>Name</strong></th>',
+            '<th style="border:1px solid black; padding: 5px;"><strong>Equation</strong></th>',
+            '<th style="border:1px solid black; padding: 5px;"><strong>Unit</strong></th>',
+            '<th style="border:1px solid black; padding: 5px;"><strong>Reference</strong></th>',
+            '</tr>',
+            paste(rows, collapse = ""),
+            '</table>'
+         )
+             
              output$explanation <- renderUI({
             str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
-            str2 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
-            str3 <- "Note that in case no metadata available to specify day and night, a single violin plot will be displayed per animal ID."
-            str4 <- "<hr/>"
+            str2 <- "Chose one of the established heat equations for calculating of heat production respectively energy expenditure. Note that the abbreviations HP and HP2 refer to Heldmaier's equations as reported in the publication <i>J Comp Physiol B 102, 115–122 (1975)</i>."
+            str3 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
+            str4 <- "Note that in case no metadata available to specify day and night, a single violin plot will be displayed per animal ID."
             str5 <- "Cohorts are usually stratified by animal ID by default"
-            HTML(paste(str1, str2, str3, str4, str5, sep = "<br/>"))
+            str6 <- "<hr/>"
+            str7 <- "<h3> References </h3>"
+            str8 <- "[1] G. Heldmaier and S. Steinlechner. Seasonal pattern and energetics of short daily torpor in the djungarian hamster, phodopus sungorus. Oecologia, 48:265––270, 1981."
+            str9 <- "[2] J. B. d. V. Weir. New methods for calculating metabolic rate with special reference to protein metabolism. The Journal of Physiology, 109(1-2):1–9, 194"
+            str10 <- "[3] E. Ferrannini. The theoretical bases of indirect calorimetry: A review. Metabolism, 37(3):287–301, 1988"
+            str11 <- "[4] G. Lusk. The Elements of the Science of Nutrition. Sanders, Philadelphia, PA, 1928."
+            str12 <- "[5] M. Elia and G. Livesey. Energy Expenditure and Fuel Selection in Biological Systems: The Theory and Practice of Calculations Based on Indirect Calorimetry and Tracer Methods. In Metabolic Control of Eating, Energy Expenditure and the Bioenergetics of Obesity. S.Karger AG, 09 1992."
+            str13 <- "[6] E. Brouwer. Report of sub-committee on constant and factors. Energy metabolism, 11:441–443, 1965"
+
+                withMathJax(HTML(paste(str1, str2, str3, str4, str5, str6, table_html, str8, str9, str10, str11, str12, str13, sep = "<br/>")))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Statistical testing")
