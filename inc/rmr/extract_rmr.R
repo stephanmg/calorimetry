@@ -60,7 +60,8 @@ create_df <- function(df, component, M, N, percentage = 1, interval_length = 15)
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
    df_plot$Time <- df_plot$Time * interval_length  * (M / interval_length)
-   df_plot$HP <- df_plot$HP / 24 / (60 / interval_length) / interval_length
+   # convert hourly to minutes and sum in interval of length M
+   df_plot$HP <- df_plot$HP / (60 / interval_length) / interval_length
    df_plot
 }
 

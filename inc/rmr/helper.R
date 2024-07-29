@@ -40,8 +40,10 @@ partition <- function(mydf) {
    df <- mydf
    data <- df %>% group_split(Group)
    df_new <- data.frame()
+   new_col_names <- c()
    m <- max(sapply(data, nrow))
    for (i in data) {
+      new_col_names <- append(new_col_names, unique(i$Group))
       diff <- m - length(i$Values)
       if (nrow(df_new) == 0) {
          if (length(c(i$Values)) != m) {
@@ -57,7 +59,7 @@ partition <- function(mydf) {
          }
       }
    }
-   colnames(df_new) <- unique(df$Group)
+   colnames(df_new) <- new_col_names
    df_new
 }
 

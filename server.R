@@ -357,6 +357,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    }
 
    # print master list for interval lengths
+   print("pretty print interval length:")
    pretty_print_interval_length_list(interval_length_list)
 
    # step 13 (debugging: save all cohort means)
@@ -724,13 +725,20 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
       to_pad <- nrow(finalC1) - nrow(df_new) # difference is exactly the number of samples as only 1 point misses 
       df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
-      df_new2 <- padding_helper(df_new2) # padas by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
+      df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
 
       finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
       df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) 
       df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
 
-      df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+      #df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
+      my_order <- unique(df_new$Group)
+      df_sorted <- finalC1
+      df_sorted$`Animal No._NA` = as.factor(df_sorted$`Animal No._NA`)
+      df_sorted$`Animal No._NA` = factor(df_sorted$`Animal No._NA`, levels=my_order)
+      df_sorted <- df_sorted %>% arrange(`Animal No._NA`)
+      df_to_plot <- cbind(df_new, `$`(df_sorted, "running_total.hrs.halfhour"), `$`(df_sorted, "Animal No._NA"))
+
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
       df_to_plot$Group <- as.factor(df_to_plot$Group)
       df_to_plot2$Group <- as.factor(df_to_plot$Group)
@@ -753,7 +761,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # TODO: 1, 1 seems a reasonable choice to reconstruct RMR, but needs to be validated
       df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, 1, 1)
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
-      df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
+      df_plot_total$HP <- as.numeric(df_plot_total$HP) 
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
       df_plot_total$Type <- sapply(df_plot_total$Animal, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
       df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
