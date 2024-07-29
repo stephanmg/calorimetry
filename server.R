@@ -384,6 +384,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    if (is.null(time_start_end)) {
       time_start_end <<- get_date_range(finalC1)
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
+      print("setting date range!")
    }
 
    # gender choice
