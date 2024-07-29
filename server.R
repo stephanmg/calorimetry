@@ -393,6 +393,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       time_start_end <<- get_date_range(finalC1)
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
       print("setting date range!")
+      print(time_start_end)
    }
 
    # gender choice
@@ -2070,6 +2071,7 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$reset, {
       session$reload()
+      time_start_end <- NULL
    })
 
    #############################################################################
