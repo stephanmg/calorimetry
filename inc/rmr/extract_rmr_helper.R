@@ -1,5 +1,30 @@
 library(dplyr)
 source("inc/rmr/extract_rmr.R")
+
+################################################################################
+# pretty_print_master_list
+################################################################################
+pretty_print_interval_length_list <- function(interval_length_list_per_cohort_and_animals) {
+   for (name in names(interval_length_list_per_cohort_and_animals)) {
+      cat("\nList name: ", name, "\n")
+      cat("Values: ", paste(interval_length_list_per_cohort_and_animals[[name]]$values, collapse=","), "\n")
+      cat("Interval length [minutes]", interval_length_list_per_cohort_and_animals[[name]]$interval_length, "\n")
+   }
+}
+
+
+################################################################################
+# lookup_interval_length
+################################################################################
+lookup_interval_length <- function(interval_length_list_per_cohort_and_animals, value) {
+   for (item in interval_length_list_per_cohort_and_animals) {
+      if (value %in% item$values) {
+         return(item$interval_length)
+      }
+   }
+   return(5)
+}
+
 ################################################################################
 # extract_rmr_helper
 ################################################################################

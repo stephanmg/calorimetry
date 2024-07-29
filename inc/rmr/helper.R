@@ -1,11 +1,11 @@
 library(dplyr)
 library(ggplot2)
+library(shinyalert)
 
 ################################################################################
 # padding_helper
 ################################################################################
 padding_helper <- function(df) {
-   print(colnames(df))
    # Find the last row for each group
 df_max_index <- df %>%
   group_by(Group) %>%
@@ -29,7 +29,6 @@ for (i in seq_len(nrow(df_max_index))) {
   new_df <- insert_row(new_df, row_to_insert, max_index)
 
 }
-print(new_df)
 return(new_df)
 }
 
@@ -116,6 +115,7 @@ get_time_diff <- function(df, from = 2, to = 3) {
       print("WARNING: Time difference different in cohorts!")
       print("This could happen if you do not average cohorts when sampling interval of IC experiments is different between cohorts")
       print("This could also happen if your single IC experiment data has been corrupted or has been recorded discontinously.")
+      shinyalert("Error", "Time difference different (measurement interval CHANGING) in cohort for animals. Check your data files. All measurement intervals should be constant per individual cohort (and thus for each animal in the cohort). Measurement intervals can vary between cohorts, which is valid input to the analysis.", type = "warning", showCancelButton = TRUE)
       return(max(time_diff1, time_diff2) / 60)
    } else {
       return(time_diff1 / 60)

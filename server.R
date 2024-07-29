@@ -80,6 +80,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
+   interval_length_list <- list()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
@@ -346,11 +347,18 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
    }
 
+   # add interval info for each data frame / cohort separately
+   interval_length_list[[tools::file_path_sans_ext(file)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
+
    # compile final measurement frame
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
    }
+
+   # print master list for interval lengths
+   pretty_print_interval_length_list(interval_length_list)
+
    # step 13 (debugging: save all cohort means)
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
    C1meta <- finalC1meta
@@ -746,6 +754,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) * 1000
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
+      df_plot_total$Type <- sapply(df_plot_total$Animal, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
+      df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
 
       # TODO: This seems problematic when using TEE to compare with, why? Only one component really needed.
       # df_plot_total <- df_plot_total %>% filter(Component %in% input$cvs)
