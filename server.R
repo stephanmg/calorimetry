@@ -1782,11 +1782,16 @@ server <- function(input, output, session) {
                 }
                 # df to plot now contains the summed oxidation over individual days   
                df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
-               df_unique_days <- df_diff %>% group_by(`Animal No._NA`) %>% summarize(unique_days = n_distinct(Datetime)) %>% rename(Animals = `Animal No._NA`)
+               print(colnames(df_diff))
+               df_unique_days <- NULL
+               if (!input$havemetadata) {
+                 df_unique_days <- df_diff %>% group_by(`Animal.No._NA`) %>% 
+                 summarize(unique_days = n_distinct(Datetime)) %>% rename(Animals = `Animal.No._NA`)
+               } else {
+                 df_unique_days <- df_diff %>% group_by(`Animal No._NA`) %>% 
+                 summarize(unique_days = n_distinct(Datetime)) %>% rename(Animals = `Animal No._NA`)
+               }
                write.csv2(df_unique_days, "before_averaging_for_rmr.csv")
-
-
-
 
          df1 <- read.csv2("rmr.csv")
          df2 <- read.csv2("tee.csv")
