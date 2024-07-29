@@ -1974,7 +1974,7 @@ server <- function(input, output, session) {
          rows <- list(
             '<h3> Energy expenditure equations and references </h3>',
             create_row("Heldmaier's first", "(4.44 + 1.43 \\times RER) + \\dot{V}O_2", "\\frac{ml}{h}", "1", input$variable1 == "HP"),
-            create_row("Heldmaier's second", "\\dot{V}O_2 \\times (6 + RER + 15.3) \\times 0.278", "\\frac{ml}{h}", "1", input$variable1 == "HP2"),
+            create_row("Heldmaier's second", "\\dot{V}O_2 \\times (6 + RER + 15.3) \\times 0.278", "\\frac{ml}{h}", "2", input$variable1 == "HP2"),
             create_row("Weir", "16.3 \\times \\dot{V}O_2 + 4.57 \\times RER", "\\frac{ml}{h}", "2", input$variable1 == "Weir"),
             create_row("Ferrannini", "16.37117 \\times \\dot{V}O_2 + 4.6057 \\times RER", "\\frac{ml}{h}", "3", input$variable1 == "Ferrannini"),
             create_row("Lusk", "15.79 \\times \\dot{V}O_2 + 5.09 \\times RER", "\\frac{ml}{h}", "4", input$variable1 == "Lusk"),
