@@ -357,7 +357,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    }
 
    # print master list for interval lengths
-   print("pretty print interval length:")
    pretty_print_interval_length_list(interval_length_list)
 
    # step 13 (debugging: save all cohort means)
@@ -755,11 +754,13 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
 
-      M <- input$window
-      PERCENTAGE <- input$percentage_best
-      INTERVAL_LENGTH <- time_diff
-      # TODO: 1, 1 seems a reasonable choice to reconstruct RMR, but needs to be validated
-      df_plot_total <- extract_rmr_helper(INTERVAL_LENGTH, 1, 1)
+      # TODO: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
+      # to reconstruct reliably RMR, but needs to be validated with additional analysis
+      AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
+      SLIDING_WINDOW_SIZE_M <- input$window
+      PERCENTAGE_BEST <- input$percentage_best
+      AVERAGING_WIDTH <- input$rmr_averaging
+      df_plot_total <- extract_rmr_helper(AVERAGE_INTERVAL_LENGTH, PERCENTAGE_BEST, AVERAGING_WIDTH)
       write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
       df_plot_total$HP <- as.numeric(df_plot_total$HP) 
       df_plot_total$Time <- as.numeric(df_plot_total$Time)

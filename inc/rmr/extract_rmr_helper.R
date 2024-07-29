@@ -2,7 +2,7 @@ library(dplyr)
 source("inc/rmr/extract_rmr.R")
 
 ################################################################################
-# pretty_print_master_list
+# pretty_print_interval_length_list
 ################################################################################
 pretty_print_interval_length_list <- function(interval_length_list_per_cohort_and_animals) {
    for (name in names(interval_length_list_per_cohort_and_animals)) {
