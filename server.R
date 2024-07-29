@@ -348,7 +348,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    }
 
    # add interval info for each data frame / cohort separately
-   interval_length_list[[tools::file_path_sans_ext(file)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
+   #interval_length_list[[tools::file_path_sans_ext(file)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
+   interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
 
    # compile final measurement frame
    finalC1 <- rbind(C1, finalC1)
@@ -766,12 +767,13 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_plot_total$Time <- as.numeric(df_plot_total$Time)
       df_plot_total$Type <- sapply(df_plot_total$Animal, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
       df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
+      df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       # TODO: This seems problematic when using TEE to compare with, why? Only one component really needed.
       # df_plot_total <- df_plot_total %>% filter(Component %in% input$cvs)
 
-      p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component,
-      color = Component)) + geom_line() + facet_wrap(~Animal)
+      #p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
+      p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("RMR [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
       p <- p + xlab("Time [minutes]")
       p <- p + ggtitle("Resting metabolic rates")

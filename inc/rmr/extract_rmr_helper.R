@@ -26,6 +26,19 @@ lookup_interval_length <- function(interval_length_list_per_cohort_and_animals, 
 }
 
 ################################################################################
+# lookup_cohort_belonging
+################################################################################
+lookup_cohort_belonging <- function(interval_length_list_per_cohort_and_animals, id) {
+   for (name in names(interval_length_list_per_cohort_and_animals)) {
+      if (id %in% interval_length_list_per_cohort_and_animals[[name]]$values) {
+         return(name)
+      }
+   }
+   return(NA)
+}
+
+
+################################################################################
 # extract_rmr_helper
 ################################################################################
 extract_rmr_helper <- function(interval_length = 15, percentage_best = 1, M = 1) {
