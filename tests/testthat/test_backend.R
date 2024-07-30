@@ -45,6 +45,7 @@ test_that("get_rmr", {
    total_data$Animal <- as.factor(total_data$Animal)
    total_data$Component <- as.factor(total_data$Component)
 
+   write.csv2(total_data, "new_data.csv")
    df_ground_truth <- read.csv2("../data/output_rmr_for_testing.csv")
    print("A:")
    print(head(df_ground_truth))
