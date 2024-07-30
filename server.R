@@ -558,8 +558,22 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          })
     }
 
-
+ 
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+
+ # group with group from metadata
+     if (input$with_facets) {
+        if (!is.null(input$facets_by_data_one)) {
+           if (input$orientation == "Horizontal") {
+              p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+          } else {
+              p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+           }
+        }
+     }
+
+
+
       p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Time [h]") + ggtitle(input$goxlox)
    },
    #####################################################################################################################
