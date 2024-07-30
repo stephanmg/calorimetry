@@ -8,14 +8,14 @@ library(plotly)
 ################################################################################
 # get study description
 ################################################################################
-get_study_description <- function(file) {
+get_study_description_from_metadata <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
    title <- df %>% filter(if_any(everything(), ~str_detect(., "Title"))) %>% slice(1)
    comment <- df %>% filter(if_any(everything(), ~str_detect(., "comment"))) %>% slice(1)
    strain <- df %>%  filter(if_any(everything(), ~str_detect(., "name of mouse strain"))) %>% slice(1)
    system <- df %>%  filter(if_any(everything(), ~str_detect(., "Experimental System"))) %>% slice(2)
-   return(paste0(title$`2`, " (", date$`2`, ") with ", strain$`2`, " (", system$`2`, ")"))
+   return(paste0(title$`2`, " (", comment$`2`, ") with ", strain$`2`, " (", system$`2`, ")"))
 }
 
 ################################################################################

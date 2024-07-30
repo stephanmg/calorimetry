@@ -93,7 +93,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       fileFormatTSE <- line[2]
       studyDescription <- line[1]
       if  (input$havemetadata) {
-         output$study_description <- renderText(paste0("Study description: ", get_study_description(input$metadatafile$datapath)))
+         output$study_description <- renderText(paste0("Study description: ", get_study_description_from_metadata(input$metadatafile$datapath)))
       } else {
          output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
       }
