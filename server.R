@@ -393,8 +393,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    if (is.null(time_start_end)) {
       time_start_end <<- get_date_range(finalC1)
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
-      print("setting date range!")
-      print(time_start_end)
    }
 
    # gender choice
@@ -651,7 +649,15 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
      colnames(lights) <- c("x", "y")
      
      if (input$timeline) {
-      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+      # TODO: Fix, works only reliable in case we provide additional metadata
+      from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
+      # TODO: Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
+      print("light cycle offsets:")
+      print(from_data_offset)
+      light_offset <- min(from_data_offset) - input$light_cycle_start
+      print("light offset:")
+      print(light_offset)
+      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
       p <- p + my_lights
      }
 
@@ -1974,7 +1980,7 @@ server <- function(input, output, session) {
          rows <- list(
             '<h3> Energy expenditure equations and references </h3>',
             create_row("Heldmaier's first", "(4.44 + 1.43 \\times RER) + \\dot{V}O_2", "\\frac{ml}{h}", "1", input$variable1 == "HP"),
-            create_row("Heldmaier's second", "\\dot{V}O_2 \\times (6 + RER + 15.3) \\times 0.278", "\\frac{ml}{h}", "2", input$variable1 == "HP2"),
+            create_row("Heldmaier's second", "\\dot{V}O_2 \\times (6 + RER + 15.3) \\times 0.278", "\\frac{ml}{h}", "1", input$variable1 == "HP2"),
             create_row("Weir", "16.3 \\times \\dot{V}O_2 + 4.57 \\times RER", "\\frac{ml}{h}", "2", input$variable1 == "Weir"),
             create_row("Ferrannini", "16.37117 \\times \\dot{V}O_2 + 4.6057 \\times RER", "\\frac{ml}{h}", "3", input$variable1 == "Ferrannini"),
             create_row("Lusk", "15.79 \\times \\dot{V}O_2 + 5.09 \\times RER", "\\frac{ml}{h}", "4", input$variable1 == "Lusk"),
@@ -2087,7 +2093,7 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$reset, {
       session$reload()
-      time_start_end <- NULL
+      #time_start_end <- NULL
    })
 
    #############################################################################
