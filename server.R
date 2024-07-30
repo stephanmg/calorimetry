@@ -92,8 +92,13 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    if (i == 1) {
       fileFormatTSE <- line[2]
       studyDescription <- line[1]
-      output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
-      output$file_type_detected <- renderText(paste("Input file type detected:", gsub("[;,]", "", line[2]), sep = " "))
+      if  (input$havemetadata) {
+         output$study_description <- renderText(paste0("Study description: ", get_study_title_and_date(input$metadatafile$datapath)))
+      } else {
+         output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
+      }
+      output$file_type_detected <- renderText(paste("Input file type: ", gsub("[;,]", "", line[2]), sep = " "))
+      output$additional_information <- renderText("Additional informations")
    }
    #########################################################################################################
    # Detect data type (TSE v6/v7, v5 (Akim/Dominik) or v8 (Jan/Tabea)) or Promethion/Sable (.xlsx) (Jenny))
@@ -2025,8 +2030,11 @@ server <- function(input, output, session) {
             str12 <- "[5] M. Elia and G. Livesey. Energy Expenditure and Fuel Selection in Biological Systems: The Theory and Practice of Calculations Based on Indirect Calorimetry and Tracer Methods. In Metabolic Control of Eating, Energy Expenditure and the Bioenergetics of Obesity. S.Karger AG, 09 1992."
             str13 <- "[6] E. Brouwer. Report of sub-committee on constant and factors. Energy metabolism, 11:441–443, 1965"
             str14 <- "[7] Seep, L., Grein, S., Splichalova, I. et al. From Planning Stage Towards FAIR Data: A Practical Metadatasheet For Biomedical Scientists. Sci Data 11, 524 (2024). https://doi.org/10.1038/s41597-024-03349-2"
+            str15 <- "<h3> Workflow of indirect calorimetry analysis </h3>"
+            str16 <- "<ol> <li> First inspect raw data (O2, CO2 and RER) for inconsistencies </li> <li> Calculate energy expenditures according to a heat production equation from the drop-down menu </li> <li> Calculate the total energy expenditure (TEE) and resting metabolic rate (RMR) and contrast genotype and or diet effects between or within TEE respectively RMR. </li> <li> (Optional) Analyse recorded locomotional data, e.g. compare budgets and probability density maps. </li> <li> Export compiled data sets and calculated quantities into Excel or CalR-compatible files </li> <li> Export figures as publication-ready vector or raster graphics </li></ol>" 
+            str17 <- "Note The default indirect calorimetry functions should be enough for most analysis, if working with COSMED platform or the Sable/Promethion chose accordingly for additional plotting functions."
 
-                withMathJax(HTML(paste(str1, str2, str3, str4, str5, str6, table_html, str8, str9, str10, str11, str12, str13, str14, sep = "<br/>")))
+                withMathJax(HTML(paste(str1, str2, str3, str4, str5, str6, table_html, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, sep = "<br/>")))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Statistical testing")
@@ -2046,7 +2054,7 @@ server <- function(input, output, session) {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw measurements and derived quantities </h3>"
                str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
-               str3 <- "Note that oxygen consumption, carbondioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by the drop-down menu on the left-hand side."
+               str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
             HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
