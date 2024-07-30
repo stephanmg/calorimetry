@@ -185,7 +185,7 @@ sidebar_content <- sidebarPanel(
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
    selectInput(inputId = "ic_system", "Specify indirect calorimetry system", factor(c("General", "COSMED", "Sable"))),
-   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "CompareHeatProductionFormulas", "Locomotion")))),
+   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity")))),
    conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
