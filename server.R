@@ -408,7 +408,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(finalC1, file = "finalC1.csv")
 
    # filter out whole days with given threshold
-   # TODO: Seems not to work correctly to filter out non-full days?
+   # TODO: Double check that this really works as expected.
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
@@ -1285,6 +1285,7 @@ output$details <- renderUI({
          paste(splitted[[1]][1], "", sep = "")
       }
 
+      # TODO: time_diff throughout needs to be replaced with by cohort list exact time diff!
       time_diff <<- get_time_diff(finalC1)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
       finalC1$HP <- finalC1$HP / time_diff
@@ -1300,13 +1301,14 @@ output$details <- renderUI({
          finalC1 <- NULL
       }
 
-      TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
-      TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum)
+      # write.csv2(apply(finalC1, 2, as.character), "before_summing_for_tee.csv")
+      TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T)
+      TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T) 
 
       if (input$with_facets) {
          if (input$facets_by_data_one %in% names(finalC1)) {
-            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
-            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum)
+            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
          }
       }
 
