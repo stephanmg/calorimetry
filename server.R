@@ -2099,7 +2099,7 @@ server <- function(input, output, session) {
    # Hide certain components on startup
    #############################################################################
    lapply(
-      X = c("DE", "PC"),
+      X = c("DE", "PC", "DC"),
       FUN = function(i) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
