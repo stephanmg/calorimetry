@@ -408,7 +408,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(finalC1, file = "finalC1.csv")
 
    # filter out whole days with given threshold
-   # TODO: Double check that this really works as expected.
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
@@ -666,11 +665,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # TODO: Fix, works only reliable in case we provide additional metadata
       from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
       # TODO: Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
-      print("light cycle offsets:")
-      print(from_data_offset)
       light_offset <- min(from_data_offset) - input$light_cycle_start
-      print("light offset:")
-      print(light_offset)
       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
       p <- p + my_lights
      }
