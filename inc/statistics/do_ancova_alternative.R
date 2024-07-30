@@ -26,7 +26,6 @@ calculate_statistic <- function(data, method) {
 # do_ancova_alternative
 ################################################################################
 
-# TODO: Add different methods to average over days, mean, min, max, median? use calculate_statistic function from above
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might be necessary, check carefully, if not, remove later
@@ -39,20 +38,20 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: First covariate, rename
+  # TODO: First covariate, rename Weight -> Covariate1
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # TODO: Add ANCOVA which uses multiple covariate to correct for a dependent variable in below code, rename two second covariate not indep_var2
+  # TODO: Add ANCOVA which uses multiple covariate, rename Weight2 -> Covariate2
   if (!is.null(indep_var2)) {
     names(df)[names(df) == indep_var2] <- "Weight2"
   }
 
-  # first grouping variable, set some sensible default
+  # first grouping variable, set some sensible default, Genotype should always be available
   if (is.null(group)) {
     group <- "Genotype"
   }
 
-  # TODO: add second grouping variable below for 2-way ANCOVA, set some sensible default
+  # second grouping variable, set some sensible default, Days should always be available
   if (is.null(group2)) {
     group2 <- "Days"
   }
@@ -65,8 +64,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     names(df)[names(df) == group2] <- "Days"
   }
 
-  # TODO: make this general by renaming TEE to dependent_variable, easier to build ANCOVA models below
-  # TODO: also rename Days to group2 independent grouping variable
+  # TODO: Rename TEE -> DependentVariable to generalize/cleanup the implementation
   if (dep_var == "TEE") {
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
   } else if (dep_var == "GoxLox") {
@@ -78,7 +76,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
-  } else if (dep_var == "RMR") { # TODO: Add 2-way ANCOVA for RMR
+  } else if (dep_var == "RMR") {
     names(df)[names(df) == dep_var] <- "TEE" 
     df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   } else { # other quantities are supported only by 1-way ANCOVA

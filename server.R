@@ -775,10 +775,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
       df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
-      # TODO: This seems problematic when using TEE to compare with, why? Only one component really needed.
-      # df_plot_total <- df_plot_total %>% filter(Component %in% input$cvs)
-
-      #p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
+      # we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
+      # p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line() + facet_wrap(~Animal)
       p <- p + ylab(paste("RMR [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
       p <- p + xlab("Time [minutes]")
