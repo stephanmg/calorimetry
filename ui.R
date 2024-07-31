@@ -116,7 +116,7 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Main Configuration"),
+      h1("Configuration"),
       br(),
       actionButton("guide", "Guide (Click me)", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       br(), br()
@@ -167,7 +167,7 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
    checkboxInput(inputId = "highly_varying_measurements", label = "High variation measurements", value = FALSE),
    conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-   h3("Plotting control"),
+   h3("Plotting controls"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
    ))),
@@ -175,7 +175,7 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Plot configuration")),
+      h1("Plotting")),
    column(2, style = "padding: 20px;",
     actionButton("showTabPC", label = "", icon = icon("square-plus", "fa-3x")),
    ),
@@ -184,10 +184,10 @@ sidebar_content <- sidebarPanel(
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   selectInput(inputId = "ic_system", "Specify indirect calorimetry system", factor(c("General", "COSMED", "Sable"))),
-   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity")))),
-   conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
-   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "CompareHeatProductionFormulas")))),
+   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable"))),
+   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity")))),
+   conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
    conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    hr(),
