@@ -160,6 +160,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     )
     # TODO: get all statistics into table for 2-way ANCOVA, more than one comparison of course, 
     # thus multiple to report in table format, for a 1-way ANCOVA we simply report the first()
+    print(pwc)
     pwc <- pwc %>% first()
   }
 

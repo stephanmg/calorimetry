@@ -667,12 +667,11 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
      colnames(lights) <- c("x", "y")
      
      if (input$timeline) {
-      # TODO: Fix, works only reliable in case we provide additional metadata
-      from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
-      # TODO: Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
-      light_offset <- min(from_data_offset) - input$light_cycle_start
-      my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
-      p <- p + my_lights
+       from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
+       # TODO: Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
+       light_offset <- min(from_data_offset) - input$light_cycle_start
+       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
+       p <- p + my_lights
      }
 
      # add title
@@ -1796,7 +1795,6 @@ server <- function(input, output, session) {
             output$summary <- renderPlotly(ggplotly(p))
 
             # if we have metadata, check time diff again to be consistent
-            # TODO: should always be double checked, not only if metadata available
             time_diff <- 5
             df_diff <- read.csv2("finalC1.csv")
             if (input$havemetadata) {
@@ -1805,12 +1803,12 @@ server <- function(input, output, session) {
                if (time_diff == 0) {
                   time_diff <- 5
                }
-              
             }
-          convert <- function(x) {
-                 splitted <- strsplit(as.character(x), " ")
+
+            convert <- function(x) {
+                splitted <- strsplit(as.character(x), " ")
                 paste(splitted[[1]][1], "", sep = "")
-                }
+            }
                 # df to plot now contains the summed oxidation over individual days   
                df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
                print(colnames(df_diff))
