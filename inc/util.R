@@ -54,6 +54,7 @@ get_new_download_buttons <- function() {
                var widthPDFoffset = 17; // to avoid image boundaries out of PDF size
                doc.addImage(dataUrl, 'eps', 10, 10, widthPDF-widthPDFoffset, Math.floor(widthPDF/ARimage)); // or: remove -17 and use 280 above
                doc.save('plot.pdf');
+               /// TODO: Crop PDF image
             })
          }
       ")
