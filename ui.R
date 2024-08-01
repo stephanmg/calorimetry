@@ -319,6 +319,7 @@ sidebar_content <- sidebarPanel(
 # Main panel
 ################################################################################
 main_content <- mainPanel(
+   tags$head( tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js") ),
    tabsetPanel(
       id = "additional_content",
       tabPanel("Basic plot", plotlyOutput("plot")),
