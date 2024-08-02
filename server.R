@@ -1416,8 +1416,10 @@ output$details <- renderUI({
                h4("Configuration"),
                selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("TEE")),
+               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
                selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
                hr(style = "width: 50%"),
@@ -1426,14 +1428,16 @@ output$details <- renderUI({
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
+               hr(style = "width: 75%"),
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
             )
          })
 
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),

@@ -26,7 +26,7 @@ calculate_statistic <- function(data, method) {
 # do_ancova_alternative
 ################################################################################
 
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE) {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
@@ -38,11 +38,15 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: First covariate, rename Weight -> Covariate1
+  # TODO: Rename covariates as instructed below
+  # First covariate, rename Weight -> Covariate1
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # TODO: Add ANCOVA which uses multiple covariate, rename Weight2 -> Covariate2
-  if (!is.null(indep_var2)) {
+  # ANCOVA which uses multiple covariate, rename Weight2 -> Covariate2
+  if (num_covariates > 1) {
+    if (is.null(indep_var2)) {
+      indep_var2 <- "lean_mass"
+    }
     names(df)[names(df) == indep_var2] <- "Weight2"
   }
 
@@ -64,26 +68,40 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     names(df)[names(df) == group2] <- "Days"
   }
 
-  # TODO: Rename TEE -> DependentVariable to generalize/cleanup the implementation
-  if (dep_var == "TEE") {
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
-  } else if (dep_var == "GoxLox") {
-    names(df)[names(df) == dep_var] <- "TEE"
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
-  } else if (dep_var == "HP") {
-    names(df)[names(df) == dep_var] <- "TEE"
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
-  } else if (dep_var == "Raw") {
-    names(df)[names(df) == dep_var] <- "TEE"
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
-  } else if (dep_var == "RMR") {
-    names(df)[names(df) == dep_var] <- "TEE" 
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
-  } else { # other quantities are supported only by 1-way ANCOVA
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+  # TODO: Rename Days grouping variable to group2 or so
+  to_select_columns = c("Animals", "group", "Weight", "TEE", "Days")
+  if (num_covariates > 1) {
+    to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
 
+  # TODO: Rename TEE -> DependentVariable to generalize/cleanup the implementation
+  if (dep_var == "TEE") {
+    df <- df %>% select(all_of(to_select_columns))
+  } else if (dep_var == "GoxLox") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    df <- df %>% select(all_of(to_select_columns))
+  } else if (dep_var == "HP") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    df <- df %>% select(all_of(to_select_columns))
+  } else if (dep_var == "Raw") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    df <- df %>% select(all_of(to_select_columns))
+  } else if (dep_var == "RMR") {
+    names(df)[names(df) == dep_var] <- "TEE" 
+    df <- df %>% select(all_of(to_select_columns))
+  } else { # other quantities are supported only by 1-way ANCOVA
+    if (num_covariates > 1) {
+      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
+    } else {
+      df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+    }
+  }
+
+  # TODO: we use num_covariates > 1 and generalize yet only to two covariates, generalize to n covariates
   df$Weight <- as.numeric(df$Weight)
+  if (num_covariates > 1) {
+    df$Weight2 <- as.numeric(df$Weight2)
+  }
   df$TEE <- as.numeric(df$TEE)
 
   if (test_type == "1-way ANCOVA") {
@@ -102,14 +120,21 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   if (test_type == "2-way ANCOVA") {
     if (dep_var == "HP") {
-      df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "TEE", "Days")) %>% distinct()
+      df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days")) %>% distinct()
     }
   }
 
   p2 <- NULL
+  p3 <- NULL
   if (dep_var == "TEE") {
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+
+    if (num_covariates > 1) {
+     p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
+     p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+    }
+
   } else {
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
@@ -120,9 +145,14 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   # 1-way ANCOVA based on user input grouping variable
   res.aov <- NULL
   if (test_type == "1-way ANCOVA") {
-   res.aov <- df %>% anova_test(TEE ~ Weight + group)
+    if (num_covariates > 1) {
+      res.aov <- df %>% anova_test(TEE ~ Weight * Weight2 + group)
+    } else {
+      res.aov <- df %>% anova_test(TEE ~ Weight + group)
+    }
   }
 
+  # TODO: add num_covariates > 1 to add Weight2 as second covariate in 2-way ANCOVA
   if (test_type == "2-way ANCOVA") {
     # 2-way ANCOVA for now uses Days as second group always
     if (connected_or_independent_ancova) { # interaction, group and Days are independent categorial grouping variables
@@ -179,5 +209,5 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   model.metrics <- augment(model)
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
-  return(list("plot_details" = p, "plot_summary" = p2, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))
+  return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))
 }
