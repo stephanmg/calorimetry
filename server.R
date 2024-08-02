@@ -1312,6 +1312,7 @@ output$details <- renderUI({
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
+      finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
@@ -1361,13 +1362,18 @@ output$details <- renderUI({
       }
 
       # write.csv2(apply(finalC1, 2, as.character), "before_summing_for_tee.csv")
-      TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T)
-      TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T) 
+      #TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T)
+      #TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T) 
+
+      TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
+      TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
 
       if (input$with_facets) {
          if (input$facets_by_data_one %in% names(finalC1)) {
-            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
-            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
+            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
+            #TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            #TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
          }
       }
 
@@ -1384,8 +1390,10 @@ output$details <- renderUI({
       write.csv2(TEE, "tee.csv")
       TEE <- TEE %>% filter(Equation == input$variable1)
 
-      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF") # position = position_jitterdodge())
-      p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
+      TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
+
+      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) # position = position_jitterdodge())
+      #p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
       p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
       if (input$with_facets) {
          if (!is.null(input$facets_by_data_one)) {
