@@ -1573,25 +1573,25 @@ server <- function(input, output, session) {
          text2 <- ""
          switch(input$variable1,
          Weir = {
-            text1 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times RER $$"
+            text1 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
          HP = {
             text1 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          HP2 = {
-            text1 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O2[\\frac{ml}{h}] $$"
+            text1 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
-            text1 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
+            text1 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O_2[\\frac{ml}{h}] + 5.09 \\times RER $$"
          },
          Elia = {
-            text1 <- "$$ \\tag{5} 15.8 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.18 \\times RER $$"
+            text1 <- "$$ \\tag{5} 15.8 \\times \\dot{V}O_2[\\frac{ml}{h}] + 5.18 \\times RER $$"
          },
          Brouwer = {
-            text1 <- "$$ \\tag{6} 16.07 \\times \\dot{V}O2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
+            text1 <- "$$ \\tag{6} 16.07 \\times \\dot{V}O_2[\\frac{ml}{h}]+ 4.69 \\times RER $$"
          },
          Ferrannini = {
-            text1 <- "$$ \\tag{3} 16.37117 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
+            text1 <- "$$ \\tag{3} 16.37117 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.6057 \\times \\dot{V} CO_2 [\\frac{ml}{h}] $$"
          },
          {
          }
@@ -1599,13 +1599,13 @@ server <- function(input, output, session) {
 
          switch(input$variable2,
          Weir = {
-            text2 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.57 \\times RER $$"
+            text2 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
          HP = {
-            text2 <- "$$ \\tag{1} \\dot{V}O2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
+            text2 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          HP2 = {
-            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
             text2 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
@@ -1617,7 +1617,7 @@ server <- function(input, output, session) {
             text2 <- "$$ \\tag{6} 16.07 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.69 \\times RER $$"
          },
          Ferrannini = {
-            text2 <- "$$ \\tag{3} 16.37117 \\times \\dot{V}O2[\\frac{ml}{h}] + 4.6057 \\times RER $$"
+            text2 <- "$$ \\tag{3} 16.37117 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.6057 \\times \\dot{V} CO_2 [\\frac{ml}{h}] $$"
          },
          {
          }
