@@ -416,12 +416,14 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(finalC1, file = "finalC1.csv")
 
    # filter out whole days with given threshold
+   # TODO: does not work as desired yet apparently.
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
    }
 
    # curate data if desired
+   # TODO: commented this code, since the trimming based on Datetime (dates)
    if (input$curate) {
       #finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
    }
