@@ -635,7 +635,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
       # annotate days and animals (Already shifted by above correction)
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, input$light_cycle_start)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0)
       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
@@ -722,7 +722,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
        p <- p + my_lights
      }
 
-     light_offset <- input$light_cycle_start
+     #light_offset <- input$light_cycle_start
 
      # add title
      p <- p + ggtitle(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", input$myp))
