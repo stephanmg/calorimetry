@@ -132,7 +132,8 @@ sidebar_content <- sidebarPanel(
    add_busy_bar(color = "#0FFF50"), # #50C878, # #AAFF00
    withMathJax(),
    h3("Energy expenditure equation"),
-   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
+   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Weir", "Ferrannini"))),
+   #conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("HP", "HP2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal")),
