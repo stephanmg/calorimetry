@@ -1,5 +1,47 @@
 source("inc/constants.R")
 
+# Zeitgeber Zeit
+
+zeitgeber_zeit <- function(df, light_on) {
+   offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime, `Animal No._NA`) %>% as.data.frame()
+   colnames(offsets) <- "offset"
+   offsets <- offsets %>% mutate_all(~format(as.POSIXct(., format="%d/%m/%Y %H:%M"), "%H"))
+   offsets$ID <- rownames(offsets)
+   offsets <- offsets %>% select(ID, everything()) %>% rename(`Animal No._NA`=ID)
+   offsets$`Animal No._NA`  <- as.numeric(offsets$`Animal No._NA`)
+   offsets$`offset`  <- as.numeric(offsets$`offset`)
+   rownames(offsets) <- NULL
+   offsets$offset <- offsets$offset - min(offsets$offset)
+   offsets$offset <- offsets$offset + (light_on - min(offsets$offset))
+   print(offsets)
+   df_joined <- df %>% left_join(offsets, by = "Animal No._NA")
+   df_joined <- df_joined %>% mutate(running_total.hrs = running_total.hrs + offset)
+   df_joined <- df_joined %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour + offset)
+   return(df_joined)
+}
+
+annotate_zeitgeber_zeit <- function(df, light_on) {
+   df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+   day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() #%>% sort()
+   # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
+   annotations = data.frame(Animals = rep(NA, length(sort(unique(day_counts$DayCount)))), x = seq(12+6,length(unique(day_counts$DayCount))*24, by=24), y=0, label = sapply(sort(unique(day_counts$DayCount)), function(x) paste0("Day #", x)))
+   return(list(df_annotated=df_annotated, annotations=annotations))
+}
+
+get_days_and_animals_for_select <- function(df) {
+   df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+   day_counts <- df_annotated %>% pull(DayCount) %>% unique() %>% sort()
+   animal_counts <- df_annotated %>% pull(`Animal No._NA`) %>% unique() %>% sort()
+   return(list(days=day_counts, animals=animal_counts))
+}
+
+
+
+
+
+
+
+
 ################################################################################
 # get factor columns
 ################################################################################

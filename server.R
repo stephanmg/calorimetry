@@ -46,6 +46,9 @@ time_diff <- 5
 time_start_end <- NULL
 start_date <- "1970-01-01"
 end_date <- Sys.Date()
+
+selected_days <- NULL
+selected_animals <- NULL
 ################################################################################
 # Helper functions
 ################################################################################
@@ -420,7 +423,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
    # curate data if desired
    if (input$curate) {
-      finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
+      #finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
    }
 
    switch(plotType,
@@ -628,6 +631,47 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          }
       }
 
+      # display zeitgeber zeit
+      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+
+      # annotate days and animals (Already shifted by above correction)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, input$light_cycle_start)
+      finalC1 <- day_annotations$df_annotated
+   
+      # create input select fields for animals and days
+      days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+     if (is.null(selected_days)) {
+
+     output$select_day <- renderUI({
+      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+     })
+     selected_days = days_and_animals_for_select$days
+     } else {
+      output$select_day <- renderUI({
+      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+     })
+     }
+
+   if (is.null(selected_animals)) {
+      output$select_animal <- renderUI({
+      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+     })
+     selected_animals = days_and_animals_for_select$animals
+   } else {
+      output$select_animal <- renderUI({
+      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+      })
+   }
+
+      # filter for selected days and animals in data set
+      finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
+      finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
+
+      # trim times from end and beginning of measurements   
+      if (input$curate) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+      }
+
       # calculate running averages
       if (input$running_average > 0) {
          p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
@@ -665,14 +709,20 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
      # add light cycle annotation
      lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
      colnames(lights) <- c("x", "y")
+
+
      
+     light_offset <- 0
      if (input$timeline) {
-       from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
-       # TODO: Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
-       light_offset <- min(from_data_offset) - input$light_cycle_start
+      # this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
+       #from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
+       # Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
+       #light_offset <- min(from_data_offset) - input$light_cycle_start
        my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
        p <- p + my_lights
      }
+
+     light_offset <- input$light_cycle_start
 
      # add title
      p <- p + ggtitle(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", input$myp))
@@ -687,6 +737,16 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
            }
         }
      }
+
+     # add day annotations and indicators vertical lines
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     # indicate new day
+     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+     # indicate night start
+     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+     # re-center at 0
+     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(lights$x), max(lights$x)))
+     #p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(lights$y), max(lights$y)))
      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
    },
    #####################################################################################################################
@@ -2137,5 +2197,15 @@ server <- function(input, output, session) {
             }
          )
       }
+   })
+
+   observeEvent(input$select_day, {
+      click("plotting")
+      selected_days <<- input$select_day
+   })
+
+   observeEvent(input$select_animal, {
+      click("plotting")
+      selected_animals <<- input$select_animal
    })
 }

@@ -5,6 +5,8 @@ library(ggplot2)
 ################################################################################
 draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey") {
    intervals <- seq(min(df$x, na.rm=T), max(df$x, na.rm=T), 12)
+   print("intervals:")
+   print(intervals)
    light_on <- TRUE
    color <- night_color
    lapply(intervals, function(item) { p <<- p + annotate("rect", xmin = item - 12 + light_offset, xmax = item + light_offset, ymin = min(df$y), ymax = max(df$y), fill = color, alpha = 0.1); if (light_on) { color <<- day_color; light_on <<- FALSE }  else {  color <<- night_color; light_on <<- TRUE}; }) # nolint: semicolon_linter, brace_linter.
