@@ -423,7 +423,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    }
 
    # curate data if desired
-   # TODO: commented this code, since the trimming based on Datetime (dates)
+   # TODO: commented this code, since the trimming based on Datetime (dates) is obsoleted and will be deleted later
    if (input$curate) {
       #finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
    }
@@ -592,6 +592,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ## The metadata from the data files (e.g. TSE) could be joined directly with the metadata sheet. For compability, we 
    # currently require a valid TSE metadata header corresponding with entries in the columns of metadata sheet, issue #62.
    EnergyExpenditure = {
+      # TODO: Add the zeitgeber zeit to the other 4 panels as well use the following example
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
@@ -1314,6 +1315,7 @@ output$details <- renderUI({
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
+      # Create unique days for each animals sorted ascending based by Datetime
       finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
@@ -1417,20 +1419,21 @@ output$details <- renderUI({
                selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
 
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test)
+            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),

@@ -26,7 +26,7 @@ calculate_statistic <- function(data, method) {
 # do_ancova_alternative
 ################################################################################
 
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni") {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
@@ -125,7 +125,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   if (test_type == "2-way ANCOVA") {
     # 2-way ANCOVA for now uses Days as second group always
-    res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
+    if (connected_or_independent_ancova) { # interaction, group and Days are independent categorial grouping variables
+      res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
+    } else { # otherwise assume that there is no interaction
+      res.aov <- df %>% anova_test(TEE ~ Weight:group:Days)
+    }
   }
 
   p <- NULL

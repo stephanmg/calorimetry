@@ -1,7 +1,8 @@
 source("inc/constants.R")
 
-# Zeitgeber Zeit
-
+################################################################################
+# convert df to zeitgeber zeit
+################################################################################
 zeitgeber_zeit <- function(df, light_on) {
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime, `Animal No._NA`) %>% as.data.frame()
    colnames(offsets) <- "offset"
@@ -20,6 +21,10 @@ zeitgeber_zeit <- function(df, light_on) {
    return(df_joined)
 }
 
+
+################################################################################
+# create annotations for Days on x-axis when using zeitgeber zeit
+################################################################################
 annotate_zeitgeber_zeit <- function(df, light_on) {
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
    day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() #%>% sort()
@@ -28,19 +33,15 @@ annotate_zeitgeber_zeit <- function(df, light_on) {
    return(list(df_annotated=df_annotated, annotations=annotations))
 }
 
+################################################################################
+# get number of days and sample ids to select from in EnergyExpenditure (Data curation)
+################################################################################
 get_days_and_animals_for_select <- function(df) {
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
    day_counts <- df_annotated %>% pull(DayCount) %>% unique() %>% sort()
    animal_counts <- df_annotated %>% pull(`Animal No._NA`) %>% unique() %>% sort()
    return(list(days=day_counts, animals=animal_counts))
 }
-
-
-
-
-
-
-
 
 ################################################################################
 # get factor columns
@@ -57,7 +58,7 @@ get_non_factor_columns <- function(df) {
 }
 
 ################################################################################
-# get non-factor columns
+# generate new download buttons
 ################################################################################
 get_new_download_buttons <- function() {
    new_buttons <- list(

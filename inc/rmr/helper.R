@@ -191,6 +191,10 @@ convert_to_days <- function(x) {
    paste(splitted[[1]][1])
 }
 
+
+################################################################################
+# filter_full_days_alternative
+################################################################################
 filter_full_days_alternative <- function(df, threshold) {
    return(df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(Datetime4) %>% filter(n_distinct(hour) >= (24 * (100/(100-threshold)))) %>% ungroup())
 }
