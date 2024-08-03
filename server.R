@@ -1374,10 +1374,10 @@ output$details <- renderUI({
 
       if (input$with_facets) {
          if (input$facets_by_data_one %in% names(finalC1)) {
-            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
-            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
-            #TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
-            #TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            #TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
+            #TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
+            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
          }
       }
 
@@ -1427,6 +1427,7 @@ output$details <- renderUI({
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+               # TODO: use this TotalEnergyExpenditure template to add 2 covariates / n covariates to other panels
                hr(style = "width: 75%"),
                renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),

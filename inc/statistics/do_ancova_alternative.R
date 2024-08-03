@@ -120,7 +120,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   if (test_type == "2-way ANCOVA") {
     if (dep_var == "HP") {
-      df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days")) %>% distinct()
+      if (num_covariates > 1) {
+        df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days")) %>% distinct()
+      } else {
+        df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "TEE", "Days")) %>% distinct()
+      }
     }
   }
 
@@ -138,6 +142,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else {
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+     if (num_covariates > 1) {
+     p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
+     p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+    }
+
+
   }
 
   p2 <- p2 + labs(colour=group)
