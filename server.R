@@ -419,7 +419,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       # finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
-      finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold)
+      finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
    write.csv2(finalC1, "after_filtering.csv")
 
@@ -652,6 +652,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
@@ -1233,6 +1234,10 @@ output$details <- renderUI({
    Raw = {
       # display zeitgeber zeit
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+
+      print("to zeitgeber after filtering")
+      print(finalC1)
+      write.csv2(finalC1, "to_zeitgeber.csv")
 
       # annotate days and animals (Already shifted by above correction)
       mylabel <- paste0(input$myr, sep = "", "_[%]")
