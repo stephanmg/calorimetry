@@ -86,9 +86,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(all_of(to_select_columns))
-  } else if (dep_var == "RMR") {
+  } else if (dep_var == "RMR") { # RMR makes only sense to have 1-way ANCOVA currently (without Days)
     names(df)[names(df) == dep_var] <- "TEE" 
-    df <- df %>% select(all_of(to_select_columns))
+    df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
   } else { # other quantities are supported only by 1-way ANCOVA
     if (num_covariates > 1) {
       df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
@@ -97,7 +97,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  # TODO: we use num_covariates > 1 and generalize yet only to two covariates, generalize to n covariates
   df$Weight <- as.numeric(df$Weight)
   if (num_covariates > 1) {
     df$Weight2 <- as.numeric(df$Weight2)
@@ -162,13 +161,20 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  # TODO: add num_covariates > 1 to add Weight2 as second covariate in 2-way ANCOVA
   if (test_type == "2-way ANCOVA") {
     # 2-way ANCOVA for now uses Days as second group always
     if (connected_or_independent_ancova) { # interaction, group and Days are independent categorial grouping variables
-      res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
+        if (num_covariates > 1) {
+          res.aov <- df %>% anova_test(TEE ~ Weight + Weight2 + group * Days)
+        } else {
+          res.aov <- df %>% anova_test(TEE ~ Weight + group * Days)
+        }
     } else { # otherwise assume that there is no interaction
-      res.aov <- df %>% anova_test(TEE ~ Weight:group:Days)
+      if (num_covariates > 1) {
+        res.aov <- df %>% anova_test(TEE ~ Weight:Weight2:group:Days)
+      } else {
+        res.aov <- df %>% anova_test(TEE ~ Weight:group:Days)
+      }
     }
   }
 

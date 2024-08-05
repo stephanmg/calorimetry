@@ -443,6 +443,49 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # GoxLox
    #####################################################################################################################
    GoxLox = {
+      # use zeitgeber zeit
+      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+
+      # annotate days and animals (Already shifted by above correction)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
+      finalC1 <- day_annotations$df_annotated
+   
+      # create input select fields for animals and days
+      days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+     if (is.null(selected_days)) {
+
+     output$select_day <- renderUI({
+      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+     })
+     selected_days = days_and_animals_for_select$days
+     } else {
+      output$select_day <- renderUI({
+      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+     })
+     }
+
+   if (is.null(selected_animals)) {
+      output$select_animal <- renderUI({
+      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+     })
+     selected_animals = days_and_animals_for_select$animals
+   } else {
+      output$select_animal <- renderUI({
+      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+      })
+   }
+
+      # filter for selected days and animals in data set
+      finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
+      finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
+
+      # trim times from end and beginning of measurements   
+      if (input$curate) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+      }
+
+
+
       # Metadata from TSE file header should be enough, want to see oxidation of substrates by animals
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
@@ -480,22 +523,27 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("GoxLox")),
                selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
+               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
+               hr(style = "width: 75%"),
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
             )
          })
 
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test)
+            results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
@@ -570,7 +618,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
  
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
- # group with group from metadata
+      # group with group from metadata
      if (input$with_facets) {
         if (!is.null(input$facets_by_data_one)) {
            if (input$orientation == "Horizontal") {
@@ -581,7 +629,16 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
         }
      }
 
-
+   
+      light_offset <- 0
+     # add day annotations and indicators vertical lines
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     # indicate new day
+     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+     # indicate night start
+     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+     # re-center at 0
+     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
 
       p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Time [h]") + ggtitle(input$goxlox)
    },
@@ -629,16 +686,19 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # prepare for facet usage when no metadata available
       if (input$with_facets) {
          if (!input$havemetadata) {
+            finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
             colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
             colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
          }
       }
 
       # display zeitgeber zeit
-      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+      if (input$havemetadata) {
+        finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+      }
 
       # annotate days and animals (Already shifted by above correction)
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2")
       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
@@ -730,6 +790,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
      # add title
      p <- p + ggtitle(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", input$myp))
 
+
+     
      # group with group from metadata
      if (input$with_facets) {
         if (!is.null(input$facets_by_data_one)) {
@@ -740,6 +802,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
            }
         }
      }
+
 
      # add day annotations and indicators vertical lines
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
@@ -854,9 +917,18 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
       # p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line() + facet_wrap(~Animal)
+      write.csv2(df_plot_total, "before_anno_rmr.csv")
+      df_annos <- annotate_rmr_days(df_plot_total)
+      print("annos:")
+      print(df_annos)
+      p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
+      p <- p + geom_vline(xintercept = as.numeric(seq(24*60, max(df_plot_total$Time), 24*60)), linetype="dashed", color="black")
+
       p <- p + ylab(paste("RMR [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
       p <- p + xlab("Time [minutes]")
       p <- p + ggtitle("Resting metabolic rates")
+
+      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)))
       finalC1 <- df_plot_total
    },
    #####################################################################################################################
@@ -1152,6 +1224,62 @@ output$details <- renderUI({
    ### Raw
    #####################################################################################################################
    Raw = {
+      # display zeitgeber zeit
+      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+
+      # annotate days and animals (Already shifted by above correction)
+
+      mylabel <- paste0(input$myr, sep = "", "_[%]")
+      if (startsWith(input$myr, "V")) {
+         mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
+      }
+
+      if (startsWith(input$myr, "Temp")) {
+         mylabel <- paste0(input$myr, sep = "", "_C")
+      }
+
+      if (startsWith(input$myr, "RER")) {
+         mylabel <- "RER"
+      }
+
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel)
+      finalC1 <- day_annotations$df_annotated
+   
+      # create input select fields for animals and days
+      days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+     if (is.null(selected_days)) {
+
+     output$select_day <- renderUI({
+      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+     })
+     selected_days = days_and_animals_for_select$days
+     } else {
+      output$select_day <- renderUI({
+      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+     })
+     }
+
+   if (is.null(selected_animals)) {
+      output$select_animal <- renderUI({
+      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+     })
+     selected_animals = days_and_animals_for_select$animals
+   } else {
+      output$select_animal <- renderUI({
+      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+      })
+   }
+
+      # filter for selected days and animals in data set
+      finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
+      finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
+
+      # trim times from end and beginning of measurements   
+      if (input$curate) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+      }
+
+
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
@@ -1209,23 +1337,28 @@ output$details <- renderUI({
                h4("Configuration"),
                selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("Raw")),
+               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
                selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
+               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
+               hr(style = "width: 75%"),
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
             )
          })
 
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
-            results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test)
+            results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
@@ -1297,6 +1430,7 @@ output$details <- renderUI({
          })
     }
 
+    light_offset <- 0
 
       if (input$with_facets) {
          if (!is.null(input$facets_by_data_one)) {
@@ -1308,8 +1442,17 @@ output$details <- renderUI({
          }
       }
 
-      p <- p + ggtitle(paste("Raw measurement: ", mylabel, sep = ""))
-      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+     # add day annotations and indicators vertical lines
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     # indicate new day
+     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+     # indicate night start
+     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+     # set title and display buttons
+     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel)))
+     # center x axis
+     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
+     p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
    },
    #####################################################################################################################
    ### Total Energy Expenditure
@@ -1422,7 +1565,6 @@ output$details <- renderUI({
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-               # TODO: use this TotalEnergyExpenditure template to add 2 covariates / n covariates to other panels
                hr(style = "width: 75%"),
                renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
@@ -1938,22 +2080,27 @@ server <- function(input, output, session) {
                      selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
                      selectInput("dep_var", "Dependent variable", choice = c("RMR")),
                      selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-                     selectInput("covar", "Covariate", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+                     selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
+                     selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+                     conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                      conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Diet", get_factor_columns(true_metadata)), selected = "Days")),
+                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
                      hr(style = "width: 50%"),
                      h4("Advanced"),
                      selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
                      sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
-                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var))
+                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var)),
+                     hr(style = "width: 75%"),
+                     conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
                   )
                   })
 
                # FIXME: Add back analysis without metadata sheet for RMR calculations
 
                output$details <- renderUI({
-                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test)
+                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
                   tagList(
                      h3("Post-hoc analysis"),
                      renderPlotly(results$plot_details + xlab(input$indep_var)),

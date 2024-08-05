@@ -3,6 +3,16 @@ library(ggplot2)
 library(shinyalert)
 
 ################################################################################
+# annotate RMR days
+################################################################################
+annotate_rmr_days <- function(df) {
+   df_anno <- df %>% group_by(Animal) %>% mutate(Day = ceiling(Time / (24*60))) %>% ungroup()
+   df_anno <- df_anno %>% group_by(Animal, Day) %>% summarize(Time = min(Time)+12*60, Label=paste0("Day #", Day)) %>% ungroup()
+   return(df_anno %>% unique() %>% filter(Label != 'Day #0'))
+}
+
+
+################################################################################
 # padding_helper
 ################################################################################
 padding_helper <- function(df) {
