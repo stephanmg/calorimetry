@@ -1366,20 +1366,15 @@ output$details <- renderUI({
       }
 
       # write.csv2(apply(finalC1, 2, as.character), "before_summing_for_tee.csv")
-      #TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T)
-      #TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime), FUN = sum, na.rm = T) 
-
       TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
       TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
 
       if (input$with_facets) {
          if (input$facets_by_data_one %in% names(finalC1)) {
-            #TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
-            #TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
-            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
-            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$Datetime, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
+            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount,Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T) 
          }
-      }
+      } 
 
       TEE <- rbind(TEE1, TEE2)
       names(TEE)[names(TEE) == "x"] <- "TEE"
