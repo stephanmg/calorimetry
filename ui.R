@@ -200,7 +200,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
-   h2("Averaging"),
+   h2("Time averaging of measurements"),
    checkboxInput(inputId = "override_averaging", label = "Override averaging method (mean)"),
    conditionalPanel(condition = "input.override_averaging == true", selectInput("avg_method_for_statistics", "Method", choices = c("mean", "median"))),
    h2("Experimental times"),
@@ -286,7 +286,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
    checkboxInput(inputId = "outliers", label = "Remove animal(s) from data set(s)"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
-   checkboxInput("do_select_date_range", label = "Select dates (obsolete)"),
+   checkboxInput("do_select_date_range", label = "Select dates"),
    )),
    hr(),
   fluidPage(

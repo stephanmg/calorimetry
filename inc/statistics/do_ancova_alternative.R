@@ -69,7 +69,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     names(df)[names(df) == group2] <- "Days"
   }
 
-  # TODO: Rename Days grouping variable to Group3
   to_select_columns = c("Animals", "group", "Weight", "TEE", "Days")
   if (num_covariates > 1) {
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")

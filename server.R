@@ -426,7 +426,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # curate data if desired
    # TODO: commented this code, since the trimming based on Datetime (dates) is obsoleted and will be deleted later
    if (input$curate) {
-      #finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
+      # finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
    }
 
    switch(plotType,
@@ -535,9 +535,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
             )
          })
 
@@ -928,7 +928,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
       p <- p + geom_vline(xintercept = as.numeric(seq(24*60, max(df_plot_total$Time), 24*60)), linetype="dashed", color="black")
 
-      p <- p + ylab(paste("RMR [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
       p <- p + xlab("Time [minutes]")
       p <- p + ggtitle("Resting metabolic rates")
 
@@ -1029,7 +1029,9 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)),
+               hr(style = "width: 75%"),
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
             )
          })
  }
@@ -1135,12 +1137,11 @@ output$details <- renderUI({
             }
       }
 
-      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", "(equation: ", input$myp, ")", sep = " "))
+      p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
       if (input$with_facets) {
          p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
          config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       } else {
-
          p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
          config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       }
@@ -1234,7 +1235,6 @@ output$details <- renderUI({
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
       # annotate days and animals (Already shifted by above correction)
-
       mylabel <- paste0(input$myr, sep = "", "_[%]")
       if (startsWith(input$myr, "V")) {
          mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
@@ -1355,9 +1355,9 @@ output$details <- renderUI({
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable(mylabel)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable(mylabel)) + ggtitle(input$study_description)))
             )
          })
 
@@ -1572,9 +1572,9 @@ output$details <- renderUI({
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
             )
          })
 
@@ -1805,7 +1805,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
             output$checkboxgroup_gender <- renderUI(
-               checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chose gender",
+               checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chosen sexes",
                choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
@@ -2097,7 +2097,7 @@ server <- function(input, output, session) {
                      sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
-                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var)),
+                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var))),
                      hr(style = "width: 75%"),
                      conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
                   )

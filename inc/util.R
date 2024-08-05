@@ -22,13 +22,28 @@ zeitgeber_zeit <- function(df, light_on) {
 }
 
 ################################################################################
-# pretty print variable label
+# pretty print variable 
 ################################################################################
-pretty_print_variable <- function(label) {
-   pretty_label <- gsub("O2", "O<sub>2</sub>", label)
-   pretty_label <- gsub("CO2", "CO<sub>2</sub>", pretty_label)
-   pretty_label <- gsub("\\(3\\)", "", pretty_label)
-   return(pretty_label)
+pretty_print_variable <- function(variable) {
+   pretty_variable <- gsub("O2", "O<sub>2</sub>", variable)
+   pretty_variable <- gsub("CO2", "CO<sub>2</sub>", pretty_variable)
+   pretty_variable <- gsub("\\(3\\)", "", pretty_variable)
+   return(pretty_variable)
+}
+
+################################################################################
+# pretty print label
+################################################################################
+pretty_print_label <- function(label) {
+   # Weights are always in [g], TODO: get units from metadata sheet
+   pretty_label <- gsub("_", " ", label)
+   pretty_label <- gsub("body weight", "body weight [g]", pretty_label)
+   pretty_label <- gsub("lean mass", "lean mass [g]", pretty_label)
+   pretty_label <- gsub("fat mass", "fat mass [g]", pretty_label)
+   pretty_label <- gsub("TEE", paste0("TEE [kcal/day]"), pretty_label)
+   pretty_label <- gsub("RMR", paste0("RMR [kcal/day]"), pretty_label)
+   pretty_label <- gsub("GoxLox", paste0("GoxLox [ml/h]"), pretty_label)
+   pretty_label <- gsub("HP", paste0("Energy expenditure [kcal/day]"), pretty_label)
 }
 
 ################################################################################
@@ -107,7 +122,6 @@ get_new_download_buttons <- function() {
                var widthPDFoffset = 17; // to avoid image boundaries out of PDF size
                doc.addImage(dataUrl, 'eps', 10, 10, widthPDF-widthPDFoffset, Math.floor(widthPDF/ARimage)); // or: remove -17 and use 280 above
                doc.save('plot.pdf');
-               /// TODO: Crop PDF image
             })
          }
       ")
