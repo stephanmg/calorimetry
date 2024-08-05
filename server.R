@@ -415,12 +415,13 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
-   # filter out whole days with given threshold
+   # filter out whole days with given threshold: TODO should one doe this here or at the level of individual plotting?
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
-      #finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
+      # finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold)
    }
+   write.csv2(finalC1, "after_filtering.csv")
 
    # curate data if desired
    # TODO: commented this code, since the trimming based on Datetime (dates) is obsoleted and will be deleted later
@@ -649,7 +650,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    ## The metadata from the data files (e.g. TSE) could be joined directly with the metadata sheet. For compability, we 
    # currently require a valid TSE metadata header corresponding with entries in the columns of metadata sheet, issue #62.
    EnergyExpenditure = {
-      # TODO: Add the zeitgeber zeit to the other 4 panels as well use the following example
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
@@ -872,9 +872,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
       df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
 
-      finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
+      # TODO: Check that this is correct, before we needed to remove with slice the points. Double check!
+      #finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
       df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) 
       df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
+
+      write.csv2(df_new, "df_new_after_padding_before_join.csv")
 
       #df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       my_order <- unique(df_new$Group)
@@ -882,6 +885,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_sorted$`Animal No._NA` = as.factor(df_sorted$`Animal No._NA`)
       df_sorted$`Animal No._NA` = factor(df_sorted$`Animal No._NA`, levels=my_order)
       df_sorted <- df_sorted %>% arrange(`Animal No._NA`)
+      write.csv2(apply(df_sorted, 2, as.character), "df_sorted_new.csv")
       df_to_plot <- cbind(df_new, `$`(df_sorted, "running_total.hrs.halfhour"), `$`(df_sorted, "Animal No._NA"))
 
       df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
@@ -929,6 +933,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       p <- p + ggtitle("Resting metabolic rates")
 
       p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)))
+      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       finalC1 <- df_plot_total
    },
    #####################################################################################################################
@@ -1014,16 +1019,17 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
                selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
                selectInput("dep_var", "Dependent variable", choice = c("HP")),
                selectInput("indep_var", "Independent grouping variable #1", choices = "NightDay", selected = "NightDay"),
+               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
                selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Genotype", get_factor_columns(true_metadata)), selected = "Days")),
-               conditionalPanel("input.test_statistic == '3-way ANCOVA'", selectInput("indep_var3", "Independent grouping variable #3", choices = c("Genotype", get_factor_columns(true_metadata)), selected = "Days")),
                hr(style = "width: 50%"),
                h4("Advanced"),
                selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
+               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(input$covar) + ylab(input$dep_var) + ggtitle(input$study_description))
             )
          })
  }
@@ -1031,7 +1037,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          # FIXME: Add back analysis without metadata sheet for TEE calculations
 
 output$details <- renderUI({
-            results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test)
+            results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
                renderPlotly(results$plot_details + xlab(input$indep_var)),
@@ -1316,7 +1322,7 @@ output$details <- renderUI({
             p <- p + my_lights
       }
 
-      p <- p + ylab(mylabel)
+      p <- p + ylab(pretty_print_variable(mylabel))
       p <- p + xlab("Time [h]")
 
      convert <- function(x) {

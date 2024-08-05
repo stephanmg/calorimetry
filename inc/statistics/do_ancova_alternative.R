@@ -38,11 +38,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: Rename covariates as instructed below
+  # TODO: Rename covariates as follows
   # First covariate, rename Weight -> Covariate1
+  # Second covariate, rename Weight2 -> Covariate2
   names(df)[names(df) == indep_var] <- "Weight"
 
-  # ANCOVA which uses multiple covariate, rename Weight2 -> Covariate2
+  # ANCOVA which uses multiple covariate
   if (num_covariates > 1) {
     if (is.null(indep_var2)) {
       indep_var2 <- "lean_mass"
@@ -68,13 +69,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     names(df)[names(df) == group2] <- "Days"
   }
 
-  # TODO: Rename Days grouping variable to group2 or so
+  # TODO: Rename Days grouping variable to Group3
   to_select_columns = c("Animals", "group", "Weight", "TEE", "Days")
   if (num_covariates > 1) {
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
 
-  # TODO: Rename TEE -> DependentVariable to generalize/cleanup the implementation
+  # TODO: Rename TEE -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
   if (dep_var == "TEE") {
     df <- df %>% select(all_of(to_select_columns))
   } else if (dep_var == "GoxLox") {
