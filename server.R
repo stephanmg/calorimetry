@@ -1237,7 +1237,7 @@ output$details <- renderUI({
          mylabel <- "RER"
       }
 
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days

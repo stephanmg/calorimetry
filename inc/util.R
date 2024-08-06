@@ -42,7 +42,7 @@ pretty_print_label <- function(label) {
    pretty_label <- gsub("TEE", paste0("TEE [kcal/day]"), pretty_label)
    pretty_label <- gsub("RMR", paste0("RMR [kcal/day]"), pretty_label)
    pretty_label <- gsub("GoxLox", paste0("GoxLox [ml/h]"), pretty_label)
-   pretty_label <- gsub("HP", paste0("Energy expenditure [kcal/day]"), pretty_label)
+   pretty_label <- gsub("HP", paste0("Energy expenditure [kJ/day]"), pretty_label)
 }
 
 ################################################################################
@@ -51,8 +51,19 @@ pretty_print_label <- function(label) {
 annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) {
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
    day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() #%>% sort()
+   print(day_counts)
    # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
-   annotations = data.frame(Animals = rep(NA, length(sort(unique(day_counts$DayCount)))), x = seq(12+light_on,length(unique(day_counts$DayCount))*24, by=24), y=min(df[[input_var]], na.rm = TRUE), label = sapply(sort(unique(day_counts$DayCount)), function(x) paste0("Day #", x)))
+   annotations <- NULL
+   if (with_facets) {
+      animals <- unique(day_counts$`Animal No._NA`)
+      for (i in 1:length(animals)) {
+         animal = animals[i]
+         anno_for_animal = data.frame(Animals = rep(animal, length(sort(unique(day_counts$DayCount)))), x = seq(12+light_on, length(unique(day_counts$DayCount))*24, by=24), y=min(df[[input_var]], na.rm = TRUE), label = sapply(sort(unique(day_counts$DayCount)), function(x) paste0("Day #", x)))
+         annotations <- rbind(annotations, anno_for_animal)
+      }
+   } else {
+      annotations = data.frame(Animals = rep(NA, length(sort(unique(day_counts$DayCount)))), x = seq(12+light_on,length(unique(day_counts$DayCount))*24, by=24), y=min(df[[input_var]], na.rm = TRUE), label = sapply(sort(unique(day_counts$DayCount)), function(x) paste0("Day #", x)))
+   }
    return(list(df_annotated=df_annotated, annotations=annotations))
 }
 
