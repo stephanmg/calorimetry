@@ -861,7 +861,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
       df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
 
-      # TODO: Check that this is correct, before we needed to remove with slice the last points. Double check!
+      # TODO: Check RMR slicing: Before we needed to remove with slice the last points. Double check!
       #finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
       df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) 
       df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
@@ -893,7 +893,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
 
-      # TODO: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
+      # TODO: Check RMR params: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
       # to reconstruct reliably RMR, but needs to be validated with additional analysis
       AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
       SLIDING_WINDOW_SIZE_M <- input$window
