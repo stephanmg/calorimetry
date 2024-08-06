@@ -437,7 +437,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #####################################################################################################################
    GoxLox = {
       # find light cycle start by metadata, or override from UI, or use default from UI
-      light_on <- input$light_cycle_start
+      light_on <- input$light_cycle_start * 60
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
