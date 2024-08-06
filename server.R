@@ -49,6 +49,7 @@ end_date <- Sys.Date()
 
 selected_days <- NULL
 selected_animals <- NULL
+interval_length_list <- list()
 ################################################################################
 # Helper functions
 ################################################################################
@@ -83,7 +84,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
-   interval_length_list <- list()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
@@ -188,6 +188,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+
    #############################################################################
    # Curate data frame
    #############################################################################
@@ -415,13 +416,12 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
-   # filter out whole days with given threshold: TODO should one doe this here or at the level of individual plotting?
+   # filter out whole days with given threshold
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
       # finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
-   write.csv2(finalC1, "after_filtering.csv")
 
    # curate data if desired
    # TODO: commented this code, since the trimming based on Datetime (dates) is obsoleted and will be deleted later
@@ -698,9 +698,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
         finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
       }
 
-      # annotate days and animals (Already shifted by above correction)
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2")
-      finalC1 <- day_annotations$df_annotated
+       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
@@ -1320,6 +1319,7 @@ output$details <- renderUI({
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
 
+      print(colnames(df_to_plot))
       lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
       colnames(lights) <- c("x", "y")
       if (input$timeline) {
@@ -1504,10 +1504,15 @@ output$details <- renderUI({
       }
 
       # TODO: time_diff throughout needs to be replaced with by cohort list exact time diff!
-      time_diff <<- get_time_diff(finalC1)
+      #time_diff <<- get_time_diff(finalC1)
+
+      finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
+
+      finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
+      finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-      finalC1$HP <- finalC1$HP / time_diff
-      finalC1$HP2 <- finalC1$HP2 / time_diff
+      #finalC1$HP <- (finalC1$HP/60) * time_diff
+      #finalC1$HP2 <- (finalC1$HP2/60) * time_diff
 
       if (input$day_only && input$night_only) {
          # nothing to do we keep both night and day
@@ -1526,7 +1531,7 @@ output$details <- renderUI({
       if (input$with_facets) {
          if (input$facets_by_data_one %in% names(finalC1)) {
             TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
-            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount,Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T) 
+            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T) 
          }
       } 
 
@@ -1995,7 +2000,8 @@ server <- function(input, output, session) {
                   select(!Component) %>%
                   group_by(Animal) %>%
                   na.omit() %>%
-                  summarize(Value = min(HP), cgroups = c(Animal))
+                  summarize(Value = HP, cgroups = c(Animal))
+                  #summarize(Value = min(HP), cgroups = c(Animal))
                write.csv2(df_filtered, "rmr.csv")
 
                df <- real_data$data
@@ -2059,10 +2065,15 @@ server <- function(input, output, session) {
          df1$Animals <- as.factor(df1$Animals)
          df_unique_days$Animals = as.factor(df_unique_days$Animals)
          df2$Animals <- as.factor(df2$Animals)
+
+         # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
+         df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
+         df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
+
          # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
-         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE) / time_diff)
-         df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE) / time_diff)
+         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE))
+         df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE))
 
          df1 <- left_join(df1, df_unique_days, by = "Animals")
          df2 <- left_join(df2, df_unique_days, by = "Animals")
@@ -2071,8 +2082,8 @@ server <- function(input, output, session) {
          df1 <- df1 %>% mutate(EE = EE / unique_days)
          df2 <- df2 %>% mutate(EE = EE / unique_days)
 
-         df1$TEE <- as.factor(rep("non-RMR", nrow(df1)))
-         df2$TEE <- as.factor(rep("RMR", nrow(df2)))
+         df1$TEE <- as.factor(rep("RMR", nrow(df1)))
+         df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
 
          df_total <- rbind(df1, df2)
          df_total$Animals <- as.factor(df_total$Animals)
