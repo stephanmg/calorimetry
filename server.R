@@ -1905,7 +1905,7 @@ server <- function(input, output, session) {
             #############################################################################
             if ((! is.null(real_data$animals)) && is.null(input$sick)) {
               output$sick <- renderUI(
-              multiInput(inputId = "sick", label = "Remove outliers (sick animals, etc.) ", selected = "", choices = unique(real_data$animals)))
+              multiInput(inputId = "sick", label = "Remove outliers", selected = "", choices = unique(real_data$animals)))
             }
 
             #############################################################################
@@ -2056,14 +2056,19 @@ server <- function(input, output, session) {
 
          df1$TEE <- as.factor(rep("RMR", nrow(df1)))
          df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
+         df2$EE <- df2$EE - df1$EE
 
          df_total <- rbind(df1, df2)
          df_total$Animals <- as.factor(df_total$Animals)
+         df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
 
          p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
          p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
+         p2 <- p2 + scale_fill_manual(values=c("non-RMR" = "#B2DF8A", "RMR" = "#CAB2D6"))
          p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
-         output$summary <- renderPlotly(ggplotly(p2))
+         output$summary <- renderPlotly(
+            ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+         )
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")
          if (input$havemetadata) {
@@ -2085,7 +2090,9 @@ server <- function(input, output, session) {
                      sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
-                     renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var))),
+                     renderPlotly(ggplotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)))
+                     %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+                     ),
                      hr(style = "width: 75%"),
                      conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
                   )
