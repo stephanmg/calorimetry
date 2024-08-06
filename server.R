@@ -688,7 +688,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
         finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
       }
 
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2")
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
        finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days

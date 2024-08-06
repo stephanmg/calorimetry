@@ -54,6 +54,7 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
    print(day_counts)
    # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
    annotations <- NULL
+   # TODO: We do not need this if/else statement, will work also without with_facets, refactor to remove the superfluous parameter
    if (with_facets) {
       animals <- unique(day_counts$`Animal No._NA`)
       for (i in 1:length(animals)) {
