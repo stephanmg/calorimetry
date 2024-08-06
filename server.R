@@ -1546,17 +1546,6 @@ output$details <- renderUI({
       finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
 
-      # TODO: obsolete, remove this code.
-      #if (input$day_only && input$night_only) {
-      #   # nothing to do we keep both night and day
-      #} else if (input$night_only) {
-      #   finalC1 <- finalC1 %>% filter(NightDay == "pm")
-      #} else if (input$day_only) {
-      #   finalC1 <- finalC1 %>% filter(NightDay == "pm")
-      #} else {
-      #   finalC1 <- NULL
-      #}
-
       # write.csv2(apply(finalC1, 2, as.character), "before_summing_for_tee.csv")
       TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
       TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
