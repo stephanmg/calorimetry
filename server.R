@@ -688,7 +688,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
         finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
       }
 
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2")
        finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
@@ -825,6 +825,28 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          component2 <- "HP"
       }
 
+      light_on <- 720
+      if (input$havemetadata) {
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+      }
+
+      if (input$override_metadata_light_cycle) {
+         light_on <- 60 * input$light_cycle_start
+      }
+
+      convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][2], ":00", sep = "")
+      }
+      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+
+      # df already prepared to be day and night summed activities
+      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      print("finalC1:")
+      print(finalC1)
+
       # first component, typically O2
       df <- data.frame(Values = finalC1[[component]],
          Group = `$`(finalC1, "Animal No._NA"),
@@ -913,7 +935,13 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       write.csv2(df_plot_total, "before_anno_rmr.csv")
       df_annos <- annotate_rmr_days(df_plot_total)
       p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
-      p <- p + geom_vline(xintercept = as.numeric(seq(24*60, max(df_plot_total$Time), 24*60)), linetype="dashed", color="black")
+
+      day_length <- 24
+      if(length(input$light_cycle) != 2) {
+         day_length = 12
+      }
+
+      p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(df_plot_total$Time), day_length*60)), linetype="dashed", color="black")
 
       p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
       p <- p + xlab("Time [minutes]")
@@ -1452,8 +1480,37 @@ output$details <- renderUI({
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
+    light_on <- 720
+      if (input$havemetadata) {
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+      }
+
+      if (input$override_metadata_light_cycle) {
+         light_on <- 60 * input$light_cycle_start
+         print("light on:")
+         print(light_on)
+      }
+
+      convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][2], ":00", sep = "")
+      }
+      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+
+      # df already prepared to be day and night summed activities
+      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      print("finalC1:")
+      print(finalC1)
+
+
+
       # Create unique days for each animals sorted ascending based by Datetime
       finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+
+
+
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
@@ -1467,16 +1524,16 @@ output$details <- renderUI({
       }
 
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
-      light_on <- 720
-      if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
+      #light_on <- 720
+      #if (input$havemetadata) {
+      #   light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+      #}
 
-      if (input$override_metadata_light_cycle) {
-         light_on <- 60 * input$light_cycle_start
-      }
+      #if (input$override_metadata_light_cycle) {
+      #   light_on <- 60 * input$light_cycle_start
+      #}
 
-      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
+      #finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
@@ -1489,15 +1546,16 @@ output$details <- renderUI({
       finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
 
-      if (input$day_only && input$night_only) {
-         # nothing to do we keep both night and day
-      } else if (input$night_only) {
-         finalC1 <- finalC1 %>% filter(NightDay == "pm")
-      } else if (input$day_only) {
-         finalC1 <- finalC1 %>% filter(NightDay == "pm")
-      } else {
-         finalC1 <- NULL
-      }
+      # TODO: obsolete, remove this code.
+      #if (input$day_only && input$night_only) {
+      #   # nothing to do we keep both night and day
+      #} else if (input$night_only) {
+      #   finalC1 <- finalC1 %>% filter(NightDay == "pm")
+      #} else if (input$day_only) {
+      #   finalC1 <- finalC1 %>% filter(NightDay == "pm")
+      #} else {
+      #   finalC1 <- NULL
+      #}
 
       # write.csv2(apply(finalC1, 2, as.character), "before_summing_for_tee.csv")
       TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
