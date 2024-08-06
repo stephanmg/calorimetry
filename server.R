@@ -421,12 +421,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
 
-   # curate data if desired
-   # TODO: commented this code, since the trimming based on Datetime (dates) is obsoleted and will be deleted later
-   if (input$curate) {
-      # finalC1 <- trim_front_end(finalC1, input$exclusion_end, input$exclusion_start)
-   }
-
    switch(plotType,
    #####################################################################################################################
    # CompareHeatProductionFormulas
@@ -478,12 +472,10 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
-      # trim times from end and beginning of measurements   
+      # trim times from end and beginning of measurements (obsolete)
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
-
-
 
       # Metadata from TSE file header should be enough, want to see oxidation of substrates by animals
       C1meta_tmp <- C1meta
@@ -869,7 +861,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
       df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
 
-      # TODO: Check that this is correct, before we needed to remove with slice the points. Double check!
+      # TODO: Check that this is correct, before we needed to remove with slice the last points. Double check!
       #finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
       df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) 
       df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
@@ -1277,11 +1269,10 @@ output$details <- renderUI({
       finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
-      # trim times from end and beginning of measurements   
+      # trim times from end and beginning of measurements (obsolete)
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
-
 
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
