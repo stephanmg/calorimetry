@@ -32,6 +32,7 @@ get_constants <- function(file) {
    constants_values$`1` <- NULL
    constants_values <- constants_values[!is.na(constants_values)]
    df_meta <- data.frame(constant = constants, value = constants_values)
+   print(df_meta)
    return(df_meta)
 }
 

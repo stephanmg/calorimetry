@@ -436,10 +436,20 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # GoxLox
    #####################################################################################################################
    GoxLox = {
-      # use zeitgeber zeit
-      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+      # find light cycle start by metadata, or override from UI, or use default from UI
+      light_on <- input$light_cycle_start
+      if (input$havemetadata) {
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+      }
 
-      # annotate days and animals (Already shifted by above correction)
+      if (input$override_metadata_light_cycle) {
+         light_on <- 60 * input$light_cycle_start
+      }
+
+      # use zeitgeber zeit
+      finalC1 <- zeitgeber_zeit(finalC1, light_on)
+
+      # annotate days and animals (Already shifted by above correction, thus light_on is now 0)
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
       finalC1 <- day_annotations$df_annotated
    
@@ -685,9 +695,15 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       # display zeitgeber zeit
       if (input$havemetadata) {
-        finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-      }
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 
+        if (input$override_metadata_light_cycle) {
+            light_on <- 60 * input$light_cycle_start
+          }
+
+        finalC1 <- zeitgeber_zeit(finalC1, light_on)
+      }
+      # already shifted by zeitgeber zeit above, so light_on is now 0
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2")
        finalC1 <- day_annotations$df_annotated
    
@@ -1246,6 +1262,15 @@ output$details <- renderUI({
    ### Raw
    #####################################################################################################################
    Raw = {
+      light_on <- input$light_cycle_start * 60
+      if (input$havemetadata) {
+         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+      }
+
+    if (input$override_metadata_light_cycle) {
+        light_on <- 60 * input$light_cycle_start
+    }
+
       # display zeitgeber zeit
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
@@ -1483,6 +1508,8 @@ output$details <- renderUI({
     light_on <- 720
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+         print("light on:")
+         print(light_on)
       }
 
       if (input$override_metadata_light_cycle) {
