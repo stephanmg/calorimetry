@@ -351,8 +351,8 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
    # exclude animals (outliers) from data sets
    if (! is.null(exclusion)) {
-      for (i in exclusion) {
-         C1 <- C1 %>% filter(`Animal No._NA` != as.numeric(i))
+      for (to_exclude_from_list in exclusion) {
+         C1 <- C1 %>% filter(`Animal No._NA` != as.numeric(to_exclude_from_list))
       }
    }
 
