@@ -123,7 +123,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # Skip metadata before data
    toSkip <- detectData(file)
 
-   # time diff (interval) or recordings
+   # time diff (interval) or recordings, default if no time diff otherwise found
    time_diff <<- 5
 
    # check file extension
@@ -357,7 +357,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    }
 
    # add interval info for each data frame / cohort separately
-   #interval_length_list[[tools::file_path_sans_ext(file)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
 
    # compile final measurement frame
@@ -419,7 +418,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    # filter out whole days with given threshold
    if (input$only_full_days) {
       time_diff <- get_time_diff(finalC1)
-      # finalC1 <- filter_full_days(finalC1, time_diff, input$full_days_threshold)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
 
@@ -841,7 +839,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          Values2 = finalC1$HP)
 
       df_new <- partition(df)
-      print(df_new)
       write.csv2(df_new, "df_new_before.csv")
       # Note that this might introduce NAs by coercion through cv(...) method.
       ## This is correct, since the time length of recordings per sample are not identical typically
@@ -923,8 +920,6 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line() + facet_wrap(~Animal)
       write.csv2(df_plot_total, "before_anno_rmr.csv")
       df_annos <- annotate_rmr_days(df_plot_total)
-      print("annos:")
-      print(df_annos)
       p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
       p <- p + geom_vline(xintercept = as.numeric(seq(24*60, max(df_plot_total$Time), 24*60)), linetype="dashed", color="black")
 
@@ -1234,8 +1229,6 @@ output$details <- renderUI({
       # display zeitgeber zeit
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
-      print("to zeitgeber after filtering")
-      print(finalC1)
       write.csv2(finalC1, "to_zeitgeber.csv")
 
       # annotate days and animals (Already shifted by above correction)
@@ -1319,7 +1312,6 @@ output$details <- renderUI({
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
 
-      print(colnames(df_to_plot))
       lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
       colnames(lights) <- c("x", "y")
       if (input$timeline) {
@@ -1478,9 +1470,6 @@ output$details <- renderUI({
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
-      print("meta columns:")
-      print(colnames(finalC1))
-
       convert2 <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
@@ -1503,16 +1492,11 @@ output$details <- renderUI({
          paste(splitted[[1]][1], "", sep = "")
       }
 
-      # TODO: time_diff throughout needs to be replaced with by cohort list exact time diff!
-      #time_diff <<- get_time_diff(finalC1)
-
       finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
       finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-      #finalC1$HP <- (finalC1$HP/60) * time_diff
-      #finalC1$HP2 <- (finalC1$HP2/60) * time_diff
 
       if (input$day_only && input$night_only) {
          # nothing to do we keep both night and day
@@ -2043,7 +2027,6 @@ server <- function(input, output, session) {
             }
                 # df to plot now contains the summed oxidation over individual days   
                df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
-               print(colnames(df_diff))
                df_unique_days <- NULL
                if (!input$havemetadata) {
                  df_unique_days <- df_diff %>% group_by(`Animal.No._NA`) %>% 
@@ -2057,10 +2040,8 @@ server <- function(input, output, session) {
          df1 <- read.csv2("rmr.csv")
          df2 <- read.csv2("tee.csv")
 
-         print(names(df_unique_days))
 
          df1 <- rename(df1, Animals = Animal)
-         print(names(df1))
          how_many_days <- length(levels(as.factor(df2$Days)))
          df1$Animals <- as.factor(df1$Animals)
          df_unique_days$Animals = as.factor(df_unique_days$Animals)
