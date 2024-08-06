@@ -1524,17 +1524,6 @@ output$details <- renderUI({
       }
 
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
-      #light_on <- 720
-      #if (input$havemetadata) {
-      #   light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      #}
-
-      #if (input$override_metadata_light_cycle) {
-      #   light_on <- 60 * input$light_cycle_start
-      #}
-
-      #finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "am", "pm")
-
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][1], "", sep = "")
@@ -1546,7 +1535,6 @@ output$details <- renderUI({
       finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
 
-      # write.csv2(apply(finalC1, 2, as.character), "before_summing_for_tee.csv")
       TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
       TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
 
