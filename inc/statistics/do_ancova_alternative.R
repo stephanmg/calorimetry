@@ -38,7 +38,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: Rename covariates as follows
+  # TODO: Rename covariates ANCOVA
   # First covariate, rename Weight -> Covariate1
   # Second covariate, rename Weight2 -> Covariate2
   names(df)[names(df) == indep_var] <- "Weight"
@@ -74,7 +74,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
 
-  # TODO: Rename TEE -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
+  # TODO: Rename TEE for ANCOVA 
+  # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
   if (dep_var == "TEE") {
     df <- df %>% select(all_of(to_select_columns))
   } else if (dep_var == "GoxLox") {
@@ -208,7 +209,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    # TODO: get all statistics into table for 2-way ANCOVA, more than one comparison of course, 
+    # TODO: get all statistics ANCOVA
+    # into table for 2-way ANCOVA, more than one comparison of course, 
     # thus multiple to report in table format, for a 1-way ANCOVA we simply report the first()
     print(pwc)
     pwc <- pwc %>% first()
