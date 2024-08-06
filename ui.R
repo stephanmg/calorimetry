@@ -210,7 +210,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", checkboxInput(inputId = "night_only", label = "Night", value = TRUE)),
    conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices = c("mean", "median", "mean_sdl"))),
    checkboxInput(inputId = "only_full_days", label = "Only full days", value = FALSE),
-   conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Threshold", min = 0, max = 100, value = 0, step = 1)),
+   conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Fraction of day missing [%]", min = 0, max = 100, value = 0, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value = FALSE)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", colourInput(inputId = "cage_color", label = "Cage Color", "white")),
    conditionalPanel(condition = "input.have_box_coordinates == true", h2("Cage configuration")),

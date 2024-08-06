@@ -206,7 +206,7 @@ convert_to_days <- function(x) {
 # filter_full_days_alternative
 ################################################################################
 filter_full_days_alternative <- function(df, threshold, cohort_list) {
-   df_filtered <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(Datetime4) %>% filter(n_distinct(hour) >= (24 * (100/(100-threshold)))) %>% ungroup()
+   df_filtered <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(Datetime4) %>% filter(n_distinct(hour) >= (24 * ((100-threshold)/100))) %>% ungroup()
    # based on Animal ID we need to subtract the offset 
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs = running_total.hrs - min(running_total.hrs, na.rm = TRUE)) %>% ungroup()
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour - min(running_total.hrs.halfhour, na.rm = TRUE)) %>% ungroup()
