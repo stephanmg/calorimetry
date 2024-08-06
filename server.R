@@ -1501,15 +1501,9 @@ output$details <- renderUI({
       finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
       finalC1$NightDay <- as.factor(finalC1$NightDay)
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      print("finalC1:")
-      print(finalC1)
-
-
 
       # Create unique days for each animals sorted ascending based by Datetime
       finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
-
-
 
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
