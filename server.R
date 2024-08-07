@@ -777,10 +777,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
 if (input$havemetadata) {
       #EE <- read.csv2("tee_and_rmr.csv")
-      EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-      EE <- EE %>% filter(TEE == "non-RMR")
-      EE$Animals <- as.factor(EE$Animals)
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -803,6 +799,12 @@ if (input$havemetadata) {
                      shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
                      return()
                   }
+
+                  EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+                  EE <- EE %>% filter(TEE == "non-RMR")
+                  EE$Animals <- as.factor(EE$Animals)
+                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+
                   p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
                   p <- p + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)
                   ggplotly(p)
@@ -1424,6 +1426,10 @@ output$details <- renderUI({
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+
+
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
      if (is.null(selected_days)) {
      output$select_day <- renderUI({
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
@@ -2278,12 +2284,7 @@ server <- function(input, output, session) {
             ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
          )
          
-         # TODO: make a global dictionary (based on session_token), and save the results of TEE calculation, and RMR calculation, 
-         # then in the EE panel, we can warn the user if TEE or RMR hasn't yet been calculated, 
-         # then we do not need to use these files, but can rely on a global object holding the data sets
-         # We can use shinyalert to notify the user that there hasnt been RMR or TEE been calculated yet,
-         # then we only do execute the if (input$havemetadata) statistics panel if all quantities calculated!
-         #write.csv2(df_total, "tee_and_rmr.csv")
+         # write.csv2(df_total, "tee_and_rmr.csv")
          storeSession(session$token, "TEE_and_RMR", df_total, global_data)
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")

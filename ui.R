@@ -102,8 +102,8 @@ sidebar_content2 <- sidebarPanel(
    fileInput("rercalr", "RER CalR (means)"),
    h1("Plotting control"),
    textInput("plotTitle", "Plot title", paste0("Average of RER value")),
-   actionButton("plottingvalidation", "Show"),
-   actionButton("reset", "Reset"),
+   actionButton("plottingvalidation", "Show plots"),
+   actionButton("reset", "Reset session"),
 )
 
 sidebar_content3 <- sidebarPanel(
@@ -250,9 +250,10 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("rmr_averaging", "Averaging width", min = 1, max = 30, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE, selected = "O2")),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
    h3("Light cycle configuration"),
    checkboxInput(inputId = "override_metadata_light_cycle", label = "Override"),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
+   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
    sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 6),
    sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 18),
    colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
