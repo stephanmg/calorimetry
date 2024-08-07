@@ -42,18 +42,13 @@ source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
 source("inc/exporters/default_exporter.R") # for data export
 
-source("inc/session_management.r") # for session management
+source("inc/session_management.R") # for session management
 
-# TODO: these global variables are not safe for multi-user scenario, thus, 
-# use session management for retrieving and setting these variables next
-time_diff <- 5
+# TODO: these global variables are not safe for multi-user scenario, and,
+# select date start and end is obsolete, refactor and delete dead code next
 time_start_end <- NULL
 start_date <- "1970-01-01"
 end_date <- Sys.Date()
-
-selected_days <- NULL
-selected_animals <- NULL
-interval_length_list <- list()
 
 global_data <- new.env()
 
@@ -131,7 +126,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    toSkip <- detectData(file)
 
    # time diff (interval) or recordings, default if no time diff otherwise found
-   time_diff <<- 5
+   time_diff <- getSession(session$token, global_data)[["time_diff"]]
 
    # check file extension
    fileExtension <- detectFileType(file)
@@ -364,7 +359,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    }
 
    # add interval info for each data frame / cohort separately
+   interval_length_list <- NULL
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
+   storeSession(session$token, "interval_length_list", interval_length_list, global_data)
 
    # compile final measurement frame
    finalC1 <- rbind(C1, finalC1)
@@ -402,7 +399,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    }
 
    # time interval diff for finalC1
-   time_diff <<- get_time_diff(finalC1)
+   storeSession(session$token, "time_diff", get_time_diff(finalC1), global_data)
 
    # set the time date ranges once for the final data frame
    if (is.null(time_start_end)) {
@@ -424,7 +421,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # filter out whole days with given threshold
    if (input$only_full_days) {
-      time_diff <- get_time_diff(finalC1)
+      storeSession(session$token, "time_diff", get_time_diff(finalC1), global_data)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
 
@@ -468,6 +465,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
      })
      selected_days = days_and_animals_for_select$days
+      storeSession(session$token, "selected_days", selected_days, global_data)
      } else {
       output$select_day <- renderUI({
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
@@ -479,12 +477,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
      })
      selected_animals = days_and_animals_for_select$animals
+     storeSession(session$token, "selected_animals", selected_animals, global_data)
    } else {
       output$select_animal <- renderUI({
       selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
       })
    }
 
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
       # filter for selected days and animals in data set
       finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
@@ -716,12 +717,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
-     if (is.null(selected_days)) {
 
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
+     if (is.null(selected_days)) {
      output$select_day <- renderUI({
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
      })
      selected_days = days_and_animals_for_select$days
+      storeSession(session$token, "selected_days", selected_days, global_data)
      } else {
       output$select_day <- renderUI({
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
@@ -733,11 +737,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
      })
      selected_animals = days_and_animals_for_select$animals
+      storeSession(session$token, "selected_animals", selected_animals, global_data)
    } else {
       output$select_animal <- renderUI({
       selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
       })
    }
+
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 
       # filter for selected days and animals in data set
       finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
@@ -768,7 +776,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
 if (input$havemetadata) {
-      EE <- read.csv2("tee_and_rmr.csv")
+      #EE <- read.csv2("tee_and_rmr.csv")
+      EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
       EE <- EE %>% filter(TEE == "non-RMR")
       EE$Animals <- as.factor(EE$Animals)
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
@@ -789,7 +798,15 @@ if (input$havemetadata) {
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)),
+               renderPlotly({
+                  if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
+                     shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
+                     return()
+                  }
+                  p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
+                  p <- p + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)
+                  ggplotly(p)
+               }),
                hr(style = "width: 75%"),
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)))
             )
@@ -1042,6 +1059,7 @@ if (input$havemetadata) {
 
       # TODO: Check RMR params: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
       # to reconstruct reliably RMR, but needs to be validated with additional analysis
+      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
       SLIDING_WINDOW_SIZE_M <- input$window
       PERCENTAGE_BEST <- input$percentage_best
@@ -1062,6 +1080,7 @@ if (input$havemetadata) {
       p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
       day_length <- 24
+      # if selected either Day or Night, the day length is assumed to be 12 hours
       if(length(input$light_cycle) != 2) {
          day_length = 12
       }
@@ -1074,6 +1093,7 @@ if (input$havemetadata) {
 
       p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)))
       p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+      storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
       finalC1 <- df_plot_total
    },
    #####################################################################################################################
@@ -1405,11 +1425,11 @@ output$details <- renderUI({
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
      if (is.null(selected_days)) {
-
      output$select_day <- renderUI({
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
      })
      selected_days = days_and_animals_for_select$days
+     storeSession(session$token, "selected_days", selected_days, global_data)
      } else {
       output$select_day <- renderUI({
       selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
@@ -1421,6 +1441,7 @@ output$details <- renderUI({
       selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
      })
      selected_animals = days_and_animals_for_select$animals
+      storeSession(session$token, "selected_animals", selected_animals, global_data)
    } else {
       output$select_animal <- renderUI({
       selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
@@ -1428,6 +1449,8 @@ output$details <- renderUI({
    }
 
       # filter for selected days and animals in data set
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
       finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
@@ -1659,6 +1682,7 @@ output$details <- renderUI({
          paste(splitted[[1]][1], "", sep = "")
       }
 
+      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
@@ -1686,8 +1710,10 @@ output$details <- renderUI({
          }
       }
       write.csv2(TEE, "tee.csv")
+      storeSession(session$token, "TEE", TEE, global_data)
       TEE <- TEE %>% filter(Equation == input$variable1)
 
+      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
@@ -1815,6 +1841,7 @@ output$details <- renderUI({
       }
       p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
       p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+      storeSession(session$token, "is_TEE_calculated", TRUE, global_data)
       },
       {
          # all other options
@@ -1839,6 +1866,8 @@ server <- function(input, output, session) {
    storeSession(session$token, "selected_days", NULL, global_data)
    storeSession(session$token, "selected_animals", NULL, global_data)
    storeSession(session$token, "interval_length_list", list(), global_data)
+   storeSession(session$token, "is_TEE_calculated", FALSE, global_data)
+   storeSession(session$token, "is_RMR_calculated", FALSE, global_data)
 
    # observer helpers
    observe_helpers()
@@ -2146,7 +2175,13 @@ server <- function(input, output, session) {
             })
 
             if (input$plot_type == "RestingMetabolicRate") {
-              showTab(inputId = "additional_content", target = "Summary statistics")
+                if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
+                     shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
+                     return()
+                  }
+
+
+               showTab(inputId = "additional_content", target = "Summary statistics")
                write.csv2(real_data$data, "before_rmr_written.csv")
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
@@ -2157,6 +2192,7 @@ server <- function(input, output, session) {
                   summarize(Value = HP, cgroups = c(Animal))
                   # summarize(Value = min(HP), cgroups = c(Animal))
                write.csv2(df_filtered, "rmr.csv")
+               storeSession(session$token, "RMR", df_filtered, global_data)
 
                df <- real_data$data
                df$Animal <- as.factor(df$Animal)
@@ -2181,7 +2217,7 @@ server <- function(input, output, session) {
             output$summary <- renderPlotly(ggplotly(p))
 
             # if we have metadata, check time diff again to be consistent with metadata sheet
-            time_diff <- 5
+            time_diff <- getSession(session$token, global_data)[["time_diff"]]
             df_diff <- read.csv2("finalC1.csv")
             if (input$havemetadata) {
                names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
@@ -2189,13 +2225,17 @@ server <- function(input, output, session) {
                if (time_diff == 0) {
                   time_diff <- 5
                }
+               storeSession(session$token, "time_diff", time_diff, global_data)
             }
 
             ## df to plot now contains the summed oxidation over individual days   
             ## df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
 
-         df1 <- read.csv2("rmr.csv")
-         df2 <- read.csv2("tee.csv")
+         #df1 <- read.csv2("rmr.csv")
+         #df2 <- read.csv2("tee.csv")
+
+         df1 <- getSession(session$token, global_data)[["RMR"]]
+         df2 <- getSession(session$token, global_data)[["TEE"]]
 
          df1 <- rename(df1, Animals = Animal)
          how_many_days <- length(levels(as.factor(df2$Days)))
@@ -2206,6 +2246,7 @@ server <- function(input, output, session) {
          unique_days_tee <- df2 %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days)) %>% as.data.frame()
 
          # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
+         interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
          df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
          df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
 
@@ -2242,7 +2283,8 @@ server <- function(input, output, session) {
          # then we do not need to use these files, but can rely on a global object holding the data sets
          # We can use shinyalert to notify the user that there hasnt been RMR or TEE been calculated yet,
          # then we only do execute the if (input$havemetadata) statistics panel if all quantities calculated!
-         write.csv2(df_total, "tee_and_rmr.csv")
+         #write.csv2(df_total, "tee_and_rmr.csv")
+         storeSession(session$token, "TEE_and_RMR", df_total, global_data)
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")
          if (input$havemetadata) {
@@ -2561,7 +2603,6 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$reset, {
       session$reload()
-      #time_start_end <- NULL
    })
 
    #############################################################################
@@ -2598,6 +2639,7 @@ server <- function(input, output, session) {
    observeEvent(input$select_day, {
       click("plotting")
       selected_days <<- input$select_day
+      storeSession(session$token, "selected_days", input$select_day, global_data)
    })
 
 
@@ -2607,5 +2649,6 @@ server <- function(input, output, session) {
    observeEvent(input$select_animal, {
       click("plotting")
       selected_animals <<- input$select_animal
+      storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
 }
