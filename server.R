@@ -2165,7 +2165,7 @@ server <- function(input, output, session) {
                         h5("y-axis limits"),
                         checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
                         numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
-                        numericInput("y_max_rmr_plot", "max", value = 0, max = 100)
+                        numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
                         )
                      )
                   )
