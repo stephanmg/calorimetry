@@ -895,10 +895,14 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # thus we need to make sure to always take the minimum of these three dataframes or pad accordingly the df_new and df_new2 data frames for each sample
       ## Note that this happens when input$window 
       do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
-      to_pad <- nrow(finalC1) - nrow(df_new) # difference between energy expenditure data frame and RMR
-      df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
-      df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
+      #to_pad <- nrow(finalC1) - nrow(df_new) # difference between energy expenditure data frame and RMR
+      #df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
+      #df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
       write.csv2(df_new, "df_new_after_padding_before_join.csv")
+
+      finalC1 <- finalC1 %>% ungroup() %>% slice(1:do_select_n) %>% group_by(`Animal No._NA`)
+      df_new <- df_new %>% slice(1:nrow(finalC1))
+      df_new2 <- df_new2 %>% slice(1:nrow(finalC1))
 
       #df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
       my_order <- unique(df_new$Group)
