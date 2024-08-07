@@ -409,7 +409,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # gender choice
    output$checkboxgroup_gender <- renderUI(
-      checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chose gender",
+      checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chosen sexes",
       choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
 
    #####################################################################################################################
