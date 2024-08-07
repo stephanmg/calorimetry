@@ -2057,7 +2057,7 @@ server <- function(input, output, session) {
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
 
-            # if we have metadata, check time diff again to be consistent
+            # if we have metadata, check time diff again to be consistent with metadata sheet
             time_diff <- 5
             df_diff <- read.csv2("finalC1.csv")
             if (input$havemetadata) {
@@ -2068,21 +2068,8 @@ server <- function(input, output, session) {
                }
             }
 
-            convert <- function(x) {
-                splitted <- strsplit(as.character(x), " ")
-                paste(splitted[[1]][1], "", sep = "")
-            }
-                # df to plot now contains the summed oxidation over individual days   
-               df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
-               df_unique_days <- NULL
-               if (!input$havemetadata) {
-                 df_unique_days <- df_diff %>% group_by(`Animal.No._NA`) %>% 
-                 summarize(unique_days = n_distinct(Datetime)) %>% rename(Animals = `Animal.No._NA`)
-               } else {
-                 df_unique_days <- df_diff %>% group_by(`Animal No._NA`) %>% 
-                 summarize(unique_days = n_distinct(Datetime)) %>% rename(Animals = `Animal No._NA`)
-               }
-               write.csv2(df_unique_days, "before_averaging_for_rmr.csv")
+            ## df to plot now contains the summed oxidation over individual days   
+            ## df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
 
          df1 <- read.csv2("rmr.csv")
          df2 <- read.csv2("tee.csv")
@@ -2090,7 +2077,6 @@ server <- function(input, output, session) {
          df1 <- rename(df1, Animals = Animal)
          how_many_days <- length(levels(as.factor(df2$Days)))
          df1$Animals <- as.factor(df1$Animals)
-         df_unique_days$Animals = as.factor(df_unique_days$Animals)
          df2$Animals <- as.factor(df2$Animals)
 
          # unique days
