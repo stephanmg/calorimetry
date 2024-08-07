@@ -891,19 +891,13 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
 
       finalC1$Datetime <- lapply(finalC1$Datetime, convert)
 
-      # if coefficient of variation is used in analysis, we might end up with 1 less timepoint
-      # thus we need to make sure to always take the minimum of these three dataframes or pad accordingly each sample
+      # if coefficient of variation is used in analysis, we might end up with 1 or more less timepoint (depending on averaging window!)
+      # thus we need to make sure to always take the minimum of these three dataframes or pad accordingly the df_new and df_new2 data frames for each sample
       ## Note that this happens when input$window 
       do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
-      to_pad <- nrow(finalC1) - nrow(df_new) # difference is exactly the number of samples as only 1 point misses 
+      to_pad <- nrow(finalC1) - nrow(df_new) # difference between energy expenditure data frame and RMR
       df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
       df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
-
-      # TODO: Check RMR slicing: Before we needed to remove with slice the last points. Double check!
-      #finalC1 <- finalC1 %>%  slice(1:(do_select_n-1)) # removes the last point for each of the samples available, since we use averaging, note that finalC1 is grouped by animals seemingly
-      df_new <- df_new %>%  slice(1:(do_select_n+to_pad)) 
-      df_new2 <- df_new2 %>%  slice(1:(do_select_n+to_pad))
-
       write.csv2(df_new, "df_new_after_padding_before_join.csv")
 
       #df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
