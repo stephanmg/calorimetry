@@ -48,12 +48,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     if (is.null(indep_var2)) {
       indep_var2 <- "lean_mass"
     }
-    print("indep var2:")
-    print(indep_var2)
-    print(colnames(df))
     names(df)[names(df) == indep_var2] <- "Weight2"
-    print("renaming!!!!")
-    print(colnames(df))
   }
 
   # first grouping variable, set some sensible default, Genotype should always be available
