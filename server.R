@@ -760,6 +760,110 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
          p <- p + geom_line()
       }
 
+if (input$havemetadata) {
+      EE <- read.csv2("tee_and_rmr.csv")
+      EE <- EE %>% filter(TEE == "non-RMR")
+      EE$Animals <- as.factor(EE$Animals)
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         output$test <- renderUI({
+            tagList(
+               h4("Configuration"),
+               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
+               selectInput("dep_var", "Dependent variable", choice = c("EE")),
+               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
+               selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
+               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
+               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
+               hr(style = "width: 50%"),
+               h4("Advanced"),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+               hr(style = "width: 75%"),
+               renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)),
+               hr(style = "width: 75%"),
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)))
+            )
+         })
+
+         # FIXME: Add back analysis without metadata sheet for TEE calculations
+
+         output$details <- renderUI({
+            results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+            tagList(
+               h3("Post-hoc analysis"),
+               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               hr(style = "width: 75%"),
+               h4("Results of statistical testing"),
+               tags$table(
+                  tags$thead(
+                     tags$tr(
+                        tags$th("p-value", style="width: 100px"),
+                        tags$th("p-value (adjusted)", style="width: 100px"),
+                        tags$th("significance level", style="width: 100px"),
+                        tags$th("degrees of freedom", style="width: 100px" ),
+                        tags$th("test statistic", style="width: 100px")
+                     )
+                  ),
+                  tags$tbody(
+                     tags$tr(
+                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
+                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
+                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
+                        tags$td(results$statistics$df, style="width: 100px"),
+                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+                     )
+                  )
+               ),
+               h4("Test assumptions"),
+               tags$table(
+                  tags$thead(
+                     tags$tr(
+                        tags$th("Description", style="width:200px"),
+                        tags$th("Name of significance test", style="width:200px"),
+                        tags$th("Null hypothesis", style="width:400px"),
+                        tags$th("p-value", style="width:200px"),
+                        tags$th("Status", style="width:200px")
+                     )
+                  ),
+                  tags$tbody(
+                     tags$tr(
+                        tags$td("Homogeneity of variances", style="width:200px"),
+                        tags$td("Levene's test", style="width:200px"),
+                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
+                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
+                        tags$td(
+                           if (as.numeric(results$levene$p) < 0.05) {
+                              icon("times")
+                           } else {
+                              icon("check")
+                           }
+                        ,style="width: 200px"
+                        )
+                     ),
+                     tags$tr(
+                        tags$td("Normality of residuals", style="width:200px"),
+                        tags$td("Shapiro-Wilk test", style="width:200px"),
+                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
+                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
+                        tags$td(
+                         if (as.numeric(results$shapiro$p.value) < 0.05) {
+                              icon("times")
+                           } else {
+                              icon("check")
+                           }
+                        ,style="width: 200px"
+                        )
+                     )
+                  )
+               ),
+            )
+         })
+    }
+
+
 
       # add means
       if (input$wmeans) {
@@ -2113,6 +2217,9 @@ server <- function(input, output, session) {
          output$summary <- renderPlotly(
             ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
          )
+         
+         # TODO: make a global dictionary, and save the results of TEE calculation, and RMR calculation, then in the EE panel, we can warn the user if TEE or RMR hasn't yet been calculated, then we do not need to use these files, but can rely on a global object holding the data sets
+         write.csv2(df_total, "tee_and_rmr.csv")
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")
          if (input$havemetadata) {
@@ -2358,8 +2465,8 @@ server <- function(input, output, session) {
                 withMathJax(HTML(paste(str1, str2, str3, str4, str5, str6, table_html, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, sep = "<br/>")))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
-               hideTab(inputId = "additional_content", target = "Statistical testing")
-               hideTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Statistical testing")
+               showTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
                str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"

@@ -94,6 +94,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     } else {
       df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
     }
+  } else if (dep_var == "EE") {
+    names(df)[names(df) == dep_var] <- "TEE"
+    if (num_covariates > 1) { # EE makes only sense to have 1-way ANCOVA currently (without Days)
+      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
+    } else {
+      df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+    }
   } else { # other quantities are supported only by 1-way ANCOVA with either 1 or 2 covariates
     if (num_covariates > 1) {
       df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
