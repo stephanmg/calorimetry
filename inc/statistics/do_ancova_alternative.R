@@ -162,6 +162,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
   p2 <- p2 + labs(colour=group)
+  if (num_covariates > 1) {
+   p3 <- p3 + labs(colour=group)
+  }
 
   # 1-way ANCOVA based on user input grouping variable
   res.aov <- NULL
