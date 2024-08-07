@@ -1835,7 +1835,7 @@ server <- function(input, output, session) {
    storeSession(session$token, "time_diff", 5, global_data)
    storeSession(session$token, "time_start_end", NULL, global_data)
    storeSession(session$token, "start_date", "1970-01-01", global_data)
-   storeSession(session$token, "end_date", Sys.Date())
+   storeSession(session$token, "end_date", Sys.Date(), global_data)
    storeSession(session$token, "selected_days", NULL, global_data)
    storeSession(session$token, "selected_animals", NULL, global_data)
    storeSession(session$token, "interval_length_list", list(), global_data)
