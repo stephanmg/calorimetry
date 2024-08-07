@@ -2218,7 +2218,11 @@ server <- function(input, output, session) {
             ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
          )
          
-         # TODO: make a global dictionary, and save the results of TEE calculation, and RMR calculation, then in the EE panel, we can warn the user if TEE or RMR hasn't yet been calculated, then we do not need to use these files, but can rely on a global object holding the data sets
+         # TODO: make a global dictionary, and save the results of TEE calculation, and RMR calculation, 
+         # then in the EE panel, we can warn the user if TEE or RMR hasn't yet been calculated, 
+         # then we do not need to use these files, but can rely on a global object holding the data sets
+         # We can use shinyalert to notify the user that there hasnt been RMR or TEE been calculated yet,
+         # then we only do execute the if (input$havemetadata) statistics panel if all quantities calculated!
          write.csv2(df_total, "tee_and_rmr.csv")
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")
