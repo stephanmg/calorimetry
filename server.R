@@ -42,6 +42,7 @@ source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
 source("inc/exporters/default_exporter.R") # for data export
 
+# TODO: these global variables are not safe for multi-user scenario
 time_diff <- 5
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -2573,11 +2574,18 @@ server <- function(input, output, session) {
       }
    })
 
+   #############################################################################
+   # Observe select_day input
+   #############################################################################
    observeEvent(input$select_day, {
       click("plotting")
       selected_days <<- input$select_day
    })
 
+
+   #############################################################################
+   # Observe select_animal input
+   #############################################################################
    observeEvent(input$select_animal, {
       click("plotting")
       selected_animals <<- input$select_animal
