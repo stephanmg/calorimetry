@@ -2087,12 +2087,14 @@ server <- function(input, output, session) {
          df1 <- read.csv2("rmr.csv")
          df2 <- read.csv2("tee.csv")
 
-
          df1 <- rename(df1, Animals = Animal)
          how_many_days <- length(levels(as.factor(df2$Days)))
          df1$Animals <- as.factor(df1$Animals)
          df_unique_days$Animals = as.factor(df_unique_days$Animals)
          df2$Animals <- as.factor(df2$Animals)
+
+         # unique days
+         unique_days_tee <- df2 %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days)) %>% as.data.frame()
 
          # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
          df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
@@ -2101,10 +2103,10 @@ server <- function(input, output, session) {
          # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
          df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE))
-         df2 <- df2 %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE))
+         df2 <- df2 %>% filter(Equation == "HP") %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE))
 
-         df1 <- left_join(df1, df_unique_days, by = "Animals")
-         df2 <- left_join(df2, df_unique_days, by = "Animals")
+         df1 <- left_join(df1, unique_days_tee, by = "Animals")
+         df2 <- left_join(df2, unique_days_tee, by = "Animals")
 
          # calculate averages of RMR over number of given days
          df1 <- df1 %>% mutate(EE = EE / unique_days)

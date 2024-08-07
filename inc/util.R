@@ -39,8 +39,8 @@ pretty_print_label <- function(label) {
    pretty_label <- gsub("body weight", "body weight [g]", pretty_label)
    pretty_label <- gsub("lean mass", "lean mass [g]", pretty_label)
    pretty_label <- gsub("fat mass", "fat mass [g]", pretty_label)
-   pretty_label <- gsub("TEE", paste0("TEE [kcal/day]"), pretty_label)
-   pretty_label <- gsub("RMR", paste0("RMR [kcal/day]"), pretty_label)
+   pretty_label <- gsub("TEE", paste0("TEE [kJ/day]"), pretty_label)
+   pretty_label <- gsub("RMR", paste0("RMR [kJ/day]"), pretty_label)
    pretty_label <- gsub("GoxLox", paste0("GoxLox [ml/h]"), pretty_label)
    pretty_label <- gsub("HP", paste0("Energy expenditure [kJ/day]"), pretty_label)
 }
