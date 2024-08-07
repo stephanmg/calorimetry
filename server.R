@@ -1142,15 +1142,15 @@ output$details <- renderUI({
 
 
 
-      if (input$day_only && input$night_only) {
-         # nothing to do we keep both night and day
-      } else if (input$night_only) {
-         df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
-      } else if (input$day_only) {
-         df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
-      } else {
-         df_to_plot <- NULL
-      }
+      #if (input$day_only && input$night_only) {
+      #   # nothing to do we keep both night and day
+      #} else if (input$night_only) {
+      #   df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
+      #} else if (input$day_only) {
+      #   df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
+      #} else {
+      #   df_to_plot <- NULL
+      #}
 
       p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
       p <- p + ggtitle("Day Night Activity")
