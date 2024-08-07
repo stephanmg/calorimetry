@@ -249,7 +249,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window size", min = 1, max = 30, value = 5, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("rmr_averaging", "Averaging width", min = 1, max = 30, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 1, step = 1)),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE, selected = "O2")),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = FALSE, selected = "O2")),
    h3("Light cycle configuration"),
    checkboxInput(inputId = "override_metadata_light_cycle", label = "Override"),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),

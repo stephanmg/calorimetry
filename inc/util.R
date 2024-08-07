@@ -34,7 +34,8 @@ pretty_print_variable <- function(variable) {
 # pretty print label
 ################################################################################
 pretty_print_label <- function(label) {
-   # Weights are always in [g], TODO: get units from metadata sheet
+   # Weights are always in [g]
+   # TODO: get units from metadata sheet
    pretty_label <- gsub("_", " ", label)
    pretty_label <- gsub("body weight", "body weight [g]", pretty_label)
    pretty_label <- gsub("lean mass", "lean mass [g]", pretty_label)
