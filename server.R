@@ -1581,7 +1581,9 @@ output$details <- renderUI({
 
       TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
-      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) # position = position_jitterdodge())
+      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
+      p <- p + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) # position = position_jitterdodge())
+      #p <- p + stat_summary(fun = mean, geom = "line", color="red", size=3, shape = 10)
       #p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
       p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
       if (input$with_facets) {
@@ -2032,7 +2034,7 @@ server <- function(input, output, session) {
                   group_by(Animal) %>%
                   na.omit() %>%
                   summarize(Value = HP, cgroups = c(Animal))
-                  #summarize(Value = min(HP), cgroups = c(Animal))
+                  # summarize(Value = min(HP), cgroups = c(Animal))
                write.csv2(df_filtered, "rmr.csv")
 
                df <- real_data$data
@@ -2134,11 +2136,38 @@ server <- function(input, output, session) {
                      sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
-                     renderPlotly(ggplotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)))
-                     %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-                     ),
+                     renderPlotly({
+                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary 
+                        p <- p + xlab(pretty_print_label(input$covar)) 
+                        p <- p + ylab(pretty_print_label(input$dep_var)) 
+                        if (!input$auto_scale_rmr_plot_limits_x) {
+                           p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
+                        }
+
+                        if (!input$auto_scale_rmr_plot_limits_y) {
+                           p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
+                        }
+
+                        ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+                     }),
                      hr(style = "width: 75%"),
-                     conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description)))
+                     conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description))),
+                     hr(style = "widht: 50%"),
+                     h4("Plotting control"),
+                     fluidRow(
+                        column(6,
+                        h5("x-axis limits"),
+                        checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
+                        numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
+                        numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
+                        ),
+                        column(6,
+                        h5("y-axis limits"),
+                        checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
+                        numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
+                        numericInput("y_max_rmr_plot", "max", value = 0, max = 100)
+                        )
+                     )
                   )
                   })
 
