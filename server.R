@@ -2150,22 +2150,53 @@ server <- function(input, output, session) {
 
                         ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
                      }),
-                     hr(style = "width: 75%"),
-                     conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(input$covar2) + ylab(input$dep_var) + ggtitle(input$study_description))),
-                     hr(style = "widht: 50%"),
-                     h4("Plotting control"),
-                     fluidRow(
-                        column(6,
-                        h5("x-axis limits"),
-                        checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
-                        numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
-                        numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
+                        hr(style = "width: 50%"),
+                        h4("Plotting control"),
+                        fluidRow(
+                           column(6,
+                           h5("x-axis limits"),
+                           checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
+                           numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
+                           numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
+                           ),
+                           column(6,
+                           h5("y-axis limits"),
+                           checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
+                           numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
+                           numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
+                           )
                         ),
-                        column(6,
-                        h5("y-axis limits"),
-                        checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
-                        numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
-                        numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
+
+                     hr(style = "width: 75%"),
+                     conditionalPanel("input.num_covariates == '2'", renderPlotly({
+                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
+                        p <- p + xlab(pretty_print_label(input$covar2)) 
+                        p <- p + ylab(pretty_print_label(input$dep_var)) 
+                        if (!input$auto_scale_rmr_plot_limits_x2) {
+                           p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
+                        }
+
+                        if (!input$auto_scale_rmr_plot_limits_y2) {
+                           p <- p + ylim(c(input$y_min_rmr_plot2, input$y_max_rmr_plot2))
+                        }
+                        ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+                     })),
+                     conditionalPanel("input.num_covariates == '2'", 
+                        hr(style = "width: 50%"),
+                        h4("Plotting control"),
+                        fluidRow(
+                           column(6,
+                           h5("x-axis limits"),
+                           checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
+                           numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
+                           numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
+                           ),
+                           column(6,
+                           h5("y-axis limits"),
+                           checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
+                           numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
+                           numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
+                           )
                         )
                      )
                   )
