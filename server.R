@@ -2137,7 +2137,7 @@ server <- function(input, output, session) {
                      checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                      hr(style = "width: 75%"),
                      renderPlotly({
-                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary 
+                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
                         p <- p + xlab(pretty_print_label(input$covar)) 
                         p <- p + ylab(pretty_print_label(input$dep_var)) 
                         if (!input$auto_scale_rmr_plot_limits_x) {

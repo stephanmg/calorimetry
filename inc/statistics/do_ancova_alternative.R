@@ -48,7 +48,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     if (is.null(indep_var2)) {
       indep_var2 <- "lean_mass"
     }
+    print("indep var2:")
+    print(indep_var2)
+    print(colnames(df))
     names(df)[names(df) == indep_var2] <- "Weight2"
+    print("renaming!!!!")
+    print(colnames(df))
   }
 
   # first grouping variable, set some sensible default, Genotype should always be available
@@ -89,8 +94,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df <- df %>% select(all_of(to_select_columns))
   } else if (dep_var == "RMR") { # RMR makes only sense to have 1-way ANCOVA currently (without Days)
     names(df)[names(df) == dep_var] <- "TEE" 
-    df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
-  } else { # other quantities are supported only by 1-way ANCOVA
+    if (num_covariates > 1) {
+      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
+    } else {
+      df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+    }
+  } else { # other quantities are supported only by 1-way ANCOVA with either 1 or 2 covariates
     if (num_covariates > 1) {
       df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
     } else {
@@ -100,6 +109,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   df$Weight <- as.numeric(df$Weight)
   if (num_covariates > 1) {
+    print(df)
+    print(colnames(df))
     df$Weight2 <- as.numeric(df$Weight2)
   }
   df$TEE <- as.numeric(df$TEE)
