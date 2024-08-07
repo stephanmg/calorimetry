@@ -89,6 +89,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
+   interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
@@ -359,9 +360,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    }
 
    # add interval info for each data frame / cohort separately
-   interval_length_list <- NULL
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
-   storeSession(session$token, "interval_length_list", interval_length_list, global_data)
 
    # compile final measurement frame
    finalC1 <- rbind(C1, finalC1)
@@ -370,6 +369,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    }
 
    # print master list for interval lengths
+   storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
 
    # step 13 (debugging: save all cohort means)
@@ -459,6 +459,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
      if (is.null(selected_days)) {
 
      output$select_day <- renderUI({
@@ -1689,6 +1692,7 @@ output$details <- renderUI({
       }
 
       interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+      pretty_print_interval_length_list(interval_length_list)
       finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
