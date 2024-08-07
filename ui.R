@@ -315,7 +315,9 @@ sidebar_content <- sidebarPanel(
       fluidRow(
          column(8, style = "padding: 0px;",
          span(textOutput("message"), style = "color:red")
-    )))
+    ))),
+    # hidden session ID to manage global user data (or hidden; if required to hide)
+    span(textOutput("session_id"), style = "color: #77DD77; font-size: 12px; visibility: visible;")
 )
 
 ################################################################################

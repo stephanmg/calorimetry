@@ -42,7 +42,10 @@ source("inc/metadata/read_metadata.R") # for metadata sheet handling
 
 source("inc/exporters/default_exporter.R") # for data export
 
-# TODO: these global variables are not safe for multi-user scenario
+source("inc/session_management.r") # for session management
+
+# TODO: these global variables are not safe for multi-user scenario, thus, 
+# use session management for retrieving and setting these variables next
 time_diff <- 5
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -51,6 +54,9 @@ end_date <- Sys.Date()
 selected_days <- NULL
 selected_animals <- NULL
 interval_length_list <- list()
+
+global_data <- new.env()
+
 ################################################################################
 # Helper functions
 ################################################################################
@@ -62,7 +68,7 @@ convert <- function(x) {
 ################################################################################
 # Create plotly plot
 ################################################################################
-do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_linter.
+do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
    #############################################################################
    # Configure base plot look and feel with ggpubr
    #############################################################################
@@ -1822,6 +1828,18 @@ output$details <- renderUI({
 # Create server
 #####################################################################################################################
 server <- function(input, output, session) {
+   # save session id
+   output$session_id <- renderText(paste0("Global session ID: ", session$token))
+   
+   # store globally the data per session
+   storeSession(session$token, "time_diff", 5, global_data)
+   storeSession(session$token, "time_start_end", NULL, global_data)
+   storeSession(session$token, "start_date", "1970-01-01", global_data)
+   storeSession(session$token, "end_date", Sys.Date())
+   storeSession(session$token, "selected_days", NULL, global_data)
+   storeSession(session$token, "selected_animals", NULL, global_data)
+   storeSession(session$token, "interval_length_list", list(), global_data)
+
    # observer helpers
    observe_helpers()
 
@@ -2051,7 +2069,7 @@ server <- function(input, output, session) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
          } else {
            file <- input$File1
-           real_data <- do_plotting(file$datapath, input, input$sick, output)
+           real_data <- do_plotting(file$datapath, input, input$sick, output, session)
 
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
@@ -2219,7 +2237,7 @@ server <- function(input, output, session) {
             ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
          )
          
-         # TODO: make a global dictionary, and save the results of TEE calculation, and RMR calculation, 
+         # TODO: make a global dictionary (based on session_token), and save the results of TEE calculation, and RMR calculation, 
          # then in the EE panel, we can warn the user if TEE or RMR hasn't yet been calculated, 
          # then we do not need to use these files, but can rely on a global object holding the data sets
          # We can use shinyalert to notify the user that there hasnt been RMR or TEE been calculated yet,
