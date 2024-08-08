@@ -435,6 +435,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # GoxLox
    #####################################################################################################################
    GoxLox = {
+      # enrich with metadata
+      data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+      print("true_metadata")
+      print(true_metadata)
+
+
       # find light cycle start by metadata, or override from UI, or use default from UI
       light_on <- input$light_cycle_start * 60
       if (input$havemetadata) {
@@ -522,8 +530,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
       GoxLox <- GoxLox %>% rename(GoxLox = x)
 
-    if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+    if (input$havemetadata || !input$havemetadata) {
+         #true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -537,7 +545,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
                hr(style = "width: 50%"),
                h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
@@ -546,8 +554,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
             )
          })
-
-         # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
             results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
@@ -660,18 +666,12 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
       # join either metadata from sheet or tse supported header columns (see above) to measurement data
-      # TODO: add this to other cases for plotting as well: Raw, TEE, RMR; GoxLox, DayNight
-      if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
-         finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
-      } else {
-         df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
-         df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
-         df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
-         colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
-         colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
-         finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
-      }
+      # enrich with metadata from TSE header (C1meta) or from metadata sheet (input$metadatafile)
+      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+      print("true_metadata")
+      print(true_metadata)
 
       # Select sexes
       if (!is.null(input$checkboxgroup_gender)) {
@@ -698,16 +698,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
             }
          }
       }
-
-      # prepare for facet usage when no metadata available
-      #if (input$with_facets) {
-      #   if (!input$havemetadata) {
-      #      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-      #      colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
-      #      colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
-      #   }
-      #}
-
 
       light_on <- input$light_cycle_start * 60
 
@@ -786,7 +776,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          p <- p + geom_line()
       }
 
-if (input$havemetadata) {
+if (input$havemetadata || !input$havemetadata) {
       #EE <- read.csv2("tee_and_rmr.csv")
          output$test <- renderUI({
             tagList(
@@ -801,7 +791,7 @@ if (input$havemetadata) {
                conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                hr(style = "width: 50%"),
                h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
@@ -814,7 +804,7 @@ if (input$havemetadata) {
                   EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
                   EE <- EE %>% filter(TEE == "non-RMR")
                   EE$Animals <- as.factor(EE$Animals)
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+                  #true_metadata <- get_true_metadata(input$metadatafile$datapath)
 
                   p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
                   p <- p + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)
@@ -824,8 +814,6 @@ if (input$havemetadata) {
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)))
             )
          })
-
-         # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
             results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
@@ -1143,6 +1131,14 @@ if (input$havemetadata) {
    ### Day Night Activity
    #####################################################################################################################
    DayNightActivity = {
+      data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+      print("true_metadata")
+      print(true_metadata)
+
+
+
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
@@ -1184,8 +1180,8 @@ if (input$havemetadata) {
       DayNight$NightDay <- as.factor(DayNight$NightDay)
       write.csv2(apply(DayNight, 2, as.character), "test_before_day_night.csv")
 
- if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+ if (input$havemetadata || !input$havemetadata) {
+         #true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1198,7 +1194,7 @@ if (input$havemetadata) {
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Genotype", get_factor_columns(true_metadata)), selected = "Days")),
                hr(style = "width: 50%"),
                h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
@@ -1209,7 +1205,6 @@ if (input$havemetadata) {
          })
  }
 
-         # FIXME: Add back analysis without metadata sheet for TEE calculations
 
 output$details <- renderUI({
             results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
@@ -1404,21 +1399,33 @@ output$details <- renderUI({
    ### Raw
    #####################################################################################################################
    Raw = {
+      # enrich with metadata
+      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+      print("true_metadata")
+      print(true_metadata)
+
+
+
+      # default light on from UI
       light_on <- input$light_cycle_start * 60
+
+      # in case we have metadata, override with values from sheet
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
 
-    if (input$override_metadata_light_cycle) {
+      # in case no information in metadata sheet, override light cycle manually
+      if (input$override_metadata_light_cycle) {
         light_on <- 60 * input$light_cycle_start
-    }
+      }
 
       # display zeitgeber zeit
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-
       write.csv2(finalC1, "to_zeitgeber.csv")
 
-      # annotate days and animals (Already shifted by above correction)
+      # format variable from UI to compatible TSE format
       mylabel <- paste0(input$myr, sep = "", "_[%]")
       if (startsWith(input$myr, "V")) {
          mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
@@ -1432,38 +1439,39 @@ output$details <- renderUI({
          mylabel <- "RER"
       }
 
+      # annotate days and animals (Already shifted by above correction)
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
-
-
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
       selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-     if (is.null(selected_days)) {
-     output$select_day <- renderUI({
-      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-     })
-     selected_days = days_and_animals_for_select$days
-     storeSession(session$token, "selected_days", selected_days, global_data)
-     } else {
-      output$select_day <- renderUI({
-      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
-     })
-     }
 
-   if (is.null(selected_animals)) {
-      output$select_animal <- renderUI({
-      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
-     })
-     selected_animals = days_and_animals_for_select$animals
-      storeSession(session$token, "selected_animals", selected_animals, global_data)
-   } else {
-      output$select_animal <- renderUI({
-      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
-      })
-   }
+      # set default for animals and selected days: typically all selected at the beginning
+      if (is.null(selected_days)) {
+         output$select_day <- renderUI({
+            selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+         })
+         selected_days = days_and_animals_for_select$days
+         storeSession(session$token, "selected_days", selected_days, global_data)
+      } else {
+         output$select_day <- renderUI({
+            selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+         })
+      }
+
+      if (is.null(selected_animals)) {
+         output$select_animal <- renderUI({
+            selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+         })
+         selected_animals = days_and_animals_for_select$animals
+         storeSession(session$token, "selected_animals", selected_animals, global_data)
+      } else {
+         output$select_animal <- renderUI({
+            selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+         })
+      }
 
       # filter for selected days and animals in data set
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
@@ -1479,10 +1487,11 @@ output$details <- renderUI({
       C1meta_tmp <- C1meta
       colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
       df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
       write.csv2(df_to_plot, file = "finalC1.csv")
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
       df_to_plot$Animals <- colors
+
+      # format labels for plot
       mylabel <- paste0(input$myr, sep = "", "_[%]")
       myvar <- input$myr
       if (startsWith(input$myr, "V")) {
@@ -1502,9 +1511,11 @@ output$details <- renderUI({
       names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
       names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
+      # plot basic plot
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
 
+      # annotate timeline
       lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
       colnames(lights) <- c("x", "y")
       if (input$timeline) {
@@ -1515,7 +1526,7 @@ output$details <- renderUI({
       p <- p + ylab(pretty_print_variable(mylabel))
       p <- p + xlab("Time [h]")
 
-     convert <- function(x) {
+      convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][1], "", sep = "")
       }
@@ -1524,10 +1535,9 @@ output$details <- renderUI({
       df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
       df_to_plot$GoxLox = df_to_plot[input$myr]
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
-      
 
-    if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+    if (input$havemetadata || !input$havemetadata) {
+         # true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1541,7 +1551,7 @@ output$details <- renderUI({
                conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
                hr(style = "width: 50%"),
                h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
@@ -1550,8 +1560,6 @@ output$details <- renderUI({
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable(mylabel)) + ggtitle(input$study_description)))
             )
          })
-
-         # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
             results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
@@ -1654,23 +1662,30 @@ output$details <- renderUI({
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
-    light_on <- 720
+      colors <- as.factor(`$`(finalC1, "Animal No._NA"))
+      finalC1$Animals <- colors
+      # enrich with metadata
+      data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+      print("true_metadata")
+      print(true_metadata)
+
+
+      light_on <- 720
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-         print("light on:")
-         print(light_on)
       }
 
       if (input$override_metadata_light_cycle) {
          light_on <- 60 * input$light_cycle_start
-         print("light on:")
-         print(light_on)
       }
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
       }
+
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 
       # df already prepared to be day and night summed activities
@@ -1749,8 +1764,8 @@ output$details <- renderUI({
          }
       }
 
-      if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+      if (input$havemetadata || !input$havemetadata) {
+         # true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1764,7 +1779,7 @@ output$details <- renderUI({
                conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
                hr(style = "width: 50%"),
                h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Spearman")),
+               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
@@ -1773,8 +1788,6 @@ output$details <- renderUI({
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
             )
          })
-
-         # FIXME: Add back analysis without metadata sheet for TEE calculations
 
          output$details <- renderUI({
             results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)
@@ -2305,8 +2318,17 @@ server <- function(input, output, session) {
          storeSession(session$token, "TEE_and_RMR", df_total, global_data)
          df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
          write.csv2(df_total, "test_for_rmr.csv")
-         if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+
+      data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, input$metadatafile)
+      #df_total <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+      print("true_metadata")
+      print(true_metadata)
+
+
+
+         if (input$havemetadata || !input$havemetadata) {
+               # true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$test <- renderUI({
                   tagList(
                      h4("Configuration"),
@@ -2390,7 +2412,6 @@ server <- function(input, output, session) {
                   )
                   })
 
-               # FIXME: Add back analysis without metadata sheet for RMR calculations
 
                output$details <- renderUI({
                   results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)

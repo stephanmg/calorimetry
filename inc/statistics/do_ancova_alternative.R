@@ -41,7 +41,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   # TODO: Rename covariates ANCOVA
   # First covariate, rename Weight -> Covariate1
   # Second covariate, rename Weight2 -> Covariate2
+  print("renaming?")
   names(df)[names(df) == indep_var] <- "Weight"
+  print(colnames(df))
+  print("types:")
+  print(sapply(df, class))
 
   # ANCOVA which uses multiple covariate
   if (num_covariates > 1) {
