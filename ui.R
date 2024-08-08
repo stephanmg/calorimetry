@@ -166,6 +166,7 @@ sidebar_content <- sidebarPanel(
    h3("Data consistency checks"),
    div("In case of any detected inconsistency in the raw data, a warning is generated, and further analysis is postponed. Check the boxes to enable consistency checks for all provided input data sets."),
    checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
+   checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
    checkboxInput(inputId = "highly_varying_measurements", label = "High variation measurements", value = FALSE),
    conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
    h3("Plotting controls"),
@@ -199,6 +200,7 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
+   # TODO: Need to implement metadata read-in from datasets, then can add the gender selection
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
    h2("Time averaging of measurements"),
    checkboxInput(inputId = "override_averaging", label = "Override averaging method (mean)"),

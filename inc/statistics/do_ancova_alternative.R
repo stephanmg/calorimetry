@@ -4,8 +4,6 @@ library(rstatix)
 library(broom)
 library(emmeans)
 
-source("inc/session_management.R")
-
 ################################################################################
 # Get r squared clean for plotly
 ################################################################################

@@ -87,7 +87,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    fileFormatTSE <- FALSE
    finalC1 <- c()
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
-   # Supported basic metadata fields from TSE LabMaster/PhenoMaster
+   # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
    for (i in 1:input$nFiles) {
@@ -360,7 +360,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    }
 
    # add interval info for each data frame / cohort separately
-   interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1))
+   interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
 
    # compile final measurement frame
    finalC1 <- rbind(C1, finalC1)
@@ -399,7 +399,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    }
 
    # time interval diff for finalC1
-   storeSession(session$token, "time_diff", get_time_diff(finalC1), global_data)
+   storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
 
    # set the time date ranges once for the final data frame
    if (is.null(time_start_end)) {
@@ -421,7 +421,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # filter out whole days with given threshold
    if (input$only_full_days) {
-      storeSession(session$token, "time_diff", get_time_diff(finalC1), global_data)
+      storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
 
@@ -450,7 +450,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          light_on <- 60 * input$light_cycle_start
       }
 
-      # use zeitgeber zeit
       finalC1 <- zeitgeber_zeit(finalC1, light_on)
 
       # annotate days and animals (Already shifted by above correction, thus light_on is now 0)
@@ -524,6 +523,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # df to plot now contains the summed oxidation over individual days   
       df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+      write.csv2(df_to_plot, "goxLox_without_metadata.csv")
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
       GoxLox <- GoxLox %>% rename(GoxLox = x)
 
@@ -696,24 +696,28 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
       # prepare for facet usage when no metadata available
-      if (input$with_facets) {
-         if (!input$havemetadata) {
-            finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-            colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
-            colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
-         }
-      }
+      #if (input$with_facets) {
+      #   if (!input$havemetadata) {
+      #      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+      #      colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
+      #      colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
+      #   }
+      #}
 
-      # display zeitgeber zeit
+
+      light_on <- input$light_cycle_start * 60
+
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-
-        if (input$override_metadata_light_cycle) {
-            light_on <- 60 * input$light_cycle_start
-          }
-
-        finalC1 <- zeitgeber_zeit(finalC1, light_on)
       }
+
+       if (input$override_metadata_light_cycle) {
+          light_on <- 60 * input$light_cycle_start
+         }
+
+      # display zeitgeber zeit
+        finalC1 <- zeitgeber_zeit(finalC1, light_on)
+
       # already shifted by zeitgeber zeit above, so light_on is now 0
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
        finalC1 <- day_annotations$df_annotated
@@ -2231,7 +2235,7 @@ server <- function(input, output, session) {
             df_diff <- read.csv2("finalC1.csv")
             if (input$havemetadata) {
                names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
-               time_diff <- get_time_diff(df_diff, 1, 3)
+               time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
                if (time_diff == 0) {
                   time_diff <- 5
                }
