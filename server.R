@@ -359,6 +359,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
    }
 
+   # coarsen data set (might need to average later than)
+   if (input$coarsen_data_sets) {
+      C1 <- coarsen_data_sets(C1, input$coarsening_factor)
+   }
+
    # add interval info for each data frame / cohort separately
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
 
@@ -372,7 +377,18 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
 
-   # step 13 (debugging: save all cohort means)
+
+   # remove z-score outliers
+   if (input$z_score_removal_of_outliers) {
+     finalC1 <- remove_z_score_outliers(finalC1, input$sds)
+   }
+
+   # remove zero values
+   if (input$remove_zero_values) {
+      finalC1 <- remove_z_values(finalC1, input$eps)
+   }
+
+    # step 13 (debugging: save all cohort means)
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
    C1meta <- finalC1meta
 
@@ -406,6 +422,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       time_start_end <<- get_date_range(finalC1)
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
+
 
    #####################################################################################################################
    # Plotting and data output for downstream debugging
@@ -1805,7 +1822,7 @@ output$details <- renderUI({
          str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
          HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
          })
-         
+
       p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
       p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       storeSession(session$token, "is_TEE_calculated", TRUE, global_data)
@@ -1824,7 +1841,7 @@ output$details <- renderUI({
 server <- function(input, output, session) {
    # save session id
    output$session_id <- renderText(paste0("Global session ID: ", session$token))
-   
+
    # store globally the data per session
    storeSession(session$token, "time_diff", 5, global_data)
    storeSession(session$token, "time_start_end", NULL, global_data)

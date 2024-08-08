@@ -2,6 +2,47 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 
 ################################################################################
+# coarsening data sets
+################################################################################
+coarsen_data_sets <- function(df, coarsening_factor) {
+   # assumes that the data frame is sorted ascending in time, which should be the case
+   df_filtered <- df %>% group_by(`Animal No._NA`) %>% mutate(row_num = row_number()) %>% filter(row_num == 1 | row_num %% coarsening_factor == 0) %>% select(-row_num)
+   df_filtered <- df_filtered %>% mutate(diff.sec = diff.sec * coarsening_factor)
+   return(df_filtered)
+}
+
+################################################################################
+# remove zero values
+################################################################################
+remove_zero_values <- function(df, eps) {
+   target_columns <- c("O2_[%]", "CO2_[%]", "VCO2_[ml/h]", "VO2_[ml/h]")
+   available_columns = intersect(target_columns, colnames(df))
+   df_filtered <- df
+   if (length(available_columns) > 0) {
+      df_filtered <- df %>% filter(if_any(all_of(available_columns), ~abs(.) < eps))
+   }
+   return(df_filtered)
+}
+
+################################################################################
+# remove z score outliers
+################################################################################
+remove_z_score_outliers <- function(df, sd=1) {
+   target_columns <- c("O2_[%]", "CO2_[%]", "VCO2_[ml/h]", "VO2_[ml/h]")
+   available_columns = intersect(target_columns, colnames(df))
+   df_filtered <- df
+   if (length(available_columns) > 0) {
+      z_scores <- df %>% 
+      select(all_of(available_columns)) %>%
+      mutate(across(everything(), ~ scale(.) %>% as.vector()))
+      df_with_z <- df %>% bind_cols(z_scores %>% setNames(paste0("z_", available_columns)))
+      df_filtered <- df_with_z %>% filter(if_any(starts_with("z_"), ~abs(.) < sd))
+      df_filtered <- df_filtered %>% select(-starts_with("z_"))
+   } 
+   return(df_filtered)
+}
+
+################################################################################
 # enrich with metadata
 ################################################################################
 enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
