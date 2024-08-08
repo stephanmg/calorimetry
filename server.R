@@ -407,11 +407,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
-   # gender choice
-   output$checkboxgroup_gender <- renderUI(
-      checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chosen sexes",
-      choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
-
    #####################################################################################################################
    # Plotting and data output for downstream debugging
    #####################################################################################################################
@@ -664,6 +659,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
+      # join either metadata from sheet or tse supported header columns (see above) to measurement data
+      # TODO: add this to other cases for plotting as well: Raw, TEE, RMR; GoxLox, DayNight
       if (input$havemetadata) {
          true_metadata <- get_true_metadata(input$metadatafile$datapath)
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
@@ -674,6 +671,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
          colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animal No._NA"
          finalC1 <- merge(finalC1, df_filtered, by = "Animal No._NA")
+      }
+
+      # Select sexes
+      if (!is.null(input$checkboxgroup_gender)) {
+         if ("Sex" %in% names(finalC1)) {
+           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+         }
       }
 
       # filter conditions
@@ -1882,6 +1886,11 @@ server <- function(input, output, session) {
    storeSession(session$token, "interval_length_list", list(), global_data)
    storeSession(session$token, "is_TEE_calculated", FALSE, global_data)
    storeSession(session$token, "is_RMR_calculated", FALSE, global_data)
+
+   # gender choice = all
+   output$checkboxgroup_gender <- renderUI(
+      checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chosen sexes",
+      choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
 
    # observer helpers
    observe_helpers()

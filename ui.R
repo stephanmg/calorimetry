@@ -200,8 +200,7 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
-   # TODO: Need to implement metadata read-in from datasets, then can add the gender selection
-   conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
+   uiOutput("checkboxgroup_gender"),
    h2("Time averaging of measurements"),
    checkboxInput(inputId = "override_averaging", label = "Override averaging method (mean)"),
    conditionalPanel(condition = "input.override_averaging == true", selectInput("avg_method_for_statistics", "Method", choices = c("mean", "median"))),

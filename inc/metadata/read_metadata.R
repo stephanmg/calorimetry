@@ -54,6 +54,7 @@ get_true_metadata <- function(file) {
    diet_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "diet_group"))) %>% pull(ind)
    genotype_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "genotype_group"))) %>% pull(ind)
    body_weight_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "body weight"))) %>% pull(ind)
+   sexes_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "sex"))) %>% pull(ind)
 
    # number of samples
    ids <- df %>% slice(id_index)
@@ -85,7 +86,12 @@ get_true_metadata <- function(file) {
    diets$`1` <- NULL
    diets <- diets[!is.na(diets)]
 
+   # sexes
+   sexes <- df %>% slice(sexes_index)
+   sexes$`1` <- NULL
+   sexes <- sexes[!is.na(sexes)]
+
    # return compiled metadata
-   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights)
+   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights, Sex = as.factor(sexes))
    return(df_meta)
 }
