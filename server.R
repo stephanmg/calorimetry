@@ -439,8 +439,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
 
 
       # find light cycle start by metadata, or override from UI, or use default from UI
@@ -530,8 +528,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
       GoxLox <- GoxLox %>% rename(GoxLox = x)
 
-    if (input$havemetadata || !input$havemetadata) {
-         #true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -626,8 +622,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                ),
             )
          })
-    }
-
  
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
@@ -641,7 +635,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
            }
         }
      }
-
    
       light_offset <- 0
      # add day annotations and indicators vertical lines
@@ -670,8 +663,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
 
       # Select sexes
       if (!is.null(input$checkboxgroup_gender)) {
@@ -776,8 +767,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          p <- p + geom_line()
       }
 
-if (input$havemetadata || !input$havemetadata) {
-      #EE <- read.csv2("tee_and_rmr.csv")
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -804,7 +793,6 @@ if (input$havemetadata || !input$havemetadata) {
                   EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
                   EE <- EE %>% filter(TEE == "non-RMR")
                   EE$Animals <- as.factor(EE$Animals)
-                  #true_metadata <- get_true_metadata(input$metadatafile$datapath)
 
                   p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
                   p <- p + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)
@@ -886,9 +874,6 @@ if (input$havemetadata || !input$havemetadata) {
                ),
             )
          })
-    }
-
-
 
       # add means
       if (input$wmeans) {
@@ -907,26 +892,17 @@ if (input$havemetadata || !input$havemetadata) {
      # add light cycle annotation
      lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
      colnames(lights) <- c("x", "y")
-
-
      
      light_offset <- 0
      if (input$timeline) {
-      # this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
-       #from_data_offset <- finalC1 %>% group_by(`Animal No._NA`) %>% filter(running_total.hrs == 0) %>% pull(Datetime) %>% unique() %>% sapply(function(x) { second_part = strsplit(x, " ")[[1]][2]; first_element <- strsplit(second_part, ":")[[1]][1]; return (first_element) }) %>% as.numeric()
-       # Need to plot in fact multiple timelines when light cycles do not align during experiments (because experiments started at different times during day)
-       #light_offset <- min(from_data_offset) - input$light_cycle_start
+       # this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
        my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
        p <- p + my_lights
      }
 
-     #light_offset <- input$light_cycle_start
-
      # add title
      p <- p + ggtitle(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", input$myp))
 
-
-     
      # group with group from metadata
      if (input$with_facets) {
         if (!is.null(input$facets_by_data_one)) {
@@ -937,7 +913,6 @@ if (input$havemetadata || !input$havemetadata) {
            }
         }
      }
-
 
      # add day annotations and indicators vertical lines
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
@@ -989,8 +964,6 @@ if (input$havemetadata || !input$havemetadata) {
       finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
       finalC1$NightDay <- as.factor(finalC1$NightDay)
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      print("finalC1:")
-      print(finalC1)
 
       # first component, typically O2
       df <- data.frame(Values = finalC1[[component]],
@@ -1005,7 +978,6 @@ if (input$havemetadata || !input$havemetadata) {
       write.csv2(df_new, "df_new_after.csv")
       df_new <- reformat(df_new) %>% na.omit()
       write.csv2(df_new, "df_new_after_reformat.csv")
-
       write.csv2(df_new, "df_new.csv")
 
       # second component, typically CO2
@@ -1134,10 +1106,6 @@ if (input$havemetadata || !input$havemetadata) {
       data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
-
-
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
@@ -1180,8 +1148,6 @@ if (input$havemetadata || !input$havemetadata) {
       DayNight$NightDay <- as.factor(DayNight$NightDay)
       write.csv2(apply(DayNight, 2, as.character), "test_before_day_night.csv")
 
- if (input$havemetadata || !input$havemetadata) {
-         #true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1203,7 +1169,6 @@ if (input$havemetadata || !input$havemetadata) {
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
             )
          })
- }
 
 
 output$details <- renderUI({
@@ -1278,22 +1243,8 @@ output$details <- renderUI({
             )
          })
 
-
-
-
-      #if (input$day_only && input$night_only) {
-      #   # nothing to do we keep both night and day
-      #} else if (input$night_only) {
-      #   df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
-      #} else if (input$day_only) {
-      #   df_to_plot <- df_to_plot %>% filter(NightDay == "pm")
-      #} else {
-      #   df_to_plot <- NULL
-      #}
-
       p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
       p <- p + ggtitle("Day Night Activity")
-
 
       if (input$with_facets) {
             if (!is.null(input$facets_by_data_one)) {
@@ -1403,10 +1354,6 @@ output$details <- renderUI({
       data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
-
-
 
       # default light on from UI
       light_on <- input$light_cycle_start * 60
@@ -1536,8 +1483,6 @@ output$details <- renderUI({
       df_to_plot$GoxLox = df_to_plot[input$myr]
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
 
-    if (input$havemetadata || !input$havemetadata) {
-         # true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1632,10 +1577,8 @@ output$details <- renderUI({
                ),
             )
          })
-    }
 
     light_offset <- 0
-
       if (input$with_facets) {
          if (!is.null(input$facets_by_data_one)) {
             if (input$orientation == "Horizontal") {
@@ -1668,9 +1611,6 @@ output$details <- renderUI({
       data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
-
 
       light_on <- 720
       if (input$havemetadata) {
@@ -1750,9 +1690,7 @@ output$details <- renderUI({
       TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
-      p <- p + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) # position = position_jitterdodge())
-      #p <- p + stat_summary(fun = mean, geom = "line", color="red", size=3, shape = 10)
-      #p <- p + geom_text(check_overlap = TRUE, aes(label = Days),  position = position_jitter(width = 0.15))
+      p <- p + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) 
       p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
       if (input$with_facets) {
          if (!is.null(input$facets_by_data_one)) {
@@ -1764,8 +1702,6 @@ output$details <- renderUI({
          }
       }
 
-      if (input$havemetadata || !input$havemetadata) {
-         # true_metadata <- get_true_metadata(input$metadatafile$datapath)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1869,7 +1805,7 @@ output$details <- renderUI({
          str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
          HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
          })
-      }
+         
       p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
       p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       storeSession(session$token, "is_TEE_calculated", TRUE, global_data)

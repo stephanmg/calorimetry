@@ -7,21 +7,12 @@ source("inc/metadata/read_metadata.R")
 enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
    df <- finalC1
    if (havemetadata) {
-      print("wow?")
-      print(metadatafile$datapath)
       metadata <- get_true_metadata(metadatafile$datapath)
-      print("there?")
       df <- finalC1 %>% full_join(y = metadata, by = c("Animals")) %>% na.omit()
-      print("Here?")
    } else {
-      print("full C1meta:")
-      print(C1meta)
-      write.csv2(C1meta, "metadata_test.csv")
       empty_row_index <-which(apply(C1meta[,-1], 1, function(row) all(row == "")))
       rows_to_remove <- unique(c(empty_row_index, empty_row_index+1))
       C1meta <- C1meta[-rows_to_remove[rows_to_remove <= nrow(C1meta)], ]
-      #empty_row_index <-which.max(apply(C1meta[,-1], 1, function(row) all(row == "")))
-      #C1meta <- C1meta[1:(empty_row_index-1), ]
       df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
       df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
       df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
@@ -37,14 +28,12 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       } else {
          df <- merge(finalC1, df_filtered, by = "Animal No._NA")
       }
-      print("true_metadata (tse):")
-      print(df_filtered)
       colnames(df_filtered)[colnames(df_filtered) == "Animal No._NA"] <- "Animals"
       df_filtered$Animals <- as.factor(df_filtered$Animals)
       for (col in colnames(df_filtered)) {
-         if (col %in% c("Sex", "Gender", "Diet", "Genotype")) { # factor columns from TSE header
+         if (col %in% c("Sex", "Diet", "Genotype", "Box")) { # factor columns from TSE standard header
             df_filtered[[col]] = as.factor(df_filtered[[col]])
-         }
+         } # remaning columns are assumed to be numerical and used as covariates
       }
       metadata <- df_filtered
    }
