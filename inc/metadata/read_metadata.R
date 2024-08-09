@@ -4,6 +4,7 @@ library(tidyverse)
 library(viridis)
 library(ggExtra)
 library(plotly)
+library(shinyalert)
 
 ################################################################################
 # get study description
@@ -97,9 +98,23 @@ get_true_metadata <- function(file) {
    ages$`1` <- NULL
    ages <- ages[!is.na(ages)]
 
-   # return compiled metadata
-   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights, Sex = as.factor(sexes), Age = as.numeric(ages))
-   print("df_meta:")
+   # compile metadata and we require that all fields above are contained within the metadata sheet
+   df_meta <- try({
+      data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights, Sex = as.factor(sexes), Age = as.numeric(ages))
+   }, silent = TRUE)
+
+   # check if metadata has been formatted properly 
+   if (inherits(df_meta, "try-error")) {
+      shinyalert("Error", "Metadata sheet wrongly formatted. Please check within Excel for correctness.", showCancelButton = TRUE)
+   }
+
+   # check for all NA columns, which is incorrect metadata and can lead to downstream processing errors
+   all_na_columns <- sapply(df_meta, function(col) all(is.na(col)))
+   if (any(all_na_columns)) {
+      shinyalert("Error", paste("The following columns are all NA: ", names(all_na_columns[all_na_columns]), collapse= ","), showCancelButton = TRUE)
+   }
+
+   # return the compiled metadata
    print(df_meta)
    return(df_meta)
 }
