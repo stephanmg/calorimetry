@@ -46,7 +46,11 @@ get_true_metadata <- function(file) {
    from_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sample-Section"))) %>% pull(ind)
    to_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sub-Sample Section"))) %>% pull(ind)
 
+   print(from_index)
+   print(to_index)
    df <- df %>% slice(from_index:to_index[1])
+
+   print("there")
 
    lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lean_mass"))) %>% pull(ind)
    fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fat_mass"))) %>% pull(ind)

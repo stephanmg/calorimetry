@@ -452,11 +452,18 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # GoxLox
    #####################################################################################################################
    GoxLox = {
-      # enrich with metadata
-      data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
+      # get metadata from tse header only
+      data_and_metadata <- NULL
+      if (!input$havemetadata) {
+         data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+         finalC1 <- data_and_metadata$data
+         true_metadata <- data_and_metadata$metadata
+      }
 
+      # enriching is too much, need only metadata not joined
+      if (input$havemetadata) {
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+      }
 
       # find light cycle start by metadata, or override from UI, or use default from UI
       light_on <- input$light_cycle_start * 60
@@ -1120,9 +1127,18 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    ### Day Night Activity
    #####################################################################################################################
    DayNightActivity = {
-      data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
+      # get metadata from tse header only
+      data_and_metadata <- NULL
+      if (!input$havemetadata) {
+         data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+         finalC1 <- data_and_metadata$data
+         true_metadata <- data_and_metadata$metadata
+      }
+
+      # enriching is too much, need only metadata not joined
+      if (input$havemetadata) {
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+      }
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
@@ -1367,10 +1383,18 @@ output$details <- renderUI({
    ### Raw
    #####################################################################################################################
    Raw = {
-      # enrich with metadata
-      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
+      # get metadata from tse header only
+      data_and_metadata <- NULL
+      if (!input$havemetadata) {
+         data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+         finalC1 <- data_and_metadata$data
+         true_metadata <- data_and_metadata$metadata
+      }
+
+      # enriching is too much, need only metadata not joined
+      if (input$havemetadata) {
+         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+      }
 
       # default light on from UI
       light_on <- input$light_cycle_start * 60
