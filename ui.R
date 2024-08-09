@@ -153,7 +153,7 @@ sidebar_content <- sidebarPanel(
    ),
    uiOutput("heat_production_equations"),
    h3("Metadata"),
-   div("Provided through a standardized Metadatasheet (7)"),
+   div("Provide by a standardized Metadatasheet (7) in Excel format"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    h3("Data sets"),
@@ -198,7 +198,7 @@ sidebar_content <- sidebarPanel(
    selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable"))),
    conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity")))),
    conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
-   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
    conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    hr(),
@@ -216,9 +216,6 @@ sidebar_content <- sidebarPanel(
    h2("Experimental times"),
    conditionalPanel(condition = "input.plot_type == 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle", value=TRUE)),
    conditionalPanel(condition = "input.plot_type != 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle")),
-   #conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", checkboxInput(inputId = "day_only", label = "Day", value = TRUE)),
-   #conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", checkboxInput(inputId = "night_only", label = "Night", value = TRUE)),
-   conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices = c("mean", "median", "mean_sdl"))),
    checkboxInput(inputId = "only_full_days", label = "Only full days", value = FALSE),
    conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Fraction of day missing [%]", min = 0, max = 100, value = 0, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value = FALSE)),
@@ -335,7 +332,14 @@ sidebar_content <- sidebarPanel(
 # Main panel
 ################################################################################
 main_content <- mainPanel(
-   tags$head( tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js") ),
+   tags$head(tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js")),
+   tags$style(HTML("
+   .shiny-output-error {
+   color: ##ff6347;
+   font-weight: bold;
+   }
+   "
+   )),
    tabsetPanel(
       id = "additional_content",
       tabPanel("Basic plot", plotlyOutput("plot")),

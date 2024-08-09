@@ -86,9 +86,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
-   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
+   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 7))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
-   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob")
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
@@ -774,7 +774,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # if we do not have metadata, this comes from some not-clean TSE headers
       if (!input$havemetadata) {
-         df_to_plot$`Animal.No.` <- df_to_plot$Animals
+         finalC1$`Animal.No.` <- finalC1$Animals
       }
 
       # calculate running averages
@@ -1119,36 +1119,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
       storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
       finalC1 <- df_plot_total
-   },
-   #####################################################################################################################
-   ### Weight vs Energy Expenditure
-   #####################################################################################################################
-   WeightVsEnergyExpenditure = {
-      C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-      df_to_plot["HP"] <- df_to_plot["HP"] / 24
-      p <- ggplot(df_to_plot, aes(x = `Weight..g.`, y = `HP`, color = `Animal No._NA`))
-      p <- p + geom_violin(trim = FALSE) + geom_jitter(position = position_jitter(0.2))
-      if (! is.null(input$statistics)) {
-         if (input$statistics == "mean_sdl") {
-         } else {
-            p <- p + stat_summary(fun.y = input$statistics, color = "red")
-         }
-      }
-
-   if (input$with_facets) {
-      if (!is.null(input$facets_by_data_one)) {
-         if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-         } else {
-            p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-         }
-      }
-   }
-
-   p <- p + ggtitle("Weight vs Energy Expenditure")
-   p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
    },
    #####################################################################################################################
    ### Day Night Activity
@@ -2135,6 +2105,10 @@ server <- function(input, output, session) {
    # Show plot (action button's action)
    #############################################################################
    observeEvent(input$plotting, {
+      # No error messages if no input file given or no excel given for metadata 
+      # req(input$File1)
+      # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
+
       output$plot <- renderPlotly({
          if (is.null(input$File1)) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
@@ -2269,12 +2243,6 @@ server <- function(input, output, session) {
                }
                storeSession(session$token, "time_diff", time_diff, global_data)
             }
-
-            ## df to plot now contains the summed oxidation over individual days   
-            ## df_diff$Datetime <- day(dmy(lapply(df_diff$Datetime, convert)))
-
-         #df1 <- read.csv2("rmr.csv")
-         #df2 <- read.csv2("tee.csv")
 
          df1 <- getSession(session$token, global_data)[["RMR"]]
          df2 <- getSession(session$token, global_data)[["TEE"]]
