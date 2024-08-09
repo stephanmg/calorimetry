@@ -1635,24 +1635,28 @@ output$details <- renderUI({
      #p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
     # toggle outliers
      if (input$toggle_outliers) {
-      exceed_indices <- which(df_to_plot[[input$myr]] > 20)
+      exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
+      p <- ggplotly(p)
       rect_shapes <- lapply(exceed_indices, function(i) {
          list(
-            type="rect",
-            fillcolor = "rgba(0, 255, 0, 0.2)",
-            line = list(color = "rgba(0, 255, 0, 1)"),
-            x0 = 10, #df_to_plot$running_total.hrs[i] - 0.1,
-            x1 = 20, # df_to_plot$running_total.hrs[i] + 0.1,
-            y0 = 20.5,
-            y1 = 20.7, #df_to_plot[[input$myr]][i],
+            type = "rect",
+            fillcolor = "rgba(0, 255, 0, 0.3)",
+            line = list(color="rgba(0, 255, 0, 1)"),
+            x0 = df_to_plot$running_total.hrs.halfhour,
+            x1 = df_to_plot$running_total.hrs.halfhour + 2,
+            y0 = 20.0,
+            y1 = 20.65,
             xref = "x",
             yref = "y"
          )
       })
-      print(rect_shapes)
-     p <- ggplotly(p) %>% layout(shapes = rect_shapes)
+
+      #p <- p %>% layout(shapes=rect_shapes)
+      for (i in exceed_indices) {
+         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i], xend = df_to_plot$running_total.hrs.halfhour[i]+0.1, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=4))
+      }
      }
-     p
+     p <- ggplotly(p)
    },
    #####################################################################################################################
    ### Total Energy Expenditure
