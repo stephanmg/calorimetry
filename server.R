@@ -1653,7 +1653,7 @@ output$details <- renderUI({
 
       #p <- p %>% layout(shapes=rect_shapes)
       for (i in exceed_indices) {
-         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i], xend = df_to_plot$running_total.hrs.halfhour[i]+0.1, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=4))
+         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i], xend = df_to_plot$running_total.hrs.halfhour[i]+0.2, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=6))
       }
      }
      p <- ggplotly(p)
