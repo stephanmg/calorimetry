@@ -1631,7 +1631,28 @@ output$details <- renderUI({
      p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel)))
      # center x axis
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
-     p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+     # basic plotly config
+     #p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+    # toggle outliers
+     if (input$toggle_outliers) {
+      exceed_indices <- which(df_to_plot[[input$myr]] > 20)
+      rect_shapes <- lapply(exceed_indices, function(i) {
+         list(
+            type="rect",
+            fillcolor = "rgba(0, 255, 0, 0.2)",
+            line = list(color = "rgba(0, 255, 0, 1)"),
+            x0 = 10, #df_to_plot$running_total.hrs[i] - 0.1,
+            x1 = 20, # df_to_plot$running_total.hrs[i] + 0.1,
+            y0 = 20.5,
+            y1 = 20.7, #df_to_plot[[input$myr]][i],
+            xref = "x",
+            yref = "y"
+         )
+      })
+      print(rect_shapes)
+     p <- ggplotly(p) %>% layout(shapes = rect_shapes)
+     }
+     p
    },
    #####################################################################################################################
    ### Total Energy Expenditure
