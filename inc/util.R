@@ -76,7 +76,10 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
             df_filtered[[col]] = as.factor(df_filtered[[col]])
          } # remaning columns are assumed to be numerical and used as covariates
       }
-      metadata <- df_filtered
+      metadata <- df_filtered 
+      # TODO: figure out primal reason
+      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates, happens when switching between panels sometimes
+      df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
    return(list("data"=df, "metadata"=metadata))
 }

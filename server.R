@@ -517,9 +517,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
       # Metadata from TSE file header should be enough, want to see oxidation of substrates by animals
-      C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+      #C1meta_tmp <- C1meta
+      #colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      #df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+      df_to_plot <- finalC1
+      # if we do not have metadata, this comes from some not-clean TSE headers
+      if (!input$havemetadata) {
+         df_to_plot$`Animal.No.` <- df_to_plot$Animals
+      }
 
       # MK formulas
       if (input$goxlox == "Glucose oxidation") {
@@ -663,8 +669,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
      # re-center at 0
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
-
-      p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Time [h]") + ggtitle(input$goxlox)
+     # legends
+     p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Time [h]") + ggtitle(input$goxlox)
    },
    #####################################################################################################################
    ### Energy Expenditure
@@ -764,6 +770,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # trim times from end and beginning of measurements   
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+      }
+
+      # if we do not have metadata, this comes from some not-clean TSE headers
+      if (!input$havemetadata) {
+         df_to_plot$`Animal.No.` <- df_to_plot$Animals
       }
 
       # calculate running averages
@@ -1063,16 +1074,38 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
       df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
+      df_plot_total$Animals = df_plot_total$Animal
+      df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data
+
       # we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
       # p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
-      p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line() + facet_wrap(~Animal)
+      p <- NULL 
+      print(colnames(df_plot_total))
+
+      # group with group from metadata
+      if (input$with_facets) {
+         p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
+         if (!is.null(input$facets_by_data_one)) {
+            if (input$orientation == "Horizontal") {
+               p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+            } else {
+               p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+            }
+         }
+      } else {
+         p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line()
+         p <- p + facet_wrap(~Animal)
+      }
+
+
+
       write.csv2(df_plot_total, "before_anno_rmr.csv")
       df_annos <- annotate_rmr_days(df_plot_total)
       p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
       day_length <- 24
       # if selected either Day or Night, the day length is assumed to be 12 hours
-      if(length(input$light_cycle) != 2) {
+      if (length(input$light_cycle) != 2) {
          day_length = 12
       }
 
@@ -1121,30 +1154,28 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    ### Day Night Activity
    #####################################################################################################################
    DayNightActivity = {
-      # get metadata from tse header only
-      data_and_metadata <- NULL
-      if (!input$havemetadata) {
-         data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-         finalC1 <- data_and_metadata$data
-         true_metadata <- data_and_metadata$metadata
-      }
+      # colors for plotting
+      finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
-      # enriching is too much, need only metadata not joined
-      if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
-      }
+      # get metadata from tse header only
+      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
       }
-      C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-      df_to_plot$Animals <- as.factor(`$`(df_to_plot, "Animal No._NA"))
 
+      # if we do not have metadata, this comes from some not-clean TSE headers
+      if (!input$havemetadata) {
+         finalC1$`Animal.No.` <- finalC1$Animals
+      }
+
+      df_to_plot <- finalC1
       df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
       df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
+
       light_on <- 720
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
@@ -1383,6 +1414,8 @@ output$details <- renderUI({
       data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
+      print("true metadata")
+      print(colnames(true_metadata))
 
       # default light on from UI
       light_on <- input$light_cycle_start * 60
@@ -1460,12 +1493,11 @@ output$details <- renderUI({
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
-      C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-      write.csv2(df_to_plot, file = "finalC1.csv")
-      colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
-      df_to_plot$Animals <- colors
+      df_to_plot <- finalC1
+      # if we do not have metadata, this comes from some not-clean TSE headers
+      if (!input$havemetadata) {
+         df_to_plot$`Animal.No.` <- df_to_plot$Animals
+      }
 
       # format labels for plot
       mylabel <- paste0(input$myr, sep = "", "_[%]")
@@ -1488,6 +1520,7 @@ output$details <- renderUI({
       names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
       # plot basic plot
+      write.csv2(df_to_plot, "df_to_plot_failing.csv")
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
 
@@ -1607,7 +1640,7 @@ output$details <- renderUI({
             )
          })
 
-    light_offset <- 0
+      light_offset <- 0
       if (input$with_facets) {
          if (!is.null(input$facets_by_data_one)) {
             if (input$orientation == "Horizontal") {
@@ -1637,6 +1670,7 @@ output$details <- renderUI({
       # assign colors based on animals
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
+
       # enrich with metadata
       data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
@@ -1669,9 +1703,15 @@ output$details <- renderUI({
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
-      C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+      #C1meta_tmp <- C1meta
+      #colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      #finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+
+      # if we do not have metadata, this comes from some not-clean TSE headers
+      if (!input$havemetadata) {
+         finalC1$`Animal.No.` <- finalC1$Animals
+      }
+
 
       convert2 <- function(x) {
          splitted <- strsplit(as.character(x), " ")
