@@ -46,11 +46,7 @@ get_true_metadata <- function(file) {
    from_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sample-Section"))) %>% pull(ind)
    to_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sub-Sample Section"))) %>% pull(ind)
 
-   print(from_index)
-   print(to_index)
    df <- df %>% slice(from_index:to_index[1])
-
-   print("there")
 
    lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lean_mass"))) %>% pull(ind)
    fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fat_mass"))) %>% pull(ind)
@@ -59,6 +55,7 @@ get_true_metadata <- function(file) {
    genotype_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "genotype_group"))) %>% pull(ind)
    body_weight_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "body weight"))) %>% pull(ind)
    sexes_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "sex"))) %>% pull(ind)
+   age_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "age"))) %>% pull(ind)
 
    # number of samples
    ids <- df %>% slice(id_index)
@@ -95,7 +92,14 @@ get_true_metadata <- function(file) {
    sexes$`1` <- NULL
    sexes <- sexes[!is.na(sexes)]
 
+   # ages
+   ages <- df %>% slice(age_index)
+   ages$`1` <- NULL
+   ages <- ages[!is.na(ages)]
+
    # return compiled metadata
-   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights, Sex = as.factor(sexes))
+   df_meta <- data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights, Sex = as.factor(sexes), Age = as.numeric(ages))
+   print("df_meta:")
+   print(df_meta)
    return(df_meta)
 }
