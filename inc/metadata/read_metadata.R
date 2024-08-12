@@ -105,13 +105,15 @@ get_true_metadata <- function(file) {
 
    # check if metadata has been formatted properly 
    if (inherits(df_meta, "try-error")) {
-      shinyalert("Error", "Metadata sheet wrongly formatted. Please check within Excel for correctness.", showCancelButton = TRUE)
+      shinyalert("Warning", "Metadata sheet wrongly formatted. Please check within Excel for correctness. Fallback to TSE metadata header. Required information missing: Genotype, Sex, Age, Diet, lean_mass, fat_mass and body_weight are required.", showCancelButton = TRUE)
+      return(NULL)
    }
 
    # check for all NA columns, which is incorrect metadata and can lead to downstream processing errors
    all_na_columns <- sapply(df_meta, function(col) all(is.na(col)))
    if (any(all_na_columns)) {
-      shinyalert("Error", paste("The following columns are all NA: ", names(all_na_columns[all_na_columns]), collapse= ","), showCancelButton = TRUE)
+      shinyalert("Warning", paste0(paste("The following columns are all NA: ", names(all_na_columns[all_na_columns]), collapse= ","), showCancelButton = TRUE, " Fallback to TSE metadata header, since Metadata sheet wrongly formatted. Required information missing: Genotype, Sex, Age, Diet, lean_mass, fat_mass and body_weight are required."))
+      return(NULL)
    }
 
    # return the compiled metadata
