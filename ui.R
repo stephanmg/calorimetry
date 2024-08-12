@@ -296,7 +296,7 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
-   checkboxInput(inputId = "outliers", label = "Remove animal(s) from data set(s)"),
+   checkboxInput(inputId = "outliers", label = "Remove sample(s) from data set(s)"),
    conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
    checkboxInput("do_select_date_range", label = "Select dates"),
    )),

@@ -1959,7 +1959,7 @@ server <- function(input, output, session) {
       })
 
    #####################################################################################################################
-   # Observer outlier removal
+   # Observer plotly_click (mouse left-click)
    #####################################################################################################################
    observeEvent(event_data("plotly_click"), {
       click_data <- event_data("plotly_click")
@@ -1977,6 +1977,10 @@ server <- function(input, output, session) {
       }
    })
 
+
+   #####################################################################################################################
+   # Observer plotly_selected (lasso or rectangle)
+   #####################################################################################################################
    observeEvent(event_data("plotly_selected"), {
       selected_data <- event_data("plotly_selected")
       if (!is.null(selected_data)) {
@@ -2003,6 +2007,9 @@ server <- function(input, output, session) {
       }
    })
 
+   #####################################################################################################################
+   # Observer remvove_lasso_points
+   #####################################################################################################################
    observeEvent(input$remove_lasso_points, {
       selected_data <- event_data("plotly_selected")
       if (!is.null(selected_data)) {
