@@ -1643,7 +1643,6 @@ output$details <- renderUI({
      # center x axis
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
      # basic plotly config
-     #p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
      # toggle outliers
      if (input$toggle_outliers) {
       exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
@@ -1652,7 +1651,9 @@ output$details <- renderUI({
          p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i]-0.25, xend = df_to_plot$running_total.hrs.halfhour[i]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="#77DD77", width=8))
       }
      }
+     # store number of total curves already present in plotly
      storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
+     p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
      p <- ggplotly(p)
    },
    #####################################################################################################################
@@ -1929,7 +1930,21 @@ server <- function(input, output, session) {
       }
       },
          content = function(file) {
-            status_okay <- do_export_alternative(input$export_format, input, output, file, do_plotting)
+            status_okay <- do_export_alternative(input$export_format, input, output, session, file, do_plotting)
+      }
+   )
+
+  output$downloadPlottingData <- downloadHandler(
+      filename = function() {
+      if (! input$export_file_name2 == "") {
+         paste(input$export_file_name2, ".csv", sep = "")
+      } else {
+         extension <- ".csv"
+         paste("plotting_data-", Sys.Date(), extension, sep = "")
+      }
+      },
+         content = function(file) {
+            status_okay <- do_export_plotting_data(input, output, session, file, do_plotting, global_data)
       }
    )
 
@@ -1973,7 +1988,7 @@ server <- function(input, output, session) {
          selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
 
          selected_indices <- which(
-            data$Animals == selected_sampleid &
+            data$Animals %in% selected_sampleid &
             data$running_total.hrs.halfhour %in% selected_data$x,
             data[[input$myr]] %in% selected_data$y
          )
@@ -1998,7 +2013,7 @@ server <- function(input, output, session) {
          selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
 
          selected_indices <- which(
-            data$Animals == selected_sampleid &
+            data$Animals %in% selected_sampleid &
             data$running_total.hrs.halfhour %in% selected_data$x,
             data[[input$myr]] %in% selected_data$y
          )
@@ -2134,10 +2149,14 @@ server <- function(input, output, session) {
             renderText(paste(path_home(), input$export_folder$path[[2]], sep = "/")))
       })
 
+   observeEvent(input$downloadPlottingData, {
+      print("hurensohn!")
+   })
+      
    observeEvent(input$downloadData, {
       # CalR
       if (input$export_format == "CalR") {
-           status_okay <- do_export("CalR", input, output, do_plotting)
+           status_okay <- do_export("CalR", input, output, session, do_plotting)
            if (!status_okay) {
              output$message <- renderText("Error during data export to CalR, check logs")
            } else {
@@ -2147,7 +2166,7 @@ server <- function(input, output, session) {
       }
       # Excel
       if (input$export_format == "Excel") {
-           status_okay <- do_export_alternative("Excel", input, output, do_plotting)
+           status_okay <- do_export_alternative("Excel", input, output, session, do_plotting)
           if (!status_okay) {
              output$message <- renderText("Error during data export to Excel, check logs")
            } else {

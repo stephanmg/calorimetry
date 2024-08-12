@@ -1,13 +1,27 @@
+source("inc/session_management.R") # for session management
+do_export_plotting_data <- function(input, output, session, file_output, do_plotting, global_data) {
+   file <- input$File1
+   if (is.null(input$File1)) {
+      output$message <- renderText("Not any cohort data given by the user.")
+   } else {
+      file <- input$File1
+      real_data <- do_plotting(file$datapath, input, input$sick, output, session)
+      df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
+      write.csv2(df_to_plot, file = file_output)
+   }
+
+}
+
 ################################################################################
 # Export to CalR compatible file format and Excel (alternative method)
 ################################################################################
-do_export_alternative <- function(format, input, output, file_output, do_plotting) {
+do_export_alternative <- function(format, input, output, session, file_output, do_plotting) {
       file <- input$File1
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
       } else {
          file <- input$File1
-         real_data <- do_plotting(file$datapath, input, input$sick, output)
+         real_data <- do_plotting(file$datapath, input, input$sick, output, session)
          h <- hash()
          # Specific mapping of column names from TSE to CalR to produce
          # a compatible .csv file
@@ -40,14 +54,14 @@ do_export_alternative <- function(format, input, output, file_output, do_plottin
 ################################################################################
 # Export to CalR compatible file format and Excel
 ################################################################################
-do_export <- function(format, input, output, do_plotting) {
+do_export <- function(format, input, output, session, do_plotting) {
    if (format == "CalR") {
       file <- input$File1
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
       } else {
          file <- input$File1
-         real_data <- do_plotting(file$datapath, input, input$sick, output)
+         real_data <- do_plotting(file$datapath, input, input$sick, output, session)
          h <- hash()
 
          # Specific mapping of column names from TSE to CalR to produce

@@ -316,10 +316,13 @@ sidebar_content <- sidebarPanel(
    ),
    tabsetPanel(id = "tabsDE", type = "hidden",
       tabPanelBody("DE",
+   h3("Calculated quantities"),
    selectInput("export_format", "Format", choices = c("CalR", "Excel")),
-   h2("Folder"),
    textInput("export_file_name", "File name (Leave empty for auto-generation of a file name)"),
-   downloadButton("downloadData", "Download")
+   downloadButton("downloadData", "Download"),
+   h3("Plotting data"),
+   textInput("export_file_name2", "File name (Leave empty for auto-generation of a file name)"),
+   downloadButton("downloadPlottingData", "Download")
    )),
    hr(),
     fluidPage(
