@@ -1491,6 +1491,16 @@ output$details <- renderUI({
 
       # plot basic plot
       write.csv2(df_to_plot, "df_to_plot_failing.csv")
+
+      if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {
+         df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
+         print("replotting done?!")
+         print(nrow(df_to_plot))
+      }
+
+     if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
+        storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
+     }
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
 
@@ -1628,32 +1638,17 @@ output$details <- renderUI({
      # indicate night start
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
      # set title and display buttons
-     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel)))
+     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel))) + geom_point()
      # center x axis
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
      # basic plotly config
      #p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-    # toggle outliers
+     # toggle outliers
      if (input$toggle_outliers) {
       exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
       p <- ggplotly(p)
-      rect_shapes <- lapply(exceed_indices, function(i) {
-         list(
-            type = "rect",
-            fillcolor = "rgba(0, 255, 0, 0.3)",
-            line = list(color="rgba(0, 255, 0, 1)"),
-            x0 = df_to_plot$running_total.hrs.halfhour,
-            x1 = df_to_plot$running_total.hrs.halfhour + 2,
-            y0 = 20.0,
-            y1 = 20.65,
-            xref = "x",
-            yref = "y"
-         )
-      })
-
-      #p <- p %>% layout(shapes=rect_shapes)
       for (i in exceed_indices) {
-         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i], xend = df_to_plot$running_total.hrs.halfhour[i]+0.2, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=6))
+         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i]-0.25, xend = df_to_plot$running_total.hrs.halfhour[i]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="#77DD77", width=8))
       }
      }
      p <- ggplotly(p)
@@ -1945,6 +1940,50 @@ server <- function(input, output, session) {
          }
       HTML(html_ui)
       })
+
+   #####################################################################################################################
+   # Observer outlier removal
+   #####################################################################################################################
+   observeEvent(event_data("plotly_click"), {
+      click_data <- event_data("plotly_click")
+      if (!is.null(click_data)) {
+         data <- getSession(session$token, global_data)[["reactive_data"]]()
+         nearest_idx <- which.min(abs(data$running_total.hrs.halfhour - click_data$x))
+         # highlight the point
+         isolate({
+            p <- plotlyProxy("plot", session) %>% plotlyProxyInvoke("restyle", list(marker=list(color = "red")), list(nearest_idx))
+         })
+
+         isolate({
+            session$sendCustomMessage(type = "selected_point", nearest_idx)
+         })
+      }
+   })
+
+   observeEvent(event_data("plotly_selected"), {
+      selected_data <- event_data("plotly_selected")
+      if (!is.null(selected_data)) {
+         selected_indices <- selected_data$pointNumber + 1 # plotly points are indexed with offset 0 but not in R
+         isolate({
+            p <- plotlyProxy("plot", session) %>% plotlyProxyInvoke("restyle", list(marker=list(color = "green")), list(selected_indices))
+         })
+         isolate({
+             session$sendCustomMessage(type = "selected_points", selected_indices)
+         })
+      }
+   })
+
+   observeEvent(input$remove_lasso_points, {
+      selected_data <- event_data("plotly_selected")
+      if (!is.null(selected_data)) {
+         selected_indices <- selected_data$pointNumber + 1
+         data <- getSession(session$token, global_data)[["reactive_data"]]()
+         updated_data <- data[-selected_indices, ]
+         getSession(session$token, global_data)[["reactive_data"]](updated_data)
+         click("plotting")
+      }
+   })
+
 
    #####################################################################################################################
    # Observe heat production formula 1 and forumula 2 and print formular to label

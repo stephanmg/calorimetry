@@ -172,14 +172,15 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.z_score_removal_of_outliers == true", selectInput("target_columns", "Measurements", c("VO2", "VCO2"), multiple=TRUE, selected=c("VO2", "VCO2"))),
    checkboxInput(inputId = "remove_zero_values", label = "Remove zero values"),
    conditionalPanel(condition = "input.remove_zero_values == true", numericInput("eps", "Epsilon", value=1e-6, min=1e-9, max=1e-3, step=1e-3)),
-   checkboxInput(inputId = "highly_varying_measurements", label = "Remove high variation measurements", value = FALSE),
-   conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-   h3("Raw data consistency checks"),
-   div("In case of any detected inconsistency in the raw data, a warning is generated, and further analysis is postponed. Check the boxes to enable consistency checks for all provided input data sets."),
-   checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
-   checkboxInput(inputId = "toggle_outliers", "Toggle all outliers above threshold", value = FALSE),
+   checkboxInput(inputId = "toggle_outliers", "Manually mark outliers above threshold", value = FALSE),
    conditionalPanel("input.toggle_outliers == true", numericInput(inputId = "threshold_toggle_outliers", "Threshold", value=20.67, min = 0, max = 100, step = 0.01)),
+   checkboxInput(inputId = "toggle_lasso_outliers", "Select outliers by box selection"), 
+   conditionalPanel("input.toggle_lasso_outliers == true", actionButton("remove_lasso_points", "Remove lasso selection")),
+   h3("Raw data consistency checks"),
+   checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
    checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
+   checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
+   conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
    h3("Plotting controls"),
    actionButton("plotting", "Show"),
    actionButton("reset", "Reset"),
@@ -337,7 +338,7 @@ main_content <- mainPanel(
    tags$head(tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js")),
    tags$style(HTML("
    .shiny-output-error {
-   color: ##ff6347;
+   color: #ff6347;
    font-weight: bold;
    }
    "
