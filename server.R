@@ -1501,6 +1501,7 @@ output$details <- renderUI({
      if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
         storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
      }
+
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
 
@@ -1651,6 +1652,7 @@ output$details <- renderUI({
          p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i]-0.25, xend = df_to_plot$running_total.hrs.halfhour[i]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="#77DD77", width=8))
       }
      }
+     storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
      p <- ggplotly(p)
    },
    #####################################################################################################################
@@ -1963,10 +1965,23 @@ server <- function(input, output, session) {
    observeEvent(event_data("plotly_selected"), {
       selected_data <- event_data("plotly_selected")
       if (!is.null(selected_data)) {
-         selected_indices <- selected_data$pointNumber + 1 # plotly points are indexed with offset 0 but not in R
+         data <- getSession(session$token, global_data)[["reactive_data"]]()
+         # Animal grouping is added last, thus we have an offset of number of traces already in plot - number of unique levels in factor
+         # TODO: Generalize this that it is useable in other plots as well.
+         all_curves_plotly <- getSession(session$token, global_data)[["all_curves_plotly"]] - length(levels(data$Animals))
+         curve_to_sampleid_mapping <- levels(data$Animals)
+         selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
+
+         selected_indices <- which(
+            data$Animals == selected_sampleid &
+            data$running_total.hrs.halfhour %in% selected_data$x,
+            data[[input$myr]] %in% selected_data$y
+         )
+
          isolate({
             p <- plotlyProxy("plot", session) %>% plotlyProxyInvoke("restyle", list(marker=list(color = "green")), list(selected_indices))
          })
+
          isolate({
              session$sendCustomMessage(type = "selected_points", selected_indices)
          })
@@ -1976,8 +1991,18 @@ server <- function(input, output, session) {
    observeEvent(input$remove_lasso_points, {
       selected_data <- event_data("plotly_selected")
       if (!is.null(selected_data)) {
-         selected_indices <- selected_data$pointNumber + 1
          data <- getSession(session$token, global_data)[["reactive_data"]]()
+
+         all_curves_plotly <- getSession(session$token, global_data)[["all_curves_plotly"]] - length(levels(data$Animals))
+         curve_to_sampleid_mapping <- levels(data$Animals)
+         selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
+
+         selected_indices <- which(
+            data$Animals == selected_sampleid &
+            data$running_total.hrs.halfhour %in% selected_data$x,
+            data[[input$myr]] %in% selected_data$y
+         )
+
          updated_data <- data[-selected_indices, ]
          getSession(session$token, global_data)[["reactive_data"]](updated_data)
          click("plotting")
