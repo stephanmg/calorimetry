@@ -1647,8 +1647,8 @@ output$details <- renderUI({
      if (input$toggle_outliers) {
       exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
       p <- ggplotly(p)
-      for (i in exceed_indices) {
-         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[i]-0.25, xend = df_to_plot$running_total.hrs.halfhour[i]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="#77DD77", width=8))
+      for (i in seq_along(exceed_indices)) {
+         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]-0.25, xend = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=8), name = paste("Outlier #", i)) # showlegend=FALSE
       }
      }
      # store number of total curves already present in plotly
