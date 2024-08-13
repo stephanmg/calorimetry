@@ -254,14 +254,7 @@ server <- function(input, output, session) {
 
   uploaded_data <- reactive({
       req(input$file1) # ensure file has been uploaded
-      df_temp <- suppressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
-      col_types = rep("guess", length(colnames(df_temp)))
-      col_types[5] = "date"
-      col_types[10] = "date"
-      col_types[11] = "date"
-      col_types[21] = "date"
-      col_types[23] = "date"
-      df <- read_excel(input$file1$datapath, col_types = col_types, col_names = TRUE)
+      df <- suppressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
       df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y"))) %>%
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
@@ -274,14 +267,7 @@ server <- function(input, output, session) {
       # Step 1: Read the uploaded Excel file
       #df <- read_excel(input$file1$datapath, col_names = TRUE)
 
-      df_temp <- supressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
-      col_types = rep("guess", length(colnames(df_temp)))
-      col_types[5] = "date"
-      col_types[10] = "date"
-      col_types[11] = "date"
-      col_types[21] = "date"
-      col_types[23] = "date"
-      df <- read_excel(input$file1$datapath, col_types = col_types, col_names = TRUE)
+      df <- supressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
       df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y"))) %>%
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
@@ -329,14 +315,7 @@ server <- function(input, output, session) {
     },
     content = function(file) {
        if (!input$specify_manually) {
-       df_temp <- supressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
-      col_types = rep("guess", length(colnames(df_temp)))
-      col_types[5] = "date"
-      col_types[10] = "date"
-      col_types[11] = "date"
-      col_types[21] = "date"
-      col_types[23] = "date"
-      df <- read_excel(input$file1$datapath, col_types = col_types, col_names = TRUE)
+      df <- supressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
       df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y")))
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))

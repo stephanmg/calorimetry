@@ -579,7 +579,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
             results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
                hr(style = "width: 75%"),
                h4("Results of statistical testing"),
                tags$table(
@@ -833,10 +833,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          })
 
          output$details <- renderUI({
+            EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+            EE <- EE %>% filter(TEE == "non-RMR")
+            EE$Animals <- as.factor(EE$Animals)
             results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
                hr(style = "width: 75%"),
                h4("Results of statistical testing"),
                tags$table(
@@ -1109,7 +1112,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          day_length = 12
       }
 
+      light_offset <- 0
       p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(df_plot_total$Time), day_length*60)), linetype="dashed", color="black")
+      p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(df_plot_total$Time), day_length*60)), linetype="dashed", color="gray")
 
       p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
       p <- p + xlab("Time [minutes]")
@@ -1203,7 +1208,7 @@ output$details <- renderUI({
             results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
                hr(style = "width: 75%"),
                h4("Results of statistical testing"),
                tags$table(
@@ -1380,6 +1385,7 @@ output$details <- renderUI({
    Raw = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+      write.csv2(finalC1, "before_enrich_with_metadata.csv")
       # get metadata from tse header only
       data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
@@ -1401,6 +1407,7 @@ output$details <- renderUI({
       }
 
       # display zeitgeber zeit
+      write.csv2(finalC1, "before_to_zeitgeber.csv")
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
       write.csv2(finalC1, "to_zeitgeber.csv")
 
@@ -1553,7 +1560,7 @@ output$details <- renderUI({
             results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
                hr(style = "width: 75%"),
                h4("Results of statistical testing"),
                tags$table(
@@ -1639,7 +1646,11 @@ output$details <- renderUI({
      # indicate night start
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
      # set title and display buttons
-     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, input$metadatafile$datapath))) + geom_point()
+     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, input$metadatafile$datapath))) 
+      # add points only if toggle outliers
+     if (input$toggle_outliers) {
+      p <- p + geom_point()
+     }
      # center x axis
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
      # basic plotly config
@@ -1792,7 +1803,7 @@ output$details <- renderUI({
             results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)
             tagList(
                h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var)),
+               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
                hr(style = "width: 75%"),
                h4("Results of statistical testing"),
                tags$table(
@@ -2513,7 +2524,7 @@ server <- function(input, output, session) {
                   results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
                   tagList(
                      h3("Post-hoc analysis"),
-                     renderPlotly(results$plot_details + xlab(input$indep_var)),
+                     renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
                      hr(style = "width: 75%"),
                      h4("Results of statistical testing"),
                      tags$table(
@@ -2700,9 +2711,8 @@ server <- function(input, output, session) {
            real_data$plot
         }
       })
-
-      # scroll to top after click on plot
-      shinyjs::runjs("window.scrollTo(0,50);")
+      # scroll to top after click on plot only
+      shinyjs::runjs("window.scrollTo(0, 50);")
     })
  
    #############################################################################

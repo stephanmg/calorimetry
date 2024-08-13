@@ -1,6 +1,19 @@
 source("inc/session_management.R")
 
 ################################################################################
+# Prepare data frame from plot for export
+################################################################################
+prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
+   interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+   df_to_plot$Cohort <- sapply(df_to_plot$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
+   rename_list <- c("HP"="Heat Production", "HP2"="Heat Production Alternative", "Animal No._NA"="Animal", "Box_NA"="Box", "Datetime Alternative"="Datetime")
+   df_to_plot <- df_to_plot %>% rename_with(~rename_list[.x], .cols = intersect(names(rename_list), colnames(df_to_plot)))
+   df_to_plot <- df_to_plot %>% select(-all_of(c("Datetime4", "Animals", "offset", "Animal.No.")))
+   return(df_to_plot)
+}
+
+
+################################################################################
 # Export all data as zip archive
 ################################################################################
 do_export_all_data <- function(input, output, session, file_output, do_plotting, global_data) {
@@ -13,7 +26,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       file <- input$File1
       real_data <- do_plotting(file$datapath, input, input$sick, output, session)
       df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
-      write.csv2(df_to_plot, file = plot_csv)
+      write.csv2(prepare_data_frame_for_export(df_to_plot, global_data, session), file = plot_csv)
       write.csv2(read.csv2("finalC1.csv"), file = df_csv)
       zip_file <- file.path(tempdir(), "all_data.zip")
       zip(zipfile=zip_file, files = c(plot_csv, df_csv))
@@ -32,6 +45,7 @@ do_export_plotting_data <- function(input, output, session, file_output, do_plot
       file <- input$File1
       real_data <- do_plotting(file$datapath, input, input$sick, output, session)
       df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
+      df_to_plot <- prepare_data_frame_for_export(df_to_plot, global_data, session)
       write.csv2(df_to_plot, file = file_output)
    }
 }
