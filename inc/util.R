@@ -49,12 +49,13 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
    df <- finalC1
    if (havemetadata) {
       metadata <- get_true_metadata(metadatafile$datapath)
+      print(metadata)
       # fall back to TSE metadata
       if (is.null(metadata)) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))
       }
       # instead na.omit() we need to use select to remove columsn which are all NA
-      df <- finalC1 %>% full_join(y = metadata, by = c("Animals")) %>% select(where(~ !all(is.na(.)))) 
+      df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals"))
    } else {
       empty_row_index <-which(apply(C1meta[,-1], 1, function(row) all(row == "")))
       rows_to_remove <- unique(c(empty_row_index, empty_row_index+1))
@@ -151,7 +152,7 @@ pretty_print_label <- function(label, metadata, ee_unit) {
 ################################################################################
 annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) {
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
-   day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique()
+   day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() %>% na.omit()
 
    print(day_counts)
    # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
