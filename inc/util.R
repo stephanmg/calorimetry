@@ -132,10 +132,17 @@ pretty_print_label <- function(label, metadata, ee_unit) {
    # get relevant data from metadata
    if (!is.null(metadata)) {
       metadata <- get_covariates_and_units(metadata)
-      pretty_label <- gsub("body weight", paste0("body weight [", metadata %>% filter(covariates == "body weight") %>% pull("units_values"), "]"), pretty_label)
-      pretty_label <- gsub("lean mass", paste0("lean mass [", metadata %>% filter(covariates == "lean mass") %>% pull("units_values"), "]"), pretty_label)
-      pretty_label <- gsub("fat mass", paste0("fat mass [", metadata %>% filter(covariates == "fat mass") %>% pull("units_values"), "]"), pretty_label)
-      pretty_label <- gsub("Age", paste0("Age [", metadata %>% filter(covariates == "age") %>% pull("units_values"), "]"), pretty_label)
+      if (nrow(metadata) > 0) {
+         pretty_label <- gsub("body weight", paste0("body weight [", metadata %>% filter(covariates == "body weight") %>% pull("units_values"), "]"), pretty_label)
+         pretty_label <- gsub("lean mass", paste0("lean mass [", metadata %>% filter(covariates == "lean mass") %>% pull("units_values"), "]"), pretty_label)
+         pretty_label <- gsub("fat mass", paste0("fat mass [", metadata %>% filter(covariates == "fat mass") %>% pull("units_values"), "]"), pretty_label)
+         pretty_label <- gsub("Age", paste0("Age [", metadata %>% filter(covariates == "age") %>% pull("units_values"), "]"), pretty_label)
+      } else {
+         # TSE header assumes body weight always in grams [g]
+         pretty_label <- gsub("body weight", paste0("body weight [", "g", "]"), pretty_label)
+         pretty_label <- gsub("lean mass", paste0("lean mass [", "g", "]"), pretty_label)
+         pretty_label <- gsub("fat mass", paste0("fat mass [", "g", "]"), pretty_label)
+      }
    } else {
       # TSE header assumes body weight always in grams [g]
       pretty_label <- gsub("body weight", paste0("body weight [", "g", "]"), pretty_label)
