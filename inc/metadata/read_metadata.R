@@ -20,6 +20,35 @@ get_study_description_from_metadata <- function(file) {
 }
 
 ################################################################################
+# get covariates and units
+################################################################################
+get_covariates_and_units <- function(file) {
+   df <- read_excel(file)
+   colnames(df) <- seq(1, length(colnames(df)))
+
+   # covariates
+   covariate_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "covariates"))) %>% pull(ind)
+   covariates <- df %>% slice(covariate_index[2])
+   covariates$`1` <- NULL
+   covariates <- covariates[!is.na(covariates)]
+   covariates_values <- df %>% slice(covariate_index[2] + 1)
+   covariates_values$`1` <- NULL
+   covariates_values <- covariates_values[!is.na(covariates_values)]
+
+   # units
+   unit_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "unit"))) %>% pull(ind)
+   units <- df %>% slice(unit_index[2])
+   units$`1` <- NULL
+   units <- units[!is.na(units)]
+   units_values <- df %>% slice(unit_index[2])
+   units_values$`1` <- NULL
+   units_values <- units_values[!is.na(units_values)]
+
+   df_meta <- data.frame(covariates, units_values)
+   return(df_meta)
+}
+
+################################################################################
 # get constant and value pairs from metadata sheet
 ################################################################################
 get_constants <- function(file) {
@@ -116,7 +145,11 @@ get_true_metadata <- function(file) {
       return(NULL)
    }
 
+   print("covariates and units:")
+   print(get_covariates_and_units(file))
+
    # return the compiled metadata
    print(df_meta)
    return(df_meta)
+
 }

@@ -569,9 +569,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
             )
          })
 
@@ -824,11 +824,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                   EE$Animals <- as.factor(EE$Animals)
 
                   p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
-                  p <- p + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)
+                  p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
                   ggplotly(p)
                }),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable("EE")) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)))
             )
          })
 
@@ -1060,7 +1060,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
 
       # TODO: Check RMR params: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
-      # to reconstruct reliably RMR, but needs to be validated with additional analysis
+      # to reconstruct reliably RMR, but needs to be validated with additional analysis, e.g. BA analysis
       interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
       SLIDING_WINDOW_SIZE_M <- input$window
@@ -1192,9 +1192,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
             )
          })
 
@@ -1513,7 +1513,7 @@ output$details <- renderUI({
             p <- p + my_lights
       }
 
-      p <- p + ylab(pretty_print_variable(mylabel))
+      p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
       p <- p + xlab("Time [h]")
 
       convert <- function(x) {
@@ -1543,9 +1543,9 @@ output$details <- renderUI({
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_variable(mylabel)) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_variable(mylabel)) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)))
             )
          })
 
@@ -1639,7 +1639,7 @@ output$details <- renderUI({
      # indicate night start
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
      # set title and display buttons
-     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel))) + geom_point()
+     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, input$metadatafile$datapath))) + geom_point()
      # center x axis
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
      # basic plotly config
@@ -2443,8 +2443,8 @@ server <- function(input, output, session) {
                      hr(style = "width: 75%"),
                      renderPlotly({
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
-                        p <- p + xlab(pretty_print_label(input$covar)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var)) 
+                        p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) 
+                        p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
                         # TODO: use this auto-scale feature also in all other plots
                         if (!input$auto_scale_rmr_plot_limits_x) {
                            p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
@@ -2476,8 +2476,8 @@ server <- function(input, output, session) {
                      hr(style = "width: 75%"),
                      conditionalPanel("input.num_covariates == '2'", renderPlotly({
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-                        p <- p + xlab(pretty_print_label(input$covar2)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var)) 
+                        p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
+                        p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
                         if (!input$auto_scale_rmr_plot_limits_x2) {
                            p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
                         }

@@ -81,8 +81,8 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
          } # remaning columns are assumed to be numerical and used as covariates
       }
       metadata <- df_filtered 
-      # TODO: figure out primal reason
-      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates, happens when switching between panels sometimes
+      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when switching between pnales occassionally?
+      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
    return(list("data"=df, "metadata"=metadata))
@@ -109,7 +109,7 @@ zeitgeber_zeit <- function(df, light_on) {
 ################################################################################
 # pretty print variable 
 ################################################################################
-pretty_print_variable <- function(variable) {
+pretty_print_variable <- function(variable, metadata) {
    pretty_variable <- gsub("O2", "O<sub>2</sub>", variable)
    pretty_variable <- gsub("CO2", "CO<sub>2</sub>", pretty_variable)
    pretty_variable <- gsub("\\(3\\)", "", pretty_variable)
@@ -119,18 +119,30 @@ pretty_print_variable <- function(variable) {
 ################################################################################
 # pretty print label
 ################################################################################
-pretty_print_label <- function(label) {
-   # Weights are always in [g]
-   # TODO: get units from metadata sheet
+pretty_print_label <- function(label, metadata, ee_unit) {
+   # remove underscores 
    pretty_label <- gsub("_", " ", label)
-   pretty_label <- gsub("body weight", "body weight [g]", pretty_label)
-   pretty_label <- gsub("lean mass", "lean mass [g]", pretty_label)
-   pretty_label <- gsub("fat mass", "fat mass [g]", pretty_label)
+   # these units are fixed by convenience of plotting typically
    pretty_label <- gsub("TEE", paste0("TEE [kJ/day]"), pretty_label)
    pretty_label <- gsub("RMR", paste0("RMR [kJ/day]"), pretty_label)
    pretty_label <- gsub("GoxLox", paste0("GoxLox [ml/h]"), pretty_label)
    pretty_label <- gsub("HP", paste0("Energy expenditure [kJ/day]"), pretty_label)
+   # get relevant data from metadata
+   if (!is.null(metadata)) {
+      metadata <- get_covariates_and_units(metadata)
+      pretty_label <- gsub("body weight", paste0("body weight [", metadata %>% filter(covariates == "body weight") %>% pull("units_values"), "]"), pretty_label)
+      pretty_label <- gsub("lean mass", paste0("lean mass [", metadata %>% filter(covariates == "lean mass") %>% pull("units_values"), "]"), pretty_label)
+      pretty_label <- gsub("fat mass", paste0("fat mass [", metadata %>% filter(covariates == "fat mass") %>% pull("units_values"), "]"), pretty_label)
+      pretty_label <- gsub("Age", paste0("Age [", metadata %>% filter(covariates == "age") %>% pull("units_values"), "]"), pretty_label)
+   } else {
+      # TSE header assumes body weight always in grams [g]
+      pretty_label <- gsub("body weight", paste0("body weight [", "g", "]"), pretty_label)
+      pretty_label <- gsub("lean mass", paste0("lean mass [", "g", "]"), pretty_label)
+      pretty_label <- gsub("fat mass", paste0("fat mass [", "g", "]"), pretty_label)
+   }
+   # from TSE header there might be Weight available, rename to have a consistent name
    pretty_label <- gsub("Weight..g", "Weight [g]", pretty_label)
+   return(pretty_label)
 }
 
 ################################################################################
