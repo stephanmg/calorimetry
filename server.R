@@ -2439,6 +2439,7 @@ server <- function(input, output, session) {
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
                         p <- p + xlab(pretty_print_label(input$covar)) 
                         p <- p + ylab(pretty_print_label(input$dep_var)) 
+                        # TODO: use this auto-scale feature also in all other plots
                         if (!input$auto_scale_rmr_plot_limits_x) {
                            p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
                         }
