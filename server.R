@@ -1948,6 +1948,16 @@ server <- function(input, output, session) {
       }
    )
 
+   output$downloadAllData <- downloadHandler(
+         filename = function() {
+            paste0("all_data-", Sys.Date(), ".zip")
+         },
+         content = function(file) {
+            zip_file = do_export_all_data(input, output, session, file, do_plotting, global_data)
+            file.copy(zip_file, file)
+         }
+    )
+
    # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs <- renderUI({
       html_ui <- " "
@@ -2156,10 +2166,6 @@ server <- function(input, output, session) {
             renderText(paste(path_home(), input$export_folder$path[[2]], sep = "/")))
       })
 
-   observeEvent(input$downloadPlottingData, {
-      print("hurensohn!")
-   })
-      
    observeEvent(input$downloadData, {
       # CalR
       if (input$export_format == "CalR") {

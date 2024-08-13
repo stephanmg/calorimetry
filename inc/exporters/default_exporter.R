@@ -1,6 +1,27 @@
 source("inc/session_management.R")
 
 ################################################################################
+# Export all data as zip archive
+################################################################################
+do_export_all_data <- function(input, output, session, file_output, do_plotting, global_data) {
+   plot_csv <- file.path(tempdir(), "df_plot.csv")
+   df_csv <- file.path(tempdir(), "df_input_data.csv")
+   file <- input$File1
+   if (is.null(input$File1)) {
+      output$message <- renderText("Not any cohort data given by the user.")
+   } else {
+      file <- input$File1
+      real_data <- do_plotting(file$datapath, input, input$sick, output, session)
+      df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
+      write.csv2(df_to_plot, file = plot_csv)
+      write.csv2(read.csv2("finalC1.csv"), file = df_csv)
+      zip_file <- file.path(tempdir(), "all_data.zip")
+      zip(zipfile=zip_file, files = c(plot_csv, df_csv))
+      return(zip_file)
+   }
+
+}
+################################################################################
 # Export plotting data frame as csv
 ################################################################################
 do_export_plotting_data <- function(input, output, session, file_output, do_plotting, global_data) {
@@ -42,14 +63,14 @@ do_export_alternative <- function(format, input, output, session, file_output, d
             names(real_data$data)[names(real_data$data) == v] <- h[[v]]
          }
          if (format == "CalR") {
-         write.csv(real_data$data[values(h)], file = file_output, row.names = FALSE)
-         writeLines(gsub(pattern = '"', replace = "", x = readLines(file_output)), con = file_output)
+            write.csv(real_data$data[values(h)], file = file_output, row.names = FALSE)
+            writeLines(gsub(pattern = '"', replace = "", x = readLines(file_output)), con = file_output)
          }
 
          if (format == "Excel") {
             tmp <- cbind(real_data$data[values(h)], real_data$animals)
             df <- read.csv2("finalC1.csv")
-           write_xlsx(df, path = file_output)
+            write_xlsx(df, path = file_output)
          }
       }
    }

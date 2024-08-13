@@ -182,7 +182,27 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
    conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
    h3("Plotting controls"),
-   actionButton("plotting", "Show"),
+   tags$style(HTML("
+        #plotting {
+          background-color: #FFB3BA; /* Pastel Red */
+          color: white;
+          border-color: #FFB3BA;
+        }
+        #reset {
+          background-color: #B3E5FC; /* Pastel Blue */
+          color: white;
+          border-color: #B3E5FC;
+        }
+        #plotting:hover {
+          background-color: #FF8A80; /* Darker shade for hover */
+          border-color: #FF8A80;
+        }
+        #reset:hover {
+          background-color: #81D4FA; /* Darker shade for hover */
+          border-color: #81D4FA;
+        }
+   ")),
+   actionButton("plotting", "Show",),
    actionButton("reset", "Reset"),
    ))),
    hr(),
@@ -320,9 +340,11 @@ sidebar_content <- sidebarPanel(
    selectInput("export_format", "Format", choices = c("CalR", "Excel")),
    textInput("export_file_name", "File name (Leave empty for auto-generation of a file name)"),
    downloadButton("downloadData", "Download"),
-   h3("Plotting data"),
+   h3("Data tables for plotting"),
    textInput("export_file_name2", "File name (Leave empty for auto-generation of a file name)"),
-   downloadButton("downloadPlottingData", "Download")
+   downloadButton("downloadPlottingData", "Download"),
+   h3("All data (including input data)"),
+   downloadButton("downloadAllData", "Download as zip file", icon=icon("file-archive")),
    )),
    hr(),
     fluidPage(
