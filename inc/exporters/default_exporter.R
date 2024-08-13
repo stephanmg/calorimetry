@@ -1,4 +1,8 @@
-source("inc/session_management.R") # for session management
+source("inc/session_management.R")
+
+################################################################################
+# Export plotting data frame as csv
+################################################################################
 do_export_plotting_data <- function(input, output, session, file_output, do_plotting, global_data) {
    file <- input$File1
    if (is.null(input$File1)) {
@@ -9,7 +13,6 @@ do_export_plotting_data <- function(input, output, session, file_output, do_plot
       df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
       write.csv2(df_to_plot, file = file_output)
    }
-
 }
 
 ################################################################################
