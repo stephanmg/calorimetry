@@ -217,13 +217,8 @@ ui <- fluidPage(
                      selected = required_fields,
                      multiple = TRUE),
       # actionButton("process", "Process File", class = "btn-primary"),
-      conditionalPanel("input.specify_manually != true", 
        downloadButton("downloadData", "Download Processed File", class = "btn-primary"),
        downloadButton("downloadMetadata", "Download metadata sheet", class = "btn-primary")
-      ),
-      conditionalPanel("input.specify_manually == true", 
-       downloadButton("downloadMetadata", "Download metadata sheet", class = "btn-primary")
-      ),
       #uiOutput("status")
     ),
     
