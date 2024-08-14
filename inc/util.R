@@ -96,10 +96,17 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
 # convert df to zeitgeber zeit
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
+   write.csv2(df, "directly_before_offsets.csv")
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
+   print("even earlier")
+   print(offsets)
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
+   print("earlier offsets:")
+   print(offsets)
    offsets$`offset`  <- as.numeric(offsets$`offset`)
    offsets$offset <- offsets$offset - min(offsets$offset)
+   print("offsets:")
+   print(offsets)
    offsets$offset <- offsets$offset + (light_on - min(offsets$offset)) - light_on
    offsets <- offsets %>% unique()
    df_joined <- df %>% left_join(offsets, by = "Animal No._NA")

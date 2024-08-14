@@ -434,8 +434,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # filter out whole days with given threshold
    if (input$only_full_days) {
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
+      print("int val length list:")
+      print(interval_length_list)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
    }
+
 
    switch(plotType,
    #####################################################################################################################
@@ -681,6 +684,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+      print(finalC1)
+      write.csv2(finalC1, "in_ennergy_expenditure.csv")
 
       # join either metadata from sheet or tse supported header columns (see above) to measurement data
       # enrich with metadata from TSE header (C1meta) or from metadata sheet (input$metadatafile)
@@ -725,7 +730,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          }
 
       # display zeitgeber zeit
-        finalC1 <- zeitgeber_zeit(finalC1, light_on)
+      write.csv2(finalC1, "before_zeitgeber_zeit.csv")
+        finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+        write.csv2(finalC1, "zeitgeber_zeit_ee.csv")
 
       # already shifted by zeitgeber zeit above, so light_on is now 0
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)

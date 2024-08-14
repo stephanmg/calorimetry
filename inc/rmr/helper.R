@@ -212,6 +212,8 @@ filter_full_days_alternative <- function(df, threshold, cohort_list) {
    # based on Animal ID we need to subtract the offset 
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs = running_total.hrs - min(running_total.hrs, na.rm = TRUE)) %>% ungroup()
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour - min(running_total.hrs.halfhour, na.rm = TRUE)) %>% ungroup()
+   df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.sec = running_total.sec - min(running_total.sec, na.rm = TRUE)) %>% ungroup()
+   write.csv2(df_filtered, "df_filtered_after_full.csv")
    return(df_filtered)
 }
 
