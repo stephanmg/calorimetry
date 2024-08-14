@@ -467,7 +467,6 @@ contact <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- tagList(
-  theme = shinythemes("ceurlean"),
   useShinyjs(),
   # Note that this is inline CSS and HTML code, can also be done as in code.js and style.css in external files
   tags$head(
