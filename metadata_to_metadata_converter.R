@@ -331,14 +331,16 @@ server <- function(input, output, session) {
           
           lapply(1:n_rows, function(row_num) {
             tagList(
+              checkboxInput(paste0("toggle_sample_", row_num, "_", cohort_num), paste0("Sample #", row_num), value = FALSE),
               fluidRow(
                 lapply(selected_columns, function(col) {
                   div(
                     class = paste0("text-input-", cohort_num),  # Apply cohort-specific class
+                    conditionalPanel(paste0("input.toggle_sample_", row_num, "_", cohort_num, " == true"), 
                     textInput(paste0("input_cohort", cohort_num, "_row", row_num, "_", col), 
                               label = paste(col, "- Sample", row_num), 
                               value = "")
-                  )
+                  ))
                 })
               ),
               hr()  # Add a horizontal rule to separate each row visually
