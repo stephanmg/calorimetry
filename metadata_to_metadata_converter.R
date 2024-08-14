@@ -65,7 +65,7 @@ ui <- fluidPage(
   
   useShinyjs(),  # Initialize shinyjs
 
-  # seems not to work properly TODO
+  # require fields to be always selected
   tags$script(HTML("
      $(document).ready(function() {
        var selected = $(this).val();
@@ -283,17 +283,9 @@ server <- function(input, output, session) {
      str(info)
      new_data <- uploaded_data()
      new_data[info$row, info$col] <- info$value
-     uploaded_data = new_data
+     uploaded_data = new_data # TODO: data table seems not to be updated accordingly and  thus not stored correctly after download using processed file
    })
 
-   observeEvent(input$processd_file_table_cell_edit, {
-     info <- input$processed_file_table_cell_edit
-     str(info)
-     new_data <- processed_data()
-     new_data[info$row, info$col] <- info$value
-     processed_data = new_data
-   })
-  
   # Generate dynamic input fields for Versuchsbezeichnung and DataFile based on the number of cohorts
   observeEvent(input$generate_cohorts, {
     output$cohort_name_inputs <- renderUI({
@@ -378,7 +370,7 @@ server <- function(input, output, session) {
       # Step 1: Read the uploaded Excel file
       #df <- read_excel(input$file1$datapath, col_names = TRUE)
 
-      df <- supressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
+      df <- read_excel(input$file1$datapath, col_names = TRUE)
       df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y"))) %>%
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
@@ -424,9 +416,11 @@ server <- function(input, output, session) {
     },
     content = function(file) {
        if (!input$specify_manually) {
-      df <- supressWarnings(read_excel(input$file1$datapath, col_names = TRUE))
+      df <- read_excel(input$file1$datapath, col_names = TRUE)
+      df <- uploaded_data()
+      print(df)
       df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
-         mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y")))
+         mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y"))) %>%
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
          write_xlsx(df %>% select(all_of(input$select_columns)), file)
        } else {
