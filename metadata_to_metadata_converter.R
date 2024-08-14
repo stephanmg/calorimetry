@@ -404,6 +404,7 @@ server <- function(input, output, session) {
           df <- rbind(df, as.data.frame(new_row, stringsAsFactors = FALSE))
         }
       }
+      df <- df %>% select(-all_of(c("Versuchsbezeichnung", "DataFile"))) # not required for displaying of metadata and creating of metadata sheet
     }
      
     colnames(df) <- selected_columns
