@@ -262,12 +262,10 @@ server <- function(input, output, session) {
    observeEvent(input$display_metadata, {
          output$processed_file_table_header <- renderUI({h3("Metadata sheet (truncated)")})
          output$processed_file_table <- renderTable({
-         req(input$toggleCohort1)
          #output$processed_file_table <- renderDT({
               if (input$specify_manually) {
                  transform_df(processed_data() %>% select(all_of(input$select_columns)), input)
                } else {
-                 req(input$file1)
                  transform_df(read_excel(input$file1$datapath) %>% select(all_of(input$select_columns)), input)
               }
          })
@@ -287,7 +285,7 @@ server <- function(input, output, session) {
      info <- input$uploaded_file_table_cell_edit
      str(info)
      new_data <- uploaded_data()
-     new_data[info$row, info$col] <- info$value
+     new_data[info$row, info$col] <- as.numeric(info$value)
      uploaded_data = new_data # TODO: data table seems not to be updated accordingly and  thus not stored correctly after download using processed file
    })
 
