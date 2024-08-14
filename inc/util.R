@@ -54,7 +54,7 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       if (is.null(metadata)) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))
       }
-      # instead na.omit() we need to use select to remove columsn which are all NA
+      # instead na.omit() we need to use select to remove columns which are all NA before joining
       df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals"))
    } else {
       empty_row_index <-which(apply(C1meta[,-1], 1, function(row) all(row == "")))
