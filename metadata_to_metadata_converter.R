@@ -6,12 +6,15 @@ library(dplyr)
 library(tidyr)
 library(hms)
 library(lubridate)
+library(shinythemes)
+library(DT) # for editable table outputs
 
 date_columns <- c("dob", "Date End",  "Date Start", "date body start", "date body end")
 time_columns <- c("Time End", "Time Start")
 
-transform_df <- function(df, input) {
+required_fields  <- c("Cohort", "Animal #", "sex", "genotype", "diet", "age at start", "bw start", "bw end", "delta_bm", "lm start", "lm end", "fm start", "fm end")
 
+transform_df <- function(df, input) {
    # Step 2: Define the vector of columns you want to select
    selected_columns <- c("Animal #", "sex", "genotype", "delta_bm", "age at start", "diet",  "bw start", "bw end", "lm start", "lm end", "fm start", "fm end")  # Pick your desired metadata columns
    metadata_column_names <- c("personal_ID", "sex", "genotype_group", "delta_bm", "age", "diet_group", "body weight", "bw_end", "lean_mass", "lm_end", "fat_mass", "fm_end") # Rename columns for MD sheet
@@ -41,24 +44,52 @@ transform_df <- function(df, input) {
    light_on <- input$light_on
    light_off <- input$light_off
 
-   df_transposed <- rbind(c("General", rep("", length(colnames(df_transposed))-1)), df_transposed)
    df_transposed <- rbind(c("Group", group_name, rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("Name", author_name, rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("Date", as.character(exp_date), rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("Title", exp_title, rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("General", rep("", length(colnames(df_transposed))-1)), df_transposed)
 
-   df_transposed <- rbind(c("comment", "light phase start", "dark phase start", rep("", length(colnames(df_transposed))-3)), df_transposed)
-   df_transposed <- rbind(c("specify constant value", light_on, light_off, rep("", length(colnames(df_transposed))-3)), df_transposed)
-   df_transposed <- rbind(c("constants (one per column)", "light_on", "light_off", rep("", length(colnames(df_transposed))-3)), df_transposed)
+
+   df_transposed <- rbind(c("comment", "light phase start", "dark phase start", rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("specify constant value", light_on, light_off, rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("constants (one per column)", "light_on", "light_off", rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("covariates / constants", rep("", length(colnames(df_transposed))-1)), df_transposed)
-
    return(df_transposed)
 }
 
 # Define UI for the Shiny app
 ui <- fluidPage(
+
+  theme = shinytheme("darkly"), # set theme
   
   useShinyjs(),  # Initialize shinyjs
+
+  # seems not to work properly TODO
+  tags$script(HTML("
+     $(document).on('change', '#select_columns', function(e) {
+       var selected = $(this).val();
+       var alwaysSelected = ['Cohort', 'Animal #', 'sex', 'genotype', 'diet', 'age at start', 'bw start', 'bw end', 'delta_bm', 'lm start', 'lm end', 'fm start', 'fm end'];
+       alwaysSelected.forEach(function(item) {
+          if (selected.indexOf(item) === -1) {
+             selected.push(item);
+          }
+        });
+
+       $(this).val(selected).trigger('change')
+      });
+ ")),
+
+  tags$style(HTML("
+    .selectize-input .item {
+       background-color: #DCD0FF !important;
+       color: black !important;
+    }
+
+    .selectize-input .active {
+       background-color: #E6D6FF !important;
+    }
+   ")),
   
   # Add custom CSS for pastel color theme and input field highlights
   tags$style(HTML("
@@ -169,15 +200,12 @@ ui <- fluidPage(
        numericInput("light_on", "Light on", min=0, max=24, value=7),
        numericInput("light_off", "Light off", min=0, max=24, value=19)
        ),
-      selectInput("select_columns", "Select columns", 
+      selectInput("select_columns", "Required metadata fields", 
                      choices = c("Cohort", "Box", "Animal #", "dob", "sex", "genotype", "diet", "age at start", 
                                  "date body start", "date body end", "bw start", "bw end", "delta_bm", 
                                  "lm start", "lm end", "fm start", "fm end", "ff start", "ff end", 
                                  "Date Start", "Time Start", "Date End", "Time End"), 
-                     selected = c("Cohort", "Box", "Animal #", "dob", "sex", "genotype", "diet", "age at start", 
-                                  "date body start", "date body end", "bw start", "bw end", "delta_bm", 
-                                  "lm start", "lm end", "fm start", "fm end", "ff start", "ff end", 
-                                  "Date Start", "Time Start", "Date End", "Time End"), 
+                     selected = required_fields, 
                      multiple = TRUE),
 
       # actionButton("process", "Process File", class = "btn-primary"),
@@ -190,9 +218,11 @@ ui <- fluidPage(
     mainPanel(
       uiOutput("dynamic_cohort_inputs"),  # Dynamic inputs for cohorts
       uiOutput("uploaded_file_table_header"),
-      tableOutput("uploaded_file_table"), # Display uploaded Excel file
+      #tableOutput("uploaded_file_table"), # Display uploaded Excel file
+      DTOutput("uploaded_file_table"),
       uiOutput("processed_file_table_header"),
-      tableOutput("processed_file_table") # Display uploaded Excel file
+      tableOutput("processed_file_table") # Display processed (uploaded) Excel file
+      #DTOutput("processed_file_table")
     )
   )
 )
@@ -219,12 +249,12 @@ server <- function(input, output, session) {
    observeEvent(input$display_metadata, {
          output$processed_file_table_header <- renderUI({h3("Metadata sheet (truncated)")})
          output$processed_file_table <- renderTable({
+         #output$processed_file_table <- renderDT({
               if (input$specify_manually) {
-                 req(input$input_cohort_1_row_1_1)
-                 transform_df(processed_data(), input)
+                 transform_df(processed_data() %>% select(all_of(input$select_columns)), input)
                } else {
                  req(input$file1)
-                 transform_df(read_excel(input$file1$datapath), input)
+                 transform_df(read_excel(input$file1$datapath) %>% select(all_of(input$select_columns)), input)
               }
          })
       })
@@ -233,9 +263,26 @@ server <- function(input, output, session) {
 
    observeEvent(input$display_excel, {
       output$uploaded_file_table_header <- renderUI({h3("Uploaded metadata")})
-      output$uploaded_file_table <- renderTable({
-         uploaded_data() %>% select(all_of(input$select_columns))
+      #output$uploaded_file_table <- renderTable({
+      output$uploaded_file_table <- renderDT({
+         datatable(uploaded_data() %>% select(all_of(input$select_columns)), editable = TRUE)
       })
+   })
+
+   observeEvent(input$uploaded_file_table_cell_edit, {
+     info <- input$uploaded_file_table_cell_edit
+     str(info)
+     new_data <- uploaded_data()
+     new_data[info$row, info$col] <- info$value
+     uploaded_data = new_data
+   })
+
+   observeEvent(input$processd_file_table_cell_edit, {
+     info <- input$processed_file_table_cell_edit
+     str(info)
+     new_data <- processed_data()
+     new_data[info$row, info$col] <- info$value
+     processed_data = new_data
    })
   
   # Generate dynamic input fields for Versuchsbezeichnung and DataFile based on the number of cohorts
@@ -373,6 +420,8 @@ server <- function(input, output, session) {
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y")))
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
          write_xlsx(df %>% select(all_of(input$select_columns)), file)
+       } else {
+         write_xlsx(transform_df(processed_data() %>% select(all_of(input$select_columns)), input), file)
        }
     }
   )

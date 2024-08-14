@@ -467,6 +467,7 @@ contact <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- tagList(
+  theme = shinythemes("ceurlean"),
   useShinyjs(),
   # Note that this is inline CSS and HTML code, can also be done as in code.js and style.css in external files
   tags$head(
@@ -489,6 +490,7 @@ ui <- tagList(
     "CALOR - A reactive web-based application for the analysis of indirect calorimetry experiments",
     intro_panel,
     visualization,
+    tabPanel("Metadata converter", tags$a(href = "https://shiny.iaas.uni-bonn.de/CaloHelper", "Go to Metadata converter", target = "_blank")),
     documentation,
     contact
   )
