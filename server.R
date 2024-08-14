@@ -736,7 +736,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # already shifted by zeitgeber zeit above, so light_on is now 0
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
-       finalC1 <- day_annotations$df_annotated
+      finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
@@ -961,6 +961,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
      # re-center at 0
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(lights$x), max(lights$x)))
+     print(max(lights$x))
      #p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(lights$y), max(lights$y)))
      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
    },
@@ -1520,6 +1521,7 @@ output$details <- renderUI({
       mylabel <- gsub("_", " ", mylabel)
 
       # annotate timeline
+      # TODO: Raw does not work df_to_plot does not contain only full days, but finalC1 does, see GOxLox and EE works too with finalC1, change here too
       lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
       colnames(lights) <- c("x", "y")
       if (input$timeline) {
@@ -1659,7 +1661,10 @@ output$details <- renderUI({
       p <- p + geom_point()
      }
      # center x axis
-     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
+     #p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
+     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
+     print(min(lights$x))
+     print(max(lights$x))
      # basic plotly config
      # toggle outliers
      if (input$toggle_outliers) {
