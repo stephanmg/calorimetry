@@ -10,7 +10,7 @@ library(lubridate)
 date_columns <- c("dob", "Date End",  "Date Start", "date body start", "date body end")
 time_columns <- c("Time End", "Time Start")
 
-transform_df <- function(df) {
+transform_df <- function(df, input) {
 
    # Step 2: Define the vector of columns you want to select
    selected_columns <- c("Animal #", "sex", "genotype", "delta_bm", "age at start", "diet",  "bw start", "bw end", "lm start", "lm end", "fm start", "fm end")  # Specify your desired columns
@@ -32,6 +32,26 @@ transform_df <- function(df) {
    df_transposed <- rbind(rep("", length(colnames(df_transposed))), df_transposed)
    df_transposed <- rbind(c("Sample-Section", rep("", length(colnames(df_transposed))-1)), df_transposed)
    df_transposed <- rbind(df_transposed, c("Sub-Sample Section", rep("", length(colnames(df_transposed))-1)))
+
+   # add study description
+   group_name <- input$group_name
+   exp_title <- input$exp_name
+   exp_date <- input$exp_date
+   author_name <- input$author_name
+   light_on <- input$light_on
+   light_off <- input$light_off
+
+   df_transposed <- rbind(c("General", rep("", length(colnames(df_transposed))-1)), df_transposed)
+   df_transposed <- rbind(c("Group", group_name, rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("Name", author_name, rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("Date", exp_date, rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("Title", exp_title, rep("", length(colnames(df_transposed))-2)), df_transposed)
+
+   df_transposed <- rbind(c("comment", "light phase start", "dark phase start", rep("", length(colnames(df_transposed))-3)), df_transposed)
+   df_transposed <- rbind(c("specify constant value", light_on, light_off, rep("", length(colnames(df_transposed))-3)), df_transposed)
+   df_transposed <- rbind(c("constants (one per column)", "light_on", "light_off", rep("", length(colnames(df_transposed))-3)), df_transposed)
+   df_transposed <- rbind(c("covariates / constants", rep("", length(colnames(df_transposed))-1)), df_transposed)
+
    return(df_transposed)
 }
 
@@ -108,6 +128,14 @@ ui <- fluidPage(
       border-radius: 10px;
     }
   ")),
+  tags$style(HTML("
+    .highlight {
+       background-color: rgba(255, 0,0, 0.3) !important;
+    }
+    .highlight_off {
+       background-color: rgba(0, 255, 0, 0.3) !important;
+    }
+    ")),
   
   # App title
   titlePanel("Metadata to Metadata sheet converter"),
@@ -131,6 +159,16 @@ ui <- fluidPage(
          actionButton("generate_cohorts", "Generate Cohort Inputs", class = "btn-primary"),
          uiOutput("cohort_name_inputs"),  # Dynamic input for Versuchsbezeichnung and DataFile
       ),
+      checkboxInput("study_details", "Enter study details", value = FALSE),
+      conditionalPanel("input.study_details == true",
+       textInput("study_description", "Study description", value="Enter study description"),
+       textInput("group_name", "Working group", value="Enter your working group"),
+       textInput("exp_name", "Experiment name", value="Enter name of experiment"),
+       textInput("author_name", "Name of author", value="Enter your name"),
+       dateInput("exp_date", "Date of experiment", value=Sys.Date()),
+       numericInput("light_on", "Light on", min=0, max=24, value=7),
+       numericInput("light_off", "Light off", min=0, max=24, value=19)
+       ),
       selectInput("select_columns", "Select columns", 
                      choices = c("Cohort", "Box", "Animal #", "dob", "sex", "genotype", "diet", "age at start", 
                                  "date body start", "date body end", "bw start", "bw end", "delta_bm", 
@@ -141,6 +179,7 @@ ui <- fluidPage(
                                   "lm start", "lm end", "fm start", "fm end", "ff start", "ff end", 
                                   "Date Start", "Time Start", "Date End", "Time End"), 
                      multiple = TRUE),
+
       # actionButton("process", "Process File", class = "btn-primary"),
       downloadButton("downloadData", "Download Processed File", class = "btn-primary"),
       downloadButton("downloadMetadata", "Download metadata sheet", class = "btn-primary")
@@ -161,15 +200,31 @@ ui <- fluidPage(
 # Define server logic for the Shiny app
 server <- function(input, output, session) {
 
+   check_and_highlight <- function(input_id, default_value) {
+       observe({
+         if (input[[input_id]] == default_value || input[[input_id]] == "") {
+           runjs(sprintf("$('#%s').addClass('highlight');", input_id))
+         } else {
+           runjs(sprintf("$('#%s').removeClass('highlight');", input_id))
+           runjs(sprintf("$('#%s').addClass('highlight_off');", input_id))
+         }
+       })
+   }
+
+   check_and_highlight("author_name", "Enter your name")
+   check_and_highlight("group_name", "Enter your working group")
+   check_and_highlight("exp_name", "Enter name of experiment")
+   check_and_highlight("study_description", "Enter study description")
+
    observeEvent(input$display_metadata, {
          output$processed_file_table_header <- renderUI({h3("Metadata sheet (truncated)")})
          output$processed_file_table <- renderTable({
               if (input$specify_manually) {
                  req(input$input_cohort_1_row_1_1)
-                 transform_df(processed_data())
+                 transform_df(processed_data(), input)
                } else {
                  req(input$file1)
-                 transform_df(read_excel(input$file1$datapath))
+                 transform_df(read_excel(input$file1$datapath), input)
               }
          })
       })
@@ -272,8 +327,6 @@ server <- function(input, output, session) {
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y"))) %>%
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
 
-
-      
       # Step 2: Replace NA values with empty strings
       df <- df %>%
         mutate(across(everything(), ~ ifelse(is.na(.), "", .)))
@@ -303,10 +356,10 @@ server <- function(input, output, session) {
     }
      
     colnames(df) <- selected_columns
-    #output$status <- renderText("Processed data")
     return(df)
 
   })
+
   
   # Generate downloadable Excel file
   output$downloadData <- downloadHandler(
@@ -331,10 +384,10 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       if (input$specify_manually) {
-         write_xlsx(transform_df(processed_data()), file)
+         write_xlsx(transform_df(processed_data(), input), file)
          output$status <- renderText("Converted metadata to metadata sheet")
       } else {
-         write_xlsx(transform_df(read_excel(input$file1$datapath)), file)
+         write_xlsx(transform_df(read_excel(input$file1$datapath), input), file)
       }
     }
   )
