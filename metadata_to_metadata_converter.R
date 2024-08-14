@@ -67,18 +67,27 @@ ui <- fluidPage(
 
   # seems not to work properly TODO
   tags$script(HTML("
-     $(document).on('change', '#select_columns', function(e) {
+     $(document).ready(function() {
        var selected = $(this).val();
        var alwaysSelected = ['Cohort', 'Animal #', 'sex', 'genotype', 'diet', 'age at start', 'bw start', 'bw end', 'delta_bm', 'lm start', 'lm end', 'fm start', 'fm end'];
-       alwaysSelected.forEach(function(item) {
-          if (selected.indexOf(item) === -1) {
-             selected.push(item);
-          }
-        });
+       console.log('selected:')
+       console.log(selected)
 
-       $(this).val(selected).trigger('change')
+       $('#select_columns').on('change', function(e) {
+           var selected = $(this).val() || [];
+
+           console.log('here')
+           var newSelection = [...new Set(alwaysSelected.concat(selected))];
+
+           console.log('new selct');
+           console.log(newSelection)
+           if (selected.length !== newSelection.length) {
+              var selectizeControl = $('#select_columns')[0].selectize;
+              selectizeControl.setValue(newSelection, silent = true);
+           }
+         });
       });
- ")),
+  ")),
 
   tags$style(HTML("
     .selectize-input .item {
@@ -205,7 +214,7 @@ ui <- fluidPage(
                                  "date body start", "date body end", "bw start", "bw end", "delta_bm", 
                                  "lm start", "lm end", "fm start", "fm end", "ff start", "ff end", 
                                  "Date Start", "Time Start", "Date End", "Time End"), 
-                     selected = required_fields, 
+                     selected = required_fields,
                      multiple = TRUE),
 
       # actionButton("process", "Process File", class = "btn-primary"),
