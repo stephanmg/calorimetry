@@ -12,7 +12,7 @@ library(DT) # for editable table outputs
 date_columns <- c("dob", "Date End",  "Date Start", "date body start", "date body end")
 time_columns <- c("Time End", "Time Start")
 
-required_fields  <- c("Cohort", "Animal #", "sex", "genotype", "diet", "age at start", "bw start", "bw end", "delta_bm", "lm start", "lm end", "fm start", "fm end")
+required_fields  <- c("Animal #", "sex", "genotype", "diet", "age at start", "bw start", "bw end", "delta_bm", "lm start", "lm end", "fm start", "fm end")
 
 transform_df <- function(df, input) {
    # Step 2: Define the vector of columns you want to select
@@ -69,7 +69,7 @@ ui <- fluidPage(
   tags$script(HTML("
      $(document).ready(function() {
        var selected = $(this).val();
-       var alwaysSelected = ['Cohort', 'Animal #', 'sex', 'genotype', 'diet', 'age at start', 'bw start', 'bw end', 'delta_bm', 'lm start', 'lm end', 'fm start', 'fm end'];
+       var alwaysSelected = ['Animal #', 'sex', 'genotype', 'diet', 'age at start', 'bw start', 'bw end', 'delta_bm', 'lm start', 'lm end', 'fm start', 'fm end'];
        console.log('selected:')
        console.log(selected)
 
@@ -196,7 +196,7 @@ ui <- fluidPage(
       checkboxInput("specify_manually", "Specify metadata instead manually?", value = FALSE),
       conditionalPanel("input.specify_manually == true", 
          numericInput("n_cohorts", "How many cohorts?", value = 1, min = 1, max = 4),
-         actionButton("generate_cohorts", "Generate Cohort Inputs", class = "btn-primary"),
+         actionButton("generate_cohorts", "Generate cohorts", class = "btn-primary"),
          uiOutput("cohort_name_inputs"),  # Dynamic input for Versuchsbezeichnung and DataFile
       ),
       checkboxInput("study_details", "Enter study details", value = FALSE),
@@ -216,10 +216,14 @@ ui <- fluidPage(
                                  "Date Start", "Time Start", "Date End", "Time End"), 
                      selected = required_fields,
                      multiple = TRUE),
-
       # actionButton("process", "Process File", class = "btn-primary"),
-      downloadButton("downloadData", "Download Processed File", class = "btn-primary"),
-      downloadButton("downloadMetadata", "Download metadata sheet", class = "btn-primary")
+      conditionalPanel("input.specify_manually != true", 
+       downloadButton("downloadData", "Download Processed File", class = "btn-primary"),
+       downloadButton("downloadMetadata", "Download metadata sheet", class = "btn-primary")
+      ),
+      conditionalPanel("input.specify_manually == true", 
+       downloadButton("downloadMetadata", "Download metadata sheet", class = "btn-primary")
+      ),
       #uiOutput("status")
     ),
     
@@ -258,6 +262,7 @@ server <- function(input, output, session) {
    observeEvent(input$display_metadata, {
          output$processed_file_table_header <- renderUI({h3("Metadata sheet (truncated)")})
          output$processed_file_table <- renderTable({
+         req(input$toggleCohort1)
          #output$processed_file_table <- renderDT({
               if (input$specify_manually) {
                  transform_df(processed_data() %>% select(all_of(input$select_columns)), input)
@@ -307,7 +312,7 @@ server <- function(input, output, session) {
       lapply(1:n_cohorts, function(cohort_num) {
         tagList(
           numericInput(paste0("n_rows_cohort", cohort_num), paste("How many rows for Cohort", cohort_num, "?"), value = 2, min = 1),
-          actionButton(paste0("toggleCohort", cohort_num), paste("Toggle Cohort", cohort_num), class = paste0("cohort-btn-", cohort_num)),
+          actionButton(paste0("toggleCohort", cohort_num), paste("Display Cohort", cohort_num), class = paste0("cohort-btn-", cohort_num)),
           hidden(
             div(id = paste0("cohort_", cohort_num),
                 uiOutput(paste0("cohort_inputs_", cohort_num))
@@ -333,7 +338,7 @@ server <- function(input, output, session) {
                   div(
                     class = paste0("text-input-", cohort_num),  # Apply cohort-specific class
                     textInput(paste0("input_cohort", cohort_num, "_row", row_num, "_", col), 
-                              label = paste(col, "- Cohort", cohort_num, "Row", row_num), 
+                              label = paste(col, "- Sample", row_num), 
                               value = "")
                   )
                 })
@@ -416,10 +421,8 @@ server <- function(input, output, session) {
     },
     content = function(file) {
        if (!input$specify_manually) {
-      df <- read_excel(input$file1$datapath, col_names = TRUE)
-      df <- uploaded_data()
-      print(df)
-      df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
+         df <- uploaded_data()
+         df <- df %>% mutate(across(all_of(date_columns), ~ as.Date(., format = "%d/%m/%Y"))) %>%
          mutate(across(all_of(date_columns), ~format(., "%d/%m/%Y"))) %>%
          mutate(across(all_of(time_columns), ~format(as.POSIXct(., format = "%Y-%m-%d %H:%M:%S", tz = "UTC"), "%H:%M:%S")))
          write_xlsx(df %>% select(all_of(input$select_columns)), file)
