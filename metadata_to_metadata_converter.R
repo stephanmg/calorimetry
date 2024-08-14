@@ -182,7 +182,7 @@ ui <- fluidPage(
   
   # Sidebar layout with input and output definitions
   sidebarLayout(
-    
+    # TODO: note that in R 4.2 and shiny on server, the conditional panels seems not to work, especially if input_specifically_manually is used
     # Sidebar panel for inputs
     sidebarPanel(
       conditionalPanel("input.specify_manually == false", fileInput("file1", "Choose metadata from another Excel file", accept = c(".xlsx"))),
