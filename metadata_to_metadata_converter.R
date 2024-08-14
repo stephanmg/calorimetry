@@ -13,8 +13,8 @@ time_columns <- c("Time End", "Time Start")
 transform_df <- function(df, input) {
 
    # Step 2: Define the vector of columns you want to select
-   selected_columns <- c("Animal #", "sex", "genotype", "delta_bm", "age at start", "diet",  "bw start", "bw end", "lm start", "lm end", "fm start", "fm end")  # Specify your desired columns
-   metadata_column_names <- c("personal_ID", "sex", "genotype_group", "delta_bm", "age", "diet_group", "body weight", "bw_end", "lean_mass", "lm_end", "fat_mass", "fm_end") # Rename columns
+   selected_columns <- c("Animal #", "sex", "genotype", "delta_bm", "age at start", "diet",  "bw start", "bw end", "lm start", "lm end", "fm start", "fm end")  # Pick your desired metadata columns
+   metadata_column_names <- c("personal_ID", "sex", "genotype_group", "delta_bm", "age", "diet_group", "body weight", "bw_end", "lean_mass", "lm_end", "fat_mass", "fm_end") # Rename columns for MD sheet
 
    rename_map <- setNames(metadata_column_names, selected_columns)
    # Step 3: Select only the specified columns
