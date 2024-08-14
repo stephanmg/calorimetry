@@ -44,7 +44,7 @@ transform_df <- function(df, input) {
    df_transposed <- rbind(c("General", rep("", length(colnames(df_transposed))-1)), df_transposed)
    df_transposed <- rbind(c("Group", group_name, rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("Name", author_name, rep("", length(colnames(df_transposed))-2)), df_transposed)
-   df_transposed <- rbind(c("Date", exp_date, rep("", length(colnames(df_transposed))-2)), df_transposed)
+   df_transposed <- rbind(c("Date", as.character(exp_date), rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("Title", exp_title, rep("", length(colnames(df_transposed))-2)), df_transposed)
 
    df_transposed <- rbind(c("comment", "light phase start", "dark phase start", rep("", length(colnames(df_transposed))-3)), df_transposed)
