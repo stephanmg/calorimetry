@@ -458,6 +458,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
+      # get metadata from tse header only
+      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+      finalC1 <- data_and_metadata$data
+      true_metadata <- data_and_metadata$metadata
+
       # Select sexes
       if (!is.null(input$checkboxgroup_gender)) {
          if ("Sex" %in% names(finalC1)) {
@@ -465,13 +470,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          }
       }
 
-      # get metadata from tse header only
-      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-
       # filter conditions
-      # TODO: add this filtering to all panels.
       if (input$with_grouping) {
          my_var <- input$condition_type
          if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
@@ -720,20 +719,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # filter conditions
       if (input$with_grouping) {
-         if (!input$havemetadata) {
-            if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-               my_var <- input$condition_type
-               colnames(finalC1)[colnames(finalC1) == "Animal No._NA"] <- "Animal.No."
-               colnames(finalC1)[colnames(finalC1) == "Box_NA.x"] <- "Box"
-               finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-               colnames(finalC1)[colnames(finalC1) == "Animal.No."] <- "Animal.No._NA"
-               colnames(finalC1)[colnames(finalC1) == "Box"] <- "Box_NA.x"
-            }
-         } else {
-            if (!is.null(input$condition_type) && !is.null(input$select_data_by)) {
-               my_var <- input$condition_type
-               finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-            }
+         my_var <- input$condition_type
+         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
          }
       }
 
@@ -1108,6 +1096,21 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data %>% na.omit()
       write.csv2(df_plot_total, "after_enriching_again.csv")
 
+      # Select sexes
+      if (!is.null(input$checkboxgroup_gender)) {
+         if ("Sex" %in% names(df_plot_total)) {
+           df_plot_total <- df_plot_total %>% filter(Sex %in% c(input$checkboxgroup_gender))
+         }
+      }
+
+      # filter conditions
+      if (input$with_grouping) {
+         my_var <- input$condition_type
+         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+            df_plot_total <- df_plot_total %>% filter((!!sym(my_var)) == input$select_data_by)
+         }
+      }
+
       # we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
       # p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
       p <- NULL 
@@ -1424,6 +1427,21 @@ output$details <- renderUI({
       print("true metadata")
       print(colnames(true_metadata))
 
+      # Select sexes
+      if (!is.null(input$checkboxgroup_gender)) {
+         if ("Sex" %in% names(finalC1)) {
+           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+         }
+      }
+
+      # filter conditions
+      if (input$with_grouping) {
+         my_var <- input$condition_type
+         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+         }
+      }
+
       # TODO: need to use light_on from metadata sheet if metadata sheet provided, take care of the correct units minutes vs. hours!
       # default light on from UI
       light_on <- input$light_cycle_start * 60
@@ -1531,15 +1549,20 @@ output$details <- renderUI({
       # plot basic plot
       write.csv2(df_to_plot, "df_to_plot_failing.csv")
 
-      if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {
-         df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
-         print("replotting done?!")
-         print(nrow(df_to_plot))
-      }
-
-     if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
+      # TODO: factor this out as utility or method, can be re-used in other panels after discussion
+      # replot outlier removed data, only if toggled
+      if (input$toggle_outliers) {
+         if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {
+            df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
+            print("replotting done?!")
+            print(nrow(df_to_plot))
+         }
+      # note, it is prohibited to do any other filtering when outliers removal is toggled on
+      } else {
+         #if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
         storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
-     }
+         #}
+      }
 
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
       mylabel <- gsub("_", " ", mylabel)
@@ -1715,6 +1738,21 @@ output$details <- renderUI({
       data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
+
+      # Select sexes
+      if (!is.null(input$checkboxgroup_gender)) {
+         if ("Sex" %in% names(finalC1)) {
+           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+         }
+      }
+
+      # filter conditions
+      if (input$with_grouping) {
+         my_var <- input$condition_type
+         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+         }
+      }
 
       light_on <- 720
       if (input$havemetadata) {
@@ -2043,7 +2081,7 @@ server <- function(input, output, session) {
       if (!is.null(selected_data)) {
          data <- getSession(session$token, global_data)[["reactive_data"]]()
          # Animal grouping is added last, thus we have an offset of number of traces already in plot - number of unique levels in factor
-         # TODO: Generalize this that it is useable in other plots as well.
+         # TODO: Generalize this that it is useable in other plots as well. currently used only in Raw for outlier removal.
          all_curves_plotly <- getSession(session$token, global_data)[["all_curves_plotly"]] - length(levels(data$Animals))
          curve_to_sampleid_mapping <- levels(data$Animals)
          selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
@@ -2084,6 +2122,7 @@ server <- function(input, output, session) {
 
          updated_data <- data[-selected_indices, ]
          getSession(session$token, global_data)[["reactive_data"]](updated_data)
+         # trigger re-plotting, but will take the modified data in the Raw panel now (reactive_data)
          click("plotting")
       }
    })

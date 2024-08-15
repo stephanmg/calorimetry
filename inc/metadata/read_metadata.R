@@ -44,7 +44,6 @@ get_covariates_and_units <- function(file) {
    units_values$`1` <- NULL
    units_values <- units_values[!is.na(units_values)]
 
-   # TODO: not safe when units are missing in metadata sheet
    df_meta <- data.frame(covariates, units_values)
    return(df_meta)
 }
@@ -62,6 +61,7 @@ get_constants <- function(file) {
    constants_values <- df %>% slice(constant_index[2] + 1)
    constants_values$`1` <- NULL
    constants_values <- constants_values[!is.na(constants_values)]
+   # TODO: might be problematic, if constant values are missing, we should inform the user of malformed metadata sheet
    df_meta <- data.frame(constant = constants, value = constants_values)
    print(df_meta)
    return(df_meta)
