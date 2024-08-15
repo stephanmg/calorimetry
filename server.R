@@ -471,10 +471,12 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       true_metadata <- data_and_metadata$metadata
 
      # filter conditions
-     # if (input$with_grouping) {
-     #   my_var <- input$condition_type
-     #   finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-     # }
+     if (input$with_grouping) {
+       my_var <- input$condition_type
+            if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+               finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+            }
+     }
 
       # find light cycle start by metadata, or override from UI, or use default from UI
       light_on <- input$light_cycle_start * 60
@@ -2328,9 +2330,9 @@ server <- function(input, output, session) {
                   output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
             } else {
-               if (! is.null(real_data$animals)) {
-                  metadata <- real_data$metadata
-                  output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(metadata), label = "Condition"))
+               if (is.null(input$condition_type)) {
+                  tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
+                  output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(tse_metadata), label = "Condition"))
                }
             }
 
@@ -2339,19 +2341,11 @@ server <- function(input, output, session) {
             #############################################################################
             observeEvent(input$condition_type, {
             if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               true_metadata <- get_true_metadata(input$metadatafile$datapath, input$havemetadata, input$metadatafile$datapath)
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
-               metadata <- real_data$metadata
-               my_var <- input$condition_type
-               diets <- c()
-               if (is.null(my_var)) {
-                  diets <- unique(metadata %>% select(1) %>% pull())
-               } else {
-                  diets <- unique(metadata[[my_var]])
-               }
-               output$select_data_by <- renderUI(
-               selectInput("select_data_by", "Filter by", choices = diets, selected = input$select_data_by))
+               tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
+               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
             }
             })
 
