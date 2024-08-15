@@ -470,13 +470,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
 
-     # filter conditions
-     if (input$with_grouping) {
-       my_var <- input$condition_type
-            if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-               finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-            }
-     }
+      # filter conditions
+      # TODO: add this filtering to all panels.
+      if (input$with_grouping) {
+         my_var <- input$condition_type
+         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+         }
+      }
 
       # find light cycle start by metadata, or override from UI, or use default from UI
       light_on <- input$light_cycle_start * 60
@@ -2341,7 +2342,7 @@ server <- function(input, output, session) {
             #############################################################################
             observeEvent(input$condition_type, {
             if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath, input$havemetadata, input$metadatafile$datapath)
+               true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
                tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
