@@ -701,8 +701,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    EnergyExpenditure = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-      print(finalC1)
-      write.csv2(finalC1, "in_ennergy_expenditure.csv")
 
       # join either metadata from sheet or tse supported header columns (see above) to measurement data
       # enrich with metadata from TSE header (C1meta) or from metadata sheet (input$metadatafile)
@@ -732,18 +730,51 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
        if (input$override_metadata_light_cycle) {
-          light_on <- 60 * input$light_cycle_start
-         }
+         light_on <- 60 * input$light_cycle_start
+      }
+
+      # TODO: Do calculate this quantity from the input data
+      # light on is the length of light_cycle_end-light_cycle_start, usually 12 hours (720 minutes)
+      light_on <- 720
 
       # display zeitgeber zeit
-      write.csv2(finalC1, "before_zeitgeber_zeit.csv")
         finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-        write.csv2(finalC1, "zeitgeber_zeit_ee.csv")
-
       # already shifted by zeitgeber zeit above, so light_on is now 0
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
+      # TODO: need to debug this, i ncase we select Day or Night the annotation labels are outside the plot
+
+      if (input$only_full_days) {
+         light_offset <- 0
+      }
+
+      light_offset <- 0
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, light_offset, "HP2", input$with_facets)
       finalC1 <- day_annotations$df_annotated
-   
+
+      print("day_annotations:")
+      print(day_annotations)
+
+      light_offset <- -(as.numeric(get_global_offset_for_day_night(finalC1)) - input$light_cycle_start)
+
+      if (input$only_full_days) {
+         day_annotations$annotations <- day_annotations$annotations %>% mutate(x = x - light_offset)
+      } else {
+         day_annotations$annotations <- day_annotations$annotations %>% mutate(x = x + light_offset)
+      }
+
+      convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][2], ":00", sep = "")
+      }
+      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+      # TODO: We can use < light_on, because zeitgeber zeit starts at 0, and 0-720 is day, and 720-1480 is night
+      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) > light_on, "Day", "Night")
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
+      finalC1 <- finalC1 %>% select(-Datetime2)
+      write.csv2(finalC1, "in_ennergy_expenditure.csv")
+      finalC1 <- detect_day_night(finalC1, light_offset)
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      print(finalC1)
+
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
 
@@ -938,7 +969,16 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
      lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
      colnames(lights) <- c("x", "y")
      
-     light_offset <- 0
+     #light_offset <- 0
+     #if (length(input$light_cycle) == 1) {
+     #    if (input$light_cycle == "Day") {
+     #       light_offset <- 6
+     #    } else {
+     #       light_offset <- -6
+     #  }
+     #}
+  
+
      if (input$timeline) {
        # this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
        my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
@@ -959,6 +999,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
         }
      }
 
+     if (input$only_full_days) {
+        light_offset <- -light_offset
+     }
+     
      # add day annotations and indicators vertical lines
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day

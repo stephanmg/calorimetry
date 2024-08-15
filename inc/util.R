@@ -95,6 +95,36 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
 }
 
 
+################################################################################
+# detect day night alternative, as the other method seems not to be correct
+################################################################################
+detect_day_night <- function(df, offset) {
+   df_day_night <- df
+   day_label = "Day"
+   night_label = "Night"
+   # TODO: verify this is correct
+   if (offset > 0) {
+      day_label = "Night"
+      night_label = "Day"
+   }
+   df_day_night$NightDay <- ifelse(df_day_night$running_total.hrs < offset, day_label, NA)
+   for (i in 1:nrow(df_day_night)) {
+         if (is.na(df_day_night$NightDay[i]) && df_day_night$running_total.hrs[i] > offset) {
+            interval_index <- floor((df_day_night$running_total.hrs[i] - offset) / 12)
+            df_day_night$NightDay[i] <- ifelse(interval_index %% 2 == 0, day_label, night_label)
+         }
+   }
+   return(df_day_night)
+}
+
+################################################################################
+# get global offset for day/night: when (hour) does the very first experiment start
+################################################################################
+get_global_offset_for_day_night <- function(df) {
+   offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
+   offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
+   return(min(offsets$offset))
+}
 
 ################################################################################
 # convert df to zeitgeber zeit
@@ -107,6 +137,8 @@ zeitgeber_zeit <- function(df, light_on) {
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
    print("earlier offsets:")
    print(offsets)
+   print("first starting time:")
+   print(min(offsets$offset))
    offsets$`offset`  <- as.numeric(offsets$`offset`)
    offsets$offset <- offsets$offset - min(offsets$offset)
    print("offsets:")
