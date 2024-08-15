@@ -472,6 +472,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          light_on <- 60 * input$light_cycle_start
       }
 
+      # TODO: Note light on is from metadata sheet, if metadata sheet is missing the light_on, this is problematic
       finalC1 <- zeitgeber_zeit(finalC1, light_on)
 
       # annotate days and animals (Already shifted by above correction, thus light_on is now 0)
@@ -1086,7 +1087,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       df_plot_total$Animals = df_plot_total$Animal
-      df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data
+      # since NAs might be introduced to to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
+      df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data %>% na.omit()
+      write.csv2(df_plot_total, "after_enriching_again.csv")
 
       # we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
       # p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
@@ -1111,7 +1114,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
 
       write.csv2(df_plot_total, "before_anno_rmr.csv")
-      df_annos <- annotate_rmr_days(df_plot_total)
+      df_annos <- annotate_rmr_days(df_plot_total) %>% na.omit()
+      write.csv2(df_annos, "before_annos.csv")
+      print("annos:")
+      print(df_annos)
       p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
       day_length <- 24
@@ -1121,8 +1127,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
       light_offset <- 0
-      p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(df_plot_total$Time), day_length*60)), linetype="dashed", color="black")
-      p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(df_plot_total$Time), day_length*60)), linetype="dashed", color="gray")
+      p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(df_plot_total$Time, na.rm = TRUE), day_length*60)), linetype="dashed", color="black")
+      p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(df_plot_total$Time, na.rm = TRUE), day_length*60)), linetype="dashed", color="gray")
 
       p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
       p <- p + xlab("Time [minutes]")
@@ -1401,6 +1407,7 @@ output$details <- renderUI({
       print("true metadata")
       print(colnames(true_metadata))
 
+      # TODO: need to use light_on from metadata sheet if metadata sheet provided, take care of the correct units minutes vs. hours!
       # default light on from UI
       light_on <- input$light_cycle_start * 60
 
@@ -1805,9 +1812,9 @@ output$details <- renderUI({
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)),
+               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2)) + ylab(pretty_print_label(input$dep_var)) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
             )
          })
 

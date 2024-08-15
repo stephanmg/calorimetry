@@ -55,7 +55,10 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))
       }
       # instead na.omit() we need to use select to remove columns which are all NA before joining
-      df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals"))
+      print("before metadata join")
+      print(metadata)
+      # need to remove all nan columns because individual cohorts might not have the same columns
+      df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals")) 
    } else {
       empty_row_index <-which(apply(C1meta[,-1], 1, function(row) all(row == "")))
       rows_to_remove <- unique(c(empty_row_index, empty_row_index+1))

@@ -44,6 +44,7 @@ get_covariates_and_units <- function(file) {
    units_values$`1` <- NULL
    units_values <- units_values[!is.na(units_values)]
 
+   # TODO: not safe when units are missing in metadata sheet
    df_meta <- data.frame(covariates, units_values)
    return(df_meta)
 }
