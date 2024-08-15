@@ -457,10 +457,24 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    GoxLox = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+
+      # Select sexes
+      if (!is.null(input$checkboxgroup_gender)) {
+         if ("Sex" %in% names(finalC1)) {
+           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+         }
+      }
+
       # get metadata from tse header only
       data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
+
+     # filter conditions
+     # if (input$with_grouping) {
+     #   my_var <- input$condition_type
+     #   finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+     # }
 
       # find light cycle start by metadata, or override from UI, or use default from UI
       light_on <- input$light_cycle_start * 60
@@ -2731,7 +2745,7 @@ server <- function(input, output, session) {
         }
       })
       # scroll to top after click on plot only
-      shinyjs::runjs("window.scrollTo(0, 50);")
+      #shinyjs::runjs("window.scrollTo(0, 50);")
     })
  
    #############################################################################
