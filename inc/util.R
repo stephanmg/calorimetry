@@ -102,10 +102,7 @@ detect_day_night <- function(df, offset) {
    df_day_night <- df
    day_label = "Day"
    night_label = "Night"
-   # TODO: verify this is correct
-  
-   print("from within day night")
-   print(offset)
+   # TODO: verify that this is correct now
     if (offset > 0) {
       day_label = "Night"
       night_label = "Day"
@@ -128,13 +125,12 @@ detect_day_night <- function(df, offset) {
 # get global offset for day/night: when (hour) does the very first experiment start
 ################################################################################
 get_global_offset_for_day_night <- function(df) {
-   # TODO: this is not correct, since running_total.sec will not be anytime 0 ...
-   write.csv2(df, "whatisgoingon.csv")
-
+   # Note: if this method or the method below is applied again to a filtered or
+   # day/night selected data frame, we might not have any row with running_total.sec == 0.
+   # thus, care if required when applying this method, make sure to shift the data frame
+   # to 0 before, otherwise we will never find a row with running_total.sec == 0.
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
-   print("before minimum")
-   print(offsets)
    return(min(offsets$offset))
 }
 
@@ -144,17 +140,9 @@ get_global_offset_for_day_night <- function(df) {
 zeitgeber_zeit <- function(df, light_on) {
    write.csv2(df, "directly_before_offsets.csv")
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
-   print("even earlier")
-   print(offsets)
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
-   print("earlier offsets:")
-   print(offsets)
-   print("first starting time:")
-   print(min(offsets$offset))
    offsets$`offset`  <- as.numeric(offsets$`offset`)
    offsets$offset <- offsets$offset - min(offsets$offset)
-   print("offsets:")
-   print(offsets)
    offsets$offset <- offsets$offset + (light_on - min(offsets$offset)) - light_on
    offsets <- offsets %>% unique()
    df_joined <- df %>% left_join(offsets, by = "Animal No._NA")
