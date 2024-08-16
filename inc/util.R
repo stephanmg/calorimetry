@@ -319,12 +319,19 @@ get_new_download_buttons <- function() {
          }
       ")
       ),
+      # TODO: Enhance below to also get summary plot or second covariate statistics details plot. see Raw panel as prototype
       list(
       name = "Download plot as a PDF",
       icon = list(path = svg_path_pdf, width=30, height=30, transform="matrix(0.59119871,0,0,0.48085484,21.328186,-59.600539)"),
       click = htmlwidgets::JS("
          function(gd) {
             var plotDiv = document.getElementById('plot');
+            console.log('after plot getting')
+            if (plotDiv.offsetWidth > 0 && plotDiv.offsetHeight > 0) {
+               // if plotDiv is visible we take the basic plot, otherwise the statistics plot
+            } else {
+               plotDiv = document.getElementById('plot_statistics_details')
+            }
             var width = plotDiv.offsetWidth;
             var height = plotDiv.offsetHeight;
             Plotly.toImage(gd, {format: 'png', width: width, height: height, scale: 4, compression: 'NONE'}).then(function(dataUrl) {
