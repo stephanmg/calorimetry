@@ -213,6 +213,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          sep = " ") # separator set to blank
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
    # transform into time format appropriate to experimenters
+   # TODO: we need to support also %H:%M:%S for Phenomaster v8, change accordingly here if pehnomaster v8 dettected.
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
@@ -1145,6 +1146,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # TODO: Check RMR params: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
       # to reconstruct reliably RMR, but needs to be validated with additional analysis, e.g. BA analysis
       interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+      print(interval_length_list)
       AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
       SLIDING_WINDOW_SIZE_M <- input$window
       PERCENTAGE_BEST <- input$percentage_best
@@ -1842,6 +1844,7 @@ output$details <- renderUI({
          paste(splitted[[1]][2], ":00", sep = "")
       }
 
+
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
       # TODO: this is not what we want, assumes day 0-12 and night 13-24)
       # df already prepared to be day and night summed activities 
@@ -1880,6 +1883,7 @@ output$details <- renderUI({
       pretty_print_interval_length_list(interval_length_list)
       finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
 
+      write.csv2(apply(finalC1, 2, as.character), "before_scaling_finalC1.csv")
       finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
       finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
       finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
@@ -2285,7 +2289,7 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
-               label = "Chose prefered method for calculating caloric equivalent over time",
+               label = "Choose prefered method for calculating caloric equivalent over time",
                choices = c(input$variable1, input$variable2), selected = input$variable1))
          })
 
@@ -2535,8 +2539,10 @@ server <- function(input, output, session) {
 
          # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
-         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE))
-         df2 <- df2 %>% filter(Equation == "HP") %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE))
+         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
+         # TODO: Should Equation be rather input$variable1 problematic on server if not HP2, but HP locally works, HP2 
+         # works both locally and on server...
+         df2 <- df2 %>% filter(Equation == "HP2") %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
          df1 <- left_join(df1, unique_days_tee, by = "Animals")
          df2 <- left_join(df2, unique_days_tee, by = "Animals")
@@ -2547,7 +2553,14 @@ server <- function(input, output, session) {
 
          df1$TEE <- as.factor(rep("RMR", nrow(df1)))
          df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
-         df2$EE <- df2$EE - df1$EE
+         df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
+         df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
+
+         write.csv2(df1, "df1.csv")
+         write.csv2(df2, "df2.csv")
+         # TODO: verify if correct, but this should be correct...
+         # ensures, if we have not full days, but averaged total energy expneditures, then it might occur that RMR Might be slightly higher.
+         df2$EE <- pmax(df2$EE - df1$EE, 0)
 
          df_total <- rbind(df1, df2)
          df_total$Animals <- as.factor(df_total$Animals)
