@@ -17,8 +17,9 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
    # order df by component O2
    df_ordered <- df[order(df[[component]]), ]
 
-   # indices of minimum energy expenditure
-   indices <- which.minn(df_ordered[[component]], n = N * percentage / 100)
+   # indices of minimum energy expenditure, but at least we need ONE element: 
+   # TODO: check that this indeed correct...
+   indices <- which.minn(df_ordered[[component]], n = max(1, N * percentage / 100))
 
    # extract a sub data frame from the indices
    sub_df <- df_ordered[indices, ]

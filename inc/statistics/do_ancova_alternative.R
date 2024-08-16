@@ -217,8 +217,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     )
   }
 
-  print("blubb")
-
   if (test_type == "2-way ANCOVA") {
     pwc <- df %>% group_by(group) %>% emmeans_test(TEE ~ Days, covariate=Weight)
     pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
@@ -236,8 +234,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     pwc <- pwc %>% first()
   }
 
-  print("Here?")
-
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
@@ -250,6 +246,5 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
-  print("before return")
   return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))
 }
