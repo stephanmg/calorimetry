@@ -2,6 +2,65 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 
 ################################################################################
+# generate statistical table in case we have multiple comparisons
+################################################################################
+generate_statistical_table <- function(results) {
+   if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
+      return(tags$tr(
+      tags$td(process_return_value_for_statistic(results$statistics$p, FALSE), style="width: 100px"),
+      tags$td(process_return_value_for_statistic(results$statistics$p.adj, FALSE), style="width: 100px"),
+      tags$td(process_return_value_for_statistic(results$statistics$p.adj.signif, FALSE), style="width: 100px"),
+      tags$td(process_return_value_for_statistic(results$statistics$df, FALSE), style="width: 100px"),
+      tags$td(process_return_value_for_statistic(results$statistics$statistic, FALSE), style="width: 100px")
+      ))
+   } else { # for multiple testing with ANCOVA, we need all (n over p) groups to be summarized in a table with multiple rows
+      num_rows <- length(results$statistics$p)
+      rows_p_value <- lapply(seq_along(results$statistics$p), function(i) {
+         tags$tr(
+         tags$td(process_return_value_for_statistic(results$statistics$p[i], FALSE)),
+         tags$td(process_return_value_for_statistic(results$statistics$p.adj[i], FALSE)),
+         tags$td(process_return_value_for_statistic(results$statistics$p.adj.signif[i], FALSE)),
+         tags$td(process_return_value_for_statistic(results$statistics$df[i], FALSE)),
+         tags$td(process_return_value_for_statistic(results$statistics$statistic[i], FALSE))
+         )
+      })
+      return(rows_p_value)
+   }
+}
+
+################################################################################
+# process return value and creates UI if requested
+################################################################################
+process_return_value_for_statistic <- function(value, as_ui=TRUE) {
+   if (is.numeric(value) && length(value) == 1) {
+      return(round(value, digits=6))
+   } else {
+      # create UI if requested
+      if (is.numeric(value)) {
+         if (as_ui) {
+               rows <- lapply(seq_along(value), function(i) {
+               tags$tr(
+                  tags$td(value[i]))
+            })
+            return(rows) 
+         } else {
+           return(paste(round(value, digits=6), collapse=","))
+         }
+      } else {
+         if (as_ui) {
+            rows <- lapply(seq_along(value), function(i) {
+               tags$tr(
+                  tags$td(value[i]))
+            })
+            return(rows)
+         } else {
+            return(paste(value, collapse=","))
+         }
+      }
+   }
+}
+
+################################################################################
 # coarsening data sets
 ################################################################################
 coarsen_data_sets <- function(df, coarsening_factor) {

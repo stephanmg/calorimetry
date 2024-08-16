@@ -1703,14 +1703,10 @@ output$details <- renderUI({
                         tags$th("test statistic", style="width: 100px")
                      )
                   ),
+                  # TODO: Experimental Feature in Raw to generate full summary table for testing, need to be
+                  # inserted in other panels as well...
                   tags$tbody(
-                     tags$tr(
-                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                        tags$td(results$statistics$df, style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-                     )
+                     generate_statistical_table(results)
                   )
                ),
                h4("Test assumptions"),
