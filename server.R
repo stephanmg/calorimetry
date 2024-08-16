@@ -437,6 +437,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       print("int val length list:")
       print(interval_length_list)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
+      write.csv2(finalC1, "after_fitlering.csv")
    }
 
 
@@ -748,7 +749,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- day_annotations$df_annotated
 
       # light offset (light cycle start - first hour of first day)
+      print("global offset:")
+      print(get_global_offset_for_day_night(finalC1))
       light_offset <- -(as.numeric(get_global_offset_for_day_night(finalC1)) - input$light_cycle_start)
+      print("light_offset")
+      print(light_offset)
+      light_offset_correct <- input$light_cycle_stop - as.numeric(get_global_offset_for_day_night(finalC1))
+      print("corrected_light_cycle:")
+      print(light_offset_correct)
 
       if (input$only_full_days) {
          # nothing to do: in case of full days, light_offset is already correct
@@ -991,11 +999,31 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
      # correct full days in case we did select before for day night
      if (input$only_full_days) {
-       day_annotations$annotations <- day_annotations$annotations %>% mutate(x=x-12+light_offset)
+       day_annotations$annotations <- day_annotations$annotations %>% mutate(x=x-12+input$light_cycle_start+(input$light_cycle_stop-input$light_cycle_start)/2)
      }
 
+
+
+   print("Light offset plain:")
+   print(light_offset)
      # corrected light offset by half day to account for day or night selection
      light_offset <- light_offset - 12
+     print("light offset subtracted:")
+     print(light_offset)
+
+   if (input$only_full_days) {
+      if (light_offset > 0) {
+         light_offset <- -light_offset
+      }
+   }
+
+   print("start of first bar")
+   print(light_offset+12)
+
+   if (input$only_full_days) { # starting at 0:00 always if we did filter previously for full days 0-24 hours
+      light_offset <- -12 + input$light_cycle_start
+
+   }
      
      # add day annotations and indicators vertical lines
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")

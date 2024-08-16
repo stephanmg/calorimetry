@@ -125,6 +125,7 @@ detect_day_night <- function(df, offset) {
 # get global offset for day/night: when (hour) does the very first experiment start
 ################################################################################
 get_global_offset_for_day_night <- function(df) {
+   write.csv2(df, "before_getting_global_offset.csv")
    # Note: if this method or the method below is applied again to a filtered or
    # day/night selected data frame, we might not have any row with running_total.sec == 0.
    # thus, care if required when applying this method, make sure to shift the data frame
