@@ -2558,20 +2558,33 @@ server <- function(input, output, session) {
 
          write.csv2(df1, "df1.csv")
          write.csv2(df2, "df2.csv")
-         # TODO: verify if correct, but this should be correct...
-         # ensures, if we have not full days, but averaged total energy expneditures, then it might occur that RMR Might be slightly higher.
-         df2$EE <- pmax(df2$EE - df1$EE, 0)
+         # TODO: verify if correct, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
+         # thus we need  to check for negative values in difference as well ... can happen because the one data sets has very large measurement intervals: 30 minutes! 
+         # so the rmr is severely overestimates, and larger than TEE, we need to visually correct for this...
+         df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
+         df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
+         #df2$EE <- pmax(df2$EE - df1$EE, 0) #df2$EE
+         #df2$EE <- df2$EE - df1$EE
+
+         combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
+         combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
+         write.csv2(combined_df, "combined_fine_df.csv")
 
          df_total <- rbind(df1, df2)
          df_total$Animals <- as.factor(df_total$Animals)
          df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
 
+         combined_df <- combined_df %>% select(Animals, EE_a, EE) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "RMR", "EE"="non-RMR"))
+         write.csv2(df_total, "df_total_verify_plot.csv")
+         df_total <- combined_df
          p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
+         #p2 <- ggplot(data = df_total, aes(fill=TEE, y=EE, x=Animals)) + geom_violin(position=position_stack(), stat="identity", width=0.8)
+         #p2 <- ggplot(data = df_total, aes(x = factor(Animals), y = EE, color = TEE)) + geom_violin() + geom_point(position = position_jitter(0.1))
          p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
          p2 <- p2 + scale_fill_manual(values=c("non-RMR" = "#B2DF8A", "RMR" = "#CAB2D6"))
          p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
          output$summary <- renderPlotly(
-            ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+            ggplotly(p2) %>% layout(height = 1400, width=800) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian"))) 
          )
          
          # write.csv2(df_total, "tee_and_rmr.csv")
