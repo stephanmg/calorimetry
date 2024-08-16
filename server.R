@@ -1672,7 +1672,15 @@ output$details <- renderUI({
                sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
                checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
                hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)),
+               renderPlotly(ggplotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, 
+               input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
+                + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + 
+                ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + 
+                ggtitle(input$study_description)) %>% 
+                  config(displaylogo = FALSE, 
+                     modeBarButtons = list(c("toImage", get_new_download_buttons()), 
+                     list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+                     list("hoverClosestCartesian", "hoverCompareCartesian")))),
                hr(style = "width: 75%"),
                conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)))
             )
