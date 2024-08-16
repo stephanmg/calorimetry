@@ -737,6 +737,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # light on is the length of light_cycle_end-light_cycle_start, usually 12 hours (720 minutes)
       light_on <- 720
 
+      previous_offset <- min(finalC1$running_total.hrs.halfhour)
+
       # display zeitgeber zeit
         finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
       # already shifted by zeitgeber zeit above, so light_on is now 0
@@ -752,11 +754,16 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       print("day_annotations:")
       print(day_annotations)
+      print("global offset")
+      print(get_global_offset_for_day_night(finalC1))
 
       light_offset <- -(as.numeric(get_global_offset_for_day_night(finalC1)) - input$light_cycle_start)
 
+      print("lighty offset:")
+      print(light_offset)
+
       if (input$only_full_days) {
-         day_annotations$annotations <- day_annotations$annotations %>% mutate(x = x - light_offset)
+         #day_annotations$annotations <- day_annotations$annotations %>% mutate(x = x - (light_offset+(input$light_cycle_start-as.numeric(get_global_offset_for_day_night(finalC1)))))
       } else {
          day_annotations$annotations <- day_annotations$annotations %>% mutate(x = x + light_offset)
       }
@@ -773,6 +780,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       write.csv2(finalC1, "in_ennergy_expenditure.csv")
       finalC1 <- detect_day_night(finalC1, light_offset)
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      # TODO: Filtering by NightDay results in finalC1 not having perhaps running_total.secs == 0 anywhere, thus we never find
+      # the correct glboal offset after filtering to shift below the annotations, we need to shift the finalC1 once again, after
+      # we have filtered for day night... shift here again by minimum of secods in this filtered data frame....
       print(finalC1)
 
       # create input select fields for animals and days
@@ -999,9 +1009,39 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
         }
      }
 
+    # TODO: potential fix... the only thing which now needs to be checked is if Day / Night selection works, and for
+    # this we need to check if the utility method is correct -> seems to be not the case when used in combination with full days only,
+    # need to fix full days only combined with Day or Night selection (doesn't work correctly right now...)
      if (input$only_full_days) {
-        light_offset <- -light_offset
+        #light_offset <- light_offset+(input$light_cycle_start-as.numeric(get_global_offset_for_day_night(finalC1)))
+        #light_offset <- light_offset+(input$light_cycle_start - min(finalC1$running_total.hrs.halfhour))
+        #light_offset <- -light_offset
      }
+
+     print("light offset:")
+     print(light_offset)
+     print(length(unique(days_and_animals_for_select$days))*24)
+
+     # if light cycle == length = 1
+
+      print("global offset end")
+      print(get_global_offset_for_day_night(finalC1))
+
+
+     print("offset:")
+     print(min(finalC1$running_total.hrs.halfhour))
+     if(input$only_full_days) {
+      day_annotations$annotations <- day_annotations$annotations %>% mutate(x=x-12+light_offset)
+      #day_annotations$annotations <- day_annotations$annotations %>% mutate(x=x-light_offset-12)
+     }
+     print("annos:")
+     print(day_annotations$annotations)
+
+     print("previous offset:")
+     print(previous_offset)
+
+     light_offset <- light_offset - 12
+
      
      # add day annotations and indicators vertical lines
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")

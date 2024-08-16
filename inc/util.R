@@ -103,11 +103,18 @@ detect_day_night <- function(df, offset) {
    day_label = "Day"
    night_label = "Night"
    # TODO: verify this is correct
-   if (offset > 0) {
+  
+   print("from within day night")
+   print(offset)
+    if (offset > 0) {
       day_label = "Night"
       night_label = "Day"
    }
+
    df_day_night$NightDay <- ifelse(df_day_night$running_total.hrs < offset, day_label, NA)
+
+   day_label = "Day"
+   night_label = "Night"
    for (i in 1:nrow(df_day_night)) {
          if (is.na(df_day_night$NightDay[i]) && df_day_night$running_total.hrs[i] > offset) {
             interval_index <- floor((df_day_night$running_total.hrs[i] - offset) / 12)
@@ -121,8 +128,13 @@ detect_day_night <- function(df, offset) {
 # get global offset for day/night: when (hour) does the very first experiment start
 ################################################################################
 get_global_offset_for_day_night <- function(df) {
+   # TODO: this is not correct, since running_total.sec will not be anytime 0 ...
+   write.csv2(df, "whatisgoingon.csv")
+
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
+   print("before minimum")
+   print(offsets)
    return(min(offsets$offset))
 }
 
