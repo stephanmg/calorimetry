@@ -2071,17 +2071,19 @@ server <- function(input, output, session) {
          }
       }
 
+      current_commit_id <- substring(commits(repo)[[1]]$sha, 1, 16)
       detach("package:git2r", unload = TRUE)
 
       if (is.null(current_branch)) {
          if (is.null(current_tag)) {
-            paste("Current commit ID:", current_commit$sha)
+            paste("Current commit ID:", current_commit_id)
          } else {
             paste("Current version: ", current_tag)
          }
       }  else {
-         paste("Current branch: ", current_branch, "@commit: ", current_commit$sha)
+         paste("Current branch: ", current_branch, "@commit: ", current_commit_id)
       }
+
    })
 
    # save session id
