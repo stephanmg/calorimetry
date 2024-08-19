@@ -778,7 +778,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # corrected filtering for day and night based on light cycle information
       finalC1 <- finalC1 %>% select(-Datetime2)
-      finalC1 <- detect_day_night(finalC1, light_offset)
+      #finalC1 <- detect_day_night(finalC1, light_offset)
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 
       # create input select fields for animals and days
@@ -2543,7 +2543,7 @@ server <- function(input, output, session) {
          df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
          # TODO: Should Equation be rather input$variable1 problematic on server if not HP2, but HP locally works, HP2 
          # works both locally and on server...
-         df2 <- df2 %>% filter(Equation == "HP2") %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
+         df2 <- df2 %>% filter(Equation == "HP") %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
          df1 <- left_join(df1, unique_days_tee, by = "Animals")
          df2 <- left_join(df2, unique_days_tee, by = "Animals")
@@ -2585,7 +2585,7 @@ server <- function(input, output, session) {
          
          # write.csv2(df_total, "tee_and_rmr.csv")
          storeSession(session$token, "TEE_and_RMR", df_total, global_data)
-         df_total <- df_total %>% filter(TEE == "RMR") %>% rename(RMR=EE)
+         df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
          write.csv2(df_total, "test_for_rmr.csv")
 
       data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, input$metadatafile)

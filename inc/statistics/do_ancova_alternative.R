@@ -27,7 +27,9 @@ calculate_statistic <- function(data, method) {
 ################################################################################
 
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
+
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
+  write.csv2(df, "in_Ancova.csv")
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
@@ -109,6 +111,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+  print("df i nancovca")
+  print(df)
+
   df$Weight <- as.numeric(df$Weight)
   if (num_covariates > 1) {
     print(df)
@@ -116,6 +121,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df$Weight2 <- as.numeric(df$Weight2)
   }
   df$TEE <- as.numeric(df$TEE)
+
+  print("now nans?")
+  print(df)
 
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
