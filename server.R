@@ -374,11 +374,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
    }
 
-   # rename TSE standard header columns to something sensible
-   colnames(finalC1)[colnames(finalC1) == "Box_NA"] <- "Box"
-   colnames(finalC1meta)[colnames(finalC1meta) == "Weight..g."] <- "Weight"
-   colnames(finalC1meta)[colnames(finalC1meta) == "Box_NA"] <- "Box"
-
    # print master list for interval lengths
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
@@ -443,6 +438,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       print("int val length list:")
       print(interval_length_list)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
+      write.csv2(finalC1, "after_fitlering.csv")
    }
 
 
@@ -541,6 +537,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
+
+      # Metadata from TSE file header should be enough, want to see oxidation of substrates by animals
+      #C1meta_tmp <- C1meta
+      #colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
+      #df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
 
       df_to_plot <- finalC1
       # if we do not have metadata, this comes from some not-clean TSE headers
@@ -2430,6 +2431,7 @@ server <- function(input, output, session) {
                   df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
                   df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
                   df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
+                  colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
                   our_group_names <- unique(colnames(df_filtered))
 
                   output$facets_by_data_one <- renderUI(
@@ -2462,10 +2464,7 @@ server <- function(input, output, session) {
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
                tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
-               print("tse metadata:")
-               print(colnames(tse_metadata))
-               # Note: TSE metadata might not come in levels, but just values for the individual groups
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = tse_metadata[[input$condition_type]], selected = input$select_data_by))
+               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
             }
             })
 

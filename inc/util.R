@@ -127,7 +127,7 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
       df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
       df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
-      #colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
+      colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
       if ("Animals" %in% colnames(finalC1)) {
          colnames(df_filtered)[colnames(df_filtered) == "Animal.No."] <- "Animals"
       } else {
