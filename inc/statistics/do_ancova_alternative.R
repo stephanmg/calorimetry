@@ -111,6 +111,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   df$Weight <- as.numeric(df$Weight)
   if (num_covariates > 1) {
+    print(df)
+    print(colnames(df))
     df$Weight2 <- as.numeric(df$Weight2)
   }
   df$TEE <- as.numeric(df$TEE)
@@ -157,6 +159,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
      p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
     }
+
+
   }
 
   p2 <- p2 + labs(colour=group)
@@ -172,10 +176,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     } else {
       res.aov <- df %>% anova_test(TEE ~ Weight + group)
     }
-  }
-
-  if (test_type == "1-way ANOVA") {
-    res.aov <- df %>% anova_test(TEE ~ group)
   }
 
   if (test_type == "2-way ANCOVA") {
@@ -195,41 +195,26 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  if (test_type == "2-way ANOVA") {
-    if (connected_or_independent_ancova) {
-      res.aov <- df %>% anova_test(TEE ~ group * Days)
-    } else {
-      res.aov <- df %>% anova_test(TEE ~ group + Days)
-    }
-  }
-
+  print("a")
 
   p <- NULL
   pwc <- NULL
-  if (test_type == "1-way ANCOVA" || test_type == "1-way ANOVA") {
-    if (test_type == "1-way ANCOVA") {
-      pwc <- df %>%
-        emmeans_test(
-          TEE ~ group, covariate = Weight,
-          p.adjust.method = adjust_method
-        )
-    } else {
-       pwc <- df %>%
-        emmeans_test(
-          TEE ~ group,
-          p.adjust.method = adjust_method
-        )
-    }
-
-    # Visualization of estimated marginal means for 1-way ancova
-    pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
-    p <- ggline(get_emmeans(pwc), x = "group", y = "emmean") +
-      geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
-      stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
-      labs(
-        subtitle = get_test_label(res.aov, detailed = TRUE),
-        caption = get_pwc_label(pwc)
+  if (test_type == "1-way ANCOVA") {
+    pwc <- df %>%
+      emmeans_test(
+        TEE ~ group, covariate = Weight,
+        p.adjust.method = adjust_method
       )
+
+  # Visualization of estimated marginal means for 1-way ancova
+  pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
+  p <- ggline(get_emmeans(pwc), x = "group", y = "emmean") +
+    geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+    stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
+    labs(
+      subtitle = get_test_label(res.aov, detailed = TRUE),
+      caption = get_pwc_label(pwc)
+    )
   }
 
   if (test_type == "2-way ANCOVA") {
@@ -247,27 +232,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     # thus multiple to report in table format, for a 1-way ANCOVA we simply report the first()
     print(pwc)
     pwc <- pwc %>% first()
-  } else {
-    pwc <- df %>% group_by(group) %>% emmeans_test(TEE ~ Days)
-    pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
-    p <- ggline(get_emmeans(pwc), x = "group", y="emmean", color="Days") 
-    p <- p + geom_errorbar(aes(ymin=conf.low, ymax=conf.high, color=Days), width=0.1)
-    p <- p + stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
-    labs(
-      subtitle = get_test_label(res.aov, detailed = TRUE),
-      caption = get_pwc_label(pwc)
-    )
-    pwc <- pwc %>% first()
- 
   }
 
+
+  # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
   if (test_type == "2-way ANCOVA") {
     model <- lm(TEE ~ Weight + group * Days, data = df)
-  }
-
-  if (test_type == "2-way ANOVA") {
-    model <- lm(TEE ~ group *  Days)
   }
 
   # Check test assumptions met in general
