@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyr) # for unite
 library(ggplot2)
+library(git2r) # for git support
 library(data.table) # for filtering with %like%
 library(readxl)
 library(writexl)
@@ -2049,6 +2050,38 @@ output$details <- renderUI({
 # Create server
 #####################################################################################################################
 server <- function(input, output, session) {
+   # git info
+   output$git_info <- renderText({
+      repo <- repository(".")
+      branch <- branches(repo, "local")
+      head_ref <- repository_head(repo)
+      current_branch <- NULL
+      current_tag <- NULL
+      if (is_branch(head_ref)) {
+         current_branch <- head_ref$name
+      } else {
+      }
+
+      current_commit <- head_ref$target
+      tags <- tags(repo)
+      for (tag in tags) {
+         if (identical(tag$target, current_commit)) {
+            current_tag <- tag$name
+            break
+         }
+      }
+
+      if (is.null(current_branch)) {
+         if (is.null(current_tag)) {
+            paste("Current commit ID:", current_commit)
+         } else {
+            paste("Current version: ", current_tag)
+         }
+      }  else {
+         paste("Current branch: ", current_branch)
+      }
+   })
+
    # save session id
    output$session_id <- renderText(paste0("Global session ID: ", session$token))
 

@@ -183,19 +183,19 @@ sidebar_content <- sidebarPanel(
    conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
    h3("Plotting controls"),
    tags$style(HTML("
-        #plotting {
-          background-color: #FFB3BA; /* Pastel Red */
-          color: white;
-          border-color: #FFB3BA;
-        }
         #reset {
           background-color: #B3E5FC; /* Pastel Blue */
           color: white;
-          border-color: #B3E5FC;
+          border-color: #B3E5FC; 
+        }
+        #plotting {
+          background-color: #77DD77; /* Pastel Green */
+          color: white;
+          border-color: #77DD77;
         }
         #plotting:hover {
-          background-color: #FF8A80; /* Darker shade for hover */
-          border-color: #FF8A80;
+          background-color: #5CB85C; /* Darker shade for hover */
+          border-color: #5CB85C;
         }
         #reset:hover {
           background-color: #81D4FA; /* Darker shade for hover */
@@ -315,8 +315,8 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
-   checkboxInput(inputId = "outliers", label = "Remove sample(s) from data set(s)"),
-   conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
+   #checkboxInput(inputId = "outliers", label = "Remove sample(s) from data set(s)"),
+   #conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
    checkboxInput("do_select_date_range", label = "Select dates"),
    )),
    hr(),
@@ -352,7 +352,8 @@ sidebar_content <- sidebarPanel(
          span(textOutput("message"), style = "color:red")
     ))),
     # hidden session ID to manage global user data (or hidden; if required to hide)
-    span(textOutput("session_id"), style = "color: #77DD77; font-size: 12px; visibility: visible;")
+    span(textOutput("session_id"), style = "color: #77DD77; font-size: 12px; visibility: visible;"),
+    span(textOutput("git_info"), style = "color: #FDFD96; font-size: 12px; visibility: visible;")
 )
 
 ################################################################################
