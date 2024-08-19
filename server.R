@@ -2071,6 +2071,8 @@ server <- function(input, output, session) {
          }
       }
 
+      detach("package:git2r", unload = TRUE)
+
       if (is.null(current_branch)) {
          if (is.null(current_tag)) {
             paste("Current commit ID:", current_commit)
