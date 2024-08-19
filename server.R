@@ -2075,12 +2075,12 @@ server <- function(input, output, session) {
 
       if (is.null(current_branch)) {
          if (is.null(current_tag)) {
-            paste("Current commit ID:", current_commit)
+            paste("Current commit ID:", current_commit$sha)
          } else {
             paste("Current version: ", current_tag)
          }
       }  else {
-         paste("Current branch: ", current_branch)
+         paste("Current branch: ", current_branch, "@commit: ", current_commit$sha)
       }
    })
 
