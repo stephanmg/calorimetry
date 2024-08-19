@@ -213,7 +213,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          sep = " ") # separator set to blank
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
    # transform into time format appropriate to experimenters
-   # TODO: we need to support also %H:%M:%S for Phenomaster v8, change accordingly here if pehnomaster v8 dettected.
    C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
@@ -303,6 +302,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
    }
 
+   # TODO: uneven measurement intervals, then the averaging might be problematic!
    # Step #9 - define 1/n-hours steps
    if (input$averaging == 10) { # 1/6 hours
       C1 <- C1 %>%
@@ -1160,7 +1160,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
       df_plot_total$Animals = df_plot_total$Animal
-      # since NAs might be introduced to to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
+      # since NAs might be introduced due to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
+      # this is from multiple cohorts case, for a single cohrot we should never have the nas introduced in the first place
       df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data %>% na.omit()
       write.csv2(df_plot_total, "after_enriching_again.csv")
 
@@ -1215,8 +1216,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
       light_offset <- 0
-      p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(df_plot_total$Time, na.rm = TRUE), day_length*60)), linetype="dashed", color="black")
-      p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(df_plot_total$Time, na.rm = TRUE), day_length*60)), linetype="dashed", color="gray")
+      print(max(df_plot_total$Time))
+      print(day_length*60)
+      # We need to take the max over max time in df_plot_total and day length, because we might have varying measurement intervals
+      # in a single cohort already... leading to shorter total time, we assume all measurements are taken at fixed spaced time intervals!
+      # TODO: in the case of uneven measurement intervals, this might be not as precise, and uneven measurement intervals als oproblematic when other averging during data import is used...
+      p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="black")
+      p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
 
       p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
       p <- p + xlab("Time [minutes]")
@@ -1680,14 +1686,14 @@ output$details <- renderUI({
             )
          })
 
-      # TODO: example how to get plot download for selected plot only.
+      # TODO: example how to get plot download for selected plot only, add everywhere?
       output$plot_statistics_details <-  renderPlotly(ggplotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, 
                input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
                 + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + 
                 ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + 
                 ggtitle(input$study_description)) %>% 
                   config(displaylogo = FALSE, 
-                     modeBarButtons = list(c("toImage", get_new_download_buttons()), 
+                     modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
                      list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
                      list("hoverClosestCartesian", "hoverCompareCartesian"))))
 
@@ -1846,7 +1852,7 @@ output$details <- renderUI({
 
 
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-      # TODO: this is not what we want, assumes day 0-12 and night 13-24)
+      # TODO: this is not what we want, assumes day 0-12 and night 13-24) - it might be correct when using zeitgeber zeit!
       # df already prepared to be day and night summed activities 
       finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
       finalC1$NightDay <- as.factor(finalC1$NightDay)

@@ -121,9 +121,21 @@ reformat <- function(df_new) {
 get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
    write.csv2(df, "during_getting_time_diff.csv")
-   # note first time diff might be 0 if sorted ascending, thus pick 2 and 3 to check for consistency
-   time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(desc(diff.sec)) %>% nth(from) %>% select(diff.sec) %>% pull()
-   time_diff2 <- df %>% filter(`Animal No._NA` == id) %>% arrange(desc(diff.sec)) %>% nth(to) %>% select(diff.sec) %>% pull()
+   # note first time diff might be 0 if sorted ascending and because first measurement point, thus pick 2 and 3 to check for consistency
+   time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% nth(from) %>% pull(diff.sec)
+   time_diff2 <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% nth(to) %>% pull(diff.sec)
+
+   time_diff_all <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% pull(diff.sec) %>% unique()
+
+   # start of measurement always diff.sec 0, but there should never be different diff.sec in the measurement per animal ID
+   if (length(time_diff_all[-1]) > 1) {
+      print(time_diff_all)
+      print("WARNING: Multiple measurement time intervals detected")
+      if (do_warn) {
+         shinyalert("Warning:", paste0("Multiple measurement time intervals detected: ", length(time_diff_all[-1]), " which are: ", paste(time_diff_all[-1], collapse=", "), " [s]. This might lead to unexpected behaviour when time-averaging methods are applied."))
+      }
+   }
+
    if (time_diff1 != time_diff2) {
       print("WARNING: Time difference different in cohorts!")
       print("This could happen if you do not average cohorts when sampling interval of IC experiments is different between cohorts")

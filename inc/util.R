@@ -1,5 +1,6 @@
 source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
+library(glue)
 
 ################################################################################
 # generate statistical table in case we have multiple comparisons
@@ -308,7 +309,7 @@ get_non_factor_columns <- function(df) {
 ################################################################################
 # generate new download buttons
 ################################################################################
-get_new_download_buttons <- function() {
+get_new_download_buttons <- function(plot_div='') {
    new_buttons <- list(
       list(
       name = "Download plot as a SVG",
@@ -319,23 +320,29 @@ get_new_download_buttons <- function() {
          }
       ")
       ),
-      # TODO: Enhance below to also get summary plot or second covariate statistics details plot. see Raw panel as prototype
       list(
       name = "Download plot as a PDF",
       icon = list(path = svg_path_pdf, width=30, height=30, transform="matrix(0.59119871,0,0,0.48085484,21.328186,-59.600539)"),
-      click = htmlwidgets::JS("
-         function(gd) {
-            var plotDiv = document.getElementById('plot');
-            console.log('after plot getting')
-            if (plotDiv.offsetWidth > 0 && plotDiv.offsetHeight > 0) {
-               // if plotDiv is visible we take the basic plot, otherwise the statistics plot
-            } else {
-               plotDiv = document.getElementById('plot_statistics_details')
-            }
+      click = htmlwidgets::JS(glue("
+         function(gd) {{
+            var plotDiv;
+            if ('' === '{plot_div}') {{
+               // Basic plot should always be visible, that is the first plot for each panel, if not specified a desired
+               // plot, we will as a default pick the basic plot with plotlyOutput identifier 'plot'
+               plotDiv = document.getElementById('plot');
+            }} else {{
+               plotDiv = document.getElementById('{plot_div}');
+            }}
+            
+            /// Debug, remove in production, alert if plot is not visible with JS
+            if (! (plotDiv.offsetWidth > 0 && plotDiv.offsetHeight > 0)) {{
+               alert('The plot {plot_div} is not visible!')
+            }}
+
             var width = plotDiv.offsetWidth;
             var height = plotDiv.offsetHeight;
-            Plotly.toImage(gd, {format: 'png', width: width, height: height, scale: 4, compression: 'NONE'}).then(function(dataUrl) {
-               const { jsPDF } = window.jspdf;
+            Plotly.toImage(gd, {{format: 'png', width: width, height: height, scale: 4, compression: 'NONE'}}).then(function(dataUrl) {{
+               const {{ jsPDF }} = window.jspdf;
                const doc = new jsPDF('landscape');
                const ARimage = width/height;
                /// internal pagesize should be always around 297 (mm) since landscape a4 format
@@ -343,9 +350,9 @@ get_new_download_buttons <- function() {
                var widthPDFoffset = 17; // to avoid image boundaries out of PDF size
                doc.addImage(dataUrl, 'eps', 10, 10, widthPDF-widthPDFoffset, Math.floor(widthPDF/ARimage)); // or: remove -17 and use 280 above
                doc.save('plot.pdf');
-            })
-         }
-      ")
+            }})
+         }}
+      "))
       )
    )
    return(new_buttons)
