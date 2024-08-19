@@ -874,8 +874,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                   }
 
                   EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-                  EE <- EE %>% filter(TEE == "non-RMR")
-                  EE$Animals <- as.factor(EE$Animals)
+                  EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
+                  #EE$Animals <- as.factor(EE$Animals)
+
+                  print("EE:")
+                  print(EE)
 
                   p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
                   p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
@@ -888,8 +891,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
          output$details <- renderUI({
             EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-            EE <- EE %>% filter(TEE == "non-RMR")
-            EE$Animals <- as.factor(EE$Animals)
+            EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE)
+            #EE$Animals <- as.factor(EE$Animals)
             results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
@@ -2066,13 +2069,14 @@ server <- function(input, output, session) {
          commit_id <- head_ref$sha
          all_tags <- tags(repo)
          for (tag in all_tags) {
-            if (identical(tags$target, head_ref)) {
+            if (identical(tag$target, head_ref)) {
                tag_name <- tag$name
                break
             }
          }
       }
 
+      current_tag <- tag_name
       current_commit_id <- substring(commits(repo)[[1]]$sha, 1, 16)
       detach("package:git2r", unload = TRUE)
 
@@ -2624,8 +2628,8 @@ server <- function(input, output, session) {
          
          # write.csv2(df_total, "tee_and_rmr.csv")
          storeSession(session$token, "TEE_and_RMR", df_total, global_data)
-         df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
          write.csv2(df_total, "test_for_rmr.csv")
+         df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
       data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, input$metadatafile)
       #df_total <- data_and_metadata$data
