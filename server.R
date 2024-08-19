@@ -1864,15 +1864,10 @@ output$details <- renderUI({
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
-      #C1meta_tmp <- C1meta
-      #colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      #finalC1 <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-
       # if we do not have metadata, this comes from some not-clean TSE headers
       if (!input$havemetadata) {
          finalC1$`Animal.No.` <- finalC1$Animals
       }
-
 
       convert2 <- function(x) {
          splitted <- strsplit(as.character(x), " ")
