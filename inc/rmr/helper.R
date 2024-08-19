@@ -121,10 +121,14 @@ reformat <- function(df_new) {
 get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
    write.csv2(df, "during_getting_time_diff.csv")
-   # note first time diff might be 0 if sorted ascending and because first measurement point, thus pick 2 and 3 to check for consistency
+   # note first time diff might be 0 if sorted ascending and because first measurement point,
+   # thus pick 2 or 3, however 2 or 3 might still be 0 depending on the frequency of recordings (multiple per minute...)
    time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% nth(from) %>% pull(diff.sec)
    time_diff2 <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% nth(to) %>% pull(diff.sec)
 
+   # better get all time diffs, and unique them, then take the first non-zero as measurement interval length,
+   # if we have more than one measurement length which is non-zero, there might be changes in measurement
+   # interval length due to e.g. experimental handling of samples / maintenance
    time_diff_all <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% pull(diff.sec) %>% unique()
 
    # start of measurement always diff.sec 0, but there should never be different diff.sec in the measurement per animal ID
@@ -143,9 +147,9 @@ get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
       if (do_warn) {
          shinyalert("Warning:", "Time difference different (measurement interval CHANGING) in cohort for animals. Check your data files. All measurement intervals should be constant per individual cohort (and thus for each animal in the cohort). Measurement intervals can vary between cohorts, which is valid input to the analysis.", type = "warning", showCancelButton = TRUE)
       }
-      return(max(time_diff1, time_diff2) / 60)
+      return(min(time_diff_all[time_diff_all != 0]) / 60)
    } else {
-      return(time_diff1 / 60)
+      return(min(time_diff_all[time_diff_all != 0]) / 60)
    }
 }
 
