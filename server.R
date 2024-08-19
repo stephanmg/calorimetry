@@ -2053,23 +2053,34 @@ server <- function(input, output, session) {
    # git info
    output$git_info <- renderText({
       repo <- repository(".")
-      branch <- branches(repo, "local")
       head_ref <- repository_head(repo)
       current_branch <- NULL
-      current_tag <- NULL
+      tag_name <- NULL
+
       if (is_branch(head_ref)) {
          current_branch <- head_ref$name
       } else {
       }
 
-      current_commit <- head_ref$target
-      tags <- tags(repo)
-      for (tag in tags) {
-         if (identical(tag$target, current_commit)) {
-            current_tag <- tag$name
-            break
+      if (inherits(head_ref, "git_commit")) {
+         commit_id <- head_ref$sha
+         all_tags <- tags(repo)
+         for (tag in all_tags) {
+            if (identical(tags$target, head_ref)) {
+               tag_name <- tag$name
+               break
+            }
          }
       }
+
+      #current_commit <- head_ref$target
+      #tags <- tags(repo)
+      #for (tag in tags) {
+      #   if (identical(tag$target, head_ref)) {
+      #      current_tag <- tag$name
+      #      break
+      #   }
+      #}
 
       current_commit_id <- substring(commits(repo)[[1]]$sha, 1, 16)
       detach("package:git2r", unload = TRUE)
