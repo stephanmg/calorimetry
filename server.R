@@ -2073,15 +2073,6 @@ server <- function(input, output, session) {
          }
       }
 
-      #current_commit <- head_ref$target
-      #tags <- tags(repo)
-      #for (tag in tags) {
-      #   if (identical(tag$target, head_ref)) {
-      #      current_tag <- tag$name
-      #      break
-      #   }
-      #}
-
       current_commit_id <- substring(commits(repo)[[1]]$sha, 1, 16)
       detach("package:git2r", unload = TRUE)
 
