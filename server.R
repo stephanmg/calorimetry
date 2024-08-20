@@ -474,7 +474,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          }
       }
 
-      # filter conditions
+      # Filter a group by condition type
       if (input$with_grouping) {
          my_var <- input$condition_type
          if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
@@ -482,74 +482,88 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          }
       }
 
-      # find light cycle start by metadata, or override from UI, or use default from UI
-      light_on <- input$light_cycle_start * 60
+      # default is the provided light cycle from metadata sheet if available, otherwise default from UI is taken
+      light_on <- input$light_cycle_start 
+
       if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+         light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
 
+      # if one wishes, one can override the light cycle configuration from metadata sheet
       if (input$override_metadata_light_cycle) {
-         light_on <- 60 * input$light_cycle_start
+         light_on <- input$light_cycle_start
       }
 
-      # TODO: Note light on is from metadata sheet, if metadata sheet is missing the light_on, this is problematic
-      finalC1 <- zeitgeber_zeit(finalC1, light_on)
+      # calculate zeitgeber time
+      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
-      # annotate days and animals (Already shifted by above correction, thus light_on is now 0)
+      # annotate days and animals (already shifted by above correction, thus light_on is now 0: Zeitgeber!)
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
       finalC1 <- day_annotations$df_annotated
-   
+
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
 
+      # selected calendrical days
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      if (is.null(selected_days)) {
+         output$select_day <- renderUI({
+         selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+         })
+         selected_days = days_and_animals_for_select$days
+         storeSession(session$token, "selected_days", selected_days, global_data)
+      } else {
+         output$select_day <- renderUI({
+         selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+         })
+      }
+
+      # selected animals
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
+      if (is.null(selected_animals)) {
+         output$select_animal <- renderUI({
+         selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+         })
+        selected_animals = days_and_animals_for_select$animals
+        storeSession(session$token, "selected_animals", selected_animals, global_data)
+      } else {
+         output$select_animal <- renderUI({
+         selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+        })
+      }
+
+      # get default selection of animals and calendrical days
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
       selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-     if (is.null(selected_days)) {
 
-     output$select_day <- renderUI({
-      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-     })
-     selected_days = days_and_animals_for_select$days
-      storeSession(session$token, "selected_days", selected_days, global_data)
-     } else {
-      output$select_day <- renderUI({
-      selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
-     })
-     }
-
-   if (is.null(selected_animals)) {
-      output$select_animal <- renderUI({
-      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
-     })
-     selected_animals = days_and_animals_for_select$animals
-     storeSession(session$token, "selected_animals", selected_animals, global_data)
-   } else {
-      output$select_animal <- renderUI({
-      selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
-      })
-   }
-
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      # filter for selected days and animals in data set
-      finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
+      # filter now for selected animals
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
-      # trim times from end and beginning of measurements (obsolete)
+      # trim times from end and beginning of measurements 
+      # TODO: This works only if full days only is used, because running_total.hrs.halfhour can be negative
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
-      # Metadata from TSE file header should be enough, want to see oxidation of substrates by animals
-      #C1meta_tmp <- C1meta
-      #colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      #df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
+      # filter for full days, full day is light_on (current day) until light_on (next day) - not a calendrical day
+      num_days <- floor((max(finalC1$running_total.hrs.halfhour)-abs(min(finalC1$running_total.hrs.halfhour))) / 24)
+      if (input$only_full_days_zeitgeber) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+         finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      }
+
+      # store full days and also potential half days, when not selected full days only zeitgeber
+      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
+      storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
+
+      # filtering for Day and Night based on light_cycle length
+      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < input$light_cycle_stop-input$light_cycle_start, "Day", "Night")
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
 
       df_to_plot <- finalC1
       # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) {
-         df_to_plot$`Animal.No.` <- df_to_plot$Animals
-      }
+      if (!input$havemetadata) { df_to_plot$`Animal.No.` <- df_to_plot$Animals }
 
       # MK formulas
       if (input$goxlox == "Glucose oxidation") {
@@ -558,7 +572,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
       # Turku formulas
       } else if (input$goxlox == "Nitrogen oxidation" || input$goxlox == "Protein oxidation") {
-         df_to_plot$GoxLox <- 6.25 # this is constant 6.25 g N per minute
+         df_to_plot$GoxLox <- 6.25 # this is constant 6.25 g N per minute, questionable if of much use
       }
 
       # df to plot prepared for a line plot over time, next few lines sum over whole day
@@ -572,7 +586,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # df to plot now contains the summed oxidation over individual days   
       df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-      write.csv2(df_to_plot, "goxLox_without_metadata.csv")
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
       GoxLox <- GoxLox %>% rename(GoxLox = x)
 
@@ -673,7 +686,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
  
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
-      # group with group from metadata
+     # group with group from metadata
      if (input$with_facets) {
         if (!is.null(input$facets_by_data_one)) {
            if (input$orientation == "Horizontal") {
@@ -684,10 +697,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
         }
      }
    
+     # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
+     if (input$only_full_days_zeitgeber) {
+      day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
+     }
+
      # with zeitgeber zeit, the offset is always 0
-     light_offset <- 0
+     light_offset <- -12
      # add day annotations and indicators vertical lines
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
      # indicate night start
@@ -742,47 +760,23 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # light on is the length of light_cycle_end-light_cycle_start, usually 12 hours (720 minutes)
       light_on <- 720
 
-      previous_offset <- min(finalC1$running_total.hrs.halfhour)
-
       # display zeitgeber zeit
       finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
       # already shifted by zeitgeber zeit above, so light_on is now 0
-      light_offset <- 0
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, light_offset, "HP2", input$with_facets)
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
       finalC1 <- day_annotations$df_annotated
-
-      # light offset (light cycle start - first hour of first day)
-      print("global offset:")
-      print(get_global_offset_for_day_night(finalC1))
-      light_offset <- -(as.numeric(get_global_offset_for_day_night(finalC1)) - input$light_cycle_start)
-      print("light_offset")
-      print(light_offset)
-      light_offset_correct <- input$light_cycle_stop - as.numeric(get_global_offset_for_day_night(finalC1))
-      print("corrected_light_cycle:")
-      print(light_offset_correct)
-
-      if (input$only_full_days) {
-         # nothing to do: in case of full days, light_offset is already correct
-      } else {
-         day_annotations$annotations <- day_annotations$annotations %>% mutate(x = x + light_offset)
-      }
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
       }
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-      # TODO: We can use < light_on, because zeitgeber zeit starts at 0, and 0-720 is day, and 720-1480 is night,
-      # but this is not what we want, instead we need to find the corresponding day and night based on light cycle.
-      # Remove this code then
-      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) > light_on, "Day", "Night")
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
 
       # corrected filtering for day and night based on light cycle information
       finalC1 <- finalC1 %>% select(-Datetime2)
       #finalC1 <- detect_day_night(finalC1, light_offset)
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      #finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
@@ -827,6 +821,22 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
+
+      # custom filter for full days:
+      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      if (input$only_full_days_zeitgeber) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= 0, running_total.hrs.halfhour < (24*num_days))
+         finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      }
+
+      # TODO: note, that there is also half days listed then, because zeitgeber zeit can start at half day of day 1
+      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
+      storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
+
+      # Day Night filtering
+      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
 
       # if we do not have metadata, this comes from some non-clean TSE headers
       if (!input$havemetadata) {
@@ -877,10 +887,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
                   EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
                   EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-                  #EE$Animals <- as.factor(EE$Animals)
-
-                  print("EE:")
-                  print(EE)
 
                   p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
                   p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
@@ -901,7 +907,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          output$details <- renderUI({
             EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
             EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE)
-            #EE$Animals <- as.factor(EE$Animals)
             results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
             tagList(
                h3("Post-hoc analysis"),
@@ -992,6 +997,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
      colnames(lights) <- c("x", "y")
      
      if (input$timeline) {
+       light_offset <- 0
        # this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
        my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
        p <- p + my_lights
@@ -1011,36 +1017,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
         }
      }
 
-     # correct full days in case we did select before for day night
-     if (input$only_full_days) {
-       day_annotations$annotations <- day_annotations$annotations %>% mutate(x=x-12+input$light_cycle_start+(input$light_cycle_stop-input$light_cycle_start)/2)
-     }
-
-
-
-   print("Light offset plain:")
-   print(light_offset)
-     # corrected light offset by half day to account for day or night selection
-     light_offset <- light_offset - 12
-     print("light offset subtracted:")
-     print(light_offset)
-
-   if (input$only_full_days) {
-      if (light_offset > 0) {
-         light_offset <- -light_offset
-      }
-   }
-
-   print("start of first bar")
-   print(light_offset+12)
-
-   if (input$only_full_days) { # starting at 0:00 always if we did filter previously for full days 0-24 hours
-      light_offset <- -12 + input$light_cycle_start
-
-   }
-     
+     light_offset <- -12
      # add day annotations and indicators vertical lines
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
      # indicate night start
@@ -1506,13 +1485,10 @@ output$details <- renderUI({
    Raw = {
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-      write.csv2(finalC1, "before_enrich_with_metadata.csv")
       # get metadata from tse header only
       data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
-      print("true metadata")
-      print(colnames(true_metadata))
 
       # Select sexes
       if (!is.null(input$checkboxgroup_gender)) {
@@ -1529,18 +1505,17 @@ output$details <- renderUI({
          }
       }
 
-      # TODO: need to use light_on from metadata sheet if metadata sheet provided, take care of the correct units minutes vs. hours!
-      # default light on from UI
-      light_on <- input$light_cycle_start * 60
+      # default from UI for light cycle start 
+      light_on <- input$light_cycle_start 
 
       # in case we have metadata, override with values from sheet
       if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+         light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
 
       # in case no information in metadata sheet, override light cycle manually
       if (input$override_metadata_light_cycle) {
-        light_on <- 60 * input$light_cycle_start
+        light_on <- input$light_cycle_start
       }
 
       # display zeitgeber zeit
@@ -1562,7 +1537,7 @@ output$details <- renderUI({
          mylabel <- "RER"
       }
 
-      # annotate days and animals (Already shifted by above correction)
+      # annotate days and animals (already shifted by above correction)
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
       finalC1 <- day_annotations$df_annotated
    
@@ -1597,9 +1572,7 @@ output$details <- renderUI({
       }
 
       # filter for selected days and animals in data set
-      #selected_days <- getSession(session$token, global_data)[["selected_days"]]
       selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      #finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
       # trim times from end and beginning of measurements (obsolete)
@@ -1607,18 +1580,15 @@ output$details <- renderUI({
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
-      # custom filter for  full days:
-      #num_days <- 24*(length(unique(as.factor(finalC1$DayCount)))) % 24
+      # filter for full days
       num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
       if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= 0, running_total.hrs.halfhour < (24*num_days))
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
          finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-
       }
 
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      # TODO: need  to update select_days field from correctly zeitgeber time adjusted days count
-      print(levels(as.factor(finalC1$DayCount)))
+      storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
       # Day Night filtering
       finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
@@ -1627,9 +1597,7 @@ output$details <- renderUI({
 
       df_to_plot <- finalC1
       # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) {
-         df_to_plot$`Animal.No.` <- df_to_plot$Animals
-      }
+      if (!input$havemetadata) { df_to_plot$`Animal.No.` <- df_to_plot$Animals }
 
       # format labels for plot
       mylabel <- paste0(input$myr, sep = "", "_[%]")
@@ -1662,11 +1630,11 @@ output$details <- renderUI({
             print("replotting done?!")
             print(nrow(df_to_plot))
          }
-      # note, it is prohibited to do any other filtering when outliers removal is toggled on
+         # note, it is prohibited to do any other filtering when outliers removal is toggled on
       } else {
-         #if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
+         # if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
         storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
-         #}
+         # }
       }
 
       p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
@@ -1717,7 +1685,7 @@ output$details <- renderUI({
             )
          })
 
-      # TODO: example how to get plot download for selected plot only, add everywhere?
+      # TODO: example how to get plot download for selected plot only, add everywhere else too?
       output$plot_statistics_details <-  renderPlotly(ggplotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, 
                input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
                 + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + 
@@ -1797,7 +1765,6 @@ output$details <- renderUI({
             )
          })
 
-      light_offset <- 0
       if (input$with_facets) {
          if (!is.null(input$facets_by_data_one)) {
             if (input$orientation == "Horizontal") {
@@ -1811,7 +1778,7 @@ output$details <- renderUI({
      # need to start at 0 and 12 for zeitgeber time
      light_offset <- -12 # otherwise outside 0 on left
      # add day annotations and indicators vertical lines
-     # +2 for annotation inside ploitting
+     # +2 for annotation inside plotting
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
