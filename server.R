@@ -2541,7 +2541,7 @@ server <- function(input, output, session) {
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
          df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
          # TODO: Should Equation be rather input$variable1 problematic on server if not HP2, but HP locally works, HP2 
-         # works both locally and on server...
+         # works both locally and on server... prime reason is that input$myp is empty, advanced tab select caloric equivalent for RMR, fix this.
          df2 <- df2 %>% filter(Equation == "HP") %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
          df1 <- left_join(df1, unique_days_tee, by = "Animals")
@@ -2556,7 +2556,7 @@ server <- function(input, output, session) {
          df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
          df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
 
-         # TODO: verify if correct, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
+         # Verify whether correct or not, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
          # thus we need  to check for negative values in difference as well ... can happen because the one data sets has very large measurement intervals: 30 minutes! 
          # so the rmr is severely overestimates, and larger than TEE, we need to visually correct for this...
          df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
