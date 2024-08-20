@@ -334,12 +334,12 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #############################################################################
    # Heat production formula #1
    #############################################################################
-   C1 <- calc_heat_production(f2, C1, "HP", scaleFactor)
+   C1 <- calc_heat_production(f1, C1, "HP", scaleFactor)
 
    #############################################################################
    # Heat production formula #2 (for comparison in scatter plots)
    #############################################################################
-   C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor)
+   C1 <- calc_heat_production(f1, C1, "HP2", scaleFactor)
 
    # step 11 means
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
@@ -539,9 +539,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
       # trim times from end and beginning of measurements 
-      # TODO: This works only if full days only is used, because running_total.hrs.halfhour can be negative
       if (input$curate) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
       # filter for full days, full day is light_on (current day) until light_on (next day) - not a calendrical day
@@ -815,7 +814,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # trim times from end and beginning of measurements   
       if (input$curate) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
       # custom filter for full days:
@@ -1569,9 +1568,9 @@ output$details <- renderUI({
       selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
-      # trim times from end and beginning of measurements (obsolete)
+      # trim times from end and beginning of measurements 
       if (input$curate) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
       # filter for full days
