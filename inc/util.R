@@ -162,7 +162,6 @@ detect_day_night <- function(df, offset) {
    df_day_night <- df
    day_label = "Day"
    night_label = "Night"
-   # TODO: verify that this is correct now
     if (offset > 0) {
       day_label = "Night"
       night_label = "Day"

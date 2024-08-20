@@ -304,7 +304,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
    }
 
-   # TODO: uneven measurement intervals, then the averaging might be problematic!
    # Step #9 - define 1/n-hours steps
    if (input$averaging == 10) { # 1/6 hours
       C1 <- C1 %>%
@@ -746,22 +745,21 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          }
       }
 
-      light_on <- input$light_cycle_start * 60
+      # default from UI
+      light_on <- input$light_cycle_start 
 
+      # otherwise take from metadata sheet  
       if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+         light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
 
-       if (input$override_metadata_light_cycle) {
-         light_on <- 60 * input$light_cycle_start
+      # force override if metadata was available
+      if (input$override_metadata_light_cycle) {
+         light_on <- input$light_cycle_start
       }
-
-      # TODO: Do calculate this quantity from the input data
-      # light on is the length of light_cycle_end-light_cycle_start, usually 12 hours (720 minutes)
-      light_on <- 720
 
       # display zeitgeber zeit
-      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+      finalC1 <- zeitgeber_zeit(finalC1, light_on)
 
       # already shifted by zeitgeber zeit above, so light_on is now 0
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
@@ -775,8 +773,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # corrected filtering for day and night based on light cycle information
       finalC1 <- finalC1 %>% select(-Datetime2)
-      #finalC1 <- detect_day_night(finalC1, light_offset)
-      #finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
@@ -786,8 +782,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       if (is.null(selected_days)) {
         output$select_day <- renderUI({
         selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-       })
-      selected_days = days_and_animals_for_select$days
+        })
+        selected_days = days_and_animals_for_select$days
         storeSession(session$token, "selected_days", selected_days, global_data)
       } else {
         output$select_day <- renderUI({
@@ -825,11 +821,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # custom filter for full days:
       num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
       if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= 0, running_total.hrs.halfhour < (24*num_days))
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
          finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
       }
 
-      # TODO: note, that there is also half days listed then, because zeitgeber zeit can start at half day of day 1
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
       storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
@@ -861,7 +856,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
          p <- p + geom_line()
       }
-
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1837,11 +1831,11 @@ output$details <- renderUI({
          }
       }
 
+      # use defaults for light, cycle then try metadata, otherwise force override
       light_on <- 720
       if (input$havemetadata) {
          light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
       }
-
       if (input$override_metadata_light_cycle) {
          light_on <- 60 * input$light_cycle_start
       }
@@ -1850,7 +1844,6 @@ output$details <- renderUI({
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][2], ":00", sep = "")
       }
-
 
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
       # TODO: this is not what we want, assumes day 0-12 and night 13-24) - it might be correct when using zeitgeber zeit!

@@ -26,7 +26,6 @@ get_covariates_and_units <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
 
-   # TODO: THIS is not correct for the full length metadata sheet -> covariate_index must be covariate_index[2] and unit_index must be unit_index[2]
    # covariates
    covariate_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "covariates"))) %>% pull(ind)
    if (length(covariate_index) > 1) { covariate_index = covariate_index[2]}
@@ -47,13 +46,13 @@ get_covariates_and_units <- function(file) {
    units_values$`1` <- NULL
    units_values <- units_values[!is.na(units_values)]
 
-   # TODO: Bug, if there are no covariates then this fails, also covariate_index[2] is wrong, as only covariate string only present once in excel sheet.
-   # miraculously this does not fail locally as it should too. This should correct already the bug below.
+   # miraculously this does not fail locally as it should, server R version seems 
+   # to be more strict, will throw zero length vector error with undefined type set
    df_meta <- data.frame()
    if ( ! ( (length(covariates) == 0) || (length(units_values) == 0))) {
       df_meta <- data.frame(covariates, units_values)            
    }
-
+   print(df_meta)
    return(df_meta)
 }
 
@@ -64,14 +63,20 @@ get_constants <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
    constant_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "constants"))) %>% pull(ind)
-   constants <- df %>% slice(constant_index[2])
+   if (length(constant_index) > 1) { constant_index = constant_index[2]}
+   constants <- df %>% slice(constant_index)
    constants$`1` <- NULL
    constants <- constants[!is.na(constants)]
-   constants_values <- df %>% slice(constant_index[2] + 1)
+   constants_values <- df %>% slice(constant_index + 1)
    constants_values$`1` <- NULL
    constants_values <- constants_values[!is.na(constants_values)]
-   # TODO: might be problematic, if constant values are missing, we should inform the user of malformed metadata sheet
-   df_meta <- data.frame(constant = constants, value = constants_values)
+   df_meta <- data.frame()
+
+   # miraculously this does not fail locally as it should, server R version seems 
+   # to be more strict, will throw zero length vector error with undefined type set
+   if (! ((length(constants) == 0) || (length(constants_values) == 0))) {
+     df_meta <- data.frame(constant = constants, value = constants_values)
+   }
    print(df_meta)
    return(df_meta)
 }
@@ -154,9 +159,6 @@ get_true_metadata <- function(file) {
       shinyalert("Warning", paste0(paste("The following columns are all NA: ", names(all_na_columns[all_na_columns]), collapse= ","), showCancelButton = TRUE, " Fallback to TSE metadata header, since Metadata sheet wrongly formatted. Required information missing: Genotype, Sex, Age, Diet, lean_mass, fat_mass and body_weight are required."))
       return(NULL)
    }
-
-   print("covariates and units:")
-   print(get_covariates_and_units(file))
 
    # return the compiled metadata
    print(df_meta)
