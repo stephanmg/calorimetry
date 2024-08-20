@@ -1,7 +1,6 @@
 library(shiny)
 library(tidyr) # for unite
 library(ggplot2)
-library(git2r) # for git support
 library(data.table) # for filtering with %like%
 library(readxl)
 library(writexl)
@@ -44,6 +43,8 @@ source("inc/metadata/read_metadata.R") # for metadata sheet handling
 source("inc/exporters/default_exporter.R") # for data export
 
 source("inc/session_management.R") # for session management
+
+source("inc/versioning/git_info.R") # for versioning information from git
 
 # TODO: these global variables are not safe for multi-user scenario, and,
 # select date start and end is obsolete, refactor and delete dead code next
@@ -683,7 +684,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
         }
      }
    
-      light_offset <- 0
+     # with zeitgeber zeit, the offset is always 0
+     light_offset <- 0
      # add day annotations and indicators vertical lines
      p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day
@@ -693,7 +695,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
      # re-center at 0
      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
      # legends
-     p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Time [h]") + ggtitle(input$goxlox)
+     p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Zeitgeber time [h]") + ggtitle(input$goxlox)
    },
    #####################################################################################################################
    ### Energy Expenditure
@@ -885,7 +887,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
                   ggplotly(p)
                }),
                hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)))
+               conditionalPanel("input.num_covariates == '2'", 
+                  renderPlotly({
+                     EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+                     EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
+                     p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
+                     p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
+                     ggplotly(p)
+                  })),
             )
          })
 
@@ -975,7 +984,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
       # axis labels
-      p <- p + xlab("Time [h]")
+      p <- p + xlab("Zeitgeber time [h]")
       p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", sep = " "))
 
      # add light cycle annotation
@@ -1229,7 +1238,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
 
       p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
-      p <- p + xlab("Time [minutes]")
+      p <- p + xlab("Zeitgeber time [minutes]")
       p <- p + ggtitle("Resting metabolic rates")
 
       p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)))
@@ -1655,7 +1664,7 @@ output$details <- renderUI({
       }
 
       p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
-      p <- p + xlab("Time [h]")
+      p <- p + xlab("Zeitgeber time [h]")
 
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
@@ -2055,41 +2064,7 @@ output$details <- renderUI({
 server <- function(input, output, session) {
    # git info
    output$git_info <- renderText({
-      repo <- repository(".")
-      head_ref <- repository_head(repo)
-      current_branch <- NULL
-      tag_name <- NULL
-
-      if (is_branch(head_ref)) {
-         current_branch <- head_ref$name
-      } else {
-      }
-
-      if (inherits(head_ref, "git_commit")) {
-         commit_id <- head_ref$sha
-         all_tags <- tags(repo)
-         for (tag in all_tags) {
-            if (identical(tag$target, head_ref)) {
-               tag_name <- tag$name
-               break
-            }
-         }
-      }
-
-      current_tag <- tag_name
-      current_commit_id <- substring(commits(repo)[[1]]$sha, 1, 16)
-      detach("package:git2r", unload = TRUE)
-
-      if (is.null(current_branch)) {
-         if (is.null(current_tag)) {
-            paste("Current commit ID:", current_commit_id)
-         } else {
-            paste("Current version: ", current_tag)
-         }
-      }  else {
-         paste("Current branch: ", current_branch, "@commit: ", current_commit_id)
-      }
-
+      get_git_information_from_repository()
    })
 
    # save session id
