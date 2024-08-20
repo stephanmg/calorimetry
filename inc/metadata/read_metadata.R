@@ -45,9 +45,11 @@ get_covariates_and_units <- function(file) {
    units_values <- units_values[!is.na(units_values)]
 
    # TODO: Bug, if there are no covariates then this fails, also covariate_index[2] is wrong, as only covariate string only present once in excel sheet.
-   # miraculously this does not fail locally as it should too 
-
-   df_meta <- data.frame(covariates, units_values)
+   # miraculously this does not fail locally as it should too. This should correct already the bug below.
+   df_meta <- data.frame()
+   if ( ! (is.null(covariates) || is.null(units_values))) {
+      df_meta <- data.frame(covariates, units_values)
+   }
    return(df_meta)
 }
 
