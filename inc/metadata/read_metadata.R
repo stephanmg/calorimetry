@@ -26,30 +26,34 @@ get_covariates_and_units <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
 
+   # TODO: THIS is not correct for the full length metadata sheet -> covariate_index must be covariate_index[2] and unit_index must be unit_index[2]
    # covariates
    covariate_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "covariates"))) %>% pull(ind)
-   covariates <- df %>% slice(covariate_index[2])
+   if (length(covariate_index) > 1) { covariate_index = covariate_index[2]}
+   covariates <- df %>% slice(covariate_index)
    covariates$`1` <- NULL
    covariates <- covariates[!is.na(covariates)]
-   covariates_values <- df %>% slice(covariate_index[2] + 1)
+   covariates_values <- df %>% slice(covariate_index + 1)
    covariates_values$`1` <- NULL
    covariates_values <- covariates_values[!is.na(covariates_values)]
 
    # units
    unit_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "unit"))) %>% pull(ind)
-   units <- df %>% slice(unit_index[2])
+   if (length(unit_index) > 1) { unit_index = unit_index[2] }
+   units <- df %>% slice(unit_index)
    units$`1` <- NULL
    units <- units[!is.na(units)]
-   units_values <- df %>% slice(unit_index[2])
+   units_values <- df %>% slice(unit_index)
    units_values$`1` <- NULL
    units_values <- units_values[!is.na(units_values)]
 
    # TODO: Bug, if there are no covariates then this fails, also covariate_index[2] is wrong, as only covariate string only present once in excel sheet.
    # miraculously this does not fail locally as it should too. This should correct already the bug below.
    df_meta <- data.frame()
-   if ( ! (is.null(covariates) || is.null(units_values))) {
-      df_meta <- data.frame(covariates, units_values)
+   if ( ! ( (length(covariates) == 0) || (length(units_values) == 0))) {
+      df_meta <- data.frame(covariates, units_values)            
    }
+
    return(df_meta)
 }
 
