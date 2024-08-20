@@ -182,6 +182,7 @@ check_for_cosmed <- function(file) {
 # calc_heat_production
 ################################################################################
 calc_heat_production <- function(choice, C1, variable, scaleFactor) {
+   # TODO: we cannot trust the RER_NA value from the TSE data, better calculate the RER ourselves...
    df <- C1
    switch(choice,
    Lusk = {
