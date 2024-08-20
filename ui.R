@@ -239,6 +239,7 @@ sidebar_content <- sidebarPanel(
    h2("Experimental times"),
    conditionalPanel(condition = "input.plot_type == 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle", value=TRUE)),
    conditionalPanel(condition = "input.plot_type != 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle")),
+   checkboxInput(inputId = "only_full_days_zeitgeber", label = "Only full days (Zeitgeber time)", value = FALSE),
    checkboxInput(inputId = "only_full_days", label = "Only full days", value = FALSE),
    conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Fraction of day missing [%]", min = 0, max = 100, value = 0, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value = FALSE)),

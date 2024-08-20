@@ -1568,9 +1568,9 @@ output$details <- renderUI({
    
       # create input select fields for animals and days
       days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
       selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 
+      selected_days <- getSession(session$token, global_data)[["selected_days"]]
       # set default for animals and selected days: typically all selected at the beginning
       if (is.null(selected_days)) {
          output$select_day <- renderUI({
@@ -1597,15 +1597,33 @@ output$details <- renderUI({
       }
 
       # filter for selected days and animals in data set
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
+      #selected_days <- getSession(session$token, global_data)[["selected_days"]]
       selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
+      #finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
       finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
       # trim times from end and beginning of measurements (obsolete)
       if (input$curate) {
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
+
+      # custom filter for  full days:
+      #num_days <- 24*(length(unique(as.factor(finalC1$DayCount)))) % 24
+      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      if (input$only_full_days_zeitgeber) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= 0, running_total.hrs.halfhour < (24*num_days))
+         finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+
+      }
+
+      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
+      # TODO: need  to update select_days field from correctly zeitgeber time adjusted days count
+      print(levels(as.factor(finalC1$DayCount)))
+
+      # Day Night filtering
+      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
 
       df_to_plot <- finalC1
       # if we do not have metadata, this comes from some not-clean TSE headers
@@ -1790,8 +1808,11 @@ output$details <- renderUI({
          }
       }
 
+     # need to start at 0 and 12 for zeitgeber time
+     light_offset <- -12 # otherwise outside 0 on left
      # add day annotations and indicators vertical lines
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     # +2 for annotation inside ploitting
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
      # indicate night start
