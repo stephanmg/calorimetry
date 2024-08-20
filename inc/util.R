@@ -266,6 +266,11 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
    day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() %>% na.omit()
 
+   print("minimum?")
+   print(df[[input_var]])
+   print(input_var)
+   print(min(df[[input_var]]))
+
    print(day_counts)
    # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
    annotations <- NULL

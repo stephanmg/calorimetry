@@ -1526,12 +1526,21 @@ output$details <- renderUI({
          mylabel <- paste0(input$myr, sep = "", "_C")
       }
 
+      
+      # annotate days and animals (already shifted by above correction)
+
+      # rename RER_NA to RER (but finalC1 still has RER_NA)
+      if (startsWith(input$myr, "RER")) {
+         mylabel <- "RER_NA"
+      }
+
+      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
+
+      # rename RER_NA to RER (but finalC1 still has RER_NA)
       if (startsWith(input$myr, "RER")) {
          mylabel <- "RER"
       }
 
-      # annotate days and animals (already shifted by above correction)
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
