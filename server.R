@@ -592,13 +592,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
       df_to_plot$Animals <- colors
 
-      lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
-      colnames(lights) <- c("x", "y")
-      if (input$timeline) {
-            my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-            p <- p + my_lights
-      }
-
       convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][1], "", sep = "")
@@ -706,6 +699,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
  
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
+      lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot$GoxLox)
+      colnames(lights) <- c("x", "y")
+      if (input$timeline) {
+            my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+            p <- p + my_lights
+      }
+
+
+
      # group with group from metadata
      if (input$with_facets) {
         if (!is.null(input$facets_by_data_one)) {
@@ -716,7 +718,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
            }
         }
      }
-   
+
      # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
      if (input$only_full_days_zeitgeber) {
       day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
@@ -725,7 +727,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
      # with zeitgeber zeit, the offset is always 0
      light_offset <- -12
      # add day annotations and indicators vertical lines
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox), label=label), vjust=1.5, hjust=0.5, size=4, color="black")
      # indicate new day
      p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
      # indicate night start
