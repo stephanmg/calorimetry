@@ -289,6 +289,15 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
 }
 
 ################################################################################
+# get number of days and sample ids to select from alternative
+################################################################################
+get_days_and_animals_for_select_alternative <- function(df) {
+   day_counts <- df %>% pull(DayCount) %>% unique() %>% sort()
+   animal_counts <- df %>% pull(`Animal No._NA`) %>% unique() %>% sort()
+   return(list(days=day_counts, animals=animal_counts))
+}
+
+################################################################################
 # get number of days and sample ids to select from in EnergyExpenditure (Data curation)
 ################################################################################
 get_days_and_animals_for_select <- function(df) {

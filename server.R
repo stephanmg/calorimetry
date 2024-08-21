@@ -501,7 +501,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- day_annotations$df_annotated
 
       # create input select fields for animals and days
-      days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
       # selected calendrical days
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
@@ -543,12 +546,24 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
+      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
+      #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
+
+      # Day Night filtering
+      # TODO: If we do not filter for full days here, we need to annotate DayNight with offset
+      #  of zeitgeber time, e.g. (min(running_total.hrs.halfhour)) instead starting at 0 is wrong, only if full days only!
+      # this should in fact already be correct! by modulo arithmetics...
+      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+      finalC1$NightDay <- as.factor(finalC1$NightDay)
+
+
       # filter for full days, full day is light_on (current day) until light_on (next day) - not a calendrical day
-      num_days <- floor((max(finalC1$running_total.hrs.halfhour)-abs(min(finalC1$running_total.hrs.halfhour))) / 24)
-      if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-         finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      }
+      #num_days <- floor((max(finalC1$running_total.hrs.halfhour)-abs(min(finalC1$running_total.hrs.halfhour))) / 24)
+      #if (input$only_full_days_zeitgeber) {
+      #   finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      #   finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      #}
 
       # store full days and also potential half days, when not selected full days only zeitgeber
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
@@ -774,7 +789,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- finalC1 %>% select(-Datetime2)
 
       # create input select fields for animals and days
-      days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
+      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
       # select days
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
@@ -818,14 +836,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
 
       # custom filter for full days:
-      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-         finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      }
+      #num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      #if (input$only_full_days_zeitgeber) {
+      #   finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      #   finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      #}
 
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
+      #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
       # Day Night filtering
       finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
@@ -1008,6 +1026,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
               p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
            }
         }
+     }
+
+      # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
+     if (input$only_full_days_zeitgeber) {
+      day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
      }
 
      light_offset <- -12
@@ -1526,14 +1549,12 @@ output$details <- renderUI({
          mylabel <- paste0(input$myr, sep = "", "_C")
       }
 
-      
-      # annotate days and animals (already shifted by above correction)
-
       # rename RER_NA to RER (but finalC1 still has RER_NA)
       if (startsWith(input$myr, "RER")) {
          mylabel <- "RER_NA"
       }
 
+      # annotate days and animals (already shifted by above correction)
       day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
 
       # rename RER_NA to RER (but finalC1 still has RER_NA)
@@ -1544,8 +1565,10 @@ output$details <- renderUI({
       finalC1 <- day_annotations$df_annotated
    
       # create input select fields for animals and days
-      days_and_animals_for_select <- get_days_and_animals_for_select(finalC1)
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
+      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
       # set default for animals and selected days: typically all selected at the beginning
@@ -1561,6 +1584,7 @@ output$details <- renderUI({
          })
       }
 
+      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
       if (is.null(selected_animals)) {
          output$select_animal <- renderUI({
             selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
@@ -1582,17 +1606,20 @@ output$details <- renderUI({
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
-      # filter for full days
-      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-         finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      }
+      # filter for full days light_on to light_on, not for calendrical days
+      #num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+      #if (input$only_full_days_zeitgeber) {
+      #   finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+         #finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+      #}
 
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
+      #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
       # Day Night filtering
+      # TODO: If we do not filter for full days here, we need to annotate DayNight with offset
+      #  of zeitgeber time, e.g. (min(running_total.hrs.halfhour)) instead starting at 0 is wrong, only if full days only!
+      # this should in fact already be correct! by modulo arithmetics...
       finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
       finalC1$NightDay <- as.factor(finalC1$NightDay)
@@ -1663,7 +1690,6 @@ output$details <- renderUI({
       df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
       df_to_plot$GoxLox = df_to_plot[input$myr]
       GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
-
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1776,6 +1802,11 @@ output$details <- renderUI({
             }
          }
       }
+
+     # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
+     if (input$only_full_days_zeitgeber) {
+      day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
+     }
 
      # need to start at 0 and 12 for zeitgeber time
      light_offset <- -12 # otherwise outside 0 on left
