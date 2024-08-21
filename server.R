@@ -434,6 +434,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    write.csv2(finalC1, file = "finalC1.csv")
 
    # filter out whole days with given threshold
+   # TODO: These are calendrical dates, used for RMR, TEE, and DayNightAcvitiy
+   # Note: This can be made a preprocessing step to select for specific days (also half days),
+   # this is incompatible currently with panels EE, Raw and GoxLox since zeitgeber time shifts based on running_total.secs == 0 to find  the offset
+   # see util.R for this, this needs first to be adapted, then we can support filtering on two methods: zeitgeber time and also on calendrical days
    if (input$only_full_days) {
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       print("int val length list:")
@@ -502,7 +506,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # create input select fields for animals and days
       num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      if (input$only_full_days_zeitgeber) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      }
       finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
       days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
@@ -799,7 +805,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # create input select fields for animals and days
       num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      if (input$only_full_days_zeitgeber) {
+         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      }
       finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
       days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
@@ -1575,7 +1583,9 @@ output$details <- renderUI({
    
       # create input select fields for animals and days
       num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      if (input$only_full_days_zeitgeber) {
+        finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+      }
       finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
       days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
