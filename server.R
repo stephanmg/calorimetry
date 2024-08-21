@@ -438,7 +438,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # Note: This can be made a preprocessing step to select for specific days (also half days),
    # this is incompatible currently with panels EE, Raw and GoxLox since zeitgeber time shifts based on running_total.secs == 0 to find  the offset
    # see util.R for this, this needs first to be adapted, then we can support filtering on two methods: zeitgeber time and also on calendrical days
-   if (input$only_full_days) {
+   # thats why we use && ! input$use_zeitgeber_time to exclude this for now.
+   if (input$only_full_days && !input$use_zeitgeber_time) {
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       print("int val length list:")
       print(interval_length_list)
@@ -799,6 +800,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
       finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
       days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
+      # TODO: add possibility to not use zeitgeber zeit if (input$use_zeitgeber_zeit) { ... }
+      # basically look at TEE; GoxLox, or DayNightAcvitiy panel...
+      # for days and animals selection use get_days_and_animals_for_select(finalC1) not alternative,
+      # code above must be wrapped into if statements accordingly...
 
       # select days
       selected_days <- getSession(session$token, global_data)[["selected_days"]]
@@ -1077,9 +1082,25 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
       finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 
+      # when zeitgeber time should be used  
+      if (input$use_zeitgeber_time) {
+        finalC1 <- zeitgeber_zeit(finalC1 %>% ungroup(), input$light_cycle_start)
+        num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+        if (input$only_full_days_zeitgeber) {
+          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+        } 
+        finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+        finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+      } else {
+         finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+         finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+         finalC1$NightDay <- as.factor(finalC1$NightDay)
+         finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+      }
+
+      # TODO: Add back animal and days selection as in EE, Raw, and GoxLox panels
+
       # df already prepared to be day and night summed activities
-      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 
       # first component, typically O2
@@ -1249,19 +1270,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
 
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][2], ":00", sep = "")
-      }
-
+     
       # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) {
-         finalC1$`Animal.No.` <- finalC1$Animals
-      }
+      if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
       df_to_plot <- finalC1
-      df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
-      df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
+
+      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before3.csv")
 
       light_on <- 720
       if (input$havemetadata) {
@@ -1272,21 +1287,62 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          light_on <- 60 * input$light_cycle_start
       }
 
-      # df already prepared to be day and night summed activities
-      df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime2)) * 60 + minute(hms(df_to_plot$Datetime2)) < light_on, "am", "pm")
-      df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
+      
 
-      convert <- function(x) {
+      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before2.csv")
+
+      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before.csv")
+
+       # when zeitgeber time should be used  
+      if (input$use_zeitgeber_time) {
+    #     convert <- function(x) {
+    #     splitted <- strsplit(as.character(x), " ")
+    #     paste(splitted[[1]][2], ":00", sep = "")
+    #  }
+
+   #     df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+        df_to_plot <- zeitgeber_zeit(df_to_plot, input$light_cycle_start)
+        num_days <- floor(max(df_to_plot$running_total.hrs.halfhour) / 24)
+        if (input$only_full_days_zeitgeber) {
+          df_to_plot <- df_to_plot %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+        } 
+        df_to_plot$DayCount <- ceiling((df_to_plot$running_total.hrs.halfhour / 24) + 1)
+        df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Day", "Night")
+      } else {
+ convert <- function(x) {
+         splitted <- strsplit(as.character(x), " ")
+         paste(splitted[[1]][2], ":00", sep = "")
+      }
+
+
+      df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
+      df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
+      # insert day to group by different days in ANCOVA
+
+convert <- function(x) {
          splitted <- strsplit(as.character(x), " ")
          paste(splitted[[1]][1], "", sep = "")
       }
+     df_to_plot$DayCount <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+     df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
 
-      # insert day to group by different days in ANCOVA
-      df_to_plot$Days <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-      df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+
+         df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < light_on, "Day", "Night")
+         write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_after_ifelse.csv")
+         df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
+         #df_to_plot <- df_to_plot %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+      }
+
+      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day.csv")
+
+
+      # df already prepared to be day and night summed activities
+      df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
+
+      # TODO: Add back day selection for animals and days as in EE, GoxLox, and Raw panel
 
       #DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), unique_days = n_distinct(Days), Days=Days) %>% na.omit()
-      DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), Days=Days) %>% na.omit()
+      DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), Days=DayCount) %>% na.omit()
       df_unique_days <- df_to_plot %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Datetime))
       DayNight <- left_join(DayNight, df_unique_days, by = "Animals")
       DayNight <- DayNight %>% mutate(HP = HP / unique_days) 
@@ -1871,23 +1927,30 @@ output$details <- renderUI({
          paste(splitted[[1]][2], ":00", sep = "")
       }
 
-      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-      # TODO: this is not what we want, assumes day 0-12 and night 13-24) - it might be correct when using zeitgeber zeit!
-      # df already prepared to be day and night summed activities 
-      finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
+      # when zeitgeber time should be used  
+      if (input$use_zeitgeber_time) {
+        finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+        num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+        if (input$only_full_days_zeitgeber) {
+          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+        } 
+        finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+        finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+      } else {
+         finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+         finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+         finalC1$NightDay <- as.factor(finalC1$NightDay)
+         finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+      }
+
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-
-      # Create unique days for each animals sorted ascending based by Datetime
-      finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
-
       colors <- as.factor(`$`(finalC1, "Animal No._NA"))
       finalC1$Animals <- colors
 
+      # TODO: Add back animal and days selection as in EE, Raw, and GoxLox panels
+
       # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) {
-         finalC1$`Animal.No.` <- finalC1$Animals
-      }
+      if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
       convert2 <- function(x) {
          splitted <- strsplit(as.character(x), " ")
@@ -1948,7 +2011,6 @@ output$details <- renderUI({
             }
          }
       }
-
          output$test <- renderUI({
             tagList(
                h4("Configuration"),

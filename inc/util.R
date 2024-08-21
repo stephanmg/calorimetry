@@ -199,7 +199,8 @@ get_global_offset_for_day_night <- function(df) {
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
    # TODO: this needs to be revised, if one want to select indvidual calendrical days, because running_total.sec == 0 will not be found
-   write.csv2(df, "directly_before_offsets.csv")
+   # TODO: For RMR  this is grouped, need to see why
+   write.csv2(apply(df, 2, as.character), "directly_before_offsets.csv")
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
    offsets$`offset`  <- as.numeric(offsets$`offset`)

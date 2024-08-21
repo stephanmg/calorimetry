@@ -165,6 +165,13 @@ sidebar_content <- sidebarPanel(
    span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
    h3("Preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
+   #checkboxInput(inputId="select_calendrical_days", "Select calendrical days"), # TODO: yet to be implemented
+   # Raw, EE, GoxLox uses zeitgeber time as default (calendrical time not yet implemented here, but selection of animals and days)
+   conditionalPanel(condition = "input.plot_type == 'Raw' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'GoxLox'",
+      checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE)),
+   # RMR, TEE and DayNightActivity use calendrical time as default (selection of animals and days not yet implemented here, but also zeitgeber time implemented)
+   conditionalPanel(condition = "input.plot_type != 'Raw' && input.plot_type != 'EnergyExpenditure' && input.plot_type != 'GoxLox'",
+      checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = FALSE)),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    h3("Raw data curation"),
    checkboxInput(inputId = "z_score_removal_of_outliers", label = "Remove outliers automatically by z-score"),
@@ -239,9 +246,10 @@ sidebar_content <- sidebarPanel(
    h2("Experimental times"),
    conditionalPanel(condition = "input.plot_type == 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle", value=TRUE)),
    conditionalPanel(condition = "input.plot_type != 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle")),
-   conditionalPanel(condition = "input.only_full_days == false && (input.plot_type != 'RestingMetabolicRate' && input.plot_type != 'TotalEnergyExpenditure' && input.plot_type != 'DayNightActivity')",
+   #conditionalPanel(condition = "input.only_full_days == false && (input.plot_type != 'RestingMetabolicRate' && input.plot_type != 'TotalEnergyExpenditure' && input.plot_type != 'DayNightActivity')",
+   conditionalPanel(condition = "input.use_zeitgeber_time == true",
    checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
-   conditionalPanel(condition = "input.only_full_days_zeitgeber == false && (input.plot_type == 'RestingMetabolicRate' || input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'DayNightActivity')",
+   conditionalPanel(condition = "input.use_zeitgeber_time == false",
    checkboxInput(inputId = "only_full_days", label = "Select full consecutive calendrical days", value = FALSE)),
    conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Fraction of day missing [%]", min = 0, max = 100, value = 0, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value = FALSE)),
