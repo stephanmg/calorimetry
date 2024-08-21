@@ -556,20 +556,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
       # Day Night filtering
-      # TODO: If we do not filter for full days here, we need to annotate DayNight with offset
-      #  of zeitgeber time, e.g. (min(running_total.hrs.halfhour)) instead starting at 0 is wrong, only if full days only!
-      # this should in fact already be correct! by modulo arithmetics...
       finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
       finalC1$NightDay <- as.factor(finalC1$NightDay)
-
-
-      # filter for full days, full day is light_on (current day) until light_on (next day) - not a calendrical day
-      #num_days <- floor((max(finalC1$running_total.hrs.halfhour)-abs(min(finalC1$running_total.hrs.halfhour))) / 24)
-      #if (input$only_full_days_zeitgeber) {
-      #   finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-      #   finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      #}
 
       # store full days and also potential half days, when not selected full days only zeitgeber
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
@@ -705,14 +694,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
  
       p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
+      # timeline
+      # TODO: Debug why this is not displayed locally but on server
       lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot$GoxLox)
       colnames(lights) <- c("x", "y")
       if (input$timeline) {
             my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
             p <- p + my_lights
       }
-
-
 
      # group with group from metadata
      if (input$with_facets) {
@@ -852,15 +841,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
-      # custom filter for full days:
-      #num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      #if (input$only_full_days_zeitgeber) {
-      #   finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-      #   finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      #}
-
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
       # Day Night filtering
       finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
@@ -868,9 +849,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1$NightDay <- as.factor(finalC1$NightDay)
 
       # if we do not have metadata, this comes from some non-clean TSE headers
-      if (!input$havemetadata) {
-         finalC1$`Animal.No.` <- finalC1$Animals
-      }
+      if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
       # calculate running averages
       if (input$running_average > 0) {
@@ -1625,20 +1604,9 @@ output$details <- renderUI({
          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
       }
 
-      # filter for full days light_on to light_on, not for calendrical days
-      #num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      #if (input$only_full_days_zeitgeber) {
-      #   finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-         #finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      #}
-
       finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
       # Day Night filtering
-      # TODO: If we do not filter for full days here, we need to annotate DayNight with offset
-      #  of zeitgeber time, e.g. (min(running_total.hrs.halfhour)) instead starting at 0 is wrong, only if full days only!
-      # this should in fact already be correct! by modulo arithmetics...
       finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
       finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
       finalC1$NightDay <- as.factor(finalC1$NightDay)
