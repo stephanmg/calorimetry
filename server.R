@@ -619,7 +619,7 @@ server <- function(input, output, session) {
       HTML(html_ui)
    })
 
-   # if no data available, no download button
+   # download data as csv or xlsx. if no data available, no download button is displayed
    output$downloadData <- downloadHandler(
       filename = function() {
       if (! input$export_file_name == "") {
@@ -637,6 +637,7 @@ server <- function(input, output, session) {
       }
    )
 
+  # Download handler to get current data frame of displayed plot
   output$downloadPlottingData <- downloadHandler(
       filename = function() {
       if (! input$export_file_name2 == "") {
@@ -651,6 +652,7 @@ server <- function(input, output, session) {
       }
    )
 
+   # Download handler for all data download as zip
    output$downloadAllData <- downloadHandler(
          filename = function() {
             paste0("all_data-", Sys.Date(), ".zip")
@@ -721,7 +723,7 @@ server <- function(input, output, session) {
    })
 
    #####################################################################################################################
-   # Observer remvove_lasso_points
+   # Observer remove_lasso_points
    #####################################################################################################################
    observeEvent(input$remove_lasso_points, {
       selected_data <- event_data("plotly_selected")
@@ -932,7 +934,6 @@ server <- function(input, output, session) {
       # No error messages if no input file given or no excel given for metadata 
       # req(input$File1)
       # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
-
       output$plot <- renderPlotly({
          if (is.null(input$File1)) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
