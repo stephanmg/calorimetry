@@ -19,48 +19,86 @@ library(tools)
 library(shinyalert)
 library(shinyjs)
 
-source("inc/util.R") # general utility methods
+################################################################################
+# General utilities
+################################################################################
+source("inc/util.R") 
 
+################################################################################
+# RMR functions
+################################################################################
 source("inc/rmr/helper.R") # rmr helper methods
 source("inc/rmr/extract_rmr.R") # rmr extraction
 source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 
+################################################################################
+# Importers
+################################################################################
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
 
+
+################################################################################
+# Locomotion helpers
+################################################################################
 source("inc/locomotion/locomotion.R") # for locomotion probability heatmap
 source("inc/locomotion/locomotion_budget.R") # for locomotion budget
 
+################################################################################
+# UI guide and timeline coloring
+################################################################################
 source("inc/annotations/timeline.R") # for colorizing timeline by day/night rhythm
 source("inc/annotations/guide.R") # for guide
 
+################################################################################
+# Statistics
+################################################################################
 source("inc/statistics/do_ancova.R") # for ancova without metadata
 source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 
-source("inc/metadata/read_metadata.R") # for metadata sheet handling
+################################################################################
+# Metadata handling
+################################################################################
+source("inc/metadata/read_metadata.R") 
 
-source("inc/exporters/default_exporter.R") # for data export
+################################################################################
+# Export functionality
+################################################################################
+source("inc/exporters/default_exporter.R") 
 
-source("inc/session_management.R") # for session management
+################################################################################
+# User session management
+################################################################################
+source("inc/session_management.R") 
 
-source("inc/versioning/git_info.R") # for versioning information from git
+################################################################################
+# Versioning
+################################################################################
+source("inc/versioning/git_info.R") 
 
-# TODO: these global variables are not safe for multi-user scenario, and,
-# select date start and end is obsolete, refactor and delete dead code next
+################################################################################
+# Visualizations
+################################################################################
+source("inc/visualizations/goxlox.R") # for goxlox
+source("inc/visualizations/energy_expenditure.R") # for energy expenditure
+source("inc/visualizations/raw_measurement.R") # for raw measurements
+source("inc/visualizations/total_energy_expenditure.R") # for total energy expenditure
+source("inc/visualizations/resting_metabolic_rate.R") # for resting metabolic rate
+source("inc/visualizations/day_night_activity.R") # for day night activity
+source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR estimation
+
+################################################################################
+# TODO: Global variables - not safe in multi-user context, also obsolete, remove!)
+################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
 end_date <- Sys.Date()
 
+################################################################################
+# Session global environement to hold user data
+################################################################################
 global_data <- new.env()
-
-################################################################################
-# Helper functions
-################################################################################
-convert <- function(x) {
-    splitted <- strsplit(as.character(x), " ")
-    paste(splitted[[1]][2], ":00", sep = "")
-}
 
 ################################################################################
 # Create plotly plot
@@ -447,7 +485,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       write.csv2(finalC1, "after_fitlering.csv")
    }
 
-
    switch(plotType,
    #####################################################################################################################
    # CompareHeatProductionFormulas
@@ -458,1013 +495,35 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- p + stat_cor(method = "pearson", aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")))
       p <- p + ggtitle("Pearson-correlation between energy expenditures as computed by two different formulas")
    },
-
    #####################################################################################################################
    # GoxLox
    #####################################################################################################################
    GoxLox = {
-      # colors for plotting as factor
-      finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-
-      # get metadata from tse header only
-      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-
-      # Select sexes
-      if (!is.null(input$checkboxgroup_gender)) {
-         if ("Sex" %in% names(finalC1)) {
-           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
-         }
-      }
-
-      # Filter a group by condition type
-      if (input$with_grouping) {
-         my_var <- input$condition_type
-         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-         }
-      }
-
-      # default is the provided light cycle from metadata sheet if available, otherwise default from UI is taken
-      light_on <- input$light_cycle_start 
-
-      if (input$havemetadata) {
-         light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
-
-      # if one wishes, one can override the light cycle configuration from metadata sheet
-      if (input$override_metadata_light_cycle) {
-         light_on <- input$light_cycle_start
-      }
-
-      # calculate zeitgeber time
-      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-
-      # annotate days and animals (already shifted by above correction, thus light_on is now 0: Zeitgeber!)
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
-      finalC1 <- day_annotations$df_annotated
-
-      # create input select fields for animals and days
-      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-      }
-      finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
-
-      # selected calendrical days
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
-      if (is.null(selected_days)) {
-         output$select_day <- renderUI({
-         selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-         })
-         selected_days = days_and_animals_for_select$days
-         storeSession(session$token, "selected_days", selected_days, global_data)
-      } else {
-         output$select_day <- renderUI({
-         selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
-         })
-      }
-
-      # selected animals
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      if (is.null(selected_animals)) {
-         output$select_animal <- renderUI({
-         selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
-         })
-        selected_animals = days_and_animals_for_select$animals
-        storeSession(session$token, "selected_animals", selected_animals, global_data)
-      } else {
-         output$select_animal <- renderUI({
-         selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
-        })
-      }
-
-      # get default selection of animals and calendrical days
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-
-      # filter now for selected animals
-      finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
-
-      # trim times from end and beginning of measurements 
-      if (input$curate) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
-      }
-
-      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      #storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
-
-      # Day Night filtering
-      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
-
-      # store full days and also potential half days, when not selected full days only zeitgeber
-      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-      storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
-
-      # filtering for Day and Night based on light_cycle length
-      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < input$light_cycle_stop-input$light_cycle_start, "Day", "Night")
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
-
-      df_to_plot <- finalC1
-      # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) { df_to_plot$`Animal.No.` <- df_to_plot$Animals }
-
-      # MK formulas
-      if (input$goxlox == "Glucose oxidation") {
-         df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VCO2(3)_[ml/h]`
-      } else if (input$goxlox == "Lipid oxidation" || input$goxlox == "Fat oxidation") {
-         df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
-      # Turku formulas
-      } else if (input$goxlox == "Nitrogen oxidation" || input$goxlox == "Protein oxidation") {
-         df_to_plot$GoxLox <- 6.25 # this is constant 6.25 g N per minute, questionable if of much use
-      }
-
-      # df to plot prepared for a line plot over time, next few lines sum over whole day
-      colors <- as.factor(`$`(df_to_plot, "Animal No._NA"))
-      df_to_plot$Animals <- colors
-
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][1], "", sep = "")
-      }
-
-      # df to plot now contains the summed oxidation over individual days   
-      df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-      GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
-      GoxLox <- GoxLox %>% rename(GoxLox = x)
-
-         output$test <- renderUI({
-            tagList(
-               h4("Configuration"),
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-               selectInput("dep_var", "Dependent variable", choice = c("GoxLox")),
-               selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-               hr(style = "width: 50%"),
-               h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
-               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-               hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
-               hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
-            )
-         })
-
-         output$details <- renderUI({
-            results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-            tagList(
-               h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-               hr(style = "width: 75%"),
-               h4("Results of statistical testing"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("p-value", style="width: 100px"),
-                        tags$th("p-value (adjusted)", style="width: 100px"),
-                        tags$th("significance level", style="width: 100px"),
-                        tags$th("degrees of freedom", style="width: 100px" ),
-                        tags$th("test statistic", style="width: 100px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                        tags$td(results$statistics$df, style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-                     )
-                  )
-               ),
-               h4("Test assumptions"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("Description", style="width:200px"),
-                        tags$th("Name of significance test", style="width:200px"),
-                        tags$th("Null hypothesis", style="width:400px"),
-                        tags$th("p-value", style="width:200px"),
-                        tags$th("Status", style="width:200px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td("Homogeneity of variances", style="width:200px"),
-                        tags$td("Levene's test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                        tags$td(
-                           if (as.numeric(results$levene$p) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     ),
-                     tags$tr(
-                        tags$td("Normality of residuals", style="width:200px"),
-                        tags$td("Shapiro-Wilk test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                        tags$td(
-                         if (as.numeric(results$shapiro$p.value) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     )
-                  )
-               ),
-            )
-         })
- 
-      p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
-
-      # timeline
-      # TODO: Debug why this is not displayed locally but on server
-      lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot$GoxLox)
-      colnames(lights) <- c("x", "y")
-      if (input$timeline) {
-            my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-            p <- p + my_lights
-      }
-
-     # group with group from metadata
-     if (input$with_facets) {
-        if (!is.null(input$facets_by_data_one)) {
-           if (input$orientation == "Horizontal") {
-              p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-          } else {
-              p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-           }
-        }
-     }
-
-     # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
-     if (input$only_full_days_zeitgeber) {
-      day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
-     }
-
-     # with zeitgeber zeit, the offset is always 0
-     light_offset <- -12
-     # add day annotations and indicators vertical lines
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox), label=label), vjust=1.5, hjust=0.5, size=4, color="black")
-     # indicate new day
-     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
-     # indicate night start
-     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
-     # re-center at 0
-     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
-     # legends
-     p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Zeitgeber time [h]") + ggtitle(input$goxlox)
+      p <- goxlox(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
    },
    #####################################################################################################################
    ### Energy Expenditure
    #####################################################################################################################
-   # This is an example on how to use the metadata (sheet) in different functions.
-   ## The metadata from the data files (e.g. TSE) could be joined directly with the metadata sheet. For compability, we 
-   # currently require a valid TSE metadata header corresponding with entries in the columns of metadata sheet, issue #62.
    EnergyExpenditure = {
-      # colors for plotting as factor
-      finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-
-      # join either metadata from sheet or tse supported header columns (see above) to measurement data
-      # enrich with metadata from TSE header (C1meta) or from metadata sheet (input$metadatafile)
-      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-
-      # Select sexes
-      if (!is.null(input$checkboxgroup_gender)) {
-         if ("Sex" %in% names(finalC1)) {
-           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
-         }
-      }
-
-      # filter conditions
-      if (input$with_grouping) {
-         my_var <- input$condition_type
-         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-         }
-      }
-
-      # default from UI
-      light_on <- input$light_cycle_start 
-
-      # otherwise take from metadata sheet  
-      if (input$havemetadata) {
-         light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
-
-      # force override if metadata was available
-      if (input$override_metadata_light_cycle) {
-         light_on <- input$light_cycle_start
-      }
-
-      # display zeitgeber zeit
-      finalC1 <- zeitgeber_zeit(finalC1, light_on)
-
-      # already shifted by zeitgeber zeit above, so light_on is now 0
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
-      finalC1 <- day_annotations$df_annotated
-
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][2], ":00", sep = "")
-      }
-      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-
-      # corrected filtering for day and night based on light cycle information
-      finalC1 <- finalC1 %>% select(-Datetime2)
-
-      # create input select fields for animals and days
-      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      if (input$only_full_days_zeitgeber) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-      }
-      finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
-      # TODO: add possibility to not use zeitgeber zeit if (input$use_zeitgeber_zeit) { ... }
-      # basically look at TEE; GoxLox, or DayNightAcvitiy panel...
-      # for days and animals selection use get_days_and_animals_for_select(finalC1) not alternative,
-      # code above must be wrapped into if statements accordingly...
-
-      # select days
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
-      if (is.null(selected_days)) {
-        output$select_day <- renderUI({
-        selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-        })
-        selected_days = days_and_animals_for_select$days
-        storeSession(session$token, "selected_days", selected_days, global_data)
-      } else {
-        output$select_day <- renderUI({
-        selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
-        })
-      }
-
-      # select animals
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      if (is.null(selected_animals)) {
-         output$select_animal <- renderUI({
-         selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
-      })
-      selected_animals = days_and_animals_for_select$animals
-         storeSession(session$token, "selected_animals", selected_animals, global_data)
-      } else {
-         output$select_animal <- renderUI({
-         selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
-         })
-      }
-
-      # store selected animals and days in session
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-
-      # filter for selected days and animals in data set
-      finalC1 <- finalC1 %>% filter(DayCount %in% selected_days)
-      finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
-
-      # trim times from end and beginning of measurements   
-      if (input$curate) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
-      }
-
-      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-
-      # Day Night filtering
-      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
-
-      # if we do not have metadata, this comes from some non-clean TSE headers
-      if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
-
-      # calculate running averages
-      if (input$running_average > 0) {
-         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
-         if (input$running_average_method == "Mean") {
-            p <- p + geom_line(aes(y = rollmean(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-         } else if (input$running_average_method == "Max") {
-            p <- p + geom_line(aes(y = rollmax(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-         } else if (input$running_average_method == "Median") {
-            p <- p + geom_line(aes(y = rollmedian(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-         } else if (input$running_average_method == "Sum") {
-            p <- p + geom_line(aes(y = rollsum(HP2, input$running_average, na.pad = TRUE)), group = "Animals")
-         } else {
-            p <- p + geom_line(aes(y = HP2), group = "Animals")
-         }
-      } else {
-         p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
-         p <- p + geom_line()
-      }
-         output$test <- renderUI({
-            tagList(
-               h4("Configuration"),
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
-               selectInput("dep_var", "Dependent variable", choice = c("EE")),
-               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-               selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-               hr(style = "width: 50%"),
-               h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
-               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-               hr(style = "width: 75%"),
-               renderPlotly({
-                  if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
-                     shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
-                     return()
-                  }
-
-                  EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-                  EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-
-                  p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
-                  p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
-                  ggplotly(p)
-               }),
-               hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", 
-                  renderPlotly({
-                     EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-                     EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-                     p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-                     p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
-                     ggplotly(p)
-                  })),
-            )
-         })
-
-         output$details <- renderUI({
-            EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-            EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE)
-            results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-            tagList(
-               h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-               hr(style = "width: 75%"),
-               h4("Results of statistical testing"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("p-value", style="width: 100px"),
-                        tags$th("p-value (adjusted)", style="width: 100px"),
-                        tags$th("significance level", style="width: 100px"),
-                        tags$th("degrees of freedom", style="width: 100px" ),
-                        tags$th("test statistic", style="width: 100px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                        tags$td(results$statistics$df, style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-                     )
-                  )
-               ),
-               h4("Test assumptions"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("Description", style="width:200px"),
-                        tags$th("Name of significance test", style="width:200px"),
-                        tags$th("Null hypothesis", style="width:400px"),
-                        tags$th("p-value", style="width:200px"),
-                        tags$th("Status", style="width:200px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td("Homogeneity of variances", style="width:200px"),
-                        tags$td("Levene's test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                        tags$td(
-                           if (as.numeric(results$levene$p) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     ),
-                     tags$tr(
-                        tags$td("Normality of residuals", style="width:200px"),
-                        tags$td("Shapiro-Wilk test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                        tags$td(
-                         if (as.numeric(results$shapiro$p.value) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     )
-                  )
-               ),
-            )
-         })
-
-      # add means
-      if (input$wmeans) {
-         p <- p + geom_smooth(method = input$wmeans_choice)
-      }
-
-      # add stats
-      if (input$wstats) {
-         p <- p + stat_cor(method = input$wmethod)
-      }
-
-      # axis labels
-      p <- p + xlab("Zeitgeber time [h]")
-      p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", sep = " "))
-
-     # add light cycle annotation
-     lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
-     colnames(lights) <- c("x", "y")
-     
-     if (input$timeline) {
-       light_offset <- 0
-       # this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
-       my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
-       p <- p + my_lights
-     }
-
-     # add title
-     p <- p + ggtitle(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", input$myp))
-
-     # group with group from metadata
-     if (input$with_facets) {
-        if (!is.null(input$facets_by_data_one)) {
-           if (input$orientation == "Horizontal") {
-              p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-          } else {
-              p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-           }
-        }
-     }
-
-      # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
-     if (input$only_full_days_zeitgeber) {
-      day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
-     }
-
-     light_offset <- -12
-     # add day annotations and indicators vertical lines
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
-     # indicate new day
-     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
-     # indicate night start
-     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
-     # re-center at 0
-     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(lights$x), max(lights$x)))
-     print(max(lights$x))
-     #p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(lights$y), max(lights$y)))
-     p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+      p <- energy_expenditure(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
    },
    #####################################################################################################################
    ### RestingMetabolicRate
    #####################################################################################################################
    RestingMetabolicRate = {
-      component2 <- ""
-      if (length(input$cvs) == 2) {
-         component <- input$cvs[[1]]
-         component2 <- input$cvs[[2]]
-      } else {
-         component <- input$cvs
-         component2 <- component
-      }
-      component <- paste("V", component, "(3)_[ml/h]", sep = "")
-      component2 <- paste("V", component2, "(3)_[ml/h]", sep = "")
-
-      if (length(input$cvs) == 0) {
-         component <- "HP2"
-         component2 <- "HP"
-      }
-
-      light_on <- 720
-      if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
-
-      if (input$override_metadata_light_cycle) {
-         light_on <- 60 * input$light_cycle_start
-      }
-
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][2], ":00", sep = "")
-      }
-      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-
-      # when zeitgeber time should be used  
-      if (input$use_zeitgeber_time) {
-        finalC1 <- zeitgeber_zeit(finalC1 %>% ungroup(), input$light_cycle_start)
-        num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-        if (input$only_full_days_zeitgeber) {
-          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-        } 
-        finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-        finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
-      } else {
-         finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-         finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
-         finalC1$NightDay <- as.factor(finalC1$NightDay)
-         finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
-      }
-
-      # TODO: Add back animal and days selection as in EE, Raw, and GoxLox panels
-
-      # df already prepared to be day and night summed activities
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-
-      # first component, typically O2
-      df <- data.frame(Values = finalC1[[component]],
-         Group = `$`(finalC1, "Animal No._NA"),
-         Values2 = finalC1$HP)
-
-      df_new <- partition(df)
-      write.csv2(df_new, "df_new_before.csv")
-      # Note that this might introduce NAs by coercion through cv(...) method.
-      ## This is correct, since the time length of recordings per sample are not identical typically
-      df_new <- cv(df_new, input$window)
-      write.csv2(df_new, "df_new_after.csv")
-      df_new <- reformat(df_new) %>% na.omit()
-      write.csv2(df_new, "df_new_after_reformat.csv")
-      write.csv2(df_new, "df_new.csv")
-
-      # second component, typically CO2
-      df2 <- data.frame(Values = finalC1[[component2]],
-         Group = `$`(finalC1, "Animal No._NA"),
-         Values2 = finalC1$HP)
-      df_new2 <- partition(df2)
-      # Note that this might introduce NAs by coercion through cv(...) method.
-      ## This is correct, since the time length of recordings per sample are not identical typically
-      df_new2 <- cv(df_new2, input$window)
-      df_new2 <- reformat(df_new2) %>% na.omit()
-
-      finalC1$Datetime <- lapply(finalC1$Datetime, convert)
-
-      # if coefficient of variation is used in analysis, we might end up with 1 or more less timepoint (depending on averaging window!)
-      # thus we need to make sure to always take the minimum of these three dataframes or pad accordingly the df_new and df_new2 data frames for each sample
-      ## Note that this happens when input$window 
-      do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
-      #to_pad <- nrow(finalC1) - nrow(df_new) # difference between energy expenditure data frame and RMR
-      #df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
-      #df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
-      write.csv2(df_new, "df_new_after_padding_before_join.csv")
-
-      finalC1 <- finalC1 %>% ungroup() %>% slice(1:do_select_n) %>% group_by(`Animal No._NA`)
-      df_new <- df_new %>% slice(1:nrow(finalC1))
-      df_new2 <- df_new2 %>% slice(1:nrow(finalC1))
-
-      #df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
-      my_order <- unique(df_new$Group)
-      df_sorted <- finalC1
-      df_sorted$`Animal No._NA` = as.factor(df_sorted$`Animal No._NA`)
-      df_sorted$`Animal No._NA` = factor(df_sorted$`Animal No._NA`, levels=my_order)
-      df_sorted <- df_sorted %>% arrange(`Animal No._NA`)
-      write.csv2(apply(df_sorted, 2, as.character), "df_sorted_new.csv")
-      df_to_plot <- cbind(df_new, `$`(df_sorted, "running_total.hrs.halfhour"), `$`(df_sorted, "Animal No._NA"))
-
-      df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
-      df_to_plot$Group <- as.factor(df_to_plot$Group)
-      df_to_plot2$Group <- as.factor(df_to_plot$Group)
-
-      write.csv2(df_new, file = "df_new.csv")
-      colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
-      colnames(df_to_plot2) <- c("RestingMetabolicRate2", "Animal", "Time")
-      write.csv2(df_to_plot, file = "df_to_plot.csv")
-
-      df_for_cov_analysis <- cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"),
-         `$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"),
-         df_to_plot2$RestingMetabolicRate2)
-      df_for_cov_analysis$Group <- df_to_plot$Group
-      colnames(df_for_cov_analysis) <- c("CoV1", "Animal", "Time", "O2", "CO2", "HP", "CoV2")
-      write.csv2(df_for_cov_analysis, file = "df_for_cov_analysis.csv")
-
-      # TODO: Check RMR params: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
-      # to reconstruct reliably RMR, but needs to be validated with additional analysis, e.g. BA analysis
-      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-      print(interval_length_list)
-      AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
-      SLIDING_WINDOW_SIZE_M <- input$window
-      PERCENTAGE_BEST <- input$percentage_best
-      AVERAGING_WIDTH <- input$rmr_averaging
-      df_plot_total <- extract_rmr_helper(AVERAGE_INTERVAL_LENGTH, PERCENTAGE_BEST, AVERAGING_WIDTH)
-      write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
-      df_plot_total$HP <- as.numeric(df_plot_total$HP) 
-      df_plot_total$Time <- as.numeric(df_plot_total$Time)
-      df_plot_total$Type <- sapply(df_plot_total$Animal, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
-      df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
-      df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
-
-      df_plot_total$Animals = df_plot_total$Animal
-      # since NAs might be introduced due to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
-      # this is from multiple cohorts case, for a single cohrot we should never have the nas introduced in the first place
-      df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data %>% na.omit()
-      write.csv2(df_plot_total, "after_enriching_again.csv")
-
-      # Select sexes
-      if (!is.null(input$checkboxgroup_gender)) {
-         if ("Sex" %in% names(df_plot_total)) {
-           df_plot_total <- df_plot_total %>% filter(Sex %in% c(input$checkboxgroup_gender))
-         }
-      }
-
-      # filter conditions
-      if (input$with_grouping) {
-         my_var <- input$condition_type
-         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-            df_plot_total <- df_plot_total %>% filter((!!sym(my_var)) == input$select_data_by)
-         }
-      }
-
-      # we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
-      # p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
-      p <- NULL 
-      print(colnames(df_plot_total))
-
-      # group with group from metadata
-      if (input$with_facets) {
-         p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
-         if (!is.null(input$facets_by_data_one)) {
-            if (input$orientation == "Horizontal") {
-               p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-            } else {
-               p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-            }
-         }
-      } else {
-         p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line()
-         p <- p + facet_wrap(~Animal)
-      }
-
-
-
-      write.csv2(df_plot_total, "before_anno_rmr.csv")
-      df_annos <- annotate_rmr_days(df_plot_total) %>% na.omit()
-      write.csv2(df_annos, "before_annos.csv")
-      print("annos:")
-      print(df_annos)
-      p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
-
-      day_length <- 24
-      # if selected either Day or Night, the day length is assumed to be 12 hours
-      if (length(input$light_cycle) != 2) {
-         day_length = 12
-      }
-
-      light_offset <- 0
-      print(max(df_plot_total$Time))
-      print(day_length*60)
-      # We need to take the max over max time in df_plot_total and day length, because we might have varying measurement intervals
-      # in a single cohort already... leading to shorter total time, we assume all measurements are taken at fixed spaced time intervals!
-      # TODO: in the case of uneven measurement intervals, this might be not as precise, and uneven measurement intervals als oproblematic when other averging during data import is used...
-      p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="black")
-      p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
-
-      p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
-      p <- p + xlab("Zeitgeber time [minutes]")
-      p <- p + ggtitle("Resting metabolic rates")
-
-      p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)))
-      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-      storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
-      finalC1 <- df_plot_total
+      df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      finalC1 <- df_returned$finalC1
+      p <- df_returned$plot
+      p
    },
    #####################################################################################################################
    ### Day Night Activity
    #####################################################################################################################
    DayNightActivity = {
-      # colors for plotting
-      finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-
-      # get metadata from tse header only
-      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-
-     
-      # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
-
-      df_to_plot <- finalC1
-
-      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before3.csv")
-
-      light_on <- 720
-      if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
-
-      if (input$override_metadata_light_cycle) {
-         light_on <- 60 * input$light_cycle_start
-      }
-
-      
-
-      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before2.csv")
-
-      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before.csv")
-
-       # when zeitgeber time should be used  
-      if (input$use_zeitgeber_time) {
-    #     convert <- function(x) {
-    #     splitted <- strsplit(as.character(x), " ")
-    #     paste(splitted[[1]][2], ":00", sep = "")
-    #  }
-
-   #     df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-        df_to_plot <- zeitgeber_zeit(df_to_plot, input$light_cycle_start)
-        num_days <- floor(max(df_to_plot$running_total.hrs.halfhour) / 24)
-        if (input$only_full_days_zeitgeber) {
-          df_to_plot <- df_to_plot %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-        } 
-        df_to_plot$DayCount <- ceiling((df_to_plot$running_total.hrs.halfhour / 24) + 1)
-        df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Day", "Night")
-      } else {
- convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][2], ":00", sep = "")
-      }
-
-
-      df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
-      df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
-      # insert day to group by different days in ANCOVA
-
-convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][1], "", sep = "")
-      }
-     df_to_plot$DayCount <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-     df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
-
-
-         df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < light_on, "Day", "Night")
-         write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_after_ifelse.csv")
-         df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
-         #df_to_plot <- df_to_plot %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
-      }
-
-      write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day.csv")
-
-
-      # df already prepared to be day and night summed activities
-      df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
-
-      # TODO: Add back day selection for animals and days as in EE, GoxLox, and Raw panel
-
-      #DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), unique_days = n_distinct(Days), Days=Days) %>% na.omit()
-      DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), Days=DayCount) %>% na.omit()
-      df_unique_days <- df_to_plot %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Datetime))
-      DayNight <- left_join(DayNight, df_unique_days, by = "Animals")
-      DayNight <- DayNight %>% mutate(HP = HP / unique_days) 
-      DayNight$NightDay <- as.factor(DayNight$NightDay)
-      write.csv2(apply(DayNight, 2, as.character), "test_before_day_night.csv")
-
-         output$test <- renderUI({
-            tagList(
-               h4("Configuration"),
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-               selectInput("dep_var", "Dependent variable", choice = c("HP")),
-               selectInput("indep_var", "Independent grouping variable #1", choices = "NightDay", selected = "NightDay"),
-               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Genotype", get_factor_columns(true_metadata)), selected = "Days")),
-               hr(style = "width: 50%"),
-               h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
-               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-               hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
-               hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
-            )
-         })
-
-
-output$details <- renderUI({
-            results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-            tagList(
-               h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-               hr(style = "width: 75%"),
-               h4("Results of statistical testing"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("p-value", style="width: 100px"),
-                        tags$th("p-value (adjusted)", style="width: 100px"),
-                        tags$th("significance level", style="width: 100px"),
-                        tags$th("degrees of freedom", style="width: 100px" ),
-                        tags$th("test statistic", style="width: 100px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                        tags$td(results$statistics$df, style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-                     )
-                  )
-               ),
-               h4("Test assumptions"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("Description", style="width:200px"),
-                        tags$th("Name of significance test", style="width:200px"),
-                        tags$th("Null hypothesis", style="width:400px"),
-                        tags$th("p-value", style="width:200px"),
-                        tags$th("Status", style="width:200px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td("Homogeneity of variances", style="width:200px"),
-                        tags$td("Levene's test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                        tags$td(
-                           if (as.numeric(results$levene$p) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     ),
-                     tags$tr(
-                        tags$td("Normality of residuals", style="width:200px"),
-                        tags$td("Shapiro-Wilk test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                        tags$td(
-                         if (as.numeric(results$shapiro$p.value) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     )
-                  )
-               ),
-            )
-         })
-
-      p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
-      p <- p + ggtitle("Day Night Activity")
-
-      if (input$with_facets) {
-            if (!is.null(input$facets_by_data_one)) {
-               if (input$orientation == "Horizontal") {
-                  p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-               } else {
-                  p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-               }
-            }
-      }
-
-      p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
-      if (input$with_facets) {
-         p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
-         config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-      } else {
-         p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
-         config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-      }
+      p <- day_night_activity(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
    },
    #####################################################################################################################
    ### Locomotion
@@ -1479,7 +538,6 @@ output$details <- renderUI({
       p <- p + ggtitle("Probability density map of locomotion")
       p
    },
-
    #####################################################################################################################
    ### Locomotion Budget
    #####################################################################################################################
@@ -1493,635 +551,29 @@ output$details <- renderUI({
    ### Estimate RMR for COSMED
    #####################################################################################################################
    EstimateRMRforCOSMED = {
-      C1meta_tmp <- C1meta
-      colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"
-      df_to_plot <- merge(C1meta_tmp, finalC1, by = "Animal No._NA")
-      endtime <- input$rmr_method_begin # in minutes for ss methods
-      stepwidth <- input$rmr_method_frequency # in seconds
-      endindex <- endtime * 60 / stepwidth
-      n <- nrow(df_to_plot) / endindex
-
-      CV_RER_MAX <- input$SS_method_RER # in %
-      CV_VO2_MAX <- input$SS_method_VO2 # in %
-      CV_VCO2_MAX <- input$SS_method_VCO2 # in %
-
-      indices_to_keep <-  c()
-      indices_to_discard <- c()
-      for (i in 1:n) {
-         indices <- seq((i - 1) + (endindex - 1) * (i - 1), i * (endindex) - 1)
-         values <- df_to_plot[indices, "RER_NA"]
-         cv_rer <- 100 * (sd(values) / mean(values))
-         values <- df_to_plot[indices, "VO2(3)_[ml/h]"]
-         cv_vo2 <- 100 * (sd(values) / mean(values))
-         values <- df_to_plot[indices, "VCO2(3)_[ml/h]"]
-         cv_vco2 <- 100 * (sd(values) / mean(values))
-         if ((cv_rer < CV_RER_MAX) && (cv_vo2 < CV_VO2_MAX) && (cv_vco2 < CV_VCO2_MAX)) {
-            indices_to_keep <- append(indices_to_keep, i)
-         } else {
-            indices_to_discard <- append(indices_to_keep, i)
-         }
-      }
-
-      total_indices <- c()
-      for (i in indices_to_keep) {
-         indices <- seq((i - 1) + (endindex - 1) * (i - 1), i * (endindex) - 1)
-         total_indices <- append(total_indices, indices)
-      }
-
-      if (input$rmr_method == "SS") {
-         min_rer <- min(df_to_plot[total_indices, "RER_NA"])
-         min_vco2 <- min(df_to_plot[total_indices, "VCO2(3)_[ml/h]"])
-         min_vo2 <- min(df_to_plot[total_indices, "VO2(3)_[ml/h]"])
-      } else {
-         min_rer <- min(df_to_plot[c(indices_to_discard, indices_to_keep), "RER_NA"])
-         min_vco2 <- min(df_to_plot[c(indices_to_discard, indices_to_keep), "VCO2(3)_[ml/h]"])
-         min_vo2 <- min(df_to_plot[c(indices_to_discard, indices_to_keep), "VO2(3)_[ml/h]"])
-      }
-
-      # weir formula (for test with COSMED data)
-      rmr <- 1440 * (3.9 * min_vo2 / 1000 + 1.1 * min_vco2 / 1000)
-      # plot RMR as histogram
-      df <- data.frame(c(rmr))
-      names(df) <- rmr
-      p <- ggplot(df, aes(x = rmr)) + geom_histogram(fill = "green")
-      p <- p + ggtitle("Resting metabolic rate for COSMED")
-      ggplotly(p)
+      p <- estimate_rmr_for_cosmed(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
    },
    #####################################################################################################################
    ### Raw
    #####################################################################################################################
    Raw = {
-      # colors for plotting as factor
-      finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-      # get metadata from tse header only
-      data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-
-      # Select sexes
-      if (!is.null(input$checkboxgroup_gender)) {
-         if ("Sex" %in% names(finalC1)) {
-           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
-         }
-      }
-
-      # filter conditions
-      if (input$with_grouping) {
-         my_var <- input$condition_type
-         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-         }
-      }
-
-      # default from UI for light cycle start 
-      light_on <- input$light_cycle_start 
-
-      # in case we have metadata, override with values from sheet
-      if (input$havemetadata) {
-         light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
-
-      # in case no information in metadata sheet, override light cycle manually
-      if (input$override_metadata_light_cycle) {
-        light_on <- input$light_cycle_start
-      }
-
-      # display zeitgeber zeit
-      write.csv2(finalC1, "before_to_zeitgeber.csv")
-      finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-      write.csv2(finalC1, "to_zeitgeber.csv")
-
-      # format variable from UI to compatible TSE format
-      mylabel <- paste0(input$myr, sep = "", "_[%]")
-      if (startsWith(input$myr, "V")) {
-         mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
-      }
-
-      if (startsWith(input$myr, "Temp")) {
-         mylabel <- paste0(input$myr, sep = "", "_C")
-      }
-
-      # rename RER_NA to RER (but finalC1 still has RER_NA)
-      if (startsWith(input$myr, "RER")) {
-         mylabel <- "RER_NA"
-      }
-
-      # annotate days and animals (already shifted by above correction)
-      day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
-
-      # rename RER_NA to RER (but finalC1 still has RER_NA)
-      if (startsWith(input$myr, "RER")) {
-         mylabel <- "RER"
-      }
-
-      finalC1 <- day_annotations$df_annotated
-   
-      # create input select fields for animals and days
-      num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-      if (input$only_full_days_zeitgeber) {
-        finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-      }
-      finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-      days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
-
-      selected_days <- getSession(session$token, global_data)[["selected_days"]]
-      # set default for animals and selected days: typically all selected at the beginning
-      if (is.null(selected_days)) {
-         output$select_day <- renderUI({
-            selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-         })
-         selected_days = days_and_animals_for_select$days
-         storeSession(session$token, "selected_days", selected_days, global_data)
-      } else {
-         output$select_day <- renderUI({
-            selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
-         })
-      }
-
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      if (is.null(selected_animals)) {
-         output$select_animal <- renderUI({
-            selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
-         })
-         selected_animals = days_and_animals_for_select$animals
-         storeSession(session$token, "selected_animals", selected_animals, global_data)
-      } else {
-         output$select_animal <- renderUI({
-            selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
-         })
-      }
-
-      # filter for selected days and animals in data set
-      selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
-      finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
-
-      # trim times from end and beginning of measurements 
-      if (input$curate) {
-         finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
-      }
-
-      finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-
-      # Day Night filtering
-      finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      finalC1$NightDay <- as.factor(finalC1$NightDay)
-
-      df_to_plot <- finalC1
-      # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) { df_to_plot$`Animal.No.` <- df_to_plot$Animals }
-
-      # format labels for plot
-      mylabel <- paste0(input$myr, sep = "", "_[%]")
-      myvar <- input$myr
-      if (startsWith(input$myr, "V")) {
-         mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
-         names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
-      }
-
-      if (startsWith(input$myr, "Temp")) {
-         mylabel <- paste0(input$myr, sep = "", "_C")
-         names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
-      }
-
-      if (startsWith(input$myr, "RER")) {
-         mylabel <- "RER"
-      }
-
-      names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
-      names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
-
-      # plot basic plot
-      write.csv2(df_to_plot, "df_to_plot_failing.csv")
-
-      # TODO: factor this out as utility or method, can be re-used in other panels after discussion
-      # replot outlier removed data, only if toggled
-      if (input$toggle_outliers) {
-         if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {
-            df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
-            print("replotting done?!")
-            print(nrow(df_to_plot))
-         }
-         # note, it is prohibited to do any other filtering when outliers removal is toggled on
-      } else {
-         # if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
-        storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
-         # }
-      }
-
-      p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
-      mylabel <- gsub("_", " ", mylabel)
-
-      # annotate timeline
-      # TODO: Raw does not work df_to_plot does not contain only full days, but finalC1 does, see GOxLox and EE works too with finalC1, change here too
-      lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
-      colnames(lights) <- c("x", "y")
-      if (input$timeline) {
-            my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-            p <- p + my_lights
-      }
-
-      p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
-      p <- p + xlab("Zeitgeber time [h]")
-
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][1], "", sep = "")
-      }
-
-      # df to plot now contains the summed oxidation over individual days   
-      df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-      df_to_plot$GoxLox = df_to_plot[input$myr]
-      GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
-         output$test <- renderUI({
-            tagList(
-               h4("Configuration"),
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-               selectInput("dep_var", "Dependent variable", choice = c("Raw")),
-               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-               selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-               hr(style = "width: 50%"),
-               h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
-               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-               hr(style = "width: 75%"),
-               plotlyOutput("plot_statistics_details"),
-               hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)))
-            )
-         })
-
-      # TODO: example how to get plot download for selected plot only, add everywhere else too?
-      output$plot_statistics_details <-  renderPlotly(ggplotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, 
-               input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
-                + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + 
-                ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + 
-                ggtitle(input$study_description)) %>% 
-                  config(displaylogo = FALSE, 
-                     modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
-                     list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
-                     list("hoverClosestCartesian", "hoverCompareCartesian"))))
-
-
-         output$details <- renderUI({
-            results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-            tagList(
-               h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-               hr(style = "width: 75%"),
-               h4("Results of statistical testing"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("p-value", style="width: 100px"),
-                        tags$th("p-value (adjusted)", style="width: 100px"),
-                        tags$th("significance level", style="width: 100px"),
-                        tags$th("degrees of freedom", style="width: 100px" ),
-                        tags$th("test statistic", style="width: 100px")
-                     )
-                  ),
-                  # TODO: Experimental Feature in Raw to generate full summary table for testing, need to be
-                  # inserted in other panels as well...
-                  tags$tbody(
-                     generate_statistical_table(results)
-                  )
-               ),
-               h4("Test assumptions"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("Description", style="width:200px"),
-                        tags$th("Name of significance test", style="width:200px"),
-                        tags$th("Null hypothesis", style="width:400px"),
-                        tags$th("p-value", style="width:200px"),
-                        tags$th("Status", style="width:200px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td("Homogeneity of variances", style="width:200px"),
-                        tags$td("Levene's test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                        tags$td(
-                           if (as.numeric(results$levene$p) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     ),
-                     tags$tr(
-                        tags$td("Normality of residuals", style="width:200px"),
-                        tags$td("Shapiro-Wilk test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                        tags$td(
-                         if (as.numeric(results$shapiro$p.value) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     )
-                  )
-               ),
-            )
-         })
-
-      if (input$with_facets) {
-         if (!is.null(input$facets_by_data_one)) {
-            if (input$orientation == "Horizontal") {
-               p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-            } else {
-               p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-            }
-         }
-      }
-
-     # if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
-     if (input$only_full_days_zeitgeber) {
-      day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
-     }
-
-     # need to start at 0 and 12 for zeitgeber time
-     light_offset <- -12 # otherwise outside 0 on left
-     # add day annotations and indicators vertical lines
-     # +2 for annotation inside plotting
-     p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
-     # indicate new day
-     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
-     # indicate night start
-     p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
-     # set title and display buttons
-     p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, input$metadatafile$datapath))) 
-      # add points only if toggle outliers
-     if (input$toggle_outliers) {
-      p <- p + geom_point()
-     }
-     # center x axis
-     #p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
-     p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
-     print(min(lights$x))
-     print(max(lights$x))
-     # basic plotly config
-     # toggle outliers
-     if (input$toggle_outliers) {
-      exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
-      p <- ggplotly(p)
-      for (i in seq_along(exceed_indices)) {
-         p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]-0.25, xend = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=8), name = paste("Outlier #", i)) # showlegend=FALSE
-      }
-     }
-     # store number of total curves already present in plotly
-     storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
-     p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-     p <- ggplotly(p)
+      p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
    },
    #####################################################################################################################
    ### Total Energy Expenditure
    #####################################################################################################################
    TotalEnergyExpenditure = {
-      # assign colors based on animals
-      colors <- as.factor(`$`(finalC1, "Animal No._NA"))
-      finalC1$Animals <- colors
-
-      # enrich with metadata
-      data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
-      finalC1 <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-
-      # Select sexes
-      if (!is.null(input$checkboxgroup_gender)) {
-         if ("Sex" %in% names(finalC1)) {
-           finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
-         }
-      }
-
-      # filter conditions
-      if (input$with_grouping) {
-         my_var <- input$condition_type
-         if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-            finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
-         }
-      }
-
-      # use defaults for light, cycle then try metadata, otherwise force override
-      light_on <- 720
-      if (input$havemetadata) {
-         light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
-      }
-      if (input$override_metadata_light_cycle) {
-         light_on <- 60 * input$light_cycle_start
-      }
-
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][2], ":00", sep = "")
-      }
-
-      # when zeitgeber time should be used  
-      if (input$use_zeitgeber_time) {
-        finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-        num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-        if (input$only_full_days_zeitgeber) {
-          finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-        } 
-        finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-        finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
-      } else {
-         finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-         finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
-         finalC1$NightDay <- as.factor(finalC1$NightDay)
-         finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
-      }
-
-      finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
-      colors <- as.factor(`$`(finalC1, "Animal No._NA"))
-      finalC1$Animals <- colors
-
-      # TODO: Add back animal and days selection as in EE, Raw, and GoxLox panels
-
-      # if we do not have metadata, this comes from some not-clean TSE headers
-      if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
-
-      convert2 <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][2], ":00", sep = "")
-      }
-
-      finalC1$Datetime2 <- lapply(finalC1$Datetime, convert2)
-      convert <- function(x) {
-         splitted <- strsplit(as.character(x), " ")
-         paste(splitted[[1]][1], "", sep = "")
-      }
-
-      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-      pretty_print_interval_length_list(interval_length_list)
-      finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
-
-      write.csv2(apply(finalC1, 2, as.character), "before_scaling_finalC1.csv")
-      finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
-      finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
-      finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
-
-      TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
-      TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
-
-      if (input$with_facets) {
-         if (input$facets_by_data_one %in% names(finalC1)) {
-            TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T)
-            TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount, Facet = finalC1[[input$facets_by_data_one]]), FUN = sum, na.rm = T) 
-         }
-      } 
-
-      TEE <- rbind(TEE1, TEE2)
-      names(TEE)[names(TEE) == "x"] <- "TEE"
-      TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
-      TEE$Days <- as.factor(TEE$Days)
-      TEE$Animals <- as.factor(TEE$Animals)
-      if (input$with_facets) {
-         if (input$facets_by_data_one %in% names(finalC1)) {
-            TEE$Facet <- as.factor(TEE$Facet)
-         }
-      }
-      write.csv2(TEE, "tee.csv")
-      storeSession(session$token, "TEE", TEE, global_data)
-      TEE <- TEE %>% filter(Equation == input$variable1)
-
-      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-      TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
-
-      p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
-      p <- p + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) 
-      p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
-      if (input$with_facets) {
-         if (!is.null(input$facets_by_data_one)) {
-            if (input$orientation == "Horizontal") {
-            p <- p + facet_grid(as.formula(".~Facet"))
-            } else {
-            p <- p + facet_grid(as.formula("Facet~."))
-            }
-         }
-      }
-         output$test <- renderUI({
-            tagList(
-               h4("Configuration"),
-               selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-               selectInput("dep_var", "Dependent variable", choice = c("TEE")),
-               selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-               selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-               selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-               conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-               conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-               hr(style = "width: 50%"),
-               h4("Advanced"),
-               selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
-               sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-               checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-               hr(style = "width: 75%"),
-               renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
-               hr(style = "width: 75%"),
-               conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
-            )
-         })
-
-         output$details <- renderUI({
-            results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)
-            tagList(
-               h3("Post-hoc analysis"),
-               renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-               hr(style = "width: 75%"),
-               h4("Results of statistical testing"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("p-value", style="width: 100px"),
-                        tags$th("p-value (adjusted)", style="width: 100px"),
-                        tags$th("significance level", style="width: 100px"),
-                        tags$th("degrees of freedom", style="width: 100px" ),
-                        tags$th("test statistic", style="width: 100px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                        tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                        tags$td(results$statistics$df, style="width: 100px"),
-                        tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-                     )
-                  )
-               ),
-               h4("Test assumptions"),
-               tags$table(
-                  tags$thead(
-                     tags$tr(
-                        tags$th("Description", style="width:200px"),
-                        tags$th("Name of significance test", style="width:200px"),
-                        tags$th("Null hypothesis", style="width:400px"),
-                        tags$th("p-value", style="width:200px"),
-                        tags$th("Status", style="width:200px")
-                     )
-                  ),
-                  tags$tbody(
-                     tags$tr(
-                        tags$td("Homogeneity of variances", style="width:200px"),
-                        tags$td("Levene's test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                        tags$td(
-                           if (as.numeric(results$levene$p) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     ),
-                     tags$tr(
-                        tags$td("Normality of residuals", style="width:200px"),
-                        tags$td("Shapiro-Wilk test", style="width:200px"),
-                        tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                        tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                        tags$td(
-                         if (as.numeric(results$shapiro$p.value) < 0.05) {
-                              icon("times")
-                           } else {
-                              icon("check")
-                           }
-                        ,style="width: 200px"
-                        )
-                     )
-                  )
-               ),
-            )
-         })
-
-         output$explanation <- renderText(results$statistics$p)
-         output$explanation <- renderUI({
-         str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
-         str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
-         str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-         str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
-         HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
-         })
-
-      p <- p + ggtitle(paste("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", input$variable1, sep = ""))
-      p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-      storeSession(session$token, "is_TEE_calculated", TRUE, global_data)
-      },
-      {
-         # all other options
-      }
+      p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
+   },
+   #####################################################################################################################
+   ### Other options
+   #####################################################################################################################
+   {
+      # all other options which should come
+   }
    )
    # return data to UI
    list("plot" = p, "animals" = `$`(finalC1, "Animal No._NA"), "data" = finalC1, "metadata" = C1meta)
@@ -2292,7 +744,6 @@ server <- function(input, output, session) {
          click("plotting")
       }
    })
-
 
    #####################################################################################################################
    # Observe heat production formula 1 and forumula 2 and print formular to label
@@ -2566,6 +1017,7 @@ server <- function(input, output, session) {
                write.csv2(real_data$data, "before_rmr_written.csv")
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
+                  select(-which(is.na(names(real_data$data)))) %>%
                   filter(Component != input$cvs) %>%
                   select(!Component) %>%
                   group_by(Animal) %>%

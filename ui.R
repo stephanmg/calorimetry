@@ -247,7 +247,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle", value=TRUE)),
    conditionalPanel(condition = "input.plot_type != 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle")),
    #conditionalPanel(condition = "input.only_full_days == false && (input.plot_type != 'RestingMetabolicRate' && input.plot_type != 'TotalEnergyExpenditure' && input.plot_type != 'DayNightActivity')",
-   conditionalPanel(condition = "input.use_zeitgeber_time == true",
+   conditionalPanel(condition = "input.use_zeitgeber_time != false",
    checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
    conditionalPanel(condition = "input.use_zeitgeber_time == false",
    checkboxInput(inputId = "only_full_days", label = "Select full consecutive calendrical days", value = FALSE)),

@@ -140,6 +140,7 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
          df <- merge(finalC1, df_filtered, by = "Animal No._NA")
       }
       colnames(df_filtered)[colnames(df_filtered) == "Animal No._NA"] <- "Animals"
+      colnames(df_filtered)[colnames(df_filtered) == "Animal"] <- "Animals"
       df_filtered$Animals <- as.factor(df_filtered$Animals)
       for (col in colnames(df_filtered)) {
          if (col %in% c("Sex", "Diet", "Genotype", "Box")) { # factor columns from TSE standard header
