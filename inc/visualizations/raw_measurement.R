@@ -198,6 +198,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
 			hr(style = "width: 75%"),
+			# here we fill the plot below with data
 			plotlyOutput("plot_statistics_details"),
 			hr(style = "width: 75%"),
 			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)))
