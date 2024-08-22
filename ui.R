@@ -165,11 +165,11 @@ sidebar_content <- sidebarPanel(
    span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
    h3("Preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
-   #checkboxInput(inputId="select_calendrical_days", "Select calendrical days"), # TODO: yet to be implemented
-   # Raw, EE, GoxLox uses zeitgeber time as default (calendrical time not yet implemented here, but selection of animals and days)
+   #checkboxInput(inputId="select_calendrical_days", "Select calendrical days"), # TODO: yet to be implemented as preprocessing step, amend therefore util.R's zeitgeber_time function
+   # TODO: Raw, EE, GoxLox uses zeitgeber time as default (calendrical time not yet implemented here, but selection of animals and days)
    conditionalPanel(condition = "input.plot_type == 'Raw' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'GoxLox'",
       checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE)),
-   # RMR, TEE and DayNightActivity use calendrical time as default (selection of animals and days not yet implemented here, but also zeitgeber time implemented)
+   # TODO: RMR, TEE and DayNightActivity use calendrical time as default (selection of animals and days not yet implemented here, but also zeitgeber time implemented)
    conditionalPanel(condition = "input.plot_type != 'Raw' && input.plot_type != 'EnergyExpenditure' && input.plot_type != 'GoxLox'",
       checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = FALSE)),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
