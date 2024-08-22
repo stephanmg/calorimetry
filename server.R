@@ -476,7 +476,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # Note: This can be made a preprocessing step to select for specific days (also half days),
    # this is incompatible currently with panels EE, Raw and GoxLox since zeitgeber time shifts based on running_total.secs == 0 to find  the offset
    # see util.R for this, this needs first to be adapted, then we can support filtering on two methods: zeitgeber time and also on calendrical days
-   # thats why we use && ! input$use_zeitgeber_time to exclude this for now.
+   # thats why we use && ! input$use_zeitgeber_time to exclude this for now. this is data preprocessing step!
    if (input$only_full_days && !input$use_zeitgeber_time) {
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       print("int val length list:")
