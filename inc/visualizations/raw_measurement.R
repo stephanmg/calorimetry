@@ -284,7 +284,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 	})
-	
+
 		output$details <- renderUI({
 		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		tagList(
@@ -353,6 +353,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		)
 		})
 
+		# TODO: results is calculated multiple times, in fact only once should be necessary... optimize this.
 		output$post_hoc_plot <- renderPlotly({
 			results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 			p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")

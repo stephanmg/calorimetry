@@ -111,9 +111,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  print("df i nancovca")
-  print(df)
-
+  # covariates need to be always numeric, tse header must be prepared better, see util methods to allow only numerical non-factor columns?
   df$Weight <- as.numeric(df$Weight)
   if (num_covariates > 1) {
     print(df)
@@ -122,12 +120,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
   df$TEE <- as.numeric(df$TEE)
 
-  print("now nans?")
-  print(df)
 
   print(levels(df$group))
   print(levels(df$Animals))
-
+  # TODO: add also ANOVAs
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
