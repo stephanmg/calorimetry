@@ -219,6 +219,15 @@ zeitgeber_zeit <- function(df, light_on) {
 ################################################################################
 # pretty print variable 
 ################################################################################
+pretty_print_equation <- function(equation) {
+   pretty_equation <- gsub("Heldmaier1", "Heldmaier #1", equation)
+   pretty_equation <- gsub("Heldmaier2", "Heldmaier #2", pretty_equation)
+}
+
+
+################################################################################
+# pretty print variable 
+################################################################################
 pretty_print_variable <- function(variable, metadata) {
    pretty_variable <- gsub("O2", "O<sub>2</sub>", variable)
    pretty_variable <- gsub("CO2", "CO<sub>2</sub>", pretty_variable)

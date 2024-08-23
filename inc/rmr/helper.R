@@ -184,14 +184,16 @@ check_for_cosmed <- function(file) {
 calc_heat_production <- function(choice, C1, variable, scaleFactor) {
    # TODO: we cannot trust the RER_NA value from the TSE data, better calculate the RER ourselves...
    df <- C1
+   print("hcoice:")
+   print(choice)
    switch(choice,
    Lusk = {
       df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * C1$RER_NA / 1000
    },
-   HP = {
+   Heldmaier1 = {
       df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * C1$RER_NA + 15.3) * 0.278 / 1000 * (3600 / 1000)
    },
-   HP2 = {
+   Heldmaier2 = {
       df[[variable]] <- (4.44 + 1.43 * C1$RER_NA) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
    },
    Weir = {
