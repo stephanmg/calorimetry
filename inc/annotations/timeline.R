@@ -3,12 +3,18 @@ library(ggplot2)
 ################################################################################
 # draw_day_night_rectangles
 ################################################################################
-draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey") {
+draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night")) {
    # day/night assumed to be always of length 12 (light_end-light_start)
    intervals <- seq(min(df$x, na.rm=T), max(df$x, na.rm=T), 12)
 
    # zeitgeber zeit assumes to start with day not night
    light_on <- TRUE
+   # if only Night select, we need to start with night color (assuming light_on is FALSE)
+   if (length(light_cycle) == 1) {
+      if (light_cycle == "Night") {
+         light_on <- FALSE
+      }
+   }
    color <- night_color
 
    # first night color

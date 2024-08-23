@@ -273,7 +273,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (input$timeline) {
 	light_offset <- 0
 	# this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
-	my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color)
+	my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 	p <- p + my_lights
 	}
 
