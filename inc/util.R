@@ -222,6 +222,7 @@ zeitgeber_zeit <- function(df, light_on) {
 pretty_print_equation <- function(equation) {
    pretty_equation <- gsub("Heldmaier1", "Heldmaier #1", equation)
    pretty_equation <- gsub("Heldmaier2", "Heldmaier #2", pretty_equation)
+   return(pretty_equation)
 }
 
 

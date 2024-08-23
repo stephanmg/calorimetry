@@ -157,7 +157,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 	# Basic plotting
 	p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) 
 	p <- add_visualization_type(p, input$box_violin_or_other)
-	p <- p + ggtitle("Day Night Activity")
+	p <- p + ggtitle(paste0("Day Night Activity using equation ", pretty_print_equation(input$variable1)))
 	p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
 
 	# With facets

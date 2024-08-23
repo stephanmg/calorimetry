@@ -254,7 +254,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
 	if (input$only_full_days_zeitgeber) {
-	day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
+		day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
 	}
 
 	# with zeitgeber zeit, the offset is always 0

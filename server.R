@@ -833,11 +833,12 @@ server <- function(input, output, session) {
    #####################################################################################################################
    # Observe plot type
    #####################################################################################################################
+   # TODO: check that this is maybe the problematic code which leads to the HP / HP2 issue in RMR, but maybe already fixed.
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
                label = "Choose prefered method for calculating caloric equivalent over time",
-               choices = c(input$variable1, input$variable2), selected = input$variable1))
+               choices = c(input$variable1), selected = input$variable1))
          })
 
    observeEvent(input$plot_type, {
