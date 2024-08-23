@@ -40,7 +40,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 	df_to_plot$DayCount <- ceiling((df_to_plot$running_total.hrs.halfhour / 24) + 1)
 	df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Day", "Night")
 	} else {
-convert <- function(x) {
+		convert <- function(x) {
 		splitted <- strsplit(as.character(x), " ")
 		paste(splitted[[1]][2], ":00", sep = "")
 	}

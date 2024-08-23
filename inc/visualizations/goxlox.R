@@ -133,6 +133,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
 	GoxLox <- GoxLox %>% rename(GoxLox = x)
+	storeSession(session$token, "df_gox_lox", GoxLox, global_data)
 
 		output$test <- renderUI({
 		tagList(

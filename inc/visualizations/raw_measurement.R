@@ -181,6 +181,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 	df_to_plot$GoxLox = df_to_plot[input$myr]
 	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
+
+	storeSession(session$token, "df_raw", GoxLox, global_data)
+
 		output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
