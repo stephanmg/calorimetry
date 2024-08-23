@@ -10,7 +10,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
-		finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+			finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}
 	}
 
@@ -18,7 +18,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	if (input$with_grouping) {
 		my_var <- input$condition_type
 		if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-		finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+			finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
 		}
 	}
 
@@ -53,13 +53,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]
 	if (is.null(selected_days)) {
 		output$select_day <- renderUI({
-		selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
 		})
 		selected_days = days_and_animals_for_select$days
 		storeSession(session$token, "selected_days", selected_days, global_data)
 	} else {
 		output$select_day <- renderUI({
-		selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
 		})
 	}
 
@@ -67,14 +67,14 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 	if (is.null(selected_animals)) {
 		output$select_animal <- renderUI({
-		selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
 		})
-	selected_animals = days_and_animals_for_select$animals
-	storeSession(session$token, "selected_animals", selected_animals, global_data)
+		selected_animals = days_and_animals_for_select$animals
+		storeSession(session$token, "selected_animals", selected_animals, global_data)
 	} else {
 		output$select_animal <- renderUI({
-		selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
-	})
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+		})
 	}
 
 	# get default selection of animals and calendrical days
@@ -90,7 +90,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	}
 
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-	#storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
 	# Day Night filtering
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
@@ -135,7 +134,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	GoxLox <- GoxLox %>% rename(GoxLox = x)
 	storeSession(session$token, "df_gox_lox", GoxLox, global_data)
 
-		output$test <- renderUI({
+	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
 			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
@@ -156,9 +155,9 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 			hr(style = "width: 75%"),
 			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
 		)
-		})
+	})
 
-		output$details <- renderUI({
+	output$details <- renderUI({
 		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		tagList(
 			h3("Post-hoc analysis"),
@@ -228,7 +227,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 				)
 			),
 		)
-		})
+	})
 
 	p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
@@ -243,13 +242,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# group with group from metadata
 	if (input$with_facets) {
-	if (!is.null(input$facets_by_data_one)) {
-		if (input$orientation == "Horizontal") {
-			p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-		} else {
-			p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+		if (!is.null(input$facets_by_data_one)) {
+			if (input$orientation == "Horizontal") {
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+			} else {
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+			}
 		}
-	}
 	}
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day

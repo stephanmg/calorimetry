@@ -293,7 +293,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
 	if (input$only_full_days_zeitgeber) {
-	day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
+		day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
 	}
 
 	light_offset <- -12

@@ -9,7 +9,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
-		finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+			finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}
 	}
 
@@ -17,7 +17,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$with_grouping) {
 		my_var <- input$condition_type
 		if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-		finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+			finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
 		}
 	}
 
@@ -31,7 +31,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# in case no information in metadata sheet, override light cycle manually
 	if (input$override_metadata_light_cycle) {
-	light_on <- input$light_cycle_start
+		light_on <- input$light_cycle_start
 	}
 
 	# display zeitgeber zeit
@@ -41,33 +41,27 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# format variable from UI to compatible TSE format
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
-	if (startsWith(input$myr, "V")) {
-		mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
-	}
+	if (startsWith(input$myr, "V")) { mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") }
 
-	if (startsWith(input$myr, "Temp")) {
-		mylabel <- paste0(input$myr, sep = "", "_C")
-	}
+	# rename Temp
+	if (startsWith(input$myr, "Temp")) { mylabel <- paste0(input$myr, sep = "", "_C") }
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
-	if (startsWith(input$myr, "RER")) {
-		mylabel <- "RER_NA"
-	}
+	if (startsWith(input$myr, "RER")) { mylabel <- "RER_NA" }
 
 	# annotate days and animals (already shifted by above correction)
 	day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
-	if (startsWith(input$myr, "RER")) {
-		mylabel <- "RER"
-	}
+	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
 
+	# annotations
 	finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
 	num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 	if (input$only_full_days_zeitgeber) {
-	finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 	}
 	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
@@ -76,26 +70,26 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# set default for animals and selected days: typically all selected at the beginning
 	if (is.null(selected_days)) {
 		output$select_day <- renderUI({
-		selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
 		})
 		selected_days = days_and_animals_for_select$days
 		storeSession(session$token, "selected_days", selected_days, global_data)
 	} else {
 		output$select_day <- renderUI({
-		selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
 		})
 	}
 
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 	if (is.null(selected_animals)) {
 		output$select_animal <- renderUI({
-		selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
 		})
 		selected_animals = days_and_animals_for_select$animals
 		storeSession(session$token, "selected_animals", selected_animals, global_data)
 	} else {
 		output$select_animal <- renderUI({
-		selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
 		})
 	}
 
@@ -152,9 +146,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 		# note, it is prohibited to do any other filtering when outliers removal is toggled on
 	} else {
-		# if (is.null(getSession(session$token, global_data)[["reactive_data"]])) {
-	storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
-		# }
+		storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
 	}
 
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
@@ -181,10 +173,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 	df_to_plot$GoxLox = df_to_plot[input$myr]
 	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
-
 	storeSession(session$token, "df_raw", GoxLox, global_data)
 
-		output$test <- renderUI({
+	# Statistics section st art
+	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
 			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
@@ -285,7 +277,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	})
 
-		output$details <- renderUI({
+	output$details <- renderUI({
 		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		tagList(
 			h3("Post-hoc analysis"),
@@ -351,31 +343,31 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				)
 			),
 		)
-		})
+	})
 
-		# TODO: results is calculated multiple times, in fact only once should be necessary... optimize this.
-		output$post_hoc_plot <- renderPlotly({
-			results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-			p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
-			ggplotly(p) %>% config(displaylogo = FALSE, 
-				modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
-				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
-				list("hoverClosestCartesian", "hoverCompareCartesian")))
-		})
+	# TODO: results is calculated multiple times, in fact only once should be necessary... optimize this.
+	output$post_hoc_plot <- renderPlotly({
+		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+		p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
+		ggplotly(p) %>% config(displaylogo = FALSE, 
+			modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
+			list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+			list("hoverClosestCartesian", "hoverCompareCartesian")))
+	})
 
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
-		if (input$orientation == "Horizontal") {
-			p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
-		} else {
-			p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
-		}
+			if (input$orientation == "Horizontal") {
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+			} else {
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+			}
 		}
 	}
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
 	if (input$only_full_days_zeitgeber) {
-	day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
+		day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
 	}
 
 	# need to start at 0 and 12 for zeitgeber time
@@ -390,22 +382,19 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, input$metadatafile$datapath), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
-	if (input$toggle_outliers) {
-	p <- p + geom_point()
-	}
+	if (input$toggle_outliers) { p <- p + geom_point() }
 	# center x axis
-	#p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
 	print(min(lights$x))
 	print(max(lights$x))
 	# basic plotly config
 	# toggle outliers
 	if (input$toggle_outliers) {
-	exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
-	p <- ggplotly(p)
-	for (i in seq_along(exceed_indices)) {
-		p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]-0.25, xend = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=8), name = paste("Outlier #", i)) # showlegend=FALSE
-	}
+		exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
+		p <- ggplotly(p)
+		for (i in seq_along(exceed_indices)) {
+			p <- p %>% add_segments(x = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]-0.25, xend = df_to_plot$running_total.hrs.halfhour[exceed_indices[i]]+0.25, y = input$threshold_toggle_outliers, yend = input$threshold_toggle_outliers, line = list(color="red", width=8), name = paste("Outlier #", i)) # showlegend=FALSE
+		}
 	}
 	# store number of total curves already present in plotly
 	storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
