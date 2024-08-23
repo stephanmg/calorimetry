@@ -281,7 +281,7 @@ server <- function(input, output, session) {
      str(info)
      new_data <- uploaded_data()
      new_data[info$row, info$col] <- as.numeric(info$value)
-     uploaded_data = new_data # TODO: data table seems not to be updated accordingly and  thus not stored correctly after download using processed file
+     uploaded_data = new_data # TODO: data table seems not to be updated accordingly and thus not stored correctly after download using processed file
    })
 
   # Generate dynamic input fields for Versuchsbezeichnung and DataFile based on the number of cohorts

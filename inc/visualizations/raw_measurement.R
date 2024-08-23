@@ -143,7 +143,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	write.csv2(df_to_plot, "df_to_plot_failing.csv")
 
 	# TODO: factor this out as utility or method, can be re-used in other panels after discussion
-	# replot outlier removed data, only if toggled
+	# replot outlier removed data, only if toggled: outlier removal by selection
 	if (input$toggle_outliers) {
 		if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {
 		df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]()
@@ -221,11 +221,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			),
 			hr(style = "width: 75%"),
 			conditionalPanel("input.num_covariates == '2'", 
-			renderPlotly(
-				do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-				+ xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
-				+ ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) 
-				+ ggtitle(input$study_description))),
+			plotlyOutput("plot_statistics_details2"),
+			hr(style = "width: 50%"),
+
 			h4("Plotting control"),
 			fluidRow(
 				column(6,
@@ -241,7 +239,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
 				)
 			),
-			)
+			))
 		})
 
 	# TODO: example how to get plot download for selected plot only, add everywhere else too?
@@ -259,20 +257,39 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 
 		p <- p + ggtitle(input$study_description) 
-		ggplotly(p %>% config(displaylogo = FALSE, 
+		ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
-				list("hoverClosestCartesian", "hoverCompareCartesian"))))
-		})
+				list("hoverClosestCartesian", "hoverCompareCartesian")))
+	})
 
-		# TODO refactor this to ouput$details_statistics2 (as above for first covariate):
-		# and add buttons plot_statistics_details2 for allow download with pdf too
-		# add auto-scale too for 2nd covariate
+	output$plot_statistics_details2 <- renderPlotly({
+		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
+		p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
+		p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) 
+		p <- p + ggtitle(input$study_description)
+
+		if (!input$auto_scale_rmr_plot_limits_x2) {
+			p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
+		}
+
+		if (!input$auto_scale_rmr_plot_limits_y2) {
+			p <- p + ylim(c(input$y_min_rmr_plot2, input$y_max_rmr_plot2))
+		}
+
+		p <- p + ggtitle(input$study_description) 
+		ggplotly(p) %>% config(displaylogo = FALSE, 
+				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details2")), 
+				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+				list("hoverClosestCartesian", "hoverCompareCartesian")))
+
+	})
+	
 		output$details <- renderUI({
 		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		tagList(
 			h3("Post-hoc analysis"),
-			renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
+			plotlyOutput("post_hoc_plot"),
 			hr(style = "width: 75%"),
 			h4("Results of statistical testing"),
 			tags$table(
@@ -334,6 +351,15 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				)
 			),
 		)
+		})
+
+		output$post_hoc_plot <- renderPlotly({
+			results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+			p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
+			ggplotly(p) %>% config(displaylogo = FALSE, 
+				modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
+				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+				list("hoverClosestCartesian", "hoverCompareCartesian")))
 		})
 
 	if (input$with_facets) {

@@ -1087,8 +1087,6 @@ server <- function(input, output, session) {
          # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
          df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
-         # TODO: Should Equation be rather input$variable1 problematic on server if not HP2, but HP locally works, HP2 
-         # works both locally and on server... prime reason is that input$myp is empty, advanced tab select caloric equivalent for RMR, fix this.
          df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
          df1 <- left_join(df1, unique_days_tee, by = "Animals")
