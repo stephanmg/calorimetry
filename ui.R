@@ -135,7 +135,6 @@ sidebar_content <- sidebarPanel(
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
    #conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    # leads to bug: two time conditional on same variable inputId variable1:
-   # TODO: verify, should also fix on server
    #conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal")),
@@ -233,6 +232,8 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
    conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
+   hr(style="width: 50%"),
+   selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot"),
    hr(),
    h2("Grouping and filtering"),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),

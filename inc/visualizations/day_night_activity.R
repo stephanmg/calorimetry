@@ -6,14 +6,11 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
-
 	
 	# if we do not have metadata, this comes from some not-clean TSE headers
 	if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
 	df_to_plot <- finalC1
-
-	write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before3.csv")
 
 	light_on <- 720
 	if (input$havemetadata) {
@@ -24,63 +21,46 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 		light_on <- 60 * input$light_cycle_start
 	}
 
-	
-
-	write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before2.csv")
-
-	write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_before.csv")
-
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-	df_to_plot <- zeitgeber_zeit(df_to_plot, input$light_cycle_start)
-	num_days <- floor(max(df_to_plot$running_total.hrs.halfhour) / 24)
-	if (input$only_full_days_zeitgeber) {
-		df_to_plot <- df_to_plot %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-	} 
-	df_to_plot$DayCount <- ceiling((df_to_plot$running_total.hrs.halfhour / 24) + 1)
-	df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Day", "Night")
-	} else {
+		df_to_plot <- zeitgeber_zeit(df_to_plot, input$light_cycle_start)
+		num_days <- floor(max(df_to_plot$running_total.hrs.halfhour) / 24)
+		if (input$only_full_days_zeitgeber) {
+			df_to_plot <- df_to_plot %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+		} 
+		df_to_plot$DayCount <- ceiling((df_to_plot$running_total.hrs.halfhour / 24) + 1)
+		df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Day", "Night")
+		} else {
+			convert <- function(x) {
+			splitted <- strsplit(as.character(x), " ")
+			paste(splitted[[1]][2], ":00", sep = "")
+		}
+
+		df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
+		df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
 		convert <- function(x) {
-		splitted <- strsplit(as.character(x), " ")
-		paste(splitted[[1]][2], ":00", sep = "")
-	}
-
-
-	df_to_plot$Datetime2 <- lapply(df_to_plot$Datetime, convert)
-	df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
-	# insert day to group by different days in ANCOVA
-
-convert <- function(x) {
-		splitted <- strsplit(as.character(x), " ")
-		paste(splitted[[1]][1], "", sep = "")
-	}
-	df_to_plot$DayCount <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-	df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
-
-
+			splitted <- strsplit(as.character(x), " ")
+			paste(splitted[[1]][1], "", sep = "")
+		}
+		df_to_plot$DayCount <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+		df_to_plot$Datetime <- lapply(df_to_plot$Datetime, convert)
 		df_to_plot$NightDay <- ifelse(hour(hms(df_to_plot$Datetime)) * 60 + minute(hms(df_to_plot$Datetime)) < light_on, "Day", "Night")
-		write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day_after_ifelse.csv")
 		df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
-		#df_to_plot <- df_to_plot %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
-
-	write.csv2(apply(df_to_plot, 2, as.character), "debug_new_night_day.csv")
-
 
 	# df already prepared to be day and night summed activities
 	df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
 
 	# TODO: Add back day selection for animals and days as in EE, GoxLox, and Raw panel
-
-	#DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), unique_days = n_distinct(Days), Days=Days) %>% na.omit()
 	DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), Days=DayCount) %>% na.omit()
 	df_unique_days <- df_to_plot %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Datetime))
 	DayNight <- left_join(DayNight, df_unique_days, by = "Animals")
 	DayNight <- DayNight %>% mutate(HP = HP / unique_days) 
 	DayNight$NightDay <- as.factor(DayNight$NightDay)
-	write.csv2(apply(DayNight, 2, as.character), "test_before_day_night.csv")
+	storeSession(session$token, "df_day_night", apply(DayNight, 2, as.character), global_data)
 
-		output$test <- renderUI({
+	# Statistics section
+	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
 			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
@@ -100,10 +80,9 @@ convert <- function(x) {
 			hr(style = "width: 75%"),
 			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
 		)
-		})
+	})
 
-
-output$details <- renderUI({
+	output$details <- renderUI({
 		results <- do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		tagList(
 			h3("Post-hoc analysis"),
@@ -175,9 +154,13 @@ output$details <- renderUI({
 		)
 		})
 
-	p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) + geom_violin()
+	# Basic plotting
+	p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) 
+	p <- add_visualization_type(p, input$box_violin_or_other)
 	p <- p + ggtitle("Day Night Activity")
+	p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
 
+	# With facets
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
@@ -187,8 +170,7 @@ output$details <- renderUI({
 			}
 		}
 	}
-
-	p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
+	# ... required different ploltly configuration
 	if (input$with_facets) {
 		p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
 		config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
@@ -196,5 +178,7 @@ output$details <- renderUI({
 		p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
 		config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	}
+
+	# get back the plot
 	return(p)
 }

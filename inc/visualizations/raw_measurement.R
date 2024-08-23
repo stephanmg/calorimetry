@@ -326,7 +326,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
 					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
 					tags$td(
-						if (as.numeric(results$levene$p) < 0.05) {
+						if (as.numeric(results$levene$p) < input$alpha_level) {
 							icon("times")
 						} else {
 							icon("check")
@@ -340,7 +340,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
 					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
 					tags$td(
-						if (as.numeric(results$shapiro$p.value) < 0.05) {
+						if (as.numeric(results$shapiro$p.value) < input$alpha_level) {
 							icon("times")
 						} else {
 							icon("check")

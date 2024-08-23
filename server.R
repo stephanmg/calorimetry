@@ -20,9 +20,10 @@ library(shinyalert)
 library(shinyjs)
 
 ################################################################################
-# General utilities
+# General utilities and plotting utilities
 ################################################################################
 source("inc/util.R") 
+source("inc/plotting/util.R")
 
 ################################################################################
 # RMR functions
@@ -37,7 +38,6 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
-
 
 ################################################################################
 # Locomotion helpers
