@@ -203,23 +203,71 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			hr(style = "width: 75%"),
 			# here we fill the plot below with data
 			plotlyOutput("plot_statistics_details"),
+			hr(style = "width: 50%"),
+			h4("Plotting control"),
+			fluidRow(
+				column(6,
+				h5("x-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
+				numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
+				numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
+				),
+				column(6,
+				h5("y-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
+				numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
+				numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
+				)
+			),
 			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + ggtitle(input$study_description)))
-		)
+			conditionalPanel("input.num_covariates == '2'", 
+			renderPlotly(
+				do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
+				+ xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
+				+ ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) 
+				+ ggtitle(input$study_description))),
+			h4("Plotting control"),
+			fluidRow(
+				column(6,
+				h5("x-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
+				numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
+				numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
+				),
+				column(6,
+				h5("y-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
+				numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
+				numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
+				)
+			),
+			)
 		})
 
 	# TODO: example how to get plot download for selected plot only, add everywhere else too?
-	output$plot_statistics_details <-  renderPlotly(ggplotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, 
-			input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
-			+ xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + 
-			ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) + 
-			ggtitle(input$study_description)) %>% 
-				config(displaylogo = FALSE, 
-					modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
-					list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
-					list("hoverClosestCartesian", "hoverCompareCartesian"))))
+	output$plot_statistics_details <- renderPlotly({
+		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
+		p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
+
+		if (!input$auto_scale_rmr_plot_limits_x) {
+			p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
+		}
+
+		if (!input$auto_scale_rmr_plot_limits_y) {
+			p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
+		}
 
 
+		p <- p + ggtitle(input$study_description) 
+		ggplotly(p %>% config(displaylogo = FALSE, 
+				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
+				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+				list("hoverClosestCartesian", "hoverCompareCartesian"))))
+		})
+
+		# TODO refactor this to ouput$details_statistics2 (as above for first covariate):
+		# and add buttons plot_statistics_details2 for allow download with pdf too
+		# add auto-scale too for 2nd covariate
 		output$details <- renderUI({
 		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		tagList(

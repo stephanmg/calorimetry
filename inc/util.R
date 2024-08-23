@@ -143,7 +143,7 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       colnames(df_filtered)[colnames(df_filtered) == "Animal"] <- "Animals"
       df_filtered$Animals <- as.factor(df_filtered$Animals)
       for (col in colnames(df_filtered)) {
-         if (col %in% c("Sex", "Diet", "Genotype", "Box")) { # factor columns from TSE standard header
+         if (col %in% c("Sex", "Diet", "Genotype", "Box", "Box_NA", "Dob")) { # factor columns from TSE standard header
             df_filtered[[col]] = as.factor(df_filtered[[col]])
          } # remaning columns are assumed to be numerical and used as covariates
       }
@@ -321,7 +321,10 @@ get_factor_columns <- function(df) {
 # get non-factor columns
 ################################################################################
 get_non_factor_columns <- function(df) {
-	return(names(df)[sapply(df, Negate(is.factor))])
+   # TODO: should non-factor columns be numeric? in ANOVA/ANCOVA covariates should be numeric
+   return(names(df)[sapply(df, Negate(is.factor))])
+	#non_factor_columns <- sapply(df, Negate(is.factor))
+   #return(names(df)[non_factor_columns & sapply(df, is.numeric)])
 }
 
 ################################################################################
