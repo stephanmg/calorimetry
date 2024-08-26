@@ -156,7 +156,13 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# Basic plotting
 	p <- ggplot(df_to_plot, aes(x = Animals, y = HP, fill = NightDay)) 
-	p <- add_visualization_type(p, input$box_violin_or_other)
+	if (input$box_violin_or_other == "Violinplot") {
+		p <- p + geom_violin(alpha=0.3) 
+	} else {
+		p <- p + geom_boxplot(alpha=0.3) 
+	}
+	p <- p + scale_fill_manual(values = c("Night" = input$light_cycle_night_color, "Day" = input$light_cycle_day_color))
+	# p <- add_visualization_type(p, input$box_violin_or_other, TRUE)
 	p <- p + ggtitle(paste0("Day Night Activity using equation ", pretty_print_equation(input$variable1)))
 	p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
 
@@ -170,7 +176,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 			}
 		}
 	}
-	# ... required different ploltly configuration
+	# ... required different plotly configuration
 	if (input$with_facets) {
 		p <- ggplotly(p) %>% layout(boxmode = "group") %>% # nolint: pipe_continuation_linter.
 		config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))

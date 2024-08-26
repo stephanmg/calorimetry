@@ -431,7 +431,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # remove zero values
    if (input$remove_zero_values) {
-      finalC1 <- remove_z_values(finalC1, input$eps)
+      finalC1 <- remove_zero_values(finalC1, input$eps)
    }
 
     # step 13 (debugging: save all cohort means)

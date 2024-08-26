@@ -79,7 +79,7 @@ remove_zero_values <- function(df, eps) {
    available_columns = intersect(target_columns, colnames(df))
    df_filtered <- df
    if (length(available_columns) > 0) {
-      df_filtered <- df %>% filter(if_any(all_of(available_columns), ~abs(.) < eps))
+      df_filtered <- df %>% filter(if_any(all_of(available_columns), ~abs(.) > eps))
    }
    return(df_filtered)
 }

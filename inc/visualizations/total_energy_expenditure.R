@@ -110,7 +110,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
 	p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
-	p <- p + geom_point() + geom_violin(fill="grey80", colour="#3366FF", alpha=0.3) 
+	p <- add_visualization_type(p, input$box_violin_or_other, TRUE)
 	p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
