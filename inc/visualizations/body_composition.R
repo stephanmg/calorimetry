@@ -80,6 +80,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		do.call(tagList, plotOutputList)
 	})
 	
+	# TODO: Replace finalC1 with metadata dataframe, we do not need the finalC1 (which contains the measurements)
 	# Observe changes in UI components and plot
 	observe({
 		n <- input$how_many_comparisons
@@ -101,6 +102,8 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 							ggplot(finalC1, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(method="anova", label="p.format")
 						})
 						output[[paste0("plot_factor_summary_", i, "_group_", j)]] <- renderDT({
+							my_var <- input[[paste0("select_group_", i)]]
+							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
@@ -113,6 +116,8 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 						})
 
 						output[[paste0("plot_factor_assumption_normality_", i, "_group_", j)]] <- renderPlot({
+							my_var <- input[[paste0("select_group_", i)]]
+							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
@@ -123,11 +128,14 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							shapiro_result <- shapiro.test(residuals(anova_result))
+							# TODO: shapiro can only take 5000 samples maximum
+							shapiro_result <- shapiro.test(residuals(anova_result)[0:5000]) 
 							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
 						})
 
 						output[[paste0("plot_factor_assumption_residuals_", i, "_group_", j)]] <- renderPlot({
+							my_var <- input[[paste0("select_group_", i)]]
+							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
