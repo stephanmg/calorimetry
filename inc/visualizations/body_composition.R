@@ -3,11 +3,13 @@ library(DT)
 library(ggpubr)
 
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+	# Enrich with metadata
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
+	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
 		tagList(
 			h2("Configuration"),
@@ -17,25 +19,24 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		)
 	})
 
+	# selection fields for factors for each group
 	output$selection_sliders <- renderUI({
 		n <- input$how_many_comparisons
-
 		selectInputList <- lapply(1:n, function(i) {
 			list(
 				selectInput(inputId = paste0("select_group_", i), label = paste0("Select covariate #", i), selected = "Weight..g.", choices = get_non_factor_columns(true_metadata)),
 				selectInput(inputId = paste0("how_many_for_anova_", i), label = paste0("Which groups?"), multiple=TRUE, selected = "Genotype", choices=get_factor_columns(true_metadata))
 			)
 		})
-
 		do.call(tagList, selectInputList)
 	})
 
+	# Plot corresponding 1-way ANOVA and multi-way ANOVAs
 	output$plotOutputs <- renderUI({
 		n <- input$how_many_comparisons
 		m <- length(input$how_many_for_anova)
 		plotOutputList <- lapply(1:n, function(i) {
 			m <- input[[paste0("how_many_for_anova_", i)]]
-
 			n_way_anova <- list()
 
 			if (length(m) > 1) {
@@ -49,6 +50,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 			list(
 				h3(paste0("Covariate: ", input[[paste0("select_group_", i)]])),
+				# Note: We fix this component, as it makes only sense to include all factors in combined interaction ANOVA
 				sliderInput(inputId = paste0("stratification_for_anova_", i), label = paste0("n-way ANOVA"), min=1, step=1, max=length(m), value=length(m)),
 				h4("Basic comparison of quantity"),
 				lapply(1:length(m), function(j) {
@@ -65,6 +67,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		do.call(tagList, plotOutputList)
 	})
 	
+	# Observe changes in UI components and plot
 	observe({
 		n <- input$how_many_comparisons
 		if (!is.null(n)) {
@@ -98,6 +101,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 					})
 
 
+				# Editable table for n-way ANOVA
 					output[[paste0("n_way_anova_summary_", i)]] <- renderDT({
 						indep_vars <- input[[paste0("how_many_for_anova_", i)]]
 						dep_var <- paste0(input[[paste0("select_group_", i)]])
