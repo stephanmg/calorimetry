@@ -131,7 +131,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							# TODO: shapiro can only take 5000 samples maximum, replace with other test.
+							# TODO: shapiro can only take 5000 samples maximum, replace with other test: replce with nortest ad.test(data$variable) - anderson darling test (gives more weight to tails), cramer von mises (prefered, asseses entire distribution equally/comprehensively ails + centers)or lilliefors (non -parametric approach), for smaller data sets can use shapiro or ks test, also shapiro wilk is prefered
 							shapiro_result <- shapiro.test(residuals(anova_result)[0:5000]) 
 							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
 						})
@@ -182,12 +182,13 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		}
 	})
 
-	# TODO: restrict this to factor columns? or plot numeric columns differently.
-	colors = brewer.pal(ncol(true_metadata), "Set3")
+	colors = brewer.pal(ncol(true_metadata), "Set3") # has 12 colors, will need to extend
+	if (ncol(true_metadata) > 12) { colors <- colorRampPalette(colors)(ncol(true_metadata)) }
 	# Create overview of available metadata
 	plots <- lapply(1:length(names(true_metadata)), function(i) {
+		# TODO: restrict this to factor columns? or plot numeric columns differently?
 		col_name <- names(true_metadata)[i]
-		p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + theme_minimal() + labs(title = "Histograms of available metadata", y="Frequency", x = col_name)
+		p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + theme_minimal() + labs(title = "Histograms of available metadata", y="Frequency", x = col_name) + theme(axis.text.x = element_text(angle = 45))
 		# TODO: titles not working properly... subplot erases them, see chat how to resolve this
 		ggplotly(p) %>% layout(xaxis = list(title = col_name), yaxis=list(title = "Count"))
 	})
