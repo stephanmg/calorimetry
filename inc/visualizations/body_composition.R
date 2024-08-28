@@ -1,6 +1,7 @@
 library(patchwork)
 library(DT)
 library(ggpubr)
+library(car)
 
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
@@ -14,6 +15,8 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		tagList(
 			h2("Configuration"),
 			sliderInput("how_many_comparisons", "How many covariates to analyze", min=1, max=length(get_non_factor_columns(true_metadata)), value=1, step=1),
+			selectInput("test_statistic", "Test statistic", choices=c("ANOVA", "Kruskal-Wallis rank sum test"), selected="ANOVA", multiple=FALSE),
+			checkboxInput("check_validity_of_assumptions", "Check validity of test assumptions", value = FALSE),
 			uiOutput("selection_sliders"),
 			uiOutput("plotOutputs")
 		)
@@ -56,7 +59,17 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 				lapply(1:length(m), function(j) {
 					list(
 						plotOutput(outputId = paste0("plot_factor_", i, "_group_", j)),
+						h4("1-way ANOVA summary table"),
 						DTOutput(outputId = paste0("plot_factor_summary_", i, "_group_", j)),
+						conditionalPanel("input.check_validity_of_assumptions == true", 
+							h4("Residuals vs Fitted"),
+							plotOutput(outputId = paste0("plot_factor_assumption_normality_", i, "_group_", j))
+						),
+						hr(style="width: 50%"),
+						conditionalPanel("input.check_validity_of_assumptions == true", 
+							h4("Q-Q plot of residuals"),
+							plotOutput(outputId = paste0("plot_factor_assumption_residuals_", i, "_group_", j))
+						),
 						hr(style="width: 50%")
 					)
 				}),
@@ -78,14 +91,56 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 						output[[paste0("plot_factor_", i, "_group_", j)]] <- renderPlot({
 							my_var <- input[[paste0("select_group_", i)]]
 							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
-							anova_result <- aov(as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j])), finalC1)
+							anova_result <- NULL
+							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
+							if (input$test_statistic == "ANOVA") {
+								anova_result <- aov(formula, data=finalC1)
+							} else {
+								anova_result <- kruskal.test(formula, data=finalC1)
+							}
 							ggplot(finalC1, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(method="anova", label="p.format")
 						})
 						output[[paste0("plot_factor_summary_", i, "_group_", j)]] <- renderDT({
-							anova_result <- aov(as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j])), finalC1)
+							anova_result <- NULL
+							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
+							if (input$test_statistic == "ANOVA") {
+								anova_result <- aov(formula, data=finalC1)
+							} else {
+								anova_result <- kruskal.test(formula, data=finalC1)
+							}
 							anova_summary <- as.data.frame(summary(anova_result)[[1]])
 							datatable(anova_summary, options = list(pageLength = 5, autowidth = TRUE), rownames = TRUE) %>% formatStyle(columns=names(anova_summary), color="white", backgroundColor="black")
 						})
+
+						output[[paste0("plot_factor_assumption_normality_", i, "_group_", j)]] <- renderPlot({
+							anova_result <- NULL
+							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
+							if (input$test_statistic == "ANOVA") {
+								anova_result <- aov(formula, data=finalC1)
+							} else {
+								anova_result <- kruskal.test(formula, data=finalC1)
+							}
+
+							residuals <- resid(anova_result)
+							fitted <- fitted(anova_result)
+							shapiro_result <- shapiro.test(residuals(anova_result))
+							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
+						})
+
+						output[[paste0("plot_factor_assumption_residuals_", i, "_group_", j)]] <- renderPlot({
+							anova_result <- NULL
+							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
+							if (input$test_statistic == "ANOVA") {
+								anova_result <- aov(formula, data=finalC1)
+							} else {
+								anova_result <- kruskal.test(formula, data=finalC1)
+							}
+
+							standardized_residuals <- rstandard(anova_result)
+							levene_result <- leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=finalC1)
+							ggplot(data = data.frame(StandardizedResiduals = standardized_residuals), aes(sample=StandardizedResiduals)) + stat_qq() + stat_qq_line() + labs(x = "Theoretical quantiles", y = "Standardized residuals", title=paste0("Levene's test for homogenity of variances: p-value = ", levene_result[["Pr(>F)"]][1]))
+						})
+
 					})
 				}
 
@@ -101,7 +156,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 					})
 
 
-				# Editable table for n-way ANOVA
+					# Editable table for n-way ANOVA
 					output[[paste0("n_way_anova_summary_", i)]] <- renderDT({
 						indep_vars <- input[[paste0("how_many_for_anova_", i)]]
 						dep_var <- paste0(input[[paste0("select_group_", i)]])
