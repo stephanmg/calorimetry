@@ -28,6 +28,8 @@ calculate_statistic <- function(data, method) {
 
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
 
+  # TOOD use glm also, create new file? this is for ancova?
+  # TODO new file for ANOVA as well?
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   write.csv2(df, "in_Ancova.csv")
   # Might be necessary, check carefully, if not, remove later

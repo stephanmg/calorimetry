@@ -111,7 +111,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# MK formulas
 	if (input$goxlox == "Glucose oxidation") {
-		df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VCO2(3)_[ml/h]`
+		df_to_plot$GoxLox <- scaleFactor * 4.55 * df_to_plot$`VCO2(3)_[ml/h]` - scaleFactor * 3.21 * df_to_plot$`VO2(3)_[ml/h]`
 	} else if (input$goxlox == "Lipid oxidation" || input$goxlox == "Fat oxidation") {
 		df_to_plot$GoxLox <- scaleFactor * 1.67 * df_to_plot$`VO2(3)_[ml/h]` - scaleFactor * 1.67 * df_to_plot$`VCO2(3)_[ml/h]`
 	# Turku formulas

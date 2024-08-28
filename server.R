@@ -87,6 +87,7 @@ source("inc/visualizations/total_energy_expenditure.R") # for total energy expen
 source("inc/visualizations/resting_metabolic_rate.R") # for resting metabolic rate
 source("inc/visualizations/day_night_activity.R") # for day night activity
 source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR estimation
+source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
 # TODO: Global variables - not safe in multi-user context, also obsolete, remove!)
@@ -223,6 +224,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       toSkip <- detectData(file)
    }
 
+
+
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -231,6 +234,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+
+      print(C1meta)
 
    #############################################################################
    # Curate data frame
@@ -572,6 +577,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    TotalEnergyExpenditure = {
       p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
+      p
+   },
+   BodyComposition = {
+      print("Here!")
+      p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       p
    },
    #####################################################################################################################
@@ -1411,6 +1421,11 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+           } else if (input$plot_type == "BodyComposition") {
+               hideTab(inputId = "additional_content", target = "Basic plot")
+               hideTab(inputId = "additional_content", target = "Summary statistics")
+               hideTab(inputId = "additional_content", target = "Details")
+               hideTab(inputId = "additional_content", target = "Explanation")
            } else {
             output$summary <- renderPlotly(NULL)
             hideTab(inputId = "additional_content", target = "Explanation")

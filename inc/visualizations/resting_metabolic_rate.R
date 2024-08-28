@@ -197,11 +197,25 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="black")
 	p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
 
+	# add light cycle annotation
+	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
+	colnames(lights) <- c("x", "y")
+	
+	#if (input$timeline) {
+	#	light_offset <- 0
+		# this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
+	#	my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+	#	p <- p + my_lights
+	#}
+
+
 	p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
-	p <- p + xlab("Zeitgeber time [minutes]")
+	p <- p + xlab("Zeitgeber time [h]")
 	p <- p + ggtitle("Resting metabolic rates")
 
-	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)))
+	convert_minutes_to_hours <- function(x) x / 60
+
+	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)), breaks=seq(0, max(df_plot_total$Time), by=(4*60)), labels=convert_minutes_to_hours(seq(0, max(df_plot_total$Time), by=(4*60))))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
 	finalC1 <- df_plot_total
