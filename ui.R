@@ -388,6 +388,7 @@ main_content <- mainPanel(
       tabPanel("Basic plot", plotlyOutput("plot")),
       tabPanel("Statistical testing", uiOutput("test")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
+      tabPanel("Modelling", uiOutput("modelling")),
       tabPanel("Details", uiOutput("details")),
       tabPanel("Explanation", htmlOutput("explanation"))
    )

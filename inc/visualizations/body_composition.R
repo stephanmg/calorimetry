@@ -211,7 +211,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		}
 	})
 
-	colors = brewer.pal(ncol(true_metadata), "Set3") # has 12 colors, will need to extend
+	colors = brewer.pal(ncol(true_metadata), "Set3") # has 12 colors, will need to extend otherwise
 	if (ncol(true_metadata) > 12) { colors <- colorRampPalette(colors)(ncol(true_metadata)) }
 	# Create overview of available metadata
 	plots <- lapply(1:length(names(true_metadata)), function(i) {

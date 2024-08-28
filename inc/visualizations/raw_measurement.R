@@ -1,3 +1,27 @@
+library(lme4)
+library(DT)
+
+model_effects <- function(df, dep_var) {
+
+	formula_string <- paste(dep_var, "~", "lean_mass", "+ (1 |", "Genotype", ")")
+	lmm <- lmer(as.formula(formula_string), data = df)
+
+	fixed_effects_df <- as.data.frame(coef(summary(lmm)))
+	random_effects_df <- as.data.frame(VarCorr(lmm))
+
+	return(list("df1" = fixed_effects_df, "df2" = random_effects_df))
+}
+
+visualize_model_effects <- function(df, dep_var) {
+	formula_string <- paste(dep_var, "~", "lean_mass", "+ (1 |", "Genotype", ")")
+	lmm <- lmer(as.formula(formula_string), data = df)
+
+	df$Fitted <- fitted(lmm)
+	# TODO: add here more plot suggestions for LME from chat
+	p <- ggplot(df, aes_string(x="Fitted", y=dep_var)) + geom_point()
+	return(p)
+}
+
 raw_measurement <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
@@ -400,5 +424,20 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	p <- ggplotly(p)
+
+	# modelling part with glm or lme
+	output$modelling <- renderUI({
+		tagList(
+			h4("Modelling raw effects"),
+			renderDT({
+				datatable(model_effects(df_to_plot, input$myr)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, input$myr)$df1), color='white', backgroundColor = 'black')
+			}),
+			renderDT({
+				datatable(model_effects(df_to_plot, input$myr)$df2, options=list(pageLength=5), caption = "Random effects") %>% formatStyle(columns=names(model_effects(df_to_plot, input$myr)$df2), color='white', backgroundColor = 'black')
+			}),
+			renderPlot(visualize_model_effects(df_to_plot, input$myr))
+		)
+	})
+
 	return(p)
 }
