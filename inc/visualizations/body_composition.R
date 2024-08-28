@@ -102,7 +102,10 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 							} else {
 								anova_result <- kruskal.test(formula, data=finalC1)
 							}
-							ggplot(finalC1, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(method="anova", label="p.format")
+							combinations <- combn(levels(finalC1[[input[[paste0("how_many_for_anova_", i)]][j]]]), m = 2, simplify = FALSE)
+							print("2 combinations:")
+							print(combinations)
+							ggplot(finalC1, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]], fill=input[[paste0("how_many_for_anova_", i)]][j])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(comparisons = combinations, method="t.test", label="p.signif", bracket.size = 0.5, step.increase=0.1, tip.length=0.01, aes(label=paste0("p = ", ..p.format.., ", ", ..p.signif..)))
 						})
 						output[[paste0("plot_factor_summary_", i, "_group_", j)]] <- renderDT({
 							my_var <- input[[paste0("select_group_", i)]]
@@ -163,7 +166,24 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 						finalC1[[dep_var]] <- as.numeric(finalC1[[dep_var]])
 						anova_formula <- as.formula(paste(dep_var, "~", paste(indep_vars, collapse = "*")))
 						anova_result <- aov(anova_formula, data=finalC1)
-						ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(method="anova", label="p.format")
+
+						# combinations: we need to first create all possible combinations of all levels of each factor
+						combinations <- lapply(indep_vars, function(f) levels(finalC1[[f]]))
+						combinations <- expand.grid(combinations)
+						combinations$combined <- apply(combinations, 1, paste, collapse = ",")
+
+						# then we need to create for a 2-way ANOVA all pairwise grouped pairs, i.e. ("A,D" vs "B,C")
+						# Note: this code should already generalize to 3-way or higher ANOVA models
+						# TODO: For 3-way ANOVA we should split vertical or horizontal by the 3rd factor, otherwise visualization is not really helpful
+						finalC1$Combined <- interaction(finalC1[, indep_vars], sep=",")
+						existing_combos <- unique(finalC1$Combined)
+						available_combinations <- combinations[combinations$combined %in% existing_combos, ]
+
+						combined_levels <- available_combinations$combined
+						combinations <- combn(combined_levels, 2, simplify = FALSE)
+						# ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
+						# Note: we need to use the Combined column from finalC1, since we did find only VALID pairs for the statistical annotation
+						ggplot(finalC1, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
 					})
 
 
