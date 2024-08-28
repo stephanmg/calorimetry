@@ -1,4 +1,5 @@
 library(patchwork)
+library(RColorBrewer)
 library(DT)
 library(ggpubr)
 library(car)
@@ -179,4 +180,17 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 			})
 		}
 	})
+
+	# TODO: restrict this to factor columns? or plot numeric columns differently.
+	colors = brewer.pal(ncol(true_metadata), "Set3")
+	# Create overview of available metadata
+	plots <- lapply(1:length(names(true_metadata)), function(i) {
+		col_name <- names(true_metadata)[i]
+		p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + theme_minimal() + labs(title = "Histograms of available metadata", y="Frequency", x = col_name)
+		# TODO: titles not working properly... subplot erases them, see chat how to resolve this
+		ggplotly(p) %>% layout(xaxis = list(title = col_name), yaxis=list(title = "Count"))
+	})
+
+	combined_plot <- subplot(plots, nrows = 2, margin = 0.05)
+	return(combined_plot)
 }

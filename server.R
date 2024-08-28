@@ -580,7 +580,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p
    },
    BodyComposition = {
-      print("Here!")
       p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       p
    },
@@ -1024,6 +1023,9 @@ server <- function(input, output, session) {
             }
             })
 
+            # Basic plot needs to be always visible
+            showTab(inputId = "additional_content", target = "Basic plot")
+
             if (input$plot_type == "RestingMetabolicRate") {
                 if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
                      shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
@@ -1422,7 +1424,7 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
            } else if (input$plot_type == "BodyComposition") {
-               hideTab(inputId = "additional_content", target = "Basic plot")
+               #hideTab(inputId = "additional_content", target = "Basic plot")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Explanation")
@@ -1430,6 +1432,10 @@ server <- function(input, output, session) {
             output$summary <- renderPlotly(NULL)
             hideTab(inputId = "additional_content", target = "Explanation")
            }
+
+           # Basic plot needs to be always visible
+           showTab(inputId = "additional_content", target = "Basic plot")
+
            # plot
            real_data$plot
         }
