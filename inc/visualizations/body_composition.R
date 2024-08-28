@@ -7,8 +7,9 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 	# Enrich with metadata
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
+	# TODO: refactor to use better names
+	finalC1 <- true_metadata
 
 	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
@@ -22,6 +23,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		)
 	})
 
+	# TODO: should we only allow how_many_compariosns be restricted to groups which have at least 2 levels?
 	# selection fields for factors for each group
 	output$selection_sliders <- renderUI({
 		n <- input$how_many_comparisons
@@ -80,7 +82,6 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		do.call(tagList, plotOutputList)
 	})
 	
-	# TODO: Replace finalC1 with metadata dataframe, we do not need the finalC1 (which contains the measurements)
 	# Observe changes in UI components and plot
 	observe({
 		n <- input$how_many_comparisons
@@ -128,7 +129,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							# TODO: shapiro can only take 5000 samples maximum
+							# TODO: shapiro can only take 5000 samples maximum, replace with other test.
 							shapiro_result <- shapiro.test(residuals(anova_result)[0:5000]) 
 							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
 						})
