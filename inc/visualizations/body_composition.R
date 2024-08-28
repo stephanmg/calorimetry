@@ -7,6 +7,7 @@ library(car)
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+	# TODO: is this necessary? could also just take the metadata depending on input$havemetadata
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
 	true_metadata <- data_and_metadata$metadata
 	# TODO: refactor to use better names
