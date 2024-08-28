@@ -1,0 +1,114 @@
+library(patchwork)
+library(DT)
+library(ggpubr)
+
+body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+	finalC1 <- data_and_metadata$data
+	true_metadata <- data_and_metadata$metadata
+
+	output$test <- renderUI({
+		tagList(
+			h2("Configuration"),
+			sliderInput("how_many_comparisons", "How many covariates to analyze", min=1, max=length(get_non_factor_columns(true_metadata)), value=1, step=1),
+			uiOutput("selection_sliders"),
+			uiOutput("plotOutputs")
+		)
+	})
+
+	output$selection_sliders <- renderUI({
+		n <- input$how_many_comparisons
+
+		selectInputList <- lapply(1:n, function(i) {
+			list(
+				selectInput(inputId = paste0("select_group_", i), label = paste0("Select covariate #", i), selected = "Weight..g.", choices = get_non_factor_columns(true_metadata)),
+				selectInput(inputId = paste0("how_many_for_anova_", i), label = paste0("Which groups?"), multiple=TRUE, selected = "Genotype", choices=get_factor_columns(true_metadata))
+			)
+		})
+
+		do.call(tagList, selectInputList)
+	})
+
+	output$plotOutputs <- renderUI({
+		n <- input$how_many_comparisons
+		m <- length(input$how_many_for_anova)
+		plotOutputList <- lapply(1:n, function(i) {
+			m <- input[[paste0("how_many_for_anova_", i)]]
+
+			n_way_anova <- list()
+
+			if (length(m) > 1) {
+				n_way_anova <- list(
+					h4(paste0("Corresponding ", input[[paste0("stratification_for_anova_", i)]], "-way ANOVA")),
+					plotOutput(outputId = paste0("n_way_anova_", i)),
+					DTOutput(outputId = paste0("n_way_anova_summary_", i)),
+					hr(style="width: 75%")
+				)
+			}
+
+			list(
+				h3(paste0("Covariate: ", input[[paste0("select_group_", i)]])),
+				sliderInput(inputId = paste0("stratification_for_anova_", i), label = paste0("n-way ANOVA"), min=1, step=1, max=length(m), value=length(m)),
+				h4("Basic comparison of quantity"),
+				lapply(1:length(m), function(j) {
+					list(
+						plotOutput(outputId = paste0("plot_factor_", i, "_group_", j)),
+						DTOutput(outputId = paste0("plot_factor_summary_", i, "_group_", j)),
+						hr(style="width: 50%")
+					)
+				}),
+				n_way_anova
+			)
+		})
+
+		do.call(tagList, plotOutputList)
+	})
+	
+	observe({
+		n <- input$how_many_comparisons
+		if (!is.null(n)) {
+			lapply(1:n, function(i) {
+				m <- input[[paste0("how_many_for_anova_", i)]]
+				if (!is.null(m)) {
+					lapply(1:length(m), function(j) {
+						output[[paste0("plot_factor_", i, "_group_", j)]] <- renderPlot({
+							my_var <- input[[paste0("select_group_", i)]]
+							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
+							anova_result <- aov(as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j])), finalC1)
+							ggplot(finalC1, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(method="anova", label="p.format")
+						})
+						output[[paste0("plot_factor_summary_", i, "_group_", j)]] <- renderDT({
+							anova_result <- aov(as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j])), finalC1)
+							anova_summary <- as.data.frame(summary(anova_result)[[1]])
+							datatable(anova_summary, options = list(pageLength = 5, autowidth = TRUE), rownames = TRUE) %>% formatStyle(columns=names(anova_summary), color="white", backgroundColor="black")
+						})
+					})
+				}
+
+				# Visualize also an n-way ANOVA in addition to the 1-way ANOVAs
+				if (length(input[[paste0("how_many_for_anova_", i)]]) > 1) {
+					output[[paste0("n_way_anova_", i)]] <- renderPlot({
+						indep_vars <- input[[paste0("how_many_for_anova_", i)]]
+						dep_var <- paste0(input[[paste0("select_group_", i)]])
+						finalC1[[dep_var]] <- as.numeric(finalC1[[dep_var]])
+						anova_formula <- as.formula(paste(dep_var, "~", paste(indep_vars, collapse = "*")))
+						anova_result <- aov(anova_formula, data=finalC1)
+						ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(method="anova", label="p.format")
+					})
+
+
+					output[[paste0("n_way_anova_summary_", i)]] <- renderDT({
+						indep_vars <- input[[paste0("how_many_for_anova_", i)]]
+						dep_var <- paste0(input[[paste0("select_group_", i)]])
+						finalC1[[dep_var]] <- as.numeric(finalC1[[dep_var]])
+						anova_formula <- as.formula(paste(dep_var, "~", paste(indep_vars, collapse = "*")))
+						anova_result <- aov(anova_formula, data=finalC1)
+						anova_summary <- as.data.frame(summary(anova_result)[[1]])
+						datatable(anova_summary, options = list(pageLength = 5, autowidth = TRUE), rownames = TRUE) %>% formatStyle(columns=names(anova_summary), color="white", backgroundColor="black")
+					})
+				}
+			})
+		}
+	})
+}
