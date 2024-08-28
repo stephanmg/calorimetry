@@ -172,18 +172,27 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 						combinations <- expand.grid(combinations)
 						combinations$combined <- apply(combinations, 1, paste, collapse = ",")
 
-						# then we need to create for a 2-way ANOVA all pairwise grouped pairs, i.e. ("A,D" vs "B,C")
-						# Note: this code should already generalize to 3-way or higher ANOVA models
-						# TODO: For 3-way ANOVA we should split vertical or horizontal by the 3rd factor, otherwise visualization is not really helpful
-						finalC1$Combined <- interaction(finalC1[, indep_vars], sep=",")
-						existing_combos <- unique(finalC1$Combined)
-						available_combinations <- combinations[combinations$combined %in% existing_combos, ]
+						if (length(indep_vars) == 2) {
+							# then we need to create for a 2-way ANOVA all pairwise grouped pairs, i.e. ("A,D" vs "B,C")
+							finalC1$Combined <- interaction(finalC1[, indep_vars], sep=",")
+							existing_combos <- unique(finalC1$Combined)
+							available_combinations <- combinations[combinations$combined %in% existing_combos, ]
 
-						combined_levels <- available_combinations$combined
-						combinations <- combn(combined_levels, 2, simplify = FALSE)
-						# ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
-						# Note: we need to use the Combined column from finalC1, since we did find only VALID pairs for the statistical annotation
-						ggplot(finalC1, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
+							combined_levels <- available_combinations$combined
+							combinations <- combn(combined_levels, 2, simplify = FALSE)
+							# Note: we need to use the Combined column from finalC1, since we did find only VALID pairs for the statistical annotation
+							ggplot(finalC1, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
+						} else if (length(indep_vars) == 3) {
+							# TODO: Add statistics, comparison groups need to be created differently then for 2-way ANOVA
+							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(". ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
+						} else if (length(indep_vars) == 4) {
+							# TODO: Add statistics, comparions groups need to be created differently then for 2-way ANOVA
+							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(indep_vars[4], " ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
+						} else { # general >= 5-way ANOVA, consider here to implement interaction plots rather than visualizations
+							# Higher than 5-way ANOVA we will not be supported with visualizations other than interaction plots.
+							# TODO: add  visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
+							ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) 
+						}
 					})
 
 
