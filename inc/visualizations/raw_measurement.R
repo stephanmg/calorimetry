@@ -19,6 +19,7 @@ visualize_model_effects <- function(df, dep_var) {
 	df$Fitted <- fitted(lmm)
 	# TODO: add here more plot suggestions for LME from chat
 	p <- ggplot(df, aes_string(x="Fitted", y=dep_var)) + geom_point()
+	p <- p + geom_abline(slope=1, intercept=0, linetype="dashed", color="red")
 	return(p)
 }
 
