@@ -50,6 +50,10 @@ transform_df <- function(df, input) {
    df_transposed <- rbind(c("Title", exp_title, rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("General", rep("", length(colnames(df_transposed))-1)), df_transposed)
 
+   for (i in 1:(input$how_many_conditions)) {
+
+   }
+
 
    df_transposed <- rbind(c("comment", "light phase start", "dark phase start", rep("", length(colnames(df_transposed))-2)), df_transposed)
    df_transposed <- rbind(c("specify constant value", light_on, light_off, rep("", length(colnames(df_transposed))-2)), df_transposed)
@@ -207,7 +211,9 @@ ui <- fluidPage(
        textInput("author_name", "Name of author", value="Enter your name"),
        dateInput("exp_date", "Date of experiment", value=Sys.Date()),
        numericInput("light_on", "Light on", min=0, max=24, value=7),
-       numericInput("light_off", "Light off", min=0, max=24, value=19)
+       numericInput("light_off", "Light off", min=0, max=24, value=19),
+       sliderInput("how_many_conditions", "How many conditions?", min=0, max=10, value=0),
+       uiOutput("our_conditions"),
        ),
       selectInput("select_columns", "Required metadata fields", 
                      choices = c("Cohort", "Box", "Animal #", "dob", "sex", "genotype", "diet", "age at start", 
@@ -265,7 +271,56 @@ server <- function(input, output, session) {
               }
          })
       })
-     
+
+  observeEvent(input$how_many_conditions, {
+    num_choices <- input$how_many_conditions
+    new_choices <- NULL
+    if (num_choices != 0) {
+       new_choices <- paste("Condition #", 1:num_choices)
+    }
+
+    current_selection <- input$select_columns
+    all_choices <- unique(c(current_selection, new_choices))
+    updateSelectInput(session, "select_columns", choices = all_choices, selected = all_choices)
+
+  # if (num_choices != 0) {
+   #   text_values <- sapply(1:num_choices, function(i) {
+   #     input[[paste0("condition_", i)]]
+   #   })
+   #   print(text_values)
+   # }
+
+    if (num_choices != 0) {
+    output$our_conditions <- renderUI({
+      textfield_list <- lapply(1:num_choices, function(i) {
+        textInput(inputId=paste0("condition_", i), label=paste0("Name for condition #", i), value=paste0("Condition #", i))
+      })
+      do.call(tagList, textfield_list)
+    })
+    }
+
+  })
+
+  observe({
+    num_conditions <- input$how_many_conditions
+    if (num_conditions != 0) {
+      num_choices = num_conditions
+     lapply(1:num_conditions, function(i) {
+      observeEvent(input[[paste0("condition_", i)]], {
+        text_values <- sapply(1:num_choices, function(i) {
+          input[[paste0("condition_", i)]]
+        })
+        original_choices <- input$select_columns
+        updated_choices <- original_choices
+        updated_choices[grepl("Condition #", updated_choices)] <- c(text_values, rep("", length(updated_choices) - length(text_values)))
+
+        print("choics:::")
+        print(updated_choices)
+        updateSelectInput(session, "select_columns", choices = updated_choices, selected = updated_choices)
+      }, ignoreInit = TRUE)
+     })
+    }
+  })
 
 
    observeEvent(input$display_excel, {
