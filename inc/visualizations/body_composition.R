@@ -2,7 +2,8 @@ library(patchwork)
 library(RColorBrewer)
 library(DT)
 library(ggpubr)
-library(car)
+# TODO: library car breaks RMR. why? recode (from dplyr) hidden by car::recode and (from purr) hidden by car::some
+#library(car)
 
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
