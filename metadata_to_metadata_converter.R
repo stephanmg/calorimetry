@@ -11,13 +11,26 @@ library(DT) # for editable table outputs
 
 date_columns <- c("dob", "Date End",  "Date Start", "date body start", "date body end")
 time_columns <- c("Time End", "Time Start")
+# for conditions
+new_values <- c()
 
 required_fields  <- c("Animal #", "sex", "genotype", "diet", "age at start", "bw start", "bw end", "delta_bm", "lm start", "lm end", "fm start", "fm end")
 
 transform_df <- function(df, input) {
+  # get also conditiions
+
+  text_values <- c()
+  if (input$how_many_conditions > 0) {
+    text_values <- sapply(1:(input$how_many_conditions), function(i) {
+          input[[paste0("condition_", i)]]
+    })
+    print("conditions")
+    print(text_values)
+  }
+   
    # Step 2: Define the vector of columns you want to select
-   selected_columns <- c("Animal #", "sex", "genotype", "delta_bm", "age at start", "diet",  "bw start", "bw end", "lm start", "lm end", "fm start", "fm end")  # Pick your desired metadata columns
-   metadata_column_names <- c("personal_ID", "sex", "genotype_group", "delta_bm", "age", "diet_group", "body weight", "bw_end", "lean_mass", "lm_end", "fat_mass", "fm_end") # Rename columns for MD sheet
+   selected_columns <- c(text_values, c("Animal #", "sex", "genotype", "delta_bm", "age at start", "diet",  "bw start", "bw end", "lm start", "lm end", "fm start", "fm end")) # Pick your desired metadata columns
+   metadata_column_names <- c(paste("Condition", text_values),c("personal_ID", "sex", "genotype_group", "delta_bm", "age", "diet_group", "body weight", "bw_end", "lean_mass", "lm_end", "fat_mass", "fm_end")) # Rename columns for MD sheet
 
    rename_map <- setNames(metadata_column_names, selected_columns)
    # Step 3: Select only the specified columns
@@ -307,15 +320,19 @@ server <- function(input, output, session) {
       num_choices = num_conditions
      lapply(1:num_conditions, function(i) {
       observeEvent(input[[paste0("condition_", i)]], {
-        text_values <- sapply(1:num_choices, function(i) {
-          input[[paste0("condition_", i)]]
-        })
-        original_choices <- input$select_columns
-        updated_choices <- original_choices
-        updated_choices[grepl("Condition #", updated_choices)] <- c(text_values, rep("", length(updated_choices) - length(text_values)))
+        new_value <- input[[paste0("condition_", i)]]
+        current_choices <- input$select_columns
 
-        print("choics:::")
-        print(updated_choices)
+        other_fields <- input$select_columns
+        original_choices <- c(other_fields[grep("Condition", other_fields, invert=TRUE)], paste0("Condition #", i))
+        print("original_choices")
+        updated_choices <- original_choices
+        placeholder_index <- grep(paste0("Condition #", i), updated_choices)
+
+        if (length(placeholder_index) > 0) {
+          updated_choices[placeholder_index] <- new_value
+          new_values <<- unique(c(new_values, new_value))
+        }
         updateSelectInput(session, "select_columns", choices = updated_choices, selected = updated_choices)
       }, ignoreInit = TRUE)
      })
