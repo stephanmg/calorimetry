@@ -15,7 +15,7 @@ get_git_information_from_repository <- function() {
 
       if (inherits(head_ref, "git_commit")) {
          commit_id <- head_ref$sha
-         all_tags <- tags(repo)
+         all_tags <- git2r::tags(repo)
          for (tag in all_tags) {
             if (identical(tag$target, head_ref)) {
                tag_name <- tag$name
