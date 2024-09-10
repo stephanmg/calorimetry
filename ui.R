@@ -385,7 +385,13 @@ main_content <- mainPanel(
    )),
    tabsetPanel(
       id = "additional_content",
-      tabPanel("Basic plot", plotlyOutput("plot")),
+      tabPanel("Basic plot", 
+         tagList(
+            plotlyOutput("plot"),
+            conditionalPanel("output.plotRendered", checkboxInput("stylize_plot", "Stylize plot")),
+            conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control"))
+         )
+      ),
       tabPanel("Statistical testing", uiOutput("test")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
       tabPanel("Modelling", uiOutput("modelling")),
