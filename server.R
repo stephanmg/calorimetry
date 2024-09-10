@@ -50,6 +50,7 @@ source("inc/locomotion/locomotion_budget.R") # for locomotion budget
 ################################################################################
 source("inc/annotations/timeline.R") # for colorizing timeline by day/night rhythm
 source("inc/annotations/guide.R") # for guide
+source("inc/annotations/style.R") # for styling of basic plots
 
 ################################################################################
 # Statistics
