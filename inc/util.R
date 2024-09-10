@@ -3,6 +3,34 @@ source("inc/metadata/read_metadata.R")
 library(glue)
 
 ################################################################################
+# style plot
+################################################################################
+style_plot <- function(p, input) {
+      # TODO: it is easier to configure the plot a-priori, i.e. before we convert to a plotly object with ggplotly, see how to do do this, convert later?
+      # if plot has been rendered we display stylize_plot checkbox in UI, then we can trigger stylizing of the plot
+      # we need to use the ggplot2 object to make all modificatiosn required, the below options might not alway work too
+      if (input$stylize_plot) {
+         p <- p %>% layout(xaxis = list(title=input$stylize_plot_axes_x_axis_label, tickfont = list(size=input$stylize_plot_axes_x_axis_tickfont_size, color=input$stylize_plot_axes_x_axis_color), font = list(size=input$stylize_plot_axes_x_axis_font_size, color=input$stylize_plot_axes_x_ticks_color)))
+         p <- p %>% layout(yaxis = list(title=input$stylize_plot_axes_y_axis_label, tickfont = list(size=input$stylize_plot_axes_y_axis_tickfont_size, color=input$stylize_plot_axes_y_axis_color), font = list(size=input$stylize_plot_axes_y_axis_font_size, color=input$stylize_plot_axes_y_ticks_color)))
+         p <- p %>% layout(title = list(text=input$stylize_plot_theme_and_title_title_label, font = list(input$stylize_plot_theme_and_title_title_font_size, color=input$stylize_plot_theme_and_title_title_color)))
+         p <- p %>% layout(font = list(family=input$stylize_plot_general_font_family, size=input$stylize_plot_theme_and_title_font_size))
+         p <- p %>% layout(width = input$stylize_plot_general_width, height=input$stylize_plot_general_height)
+      }
+      return(p)
+}
+
+################################################################################
+# indicate if plot has been rendered or not
+################################################################################
+indicate_plot_rendered <- function(p, output) {
+      output$plotRendered <- reactive({
+         !is.null(p)
+      })
+      outputOptions(output, "plotRendered", suspendWhenHidden = FALSE)
+}
+
+
+################################################################################
 # generate statistical table in case we have multiple comparisons
 ################################################################################
 generate_statistical_table <- function(results) {

@@ -570,24 +570,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    ### Raw
    #####################################################################################################################
    Raw = {
-      # TODO: it is easier to configure the plot a-priori, i.e. before we convert to a plotly object with ggplotly
       p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
-      # indicate if plot has been rendered or not
-      output$plotRendered <- reactive({
-         !is.null(p)
-      })
-      outputOptions(output, "plotRendered", suspendWhenHidden = FALSE)
 
-      # if plot has been rendered we display stylize_plot checkbox in UI, then we can trigger stylizing of the plot
-      # TODO: we need to use the ggplot2 object to make all modificatiosn required, the below options might not alway work too
-      if (input$stylize_plot) {
-         p <- p %>% layout(xaxis = list(title=input$stylize_plot_axes_x_axis_label, tickfont = list(size=input$stylize_plot_axes_x_axis_tickfont_size, color=input$stylize_plot_axes_x_axis_color), font = list(size=input$stylize_plot_axes_x_axis_font_size, color=input$stylize_plot_axes_x_ticks_color)))
-         p <- p %>% layout(yaxis = list(title=input$stylize_plot_axes_y_axis_label, tickfont = list(size=input$stylize_plot_axes_y_axis_tickfont_size, color=input$stylize_plot_axes_y_axis_color), font = list(size=input$stylize_plot_axes_y_axis_font_size, color=input$stylize_plot_axes_y_ticks_color)))
-         p <- p %>% layout(title = list(text=input$stylize_plot_theme_and_title_title_label, font = list(input$stylize_plot_theme_and_title_title_font_size, color=input$stylize_plot_theme_and_title_title_color)))
-         p <- p %>% layout(font = list(family=input$stylize_plot_general_font_family, size=input$stylize_plot_theme_and_title_font_size))
-         p <- p %>% layout(width=input$stylize_plot_general_width, height=input$stylize_plot_general_height)
-      }
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
 
+      # style plot
+      # TODO: add to all other panels as well
+      p <- style_plot(p, input)
+     
       # return (potentially restyled) plot
       p
    },
