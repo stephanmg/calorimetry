@@ -1,4 +1,4 @@
-FROM --platform=linux/arm64 ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y dist-upgrade
