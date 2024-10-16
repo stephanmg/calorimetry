@@ -1,5 +1,6 @@
 FROM ubuntu:20.04
 
+RUN add-apt-repository universe
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y dist-upgrade
 RUN DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y libcurl4-openssl-dev libxml2-dev libssl-dev cmake libfontconfig1-dev libharfbuzz-dev libfribidi-dev libnlopt-dev libxml2-dev libarchive-dev libpq-dev libatlas-base-dev libeigen3-dev libfreetype6-dev libgeos-dev libgmp3-dev libhdf5-dev libjpeg-dev libpng-dev libtiff5-dev gnupg2 software-properties-common
