@@ -39,8 +39,8 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 	r2 <- 1 - (rss / tss)
 	output$r_squared_output <- renderText(paste("R²: ", r2))
 	# model selection criterions
-	output$AIC_value <- renderText(paste("AIC: ", performance::AIC(lmm)))
-	output$BIC_value <- renderText(paste("BIC: ", performance::BIC(lmm)))
+	output$AIC_value <- renderText(paste("AIC: ", AIC(lmm)))
+	output$BIC_value <- renderText(paste("BIC: ", BIC(lmm)))
 	# marginal (fixed effect contributions) and conditional (random effect contributions)
 	marginal_and_conditional <- performance::r2(lmm)
 	marginal = marginal_and_conditional$R2_marginal
