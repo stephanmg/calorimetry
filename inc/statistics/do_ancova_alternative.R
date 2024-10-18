@@ -25,10 +25,7 @@ calculate_statistic <- function(data, method) {
 ################################################################################
 # do_ancova_alternative
 ################################################################################
-
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
-
-  # TODO: new file for ANOVA as well?
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   write.csv2(df, "in_Ancova.csv")
   # Might be necessary, check carefully, if not, remove later
@@ -41,7 +38,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: Rename covariates ANCOVA
+  # TODO: v0.4.0 - Rename covariates ANCOVA
   # First covariate, rename Weight -> Covariate1
   # Second covariate, rename Weight2 -> Covariate2
   names(df)[names(df) == indep_var] <- "Weight"
@@ -77,7 +74,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
 
-  # TODO: Rename TEE for ANCOVA 
+  # TODO: v0.4.0 - Rename TEE for ANCOVA 
   # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
   if (dep_var == "TEE") {
     df <- df %>% select(all_of(to_select_columns))
@@ -124,7 +121,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   print(levels(df$group))
   print(levels(df$Animals))
-  # TODO: add also ANOVAs
+  # TODO: v0.4.0 - add also ANOVAs
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
@@ -237,7 +234,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    # TODO: get all statistics ANCOVA
+    # TODO: v0.4.0 - get all statistics ANCOVA
     # into table for 2-way ANCOVA, more than one comparison of course, 
     # thus multiple to report in table format, for a 1-way ANCOVA we simply report the first()
     print(pwc)

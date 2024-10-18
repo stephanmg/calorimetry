@@ -26,7 +26,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		)
 	})
 
-	# TODO: should we only allow how_many_compariosns be restricted to groups which have at least 2 levels?
+	# TODO: should we only allow how_many_comparions be restricted to groups which have at least 2 levels?
 	# selection fields for factors for each group
 	output$selection_sliders <- renderUI({
 		n <- input$how_many_comparisons
@@ -135,7 +135,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							# TODO: shapiro can only take 5000 samples maximum, replace with other test: replce with nortest ad.test(data$variable) - anderson darling test (gives more weight to tails), cramer von mises (prefered, asseses entire distribution equally/comprehensively ails + centers)or lilliefors (non -parametric approach), for smaller data sets can use shapiro or ks test, also shapiro wilk is prefered
+							# TODO: v0.4.0 - shapiro can only take 5000 samples maximum, replace with other test: replce with nortest ad.test(data$variable) - anderson darling test (gives more weight to tails), cramer von mises (prefered, asseses entire distribution equally/comprehensively ails + centers)or lilliefors (non -parametric approach), for smaller data sets can use shapiro or ks test, also shapiro wilk is prefered
 							shapiro_result <- shapiro.test(residuals(anova_result)[0:5000]) 
 							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
 						})
@@ -184,14 +184,14 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 							# Note: we need to use the Combined column from finalC1, since we did find only VALID pairs for the statistical annotation
 							ggplot(finalC1, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
 						} else if (length(indep_vars) == 3) {
-							# TODO: Add statistics, comparison groups need to be created differently then for 2-way ANOVA
+							# TODO: v0.5.0 - Add statistics, comparison groups need to be created differently then for 2-way ANOVA
 							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(". ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else if (length(indep_vars) == 4) {
-							# TODO: Add statistics, comparions groups need to be created differently then for 2-way ANOVA
+							# TODO: v0.5.0 - Add statistics, comparions groups need to be created differently then for 2-way ANOVA
 							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(indep_vars[4], " ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else { # general >= 5-way ANOVA, consider here to implement interaction plots rather than visualizations
 							# Higher than 5-way ANOVA we will not be supported with visualizations other than interaction plots.
-							# TODO: add  visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
+							# TODO: add visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
 							ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) 
 						}
 					})

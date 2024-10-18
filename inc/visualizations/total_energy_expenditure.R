@@ -57,7 +57,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
 	finalC1$Animals <- colors
 
-	# TODO: Add back animal and days selection as in EE, Raw, and GoxLox panels
+	# TODO: v0.4.0 - Add back animal and days selection as in EE, Raw, and GoxLox panels
 
 	# if we do not have metadata, this comes from some not-clean TSE headers
 	if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
