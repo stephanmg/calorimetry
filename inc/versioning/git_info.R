@@ -36,7 +36,7 @@ get_git_information_from_repository <- function() {
             version_info <- paste("Current version: ", current_tag)
          }
       }  else {
-         version_info <- paste("Current branch: ", current_branch, "@commit: ", current_commit_id)
+         version_info <- paste("Current branch: ", current_branch, "@ commit: ", current_commit_id)
       }
 	return(version_info)
 }
