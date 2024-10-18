@@ -3,7 +3,8 @@ library(RColorBrewer)
 library(DT)
 library(ggpubr)
 # TODO: library car breaks RMR. why? recode (from dplyr) hidden by car::recode and (from purr) hidden by car::some
-#library(car)
+# do not include library but use :: scoping
+# library(car)
 
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
@@ -13,7 +14,6 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 	true_metadata <- data_and_metadata$metadata
 	# TODO: refactor to use better names
 	finalC1 <- true_metadata
-
 	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
 		tagList(

@@ -241,6 +241,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		})
 
 	# TODO: example how to get plot download for selected plot only, add everywhere else too?
+	# get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
 	output$plot_statistics_details <- renderPlotly({
 		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
 		p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
