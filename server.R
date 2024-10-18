@@ -512,6 +512,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    GoxLox = {
       p <- goxlox(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
       p
    },
    #####################################################################################################################
@@ -519,6 +526,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    EnergyExpenditure = {
       p <- energy_expenditure(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
       p
    },
    #####################################################################################################################
@@ -535,6 +549,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    DayNightActivity = {
       p <- day_night_activity(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
       p
    },
    #####################################################################################################################
@@ -564,6 +585,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    EstimateRMRforCOSMED = {
       p <- estimate_rmr_for_cosmed(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
       p
    },
    #####################################################################################################################
@@ -576,7 +604,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       indicate_plot_rendered(p, output)
 
       # style plot
-      # TODO: add to all other panels as well
       p <- style_plot(p, input)
      
       # return (potentially restyled) plot
@@ -587,10 +614,24 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    TotalEnergyExpenditure = {
       p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
       p
    },
    BodyComposition = {
       p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
       p
    },
    #####################################################################################################################
