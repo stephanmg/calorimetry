@@ -51,7 +51,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 	# df already prepared to be day and night summed activities
 	df_to_plot$NightDay <- as.factor(df_to_plot$NightDay)
 
-	# TODO: Add back day selection for animals and days as in EE, GoxLox, and Raw panel
+	# TODO: v0.4.0 - Add back day selection for animals and days as in EE, GoxLox, and Raw panel
 	DayNight <- df_to_plot %>% group_by(NightDay, Animals) %>% summarize(HP=sum(HP, na.rm=TRUE), Days=DayCount) %>% na.omit()
 	df_unique_days <- df_to_plot %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Datetime))
 	DayNight <- left_join(DayNight, df_unique_days, by = "Animals")

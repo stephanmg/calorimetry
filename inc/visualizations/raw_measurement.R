@@ -240,7 +240,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			))
 		})
 
-	# TODO: example how to get plot download for selected plot only, add everywhere else too?
+	# TODO: v0.4.0 - example how to get plot download for selected plot only, add everywhere else too?
 	# get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
 	output$plot_statistics_details <- renderPlotly({
 		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
@@ -301,7 +301,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 					tags$th("test statistic", style="width: 100px")
 					)
 				),
-				# TODO: Experimental Feature in Raw to generate full summary table for testing, need to be
+				# TODO: v0.4.0 - Experimental Feature in Raw to generate full summary table for testing, need to be
 				# inserted in other panels as well...
 				tags$tbody(
 					generate_statistical_table(results)
