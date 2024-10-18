@@ -1,55 +1,5 @@
-library(lme4)
 library(DT)
-
-################################################################################
-# LME modelling as a test for Raw panel
-# TODO: factor this out into lme.R
-################################################################################
-model_effects <- function(df, dep_var, input) {
-	print("how many fixed effects")
-	print(input$how_many_fixed_effects)
-
-	fixed_effects <- sapply(1:(input$how_many_fixed_effects), function(i) input[[paste0("fixed_effect_variable_", i)]])
-	random_effects <- sapply(1:(input$how_many_fixed_effects), function(i) input[[paste0("random_effect_variable_", i)]])
-	fixed_effects <- fixed_effects[!is.null(fixed_effects) & fixed_effects != ""] 
-	random_effects <- random_effects[!is.null(random_effects) & random_effects != ""] 
-	fixed_effects_formula <- paste(fixed_effects, collapse = " + ") 
-	random_effects_formula <- paste("(1 |", random_effects, ")", collapse = " + ") 
-	formula_string <- paste(dep_var, "~", fixed_effects_formula, "+", random_effects_formula) 
-	#formula_string <- paste(dep_var, "~", "lean_mass", "+ (1 |", "Genotype", ")")
-	lmm <- lmer(as.formula(formula_string), data = df)
-
-	fixed_effects_df <- as.data.frame(coef(summary(lmm)))
-	random_effects_df <- as.data.frame(VarCorr(lmm))
-
-	return(list("df1" = fixed_effects_df, "df2" = random_effects_df))
-}
-
-visualize_model_effects <- function(df, dep_var, output) {
-	# TODO: add code from above for general LME model...
-	formula_string <- paste(dep_var, "~", "lean_mass", "+ (1 |", "Genotype", ")")
-	lmm <- lmer(as.formula(formula_string), data = df)
-
-	df$Fitted <- fitted(lmm)
-	print("dep var:")
-	print(df[[dep_var]])
-	print("fitted:")
-	print(df$Fitted)
-	rss <- sum((df[[dep_var]] - df$Fitted)^2)
-	tss <- sum((df[[dep_var]] - mean(df[[dep_var]]))^2)
-	print(rss)
-	print(tss)
-	r2 <- 1 - (rss / tss)
-	print("r squared is:")
-	print(r2)
-	output$r_squared_output <- renderText(paste("r-squared: ", r2))
-	# TODO: Add AIC and BIC for model comparison
-	# TODO: get also marginal and conditional R2 in addition
-	# TODO: add here more plot suggestions for LME from chat
-	p <- ggplot(df, aes_string(x="Fitted", y=dep_var)) + geom_point()
-	p <- p + geom_abline(slope=1, intercept=0, linetype="dashed", color="red")
-	return(p)
-}
+source("inc/statistics/lme_model.R")
 
 ################################################################################
 # raw measurement
@@ -455,48 +405,11 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# store number of total curves already present in plotly
 	storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-	p <- ggplotly(p)
+	#p <- ggplotly(p)
 
-	# modelling part with glm or lme
-	output$modelling <- renderUI({
-		tagList(
-				h4("Modelling Raw measurements with LME model"),
-			sliderInput("how_many_fixed_effects", "How many fixed effect variables", min=1, max=length(get_factor_columns(true_metadata)), value=1, step=1),
-			sliderInput("how_many_random_effects", "How many random effect variables", min=1, max=length(get_non_factor_columns(true_metadata)), value=1, step=1),
-			uiOutput("selection_sliders_fixed"),
-			uiOutput("selection_sliders_random"),
-			#DTOutput("fixed_effects"),
-			#DTOutput("random_effects"),
-			renderPlot(visualize_model_effects(df_to_plot, input$myr, output)),
-			verbatimTextOutput("r_squared_output"),
-			renderDT({
-				datatable(model_effects(df_to_plot, input$myr, input)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, input$myr, input)$df1), color='white', backgroundColor = 'black')
-			}),
-			renderDT({
-				datatable(model_effects(df_to_plot, input$myr, input)$df2, options=list(pageLength=5), caption = "Random effects") %>% formatStyle(columns=names(model_effects(df_to_plot, input$myr, input)$df2), color='white', backgroundColor = 'black')
-			})
-		)
-	})
+	# create LME model UI
+	create_lme_model_ui(input, output, true_metadata, df_to_plot)
 
-	output$selection_sliders_fixed <- renderUI({
-		n <- input$how_many_fixed_effects
-		selectInputList <- lapply(1:n, function(i) {
-			list(
-				selectInput(inputId = paste0("fixed_effect_variable_", i), label = paste0("Select fixed effect variable #", i), selected = "Weight..g.", choices = get_non_factor_columns(true_metadata))
-			)
-		})
-		do.call(tagList, selectInputList)
-	})
-
-	output$selection_sliders_random <- renderUI({
-		n <- input$how_many_random_effects
-		selectInputList <- lapply(1:n, function(i) {
-			list(
-				selectInput(inputId = paste0("random_effect_variable_", i), label = paste0("Select random effect variable #", i), selected = "Weight..g.", choices = get_non_factor_columns(true_metadata))
-			)
-		})
-		do.call(tagList, selectInputList)
-	})
-
+	# return current plot of raw measurements
 	return(p)
 }
