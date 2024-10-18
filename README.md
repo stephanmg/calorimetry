@@ -55,5 +55,11 @@ Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/c
 
 One can use the metadata shiny app converter app: https://github.com/stephanmg/metadata-converter to generate a truncated metadata sheet.
 
+## Standalone Desktop apps
+
+One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
+
+Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
+
 
 # Latest changes
