@@ -198,13 +198,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 					)
 				),
 				tags$tbody(
-					tags$tr(
-					tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-					tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-					tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-					tags$td(results$statistics$df, style="width: 100px"),
-					tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
-					)
+					generate_statistical_table(results)
 				)
 			),
 			h4("Test assumptions"),
@@ -308,5 +302,9 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	print(max(lights$x))
 	#p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(lights$y), max(lights$y)))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+
+	# create LME model UI
+	create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
+
 	return(p)
 }

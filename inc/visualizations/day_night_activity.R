@@ -100,12 +100,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 					)
 				),
 				tags$tbody(
-					tags$tr(
-					tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-					tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-					tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-					tags$td(results$statistics$df, style="width: 100px"),
-					tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+					generate_statistical_table(results)
 					)
 				)
 			),

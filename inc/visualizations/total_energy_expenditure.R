@@ -39,8 +39,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-	finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-	num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 	if (input$only_full_days_zeitgeber) {
 		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 	} 
@@ -162,12 +162,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 					)
 				),
 				tags$tbody(
-					tags$tr(
-					tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-					tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-					tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-					tags$td(results$statistics$df, style="width: 100px"),
-					tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+					generate_statistical_table(results)
 					)
 				)
 			),

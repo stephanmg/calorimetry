@@ -56,15 +56,15 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 ################################################################################
 # create UI for modelling
 ################################################################################
-create_lme_model_ui <- function(input, output, true_metadata, df_to_plot) {
+create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var) {
 	output$modelling <- renderUI({
 		tagList(
-			h4("Modelling Raw measurements with LME model"),
+			h4("Modelling dependent variable with an LME model"),
 			sliderInput("how_many_fixed_effects", "How many fixed effect variables", min=1, max=length(get_factor_columns(true_metadata)), value=1, step=1),
 			sliderInput("how_many_random_effects", "How many random effect variables", min=1, max=length(get_non_factor_columns(true_metadata)), value=1, step=1),
 			uiOutput("selection_sliders_fixed"),
 			uiOutput("selection_sliders_random"),
-			renderPlot(visualize_model_effects(df_to_plot, input$myr, input, output)),
+			renderPlot(visualize_model_effects(df_to_plot, my_dep_var, input, output)),
 			verbatimTextOutput("r_squared_output"),
 			h5("Additional metrics"),
 			verbatimTextOutput("AIC_value"),
@@ -72,10 +72,10 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot) {
 			verbatimTextOutput("marginal_and_conditional_r_squared"),
 			h5("Summary tables"),
 			renderDT({
-				datatable(model_effects(df_to_plot, input$myr, input)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, input$myr, input)$df1), color='white', backgroundColor = 'black')
+				datatable(model_effects(df_to_plot, my_dep_var, input)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, my_dep_var, input)$df1), color='white', backgroundColor = 'black')
 			}),
 			renderDT({
-				datatable(model_effects(df_to_plot, input$myr, input)$df2, options=list(pageLength=5), caption = "Random effects") %>% formatStyle(columns=names(model_effects(df_to_plot, input$myr, input)$df2), color='white', backgroundColor = 'black')
+				datatable(model_effects(df_to_plot, my_dep_var, input)$df2, options=list(pageLength=5), caption = "Random effects") %>% formatStyle(columns=names(model_effects(df_to_plot, my_dep_var, input)$df2), color='white', backgroundColor = 'black')
 			})
 		)
 	})
