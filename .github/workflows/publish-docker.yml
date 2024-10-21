@@ -2,9 +2,8 @@ name: publish-docker
 
 on:
   push:
-    branches:
-      - 'main'
-      - 'with_metadata_sheet'
+     tags:
+        - 'v*'
 
 jobs:
   docker:
@@ -27,4 +26,4 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           push: true
-          tags: stephanmg/caloapp:latest
+          tags: stephanmg/caloapp:${{ github.ref_name }}
