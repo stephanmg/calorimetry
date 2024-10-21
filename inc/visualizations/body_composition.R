@@ -2,17 +2,17 @@ library(patchwork)
 library(RColorBrewer)
 library(DT)
 library(ggpubr)
-# TODO: library car breaks RMR. why? recode (from dplyr) hidden by car::recode and (from purr) hidden by car::some
-# do not include library but use :: scoping
-# library(car)
+# Note: library usage of car breaks RMR calculations from *this* file... Reason?
+# Recode (from dplyr) hidden by car::recode and (from purr) hidden by car::some. 
+# Thus we don't use of library(car), but we use double colon for absolute scoping
 
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-	# TODO: is this necessary? could also just take the metadata depending on input$havemetadata
+	# TODO: Is this necessary? could also just take the metadata depending on input$havemetadata
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
 	true_metadata <- data_and_metadata$metadata
-	# TODO: refactor to use better names
+	# TODO: Refactor to use more suitable variable names
 	finalC1 <- true_metadata
 	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
@@ -26,7 +26,8 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		)
 	})
 
-	# TODO: should we only allow how_many_comparions be restricted to groups which have at least 2 levels?
+	# TODO: should we only allow how_many_comparions to be restricted to groups 
+	# hich have at least 2 levels? comparions with only one group are futile...
 	# selection fields for factors for each group
 	output$selection_sliders <- renderUI({
 		n <- input$how_many_comparisons
@@ -135,7 +136,12 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							# TODO: v0.4.0 - shapiro can only take 5000 samples maximum, replace with other test: replce with nortest ad.test(data$variable) - anderson darling test (gives more weight to tails), cramer von mises (prefered, asseses entire distribution equally/comprehensively ails + centers)or lilliefors (non -parametric approach), for smaller data sets can use shapiro or ks test, also shapiro wilk is prefered
+							# TODO: v0.5.0 - shapiro can only take 5000 samples maximum, replace with other test
+							# Replace with nortest ad.test(data$variable) or 
+							# anderson darling test (gives more weight to tails) or
+							# cramer von mises (prefered, asseses entire distribution equally/comprehensively tails + centers) or
+							# lilliefors (non -parametric approach).
+							# for smaller data sets can use shapiro or ks test, also shapiro wilk is prefered here
 							shapiro_result <- shapiro.test(residuals(anova_result)[0:5000]) 
 							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
 						})
@@ -184,18 +190,17 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 							# Note: we need to use the Combined column from finalC1, since we did find only VALID pairs for the statistical annotation
 							ggplot(finalC1, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
 						} else if (length(indep_vars) == 3) {
-							# TODO: v0.5.0 - Add statistics, comparison groups need to be created differently then for 2-way ANOVA
+							# TODO: v0.5.0 - Add statistics, comparison groups need to be created differently then for 3-way ANOVA
 							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(". ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else if (length(indep_vars) == 4) {
-							# TODO: v0.5.0 - Add statistics, comparions groups need to be created differently then for 2-way ANOVA
+							# TODO: v0.5.0 - Add statistics, comparions groups need to be created differently then for 4-way ANOVA
 							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(indep_vars[4], " ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else { # general >= 5-way ANOVA, consider here to implement interaction plots rather than visualizations
 							# Higher than 5-way ANOVA we will not be supported with visualizations other than interaction plots.
-							# TODO: add visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
+							# TODO: v0.5.0 - Add visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
 							ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) 
 						}
 					})
-
 
 					# Editable table for n-way ANOVA
 					output[[paste0("n_way_anova_summary_", i)]] <- renderDT({
@@ -216,10 +221,9 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 	if (ncol(true_metadata) > 12) { colors <- colorRampPalette(colors)(ncol(true_metadata)) }
 	# Create overview of available metadata
 	plots <- lapply(1:length(names(true_metadata)), function(i) {
-		# TODO: restrict this to factor columns? or plot numeric columns differently?
+		# TODO: Should this be restricted to factor columns only? Or plot numeric columns differently for a better visualization?
 		col_name <- names(true_metadata)[i]
 		p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + theme_minimal() + labs(title = "Histograms of available metadata", y="Frequency", x = col_name) + theme(axis.text.x = element_text(angle = 45))
-		# TODO: titles not working properly... subplot erases them, see chat how to resolve this
 		ggplotly(p) %>% layout(xaxis = list(title = col_name), yaxis=list(title = "Count"))
 	})
 

@@ -160,6 +160,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 				}
 
 				EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+				print("EE:")
+				print(EE)
 				EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 
 				p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
