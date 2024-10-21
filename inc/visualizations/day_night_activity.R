@@ -102,7 +102,6 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 				tags$tbody(
 					generate_statistical_table(results)
 					)
-				)
 			),
 			h4("Test assumptions"),
 			tags$table(

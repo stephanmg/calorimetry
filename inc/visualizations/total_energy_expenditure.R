@@ -164,7 +164,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 				tags$tbody(
 					generate_statistical_table(results)
 					)
-				)
 			),
 			h4("Test assumptions"),
 			tags$table(

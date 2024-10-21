@@ -177,7 +177,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 				tags$tbody(
 					generate_statistical_table(results)
 					)
-				)
 			),
 			h4("Test assumptions"),
 			tags$table(
