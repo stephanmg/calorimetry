@@ -70,28 +70,28 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# select days
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]
 	if (is.null(selected_days)) {
-	output$select_day <- renderUI({
-	selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
-	})
-	selected_days = days_and_animals_for_select$days
-	storeSession(session$token, "selected_days", selected_days, global_data)
+		output$select_day <- renderUI({
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+		})
+		selected_days = days_and_animals_for_select$days
+		storeSession(session$token, "selected_days", selected_days, global_data)
 	} else {
-	output$select_day <- renderUI({
-	selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
-	})
+		output$select_day <- renderUI({
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+		})
 	}
 
 	# select animals
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 	if (is.null(selected_animals)) {
 		output$select_animal <- renderUI({
-		selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
-	})
-	selected_animals = days_and_animals_for_select$animals
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+		})
+		selected_animals = days_and_animals_for_select$animals
 		storeSession(session$token, "selected_animals", selected_animals, global_data)
 	} else {
 		output$select_animal <- renderUI({
-		selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
 		})
 	}
 
@@ -160,8 +160,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 				}
 
 				EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-				print("EE:")
-				print(EE)
 				EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 
 				p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 

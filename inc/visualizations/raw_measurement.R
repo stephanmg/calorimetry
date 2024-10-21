@@ -142,7 +142,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# plot basic plot
 	write.csv2(df_to_plot, "df_to_plot_failing.csv")
 
-	# TODO: factor this out as utility or method, can be re-used in other panels after discussion
+	# TODO: v0.6 - factor this out as utility or method, can be re-used in other panels after discussion
 	# replot outlier removed data, only if toggled: outlier removal by selection
 	if (input$toggle_outliers) {
 		if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {
