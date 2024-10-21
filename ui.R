@@ -137,7 +137,7 @@ sidebar_content <- sidebarPanel(
    # leads to bug: two time conditional on same variable inputId variable1:
    #conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
-   selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal")),
+   selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
    withMathJax(),
    tags$head(
       tags$script(type = "text/x-mathjax-config", HTML(

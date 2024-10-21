@@ -380,15 +380,19 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #############################################################################
    # Heat production formula #1
    #############################################################################
-   C1 <- calc_heat_production(f1, C1, "HP", scaleFactor)
+   current_cohort_time_diff = 1.0
+   if (input$kj_or_kcal == "mW") {
+     current_cohort_time_diff <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
+   } 
+   C1 <- calc_heat_production(f1, C1, "HP", scaleFactor * (1.0 / current_cohort_time_diff))
 
    #############################################################################
    # Heat production formula #2 (for comparison in scatter plots)
    #############################################################################
    if (!is.null(input$variable2)) {
-      C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor)
+      C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
    } else {
-      C1 <- calc_heat_production(f1, C1, "HP2", scaleFactor)
+      C1 <- calc_heat_production(f1, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
    }
 
    # step 11 means
@@ -444,10 +448,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
    C1meta <- finalC1meta
 
-   # rescale to kj or kcal
+   # rescale to kcal from kj
    if (input$kj_or_kcal == "kcal") {
-      finalC1$HP <- finalC1$HP / 4.184 # kcal to kj
-      finalC1$HP2 <- finalC1$HP2 / 4.184 # kcal to kj
+      finalC1$HP <- finalC1$HP / 4.184 # to kj
+      finalC1$HP2 <- finalC1$HP2 / 4.184 # to kj
    }
 
    # override light cycle configuration from metadata 

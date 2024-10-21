@@ -258,7 +258,11 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# axis labels
 	p <- p + xlab("Zeitgeber time [h]")
-	p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", sep = " "))
+	if (input$kj_or_kcal == "mW") {
+		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " "))
+	} else {
+		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", sep = " "))
+	}
 
 	# add light cycle annotation
 	lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
