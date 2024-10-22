@@ -382,7 +382,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #############################################################################
    current_cohort_time_diff = 1.0
    if (input$kj_or_kcal == "mW") {
-     current_cohort_time_diff <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
+     # 1000 because from Watts to milli Watts
+     1000 * current_cohort_time_diff <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
    } 
    C1 <- calc_heat_production(f1, C1, "HP", scaleFactor * (1.0 / current_cohort_time_diff))
 
@@ -836,10 +837,10 @@ server <- function(input, output, session) {
          Weir = {
             text1 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
-         HP = {
+         Heldmaier1 = {
             text1 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
-         HP2 = {
+         Heldmaier2 = {
             text1 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
@@ -862,10 +863,10 @@ server <- function(input, output, session) {
          Weir = {
             text2 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
-         HP = {
+         Heldmaier1 = {
             text2 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
-         HP2 = {
+         Heldmaier2 = {
             text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
