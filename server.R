@@ -1323,14 +1323,8 @@ server <- function(input, output, session) {
                            )
                         ),
                         tags$tbody(
-                           tags$tr(
-                              tags$td(round(as.numeric(results$statistics$p), digits=6), style="width: 100px"),
-                              tags$td(round(as.numeric(results$statistics$p.adj), digits=6), style="width: 100px"),
-                              tags$td(results$statistics$p.adj.signif, style="width: 100px"),
-                              tags$td(results$statistics$df, style="width: 100px"),
-                              tags$td(round(as.numeric(results$statistics$statistic), digits=6), style="width: 100px")
+					            generate_statistical_table(results)
                            )
-                        )
                      ),
 
                      h4("Test assumptions"),
@@ -1493,6 +1487,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Explanation")
+               hideTab(inputId = "additional_content", target = "Modelling")
            } else {
             output$summary <- renderPlotly(NULL)
             hideTab(inputId = "additional_content", target = "Explanation")

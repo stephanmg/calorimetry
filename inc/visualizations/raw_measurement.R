@@ -195,7 +195,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
 			hr(style = "width: 50%"),
 			h4("Advanced"),
-			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman")),
+			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
 			hr(style = "width: 75%"),
@@ -301,8 +301,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 					tags$th("test statistic", style="width: 100px")
 					)
 				),
-				# TODO: v0.4.0 - Experimental Feature in Raw to generate full summary table for testing, need to be
-				# inserted in other panels as well...
 				tags$tbody(
 					generate_statistical_table(results)
 				)
