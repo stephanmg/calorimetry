@@ -93,12 +93,15 @@ get_true_metadata <- function(file) {
 
    df <- df %>% slice(from_index:to_index[1])
 
-   lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lean_mass"))) %>% pull(ind)
-   fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fat_mass"))) %>% pull(ind)
+   lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lm_start"))) %>% pull(ind)
+   lean_index_end <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lm_end"))) %>% pull(ind)
+   fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fm_start"))) %>% pull(ind)
+   fat_index_end <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fm_end"))) %>% pull(ind)
    id_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "personal_ID"))) %>% pull(ind)
    diet_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "diet_group"))) %>% pull(ind)
    genotype_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "genotype_group"))) %>% pull(ind)
-   body_weight_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "body weight"))) %>% pull(ind)
+   body_weight_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "bw_start"))) %>% pull(ind)
+   body_weight_index_end <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "bw_end"))) %>% pull(ind)
    sexes_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "sex"))) %>% pull(ind)
    age_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "age"))) %>% pull(ind)
 
@@ -107,20 +110,35 @@ get_true_metadata <- function(file) {
    ids$`1` <- NULL
    samples <- ids[!is.na(ids)]
 
-   # fat mass
+   # fat mass (start)
    fats <- df %>% slice(fat_index)
    fats$`1` <- NULL
    fats <- fats[!is.na(fats)]
 
-   # lean mass
+   # fat mass (end)
+   fats_end <- df %>% slice(fat_index_end)
+   fats_end$`1` <- NULL
+   fats_end <- fats[!is.na(fats)]
+
+   # lean mass (start)
    leans <- df %>% slice(lean_index)
    leans$`1` <- NULL
    leans <- leans[!is.na(leans)]
 
-   # body weights
+   # lean mass (end)
+   leans_end <- df %>% slice(lean_index_end)
+   leans_end$`1` <- NULL
+   leans_end <- leans_end[!is.na(leans_end)]
+
+   # body weights (start)
    body_weights <- df %>% slice(body_weight_index)
    body_weights$`1` <- NULL
    body_weights <- body_weights[!is.na(body_weights)]
+
+   # body weights (end)
+   body_weights_end <- df %>% slice(body_weight_index_end)
+   body_weights_end$`1` <- NULL
+   body_weights_end <- body_weights_end[!is.na(body_weights_end)]
 
    # genotypes
    genotypes <- df %>% slice(genotype_index)
@@ -144,7 +162,7 @@ get_true_metadata <- function(file) {
 
    # compile metadata and we require that all fields above are contained within the metadata sheet
    df_meta <- try({
-      data.frame(lean_mass = leans, fat_mass = fats, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), body_weight = body_weights, Sex = as.factor(sexes), Age = as.numeric(ages))
+      data.frame(lm_start = leans, lm_end = leans_end, fm_start = fats, fm_end = fats_end, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), bw_start = body_weights, bw_end = body_weights_end, Sex = as.factor(sexes), Age = as.numeric(ages))
    }, silent = TRUE)
 
    # check if metadata has been formatted properly 
