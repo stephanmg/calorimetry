@@ -1,5 +1,7 @@
 library(lme4)
 
+fittedValues <- NULL
+
 ################################################################################
 # linear mixed effect modelling
 ################################################################################
@@ -35,6 +37,7 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 
 	# calculation of metrics
 	df$Fitted <- fitted(lmm)
+	fittedValues <<- df$Fitted
 	rss <- sum((df[[dep_var]] - df$Fitted)^2)
 	tss <- sum((df[[dep_var]] - mean(df[[dep_var]]))^2)
 	# traditional R-squared
@@ -74,6 +77,10 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 			verbatimTextOutput("AIC_value"),
 			verbatimTextOutput("BIC_value"),
 			verbatimTextOutput("marginal_and_conditional_r_squared"),
+			h5("Variable overview"),
+			uiOutput("random_effect_overview"),
+			hr(),
+			uiOutput("fixed_effect_overview"),
 			h5("Summary tables"),
 			renderDT({
 				datatable(model_effects(df_to_plot, my_dep_var, input)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, my_dep_var, input)$df1), color='white', backgroundColor = 'black')
@@ -102,5 +109,44 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 			)
 		})
 		do.call(tagList, selectInputList)
+	})
+
+	output$random_effect_overview <- renderUI({
+		if (!is.null(input$how_many_random_effects)) {
+			plot_output_list <- lapply(1:input$how_many_random_effects, function(i) {
+				plotOutput(outputId = paste0("random_effect_variable_overview_", i))
+			})
+			do.call(tagList, plot_output_list)
+		}
+	})
+
+	output$fixed_effect_overview <- renderUI({
+		if (!is.null(input$how_many_fixed_effects)) {
+			plot_output_list <- lapply(1:input$how_many_random_effects, function(i) {
+				plotOutput(outputId = paste0("fixed_effect_variable_overview_", i))
+			})
+			do.call(tagList, plot_output_list)
+		}
+	})
+
+	observe({
+		if (!is.null(input$how_many_random_effects)) {
+			lapply(1:input$how_many_random_effects, function(i) {
+				output[[paste0("random_effect_variable_overview_", i)]] <-  renderPlot({
+					plot(df_to_plot[[input[[paste0("random_effect_variable_", i)]]]], fittedValues, main = paste0("Dependent variable ", my_dep_var), ylab="Fitted", xlab=input[[paste0("random_effect_variable_", i)]])
+				})
+			})
+		}
+	})
+
+
+	observe({
+		if (!is.null(input$how_many_fixed_effects)) {
+			lapply(1:input$how_many_fixed_effects, function(i) {
+				output[[paste0("fixed_effect_variable_overview_", i)]] <-  renderPlot({
+					plot(df_to_plot[[input[[paste0("fixed_effect_variable_", i)]]]], fittedValues, main = paste0("Dependent variable ", my_dep_var), ylab="Fitted", xlab=input[[paste0("fixed_effect_variable_", i)]])
+				})
+			})
+		}
 	})
 }
