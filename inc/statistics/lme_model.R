@@ -11,6 +11,8 @@ model_effects <- function(df, dep_var, input) {
 	fixed_effects_formula <- paste(fixed_effects, collapse = " + ") 
 	random_effects_formula <- paste("(1 |", random_effects, ")", collapse = " + ") 
 	formula_string <- paste(dep_var, "~", fixed_effects_formula, "+", random_effects_formula) 
+	print("df col names:")
+	print(names(df))
 	lmm <- lmer(as.formula(formula_string), data = df)
 	fixed_effects_df <- as.data.frame(coef(summary(lmm)))
 	random_effects_df <- as.data.frame(VarCorr(lmm))
@@ -57,11 +59,13 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 # create UI for modelling
 ################################################################################
 create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var) {
+	print("before creating model:")
+	print(names(df_to_plot))
 	output$modelling <- renderUI({
 		tagList(
 			h4("Modelling dependent variable with an LME model"),
-			sliderInput("how_many_fixed_effects", "How many fixed effect variables", min=1, max=length(get_factor_columns(true_metadata)), value=1, step=1),
-			sliderInput("how_many_random_effects", "How many random effect variables", min=1, max=length(get_non_factor_columns(true_metadata)), value=1, step=1),
+			sliderInput("how_many_fixed_effects", "How many fixed effect variables", min=1, max=length(names(true_metadata)), value=1, step=1),
+			sliderInput("how_many_random_effects", "How many random effect variables", min=1, max=length(names(true_metadata)), value=1, step=1),
 			uiOutput("selection_sliders_fixed"),
 			uiOutput("selection_sliders_random"),
 			renderPlot(visualize_model_effects(df_to_plot, my_dep_var, input, output)),
@@ -84,7 +88,7 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 		n <- input$how_many_fixed_effects
 		selectInputList <- lapply(1:n, function(i) {
 			list(
-				selectInput(inputId = paste0("fixed_effect_variable_", i), label = paste0("Select fixed effect variable #", i), selected = "Weight..g.", choices = get_non_factor_columns(true_metadata))
+				selectInput(inputId = paste0("fixed_effect_variable_", i), label = paste0("Select fixed effect variable #", i), selected = "Weight..g.", choices = names(true_metadata))
 			)
 		})
 		do.call(tagList, selectInputList)
@@ -94,7 +98,7 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 		n <- input$how_many_random_effects
 		selectInputList <- lapply(1:n, function(i) {
 			list(
-				selectInput(inputId = paste0("random_effect_variable_", i), label = paste0("Select random effect variable #", i), selected = "Weight..g.", choices = get_non_factor_columns(true_metadata))
+				selectInput(inputId = paste0("random_effect_variable_", i), label = paste0("Select random effect variable #", i), selected = "Weight..g.", choices = names(true_metadata))
 			)
 		})
 		do.call(tagList, selectInputList)

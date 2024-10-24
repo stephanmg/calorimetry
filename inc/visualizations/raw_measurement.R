@@ -12,6 +12,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
+	print("after enrichting:")
+	print(names(finalC1))
+
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
@@ -185,7 +188,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
+			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way-ANOVA")),
 			selectInput("dep_var", "Dependent variable", choice = c("Raw")),
 			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
 			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),

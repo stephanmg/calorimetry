@@ -142,6 +142,34 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       if (is.null(metadata)) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))
       }
+
+ # add some calculated metadata 
+   delta_pairs <- list(
+      c("bw_start", "bw_end", "delta_bw"),
+      c("fm_start", "fm_end", "delta_fm"),
+      c("lm_start", "lm_end", "delta_lm")
+   )
+   
+
+    add_delta_columns <- function(df, column_pairs) {
+    for (pair in column_pairs) {
+      start_col <- pair[1]
+      end_col <- pair[2]
+      delta_col <- pair[3]
+      if (all(c(start_col, end_col) %in% names(df)) && !(delta_col %in% names(df))) {
+         df <- df %>%
+         mutate(!!delta_col := as.numeric(!!sym(end_col)) - as.numeric(!!sym(start_col)))
+      }
+   }
+   return(df)
+   }
+
+   metadata <- add_delta_columns(metadata, delta_pairs)
+
+   print("columns:")
+   print(names(metadata))
+
+
       # instead na.omit() we need to use select to remove columns which are all NA before joining, 
       # this might be because we have columns, e.g. dob which are not present at all in TSE files and also not in the metadata sheet as well
       print("before metadata join")
@@ -181,31 +209,8 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
 
-   # add some calculated metadata 
-   delta_pairs <- list(
-      c("bw_start", "bw_end", "delta_bw"),
-      c("fm_start", "fm_end", "delta_fm"),
-      c("lm_start", "lm_end", "delta_lm")
-   )
-   
-  add_delta_columns <- function(df, column_pairs) {
-    for (pair in column_pairs) {
-      start_col <- pair[1]
-      end_col <- pair[2]
-      delta_col <- pair[3]
-      if (all(c(start_col, end_col) %in% names(df)) && !(delta_col %in% names(df))) {
-         df <- df %>%
-         mutate(!!delta_col := as.numeric(!!sym(end_col)) - as.numeric(!!sym(start_col)))
-      }
-   }
-   return(df)
-   }
-
-   metadata <- add_delta_columns(metadata, delta_pairs)
-
-   print("columns:")
-   print(names(metadata))
-
+  
+ 
    return(list("data"=df, "metadata"=metadata))
 }
 
