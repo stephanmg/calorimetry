@@ -18,7 +18,7 @@ jobs:
           badge "last commit" "$(date '+%Y-%m-%d %H:%M:%S')" :green > mybadge.svg
       
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: Badges
           path: mybadge.svg
@@ -31,7 +31,7 @@ jobs:
           git commit -am "Updating mybadge.svg"
           git push
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
          ref: main
 

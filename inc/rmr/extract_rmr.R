@@ -1,7 +1,7 @@
 # libraries
 library(doBy)
 library(dplyr)
-library(ggpubr)
+#library(ggpubr)
 library(patchwork)
 
 ################################################################################
@@ -17,8 +17,9 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
    # order df by component O2
    df_ordered <- df[order(df[[component]]), ]
 
-   # indices of minimum energy expenditure
-   indices <- which.minn(df_ordered[[component]], n = N * percentage / 100)
+   # indices of minimum energy expenditure, but at least we need ONE element: 
+   # Note: Is this correct? We need at least one element, that is for sure.
+   indices <- which.minn(df_ordered[[component]], n = max(1, N * percentage / 100))
 
    # extract a sub data frame from the indices
    sub_df <- df_ordered[indices, ]
@@ -60,7 +61,8 @@ create_df <- function(df, component, M, N, percentage = 1, interval_length = 15)
    df_plot <- data.frame(hp, index)
    colnames(df_plot) <- c("HP", "Time")
    df_plot$Time <- df_plot$Time * interval_length  * (M / interval_length)
-   df_plot$HP <- df_plot$HP / 24 / (60 / interval_length) / interval_length
+   # convert hourly to minutes and sum in interval of length M
+   df_plot$HP <- df_plot$HP / (60 / interval_length) / interval_length
    df_plot
 }
 

@@ -1,7 +1,7 @@
 # CALOR: A package for <ins>C</ins>alorimetric <ins>A</ins>nalysis to <ins>L</ins>everage <ins>O</ins>rderly data visualization using Shiny <ins>R</ins> 
 
 
-<img src="https://github.com/stephanmg/calorimetry/blob/data/logo_shiny.svg?raw=true" align="left" width="50" height="70"> 
+<img src="https://github.com/stephanmg/calorimetry/blob/data/shiny_logo.png?raw=true" align="left" width="50" height="70"> 
 CALOR is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
 
 <br clear="left"/>
@@ -45,5 +45,21 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 
 ## Demonstration of application
 Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
+
+## Caveats
+
+- Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments
+- IC experiments might have not the same length of time, currently plots are thus not equal in length on the time axis
+
+## Metadata
+
+One can use the metadata shiny app converter app: https://github.com/stephanmg/metadata-converter to generate a truncated metadata sheet.
+
+## Standalone Desktop apps
+
+One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
+
+Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
+
 
 # Latest changes

@@ -4,6 +4,7 @@ library("shinybusy")
 library("shinythemes")
 library("shinyWidgets")
 library("shinyhelper")
+library(shinyjs)
 library("colourpicker")
 library(cicerone)
 
@@ -101,8 +102,8 @@ sidebar_content2 <- sidebarPanel(
    fileInput("rercalr", "RER CalR (means)"),
    h1("Plotting control"),
    textInput("plotTitle", "Plot title", paste0("Average of RER value")),
-   actionButton("plottingvalidation", "Show"),
-   actionButton("reset", "Reset"),
+   actionButton("plottingvalidation", "Show plots"),
+   actionButton("reset", "Reset session"),
 )
 
 sidebar_content3 <- sidebarPanel(
@@ -115,7 +116,7 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Main Configuration"),
+      h1("Configuration"),
       br(),
       actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       actionButton("example_data_single", "Load UCP1 KO data set", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
@@ -131,37 +132,93 @@ sidebar_content <- sidebarPanel(
       tabPanelBody("HP",
    add_busy_bar(color = "#0FFF50"), # #50C878, # #AAFF00
    withMathJax(),
-   h3("Equations"),
-   div("Chose two established equations for calculating the heat production respectively energy expenditure. Note that the abbreviations HP and HP2 refer to Heldmaier's equations as reported in the publication J Comp Physiol B 102, 115–122 (1975)."),
-   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini"))),
-   conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("HP", "HP2", "Lusk", "Weir", "Elia", "Brower", "Ferrannini"))),
-   conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brower", "Ferrannini"))),
-   selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal")),
+   h3("Energy expenditure equation"),
+   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
+   #conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
+   # leads to bug: two time conditional on same variable inputId variable1:
+   #conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
+   conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
+   selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
    withMathJax(),
+   tags$head(
+      tags$script(type = "text/x-mathjax-config", HTML(
+         'MathJax.Hub.Config({
+         TeX: {
+            equationNumbers: {
+               autoNumber: "AMS",
+               formatNumber: function (n) { return "[" + n + "]"; }
+               }
+            }
+            });'
+         )
+      )
+   ),
    uiOutput("heat_production_equations"),
    h3("Metadata"),
-   div("Additional metadata might be provided through upload of a standardized, using the controlled vocabulary, filled-in Excel metadata sheet for the (whole) experiment. Check the box below if you wish to provide some complementing metadata for analysis."),
+   div("Provide by a standardized Metadatasheet (7) in Excel format"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
    h3("Data sets"),
-   p("Use the file choser dialog below to select an individual file to analyze"),
-   uiOutput("nFiles"),
+   p("Use the file choser dialog to select individual file(s) for analysis"),
+   numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
-   h3("Data consistency checks"),
-   div("In case of any detected inconsistency in the raw data, a warning is generated, and further analysis is postponed if boxes are checked."),
-   checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
-   checkboxInput(inputId = "highly_varying_measurements", label = "High variation measurements", value = FALSE),
-   h3("Plotting control"),
-   actionButton("plotting", "Show"),
-   actionButton("reset", "Reset"),
+   h4(textOutput("additional_information")),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
    span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
+   h3("Preprocessing"),
+   checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
+   #checkboxInput(inputId="select_calendrical_days", "Select calendrical days"), # TODO: yet to be implemented as preprocessing step, amend therefore util.R's zeitgeber_time function
+   # TODO: Raw, EE, GoxLox uses zeitgeber time as default (calendrical time not yet implemented here, but selection of animals and days)
+   conditionalPanel(condition = "input.plot_type == 'Raw' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'GoxLox'",
+      checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE)),
+   # TODO: RMR, TEE and DayNightActivity use calendrical time as default (selection of animals and days not yet implemented here, but also zeitgeber time implemented)
+   conditionalPanel(condition = "input.plot_type != 'Raw' && input.plot_type != 'EnergyExpenditure' && input.plot_type != 'GoxLox'",
+      checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = FALSE)),
+   conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
+   h3("Raw data curation"),
+   checkboxInput(inputId = "z_score_removal_of_outliers", label = "Remove outliers automatically by z-score"),
+   conditionalPanel(condition = "input.z_score_removal_of_outliers == true", numericInput("sds", "Number of SDs", value = 2, step=1, min = 0, max = 3)),
+   conditionalPanel(condition = "input.z_score_removal_of_outliers == true", selectInput("target_columns", "Measurements", c("VO2", "VCO2"), multiple=TRUE, selected=c("VO2", "VCO2"))),
+   checkboxInput(inputId = "remove_zero_values", label = "Remove zero values automatically"),
+   conditionalPanel(condition = "input.remove_zero_values == true", numericInput("eps", "Epsilon", value=1e-6, min=1e-9, max=1e-3, step=1e-3)),
+   checkboxInput(inputId = "toggle_outliers", "Manually mark outliers above threshold", value = FALSE),
+   conditionalPanel("input.toggle_outliers == true", numericInput(inputId = "threshold_toggle_outliers", "Threshold", value=20.67, min = 0, max = 100, step = 0.01)),
+   checkboxInput(inputId = "toggle_lasso_outliers", "Select and remove outliers by box selection"), 
+   conditionalPanel("input.toggle_lasso_outliers == true", actionButton("remove_lasso_points", "Remove lasso selection")),
+   h3("Raw data consistency checks"),
+   checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
+   checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
+   checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
+   conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
+   h3("Plotting controls"),
+   tags$style(HTML("
+        #reset {
+          background-color: #B3E5FC; /* Pastel Blue */
+          color: white;
+          border-color: #B3E5FC; 
+        }
+        #plotting {
+          background-color: #77DD77; /* Pastel Green */
+          color: white;
+          border-color: #77DD77;
+        }
+        #plotting:hover {
+          background-color: #5CB85C; /* Darker shade for hover */
+          border-color: #5CB85C;
+        }
+        #reset:hover {
+          background-color: #81D4FA; /* Darker shade for hover */
+          border-color: #81D4FA;
+        }
+   ")),
+   actionButton("plotting", "Show",),
+   actionButton("reset", "Reset"),
    ))),
    hr(),
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Plot configuration")),
+      h1("Plotting")),
    column(2, style = "padding: 20px;",
     actionButton("showTabPC", label = "", icon = icon("square-plus", "fa-3x")),
    ),
@@ -170,11 +227,15 @@ sidebar_content <- sidebarPanel(
    ))),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   div("A general workflow: First inspect raw data, then calculate energy expenditures and compare TEE and RMR. If locomotion data available plot the budget and probability density maps. Export compiled data sets to Excel or CalR. The default indirect calorimetry functions should be enough for most analysis, if working with COSMED platform or the Sable/Promethion chose accordingly for additional plotting functions."),
-   selectInput(inputId = "ic_system", "Specify indirect calorimetry system", factor(c("General", "COSMED", "Sable"))),
-   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "CompareHeatProductionFormulas")))),
-   conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
-   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select data to plot", factor(c("Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "WeightVsEnergyExpenditure", "CompareHeatProductionFormulas")))),
+   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable"))),
+   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select quantity to plot", factor(c("BodyComposition", "Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity")))),
+   conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("BodyComposition", "Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("BodyComposition", "Raw", "EnergyExpenditure", "TotalEnergyExpenditure", "RestingMetabolicRate", "GoxLox", "DayNightActivity", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
+   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
+   hr(style="width: 50%"),
+   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot")),
+   conditionalPanel(condition = "input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
    hr(),
    h2("Grouping and filtering"),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
@@ -183,13 +244,19 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
-   conditionalPanel(condition = "input.havemetadata == true", uiOutput("checkboxgroup_gender")),
+   uiOutput("checkboxgroup_gender"),
+   h2("Time averaging of measurements"),
+   checkboxInput(inputId = "override_averaging", label = "Override averaging method (mean)"),
+   conditionalPanel(condition = "input.override_averaging == true", selectInput("avg_method_for_statistics", "Method", choices = c("mean", "median"))),
    h2("Experimental times"),
-   checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
-   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", checkboxInput(inputId = "day_only", label = "Day", value = TRUE)),
-   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", checkboxInput(inputId = "night_only", label = "Night", value = TRUE)),
-   conditionalPanel(condition = "input.plot_type == 'WeightVsEnergyExpenditure'", selectInput("statistics", "Statistics", choices = c("mean", "median", "mean_sdl"))),
-   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", checkboxInput(inputId = "only_full_days", label = "Only full days", value = TRUE)),
+   conditionalPanel(condition = "input.plot_type == 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle", value=TRUE)),
+   conditionalPanel(condition = "input.plot_type != 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle")),
+   #conditionalPanel(condition = "input.only_full_days == false && (input.plot_type != 'RestingMetabolicRate' && input.plot_type != 'TotalEnergyExpenditure' && input.plot_type != 'DayNightActivity')",
+   conditionalPanel(condition = "input.use_zeitgeber_time != false",
+   checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
+   conditionalPanel(condition = "input.use_zeitgeber_time == false",
+   checkboxInput(inputId = "only_full_days", label = "Select full consecutive calendrical days", value = FALSE)),
+   conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Fraction of day missing [%]", min = 0, max = 100, value = 0, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value = FALSE)),
    conditionalPanel(condition = "input.plot_type == 'Locomotion'", colourInput(inputId = "cage_color", label = "Cage Color", "white")),
    conditionalPanel(condition = "input.have_box_coordinates == true", h2("Cage configuration")),
@@ -207,6 +274,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_max", label = "Scale (x_max)", min = 0, max = 100, value = 0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_min", label = "Scale (y_min)", min = 0, max = 100, value = 0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_max", label = "Scale (y_max)", min = 0, max = 100, value = 0)),
+   hr(),
    h2("Advanced options"),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", h3("Time Interval or Steady-State method to estimate RMR")),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
@@ -222,21 +290,20 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'EnergyExpenditure'", uiOutput("wmethod")),
-   conditionalPanel(condition = "input.plot_type == 'Raw'", uiOutput("myr")),
-   conditionalPanel(condition = "input.plot_type == 'GoxLox'", selectInput("goxlox", "GoxLox", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
+   selectInput("light_cycle", "Lightcycle", c("Day", "Night"), multiple = TRUE, selected = c("Day", "Night")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window size", min = 1, max = 30, value = 5, step = 1)),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 5, step = 1)),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("binned_best", "Binned best", min = 1, max = 10, value = 1, step = 1)),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = TRUE, selected = "O2")),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
-   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("light_cycle", "Lightcycle", c("Day", "Night"), multiple = TRUE, selected = c("Day", "Night"))),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("rmr_averaging", "Averaging width", min = 1, max = 30, value = 1, step = 1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 1, step = 1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = FALSE, selected = "O2")),
    h3("Light cycle configuration"),
    checkboxInput(inputId = "override_metadata_light_cycle", label = "Override"),
-   sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 7),
-   sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 19),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
+   conditionalPanel(condition = "input.plot_type == 'TotalEnergyExpenditure'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
+   sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 6),
+   sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 18),
    colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
    colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
-   h3("Time averaging of raw data"),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h3("Time averaging of raw data")),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
@@ -257,12 +324,16 @@ sidebar_content <- sidebarPanel(
    ),
    tabsetPanel(id = "tabsDC", type = "hidden",
       tabPanelBody("DC",
-   p("Selection of dates"),
-   uiOutput("daterange"),
-   sliderInput("exclusion_end", "Exclude hours from start of measurements", 0, 24, 2, step = 1),
-   sliderInput("exclusion_start", "Exclude hours from end of measurements", 0, 24, 2, step = 1),
-   checkboxInput(inputId = "outliers", label = "Remove animals"),
-   conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
+   p("Selection of experimental times"),
+   uiOutput("select_day"),
+   uiOutput("select_animal"),
+   conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
+   checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
+   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
+   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
+   #checkboxInput(inputId = "outliers", label = "Remove sample(s) from data set(s)"),
+   #conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
+   checkboxInput("do_select_date_range", label = "Select dates"),
    )),
    hr(),
   fluidPage(
@@ -280,28 +351,51 @@ sidebar_content <- sidebarPanel(
    ),
    tabsetPanel(id = "tabsDE", type = "hidden",
       tabPanelBody("DE",
+   h3("Selected and calculated quantities", title = "This will export the currently selected quantity (see plotting above) and all quantities calculated during calculations"),
    selectInput("export_format", "Format", choices = c("CalR", "Excel")),
-   h2("Folder"),
-   textInput("export_file_name", "File name (Leave empty for auto-generation)"),
-   downloadButton("downloadData", "Download")
+   textInput("export_file_name", "File name (Leave empty for auto-generation of a file name)"),
+   downloadButton("downloadData", "Download"),
+   h3("All data (Input and data frames for plotting)", title = "This will export all calculated data, the selected quantity for plotting, as well as all data frames so far for plotting. Note that in order to export TEE or RMR, you need to calculate both TEE and RMR first."),
+   downloadButton("downloadAllData", "Download as zip file", icon=icon("file-archive")),
+   h3("Data tables for plotting", title = "This will download only the data tables for plotting"),
+   textInput("export_file_name2", "File name (Leave empty for auto-generation of a file name)"),
+   downloadButton("downloadPlottingData", "Download"),
    )),
    hr(),
     fluidPage(
       fluidRow(
          column(8, style = "padding: 0px;",
          span(textOutput("message"), style = "color:red")
-    )))
+    ))),
+    # hidden session ID to manage global user data (or hidden; if required to hide)
+    span(textOutput("session_id"), style = "color: #77DD77; font-size: 12px; visibility: visible;"),
+    span(textOutput("git_info"), style = "color: #FDFD96; font-size: 12px; visibility: visible;")
 )
 
 ################################################################################
 # Main panel
 ################################################################################
 main_content <- mainPanel(
+   tags$head(tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js")),
+   tags$style(HTML("
+   .shiny-output-error {
+   color: #ff6347;
+   font-weight: bold;
+   }
+   "
+   )),
    tabsetPanel(
       id = "additional_content",
-      tabPanel("Basic plot", plotlyOutput("plot")),
+      tabPanel("Basic plot", 
+         tagList(
+            plotlyOutput("plot"),
+            conditionalPanel("output.plotRendered", checkboxInput("stylize_plot", "Stylize plot")),
+            conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control"))
+         )
+      ),
       tabPanel("Statistical testing", uiOutput("test")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
+      tabPanel("Modelling", uiOutput("modelling")),
       tabPanel("Details", uiOutput("details")),
       tabPanel("Explanation", htmlOutput("explanation"))
    )
@@ -396,6 +490,20 @@ contact <- tabPanel(
 # Main navigation bar
 ################################################################################
 ui <- tagList(
+  useShinyjs(),
+  # Note that this is inline CSS and HTML code, can also be done as in code.js and style.css in external files
+  tags$head(
+   tags$style(HTML("
+   .logo-container {
+   position: absolute; top: 5px; left: 10px; z-index: 2147483647;
+   }
+   .navbar {
+     padding-left: 30px;
+   }
+   "
+   ))
+  ),
+  div(class="logo-container", img(src="shiny_logo.png", height="30px")),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
   navbarPage(
@@ -404,6 +512,7 @@ ui <- tagList(
     "CALOR - A reactive web-based application for the analysis of indirect calorimetry experiments",
     intro_panel,
     visualization,
+    tabPanel("Metadata converter", tags$a(href = "https://shiny.iaas.uni-bonn.de/CaloHelper", "Go to Metadata converter", target = "_blank")),
     documentation,
     contact
   )
