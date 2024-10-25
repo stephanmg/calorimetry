@@ -63,6 +63,7 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 ################################################################################
 source("inc/metadata/read_metadata.R") 
 
+use_example_data <- FALSE
 ################################################################################
 # Export functionality
 ################################################################################
@@ -125,16 +126,26 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    #############################################################################
    # Data read-in
+   # FIXME: Could be improve if more example data sets are required.
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
+
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 7))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob")
+    num_files <- 4
+   if (!use_example_data) {
+      num_files <- input$nFiles
+   } 
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
+      if (use_example_data) {
+         file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data_", i, ".csv"), sep = "")
+      }
       con <- file(file)
       line <- readLines(con, n = 2)
    if (i == 1) {
@@ -732,6 +743,10 @@ server <- function(input, output, session) {
       }
    )
 
+
+   # Draw initial number of files -> typically one file
+   output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1))
+
    # Download handler for all data download as zip
    output$downloadAllData <- downloadHandler(
          filename = function() {
@@ -743,10 +758,11 @@ server <- function(input, output, session) {
          }
     )
 
+
    # Dynamically create fileInput fields by the number of requested files of the user
    output$fileInputs <- renderUI({
       html_ui <- " "
-      for (i in 1:input$nFiles) {
+      for (i in seq_along(input$nFiles)) {
          html_ui <- paste0(html_ui, fileInput(paste0("File", i),
             label = paste0("Cohort ", i)))
          }
@@ -1016,9 +1032,10 @@ server <- function(input, output, session) {
       # req(input$File1)
       # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
       output$plot <- renderPlotly({
-         if (is.null(input$File1)) {
+         if (is.null(input$File1) && !use_example_data) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
          } else {
+
            file <- input$File1
            real_data <- do_plotting(file$datapath, input, input$sick, output, session)
 
@@ -1065,7 +1082,7 @@ server <- function(input, output, session) {
             #############################################################################
             if (input$havemetadata) {
                if (is.null(input$condition_type)) {
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+                  true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
                   output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
             } else {
@@ -1080,7 +1097,7 @@ server <- function(input, output, session) {
             #############################################################################
             observeEvent(input$condition_type, {
             if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
                tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
@@ -1560,7 +1577,7 @@ server <- function(input, output, session) {
          }
       )
       guide$init()$start()
-  })
+   })
 
    #############################################################################
    # Observe guide
@@ -1574,6 +1591,34 @@ server <- function(input, output, session) {
             }
          )
       }
+
+    })
+   #############################################################################
+   # Load example data
+   #############################################################################
+   observeEvent(input$example_data_single, {
+    use_example_data <<- TRUE
+    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
+
+    output$fileInputs <- renderUI({
+      html_ui <- " "
+      for (i in seq_along(1:4)) {
+         html_ui <- paste0(html_ui, fileInput(paste0("File", i),
+            label = paste0("Cohort #", i), placeholder = paste0("example data set ", i, ".csv")))
+         }
+      HTML(html_ui)
+      })
+   })
+   # TODO: enable this after merging, as the metadata sheet is supported fully only in branch with_metadata_sheet
+   #updateCheckboxInput(session, "havemetadata", value = TRUE)
+   #output$metadatafile <- renderUI({
+   #   html_ui <- " "
+   #   html_ui <- paste0(html_ui,
+   #      fileInput("metadatafile",
+   #      label = "Metadata file",
+   #      placeholder = "example metadata.xlsx"))
+   #   HTML(html_ui)
+   #})
    })
 
    #############################################################################

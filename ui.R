@@ -118,7 +118,8 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Configuration"),
       br(),
-      actionButton("guide", "Guide (Click me)", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      actionButton("example_data_single", "Load UCP1 KO data set", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       br(), br()
    ),
    column(2, style = "padding: 20px;",
