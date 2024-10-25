@@ -3,12 +3,16 @@ library("dplyr")
 library("tidyr")
 library("lubridate")
 
+################################################################################
+# import_promethion
+################################################################################
 import_promethion <- function(file, file_out) {
    # when adding more metadata or columns need to be increased by 1
    NUM_METADATA <- 3
    NUM_TOTAL_COLUMNS_EXPECTED <- 8
 
    df <- read_excel(file)
+   # TODO: v0.5.0 - support not only row-wise format but column-wise format, i.e. without Animal column, but VO2_M_1, VO2_M2, ...
    data <- df %>% select(c("Animal", "VO2_M", "VCO2_M", "RER_M", "EnviroTemp_M", "DateTime"))
    weights <- df %>% select(c("BodyMass_Mnz", "Animal"))
    animals_with_weights <- na.omit(weights %>% group_by(Animal) %>% slice(c(1)))
@@ -30,7 +34,9 @@ import_promethion <- function(file, file_out) {
 
    colnames(header) <- colnames(data)
 
-   fileinfo <- c(file, rep("", NUM_TOTAL_COLUMNS_EXPECTED-1))
+   # convert this to tse format for now
+   # TODO: v0.5.0 - need proper data backend structure, for now convert always to TSE format
+   fileinfo <- c(file, rep("", NUM_TOTAL_COLUMNS_EXPECTED - 1))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", NUM_TOTAL_COLUMNS_EXPECTED - 2))
    boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", NUM_TOTAL_COLUMNS_EXPECTED - 3))
    header[nrow(header) + 1, ] <- fileinfo

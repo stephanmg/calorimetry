@@ -46,6 +46,22 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 ## Demonstration of application
 Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
 
+## Caveats
+
+- Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments
+- IC experiments might have not the same length of time, currently plots are thus not equal in length on the time axis
+
+## Metadata
+
+One can use the metadata shiny app converter app: https://github.com/stephanmg/metadata-converter to generate a truncated metadata sheet.
+
+## Standalone Desktop apps
+
+One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
+
+Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
+
+
 # Latest changes
 
 ![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)

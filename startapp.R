@@ -1,14 +1,14 @@
 library(shiny)
 library(shinyFiles)
 
+
 ################################################################################
 # Configuration options
 ################################################################################
 port <- 1338
 host <- "0.0.0.0"
-maxRequestSize <- 30 * 1024^2 # 30 MiB
+maxRequestSize <- 100 * 1024^2 # 100 MiB
 printSessionInfo <- TRUE
-
 
 ################################################################################
 # Set Shiny options
@@ -23,7 +23,6 @@ options(shiny.maxRequestSize = maxRequestSize)
 if (printSessionInfo) {
    print(sessionInfo())
 }
-print(packageVersion("plotly"))
 
 ################################################################################
 # Start application
