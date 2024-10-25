@@ -149,15 +149,15 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 6))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.")
-   num_files <- 1
+   num_files <- 4
    if (!use_example_data) {
       num_files <- input$nFiles
-   }
+   } 
    for (i in 1:input$nFiles) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
       if (use_example_data) {
-         file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data_1.csv", sep = "")
+         file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data_", i, ".csv"), sep = "")
       }
       con <- file(file)
       line <- readLines(con, n = 2)
@@ -556,7 +556,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       # colors for plotting as factor
       finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
       if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
          # Note: full_join is correct, however do not omit rows containing only a single NA, might be two different data frames (TSE files) have different columns!
          finalC1 <- finalC1 %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit()
          write.csv2(finalC1, "bogus_finalC1.csv")
@@ -1049,7 +1049,7 @@ do_plotting <- function(file, input, exclusion, output) { # nolint: cyclocomp_li
       }
 
       if (input$havemetadata) {
-         true_metadata <- get_true_metadata(input$metadatafile$datapath)
+         true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
          output$test <- renderUI({
             tagList(
                h4("Configuration"),
@@ -1369,7 +1369,7 @@ server <- function(input, output, session) {
             #############################################################################
            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
             if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
                output$facets_by_data_one <- renderUI(
                selectInput(inputId = "facets_by_data_one", label = "Choose facet",
                selected = "Animals", choices = colnames(true_metadata)))
@@ -1392,7 +1392,7 @@ server <- function(input, output, session) {
             #############################################################################
            if (input$havemetadata) {
                if (is.null(input$condition_type)) {
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+                  true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
                   output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
            } else {
@@ -1407,7 +1407,7 @@ server <- function(input, output, session) {
             #############################################################################
            observeEvent(input$condition_type, {
             if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath)
+               true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
                metadata <- real_data$metadata
@@ -1491,7 +1491,7 @@ p2 <- p2 + ggtitle(paste("Total energy expenditure (over ", how_many_days, ")", 
 output$summary <- renderPlotly(ggplotly(p2))
 
 if (input$havemetadata) {
-   true_metadata <- get_true_metadata(input$metadatafile$datapath)
+   true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
    output$test <- renderUI({
       tagList(
          h4("Configuration"),
@@ -1652,15 +1652,26 @@ if (input$havemetadata) {
    #############################################################################
    observeEvent(input$example_data_single, {
     use_example_data <<- TRUE
-    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1))
+    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
 
     output$fileInputs <- renderUI({
       html_ui <- " "
-      for (i in seq_along(input$nFiles)) {
+      for (i in seq_along(1:4)) {
          html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-            label = paste0("Example data set ", i), placeholder = "example data set 1.csv"))
+            label = paste0("Cohort #", i), placeholder = paste0("example data set ", i, ".csv")))
          }
       HTML(html_ui)
       })
    })
+   # TODO: enable this after merging, as the metadata sheet is supported fully only in branch with_metadata_sheet
+   #updateCheckboxInput(session, "havemetadata", value = TRUE)
+   #output$metadatafile <- renderUI({
+   #   html_ui <- " "
+   #   html_ui <- paste0(html_ui,
+   #      fileInput("metadatafile",
+   #      label = "Metadata file",
+   #      placeholder = "example metadata.xlsx"))
+   #   HTML(html_ui)
+   #})
+
 }

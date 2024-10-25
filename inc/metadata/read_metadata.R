@@ -25,8 +25,13 @@ get_constants <- function(file) {
 ################################################################################
 # get full metadata
 ################################################################################
-get_true_metadata <- function(file) {
-   df <- read_excel(file)
+get_true_metadata <- function(file, load_example_data) {
+   df <- NULL
+   #if (load_example_data) {
+   #   df <- read_excel(paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_metadata.xlsx", sep = ""))
+   #} else {
+     df <- read_excel(file)
+   #}
    colnames(df) <- seq(1, length(colnames(df)))
 
    from_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sample-Section"))) %>% pull(ind)
