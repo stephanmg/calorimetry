@@ -222,5 +222,16 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	p <- p + ggtitle(paste0("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", pretty_print_equation(input$variable1), sep = ""))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	storeSession(session$token, "is_TEE_calculated", TRUE, global_data)
+
+	# create LME model UI
+	TEE_for_model <- getSession(session$token, global_data)[["TEE"]]
+	if (!is.null(TEE_for_model)) {
+		TEE_for_model <- TEE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
+		write.csv2(TEE_for_model, "tee_before_lme_model.csv")
+		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
+		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE")
+	}
+
+
 	return(p)
 }

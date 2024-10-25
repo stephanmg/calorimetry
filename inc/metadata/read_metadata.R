@@ -118,7 +118,7 @@ get_true_metadata <- function(file) {
    # fat mass (end)
    fats_end <- df %>% slice(fat_index_end)
    fats_end$`1` <- NULL
-   fats_end <- fats[!is.na(fats)]
+   fats_end <- fats_end[!is.na(fats_end)]
 
    # lean mass (start)
    leans <- df %>% slice(lean_index)

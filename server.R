@@ -1371,6 +1371,15 @@ server <- function(input, output, session) {
                      )
                   )
                })
+               # create LME model UI
+               RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+               RMR_for_model <- RMR_for_model %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(RMR=EE)
+               if (!is.null(RMR_for_model)) {
+                  RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
+                  write.csv2(RMR_for_model, "tee_before_lme_model.csv")
+                  #create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
+                  create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR")
+               }
               }
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({

@@ -308,7 +308,13 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 	# create LME model UI
-	create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
+	EE_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+	if (!is.null(EE_for_model)) {
+		EE_for_model <- EE_for_model %>% filter(TEE == "non-RMR") %>% select(-TEE) 
+		EE_for_model <- EE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
+		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
+		create_lme_model_ui(input, output, true_metadata, EE_for_model, "EE")
+	}
 
 	return(p)
 }
