@@ -1619,7 +1619,6 @@ server <- function(input, output, session) {
    #      placeholder = "example metadata.xlsx"))
    #   HTML(html_ui)
    #})
-   })
 
    #############################################################################
    # Observe select_day input
