@@ -63,4 +63,4 @@ Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkR
 
 
 # Latest changes
-![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
+![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)![](https://github.com/stephanmg/calorimetry/blob/data/mybadge.svg?raw=true)
