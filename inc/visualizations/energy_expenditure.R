@@ -8,7 +8,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# join either metadata from sheet or tse supported header columns (see above) to measurement data
 	# enrich with metadata from TSE header (C1meta) or from metadata sheet (input$metadatafile)
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-	finalC1 <- na.omit(data_and_metadata$data)
+	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
 	# Select sexes

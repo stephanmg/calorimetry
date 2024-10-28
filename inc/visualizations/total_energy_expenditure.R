@@ -5,7 +5,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	# enrich with metadata
 	data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
-	finalC1 <- na.omit(data_and_metadata$data)
+	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
 	# Select sexes
