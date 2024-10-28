@@ -1,4 +1,4 @@
-setwd("/home/stephan/Documents/Projects/BATEnergy")
+setwd(".")
 library(roxygen2)
 
 load_code_from_inc <- function(path) {
@@ -10,5 +10,5 @@ load_code_from_inc <- function(path) {
    env
 }
 
-env = load_code_from_inc("/home/stephan/Documents/Projects/BATEnergy")
+env = load_code_from_inc(".")
 roxygen2::roxygenise(load_code = load_code_from_inc, roclets = c("rd", "namespace"))
