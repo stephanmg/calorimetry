@@ -1117,6 +1117,8 @@ server <- function(input, output, session) {
 
 
                showTab(inputId = "additional_content", target = "Summary statistics")
+               showTab(inputId = "additional_content", target = "Modelling")
+
                write.csv2(real_data$data, "before_rmr_written.csv")
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
@@ -1415,6 +1417,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical testing")
+               showTab(inputId = "additional_content", target = "Modelling")
             output$explanation <- renderUI({
                str1 <- "<h3> Glucose, lipid and protein oxidation </h3>"
                   str2 <- "Displays the glucose, lipid and protein oxidation by means of respiratory gas exchange measurements during indirect calorimetry"
@@ -1484,6 +1487,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
                str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1495,6 +1499,7 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
+               hideTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw measurements and derived quantities </h3>"
@@ -1505,10 +1510,12 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               hideTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "BodyComposition") {
                #hideTab(inputId = "additional_content", target = "Basic plot")
                hideTab(inputId = "additional_content", target = "Summary statistics")

@@ -172,6 +172,8 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
 
       # instead na.omit() we need to use select to remove columns which are all NA before joining, 
       # this might be because we have columns, e.g. dob which are not present at all in TSE files and also not in the metadata sheet as well
+      # or also if not all cohort  files are used with the animal ids recorded in the metadata sheet, or: if
+      # the metadata sheet contains nan values... for i.e. lm_start etc.
       print("before metadata join")
       print(metadata)
       # need to remove all nan columns because individual cohorts might not have the same columns

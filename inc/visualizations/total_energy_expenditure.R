@@ -5,7 +5,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	# enrich with metadata
 	data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
-	finalC1 <- data_and_metadata$data
+	finalC1 <- na.omit(data_and_metadata$data)
 	true_metadata <- data_and_metadata$metadata
 
 	# Select sexes
@@ -41,9 +41,9 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	if (input$use_zeitgeber_time) {
 		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-	if (input$only_full_days_zeitgeber) {
-		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-	} 
+		if (input$only_full_days_zeitgeber) {
+			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+		} 
 	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
 	} else {
