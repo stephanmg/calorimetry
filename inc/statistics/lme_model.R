@@ -1,5 +1,6 @@
 library(lme4)
 
+# TODO replace with sessionStore(...) otherwise unsafe in multi user context
 fittedValues <- NULL
 
 ################################################################################

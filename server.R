@@ -743,7 +743,6 @@ server <- function(input, output, session) {
       }
    )
 
-
    # Draw initial number of files -> typically one file
    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1))
 
@@ -760,14 +759,16 @@ server <- function(input, output, session) {
 
 
    # Dynamically create fileInput fields by the number of requested files of the user
-   output$fileInputs <- renderUI({
-      html_ui <- " "
-      for (i in seq_along(input$nFiles)) {
-         html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-            label = paste0("Cohort ", i)))
-         }
-      HTML(html_ui)
-      })
+   observeEvent(input$nFiles, {
+      output$fileInputs <- renderUI({
+         html_ui <- " "
+         for (i in 1:input$nFiles) {
+            html_ui <- paste0(html_ui, fileInput(paste0("File", i),
+               label = paste0("Cohort ", i)))
+            }
+         HTML(html_ui)
+         })
+   })
 
    #####################################################################################################################
    # Observer plotly_click (mouse left-click)
