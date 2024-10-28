@@ -1,0 +1,11 @@
+Package: CALOR
+Type: Package
+Title: CALOR 
+Version: 0.3.17
+Description: A shiny application for indirect calorimetry analysis
+Author: Stephan Grein
+Maintainer: Stephan Grein <stephan.grein@uni-bonn.de>
+LICENSE: MIT
+Encoding: UTF-8
+Roxygen: list(markdown=TRUE)
+RoxygenNote: 7.3.2
