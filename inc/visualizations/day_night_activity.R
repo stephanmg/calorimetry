@@ -4,7 +4,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# get metadata from tse header only
 	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-	finalC1 <- na.omit(data_and_metadata$data)
+	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 	
 	# if we do not have metadata, this comes from some not-clean TSE headers
