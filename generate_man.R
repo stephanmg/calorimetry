@@ -1,0 +1,16 @@
+setwd("/home/stephan/Documents/Projects/BATEnergy")
+library(roxygen2)
+
+load_code_from_inc <- function(path) {
+   env <- new.env(parent = globalenv())
+   r_files <- list.files(file.path(path, "inc"), pattern = "\\.R$", full.names = TRUE)
+   for (file in r_files) {
+      sys.source(file, envir = env)
+   }
+   env
+}
+
+
+env = load_code_from_inc("/home/stephan/Documents/Projects/BATEnergy")
+ls(env)
+roxygen2::roxygenise(load_code = load_code_from_inc, roclets = c("rd", "namespace"))

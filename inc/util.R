@@ -101,6 +101,15 @@ coarsen_data_sets <- function(df, coarsening_factor) {
 
 ################################################################################
 # remove zero values
+#' remove_zero_values
+#'
+#' This function removes zero measurement values, based on epsilon threshold
+#'
+#' @param df data frame
+#' @param eps epsilon threshold
+#' @examples
+#' remove_zero_values(values, 0.0001)
+#' @export
 ################################################################################
 remove_zero_values <- function(df, eps) {
    target_columns <- c("O2_[%]", "CO2_[%]", "VCO2_[ml/h]", "VO2_[ml/h]")
@@ -115,6 +124,15 @@ remove_zero_values <- function(df, eps) {
 ################################################################################
 # remove z score outliers
 ################################################################################
+#' remove_z_score_outliers
+#'
+#' This function removes outliers based on multiples of the standard deviation
+#' 
+#' @param df data frame
+#' @param sd multiple of the standard deviation (default=1)
+#' @examples
+#' remove_z_score_outliers(values, sd=2)
+#' @export
 remove_z_score_outliers <- function(df, sd=1) {
    target_columns <- c("O2_[%]", "CO2_[%]", "VCO2_[ml/h]", "VO2_[ml/h]")
    available_columns = intersect(target_columns, colnames(df))
