@@ -3,7 +3,11 @@ source("inc/metadata/read_metadata.R")
 library(glue)
 
 ################################################################################
-# style plot
+#' style_plot
+#' 
+#' This function is used to stylize the plotting result in the UI
+#' @param p plot object
+#' @param input shiny input
 ################################################################################
 style_plot <- function(p, input) {
       # TODO: it is easier to configure the plot a-priori, i.e. before we convert to a plotly object with ggplotly, see how to do do this, convert later?
@@ -20,7 +24,9 @@ style_plot <- function(p, input) {
 }
 
 ################################################################################
-# indicate if plot has been rendered or not
+#' indicate_plot_rendered
+#' 
+#' Indicate if plot has been rendered already or not
 ################################################################################
 indicate_plot_rendered <- function(p, output) {
       output$plotRendered <- reactive({
@@ -30,7 +36,9 @@ indicate_plot_rendered <- function(p, output) {
 }
 
 ################################################################################
-# generate statistical table in case we have multiple comparisons
+#' generate_statistical_table
+#' 
+#' This function generate statistical table in case we have multiple comparisons
 ################################################################################
 generate_statistical_table <- function(results) {
    if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
@@ -57,7 +65,10 @@ generate_statistical_table <- function(results) {
 }
 
 ################################################################################
-# process return value and creates UI if requested
+#' process_return_value_for_statistic
+#' 
+#' Helper method to return value for statistic after calculation, e.g. pretty
+#' print the digits and round
 ################################################################################
 process_return_value_for_statistic <- function(value, as_ui=TRUE) {
    if (is.numeric(value) && length(value) == 1) {
@@ -248,8 +259,6 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
 
-  
- 
    return(list("data"=df, "metadata"=metadata))
 }
 
@@ -444,7 +453,9 @@ get_non_factor_columns <- function(df) {
 }
 
 ################################################################################
-# generate new download buttons
+#' get_new_download_buttons
+#' 
+#' This function generate new download buttons to get plot as specified by div element
 ################################################################################
 get_new_download_buttons <- function(plot_div='') {
    new_buttons <- list(
