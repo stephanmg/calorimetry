@@ -4,7 +4,14 @@ library("tidyr")
 library("lubridate")
 
 ################################################################################
-# import_promethion
+#' import_promethion
+#' 
+#' This function imports Sable Systems Prometion indirect calorimetry data sets
+#' @param file input file
+#' @param file_out output file
+#' @examples 
+#' import_promethion(input_file, output_file)
+#' @export
 ################################################################################
 import_promethion <- function(file, file_out) {
    # when adding more metadata or columns need to be increased by 1
@@ -34,8 +41,7 @@ import_promethion <- function(file, file_out) {
 
    colnames(header) <- colnames(data)
 
-   # convert this to tse format for now
-   # TODO: v0.5.0 - need proper data backend structure, for now convert always to TSE format
+   # convert the promethion format to the TSE format for now
    fileinfo <- c(file, rep("", NUM_TOTAL_COLUMNS_EXPECTED - 1))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", NUM_TOTAL_COLUMNS_EXPECTED - 2))
    boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", NUM_TOTAL_COLUMNS_EXPECTED - 3))

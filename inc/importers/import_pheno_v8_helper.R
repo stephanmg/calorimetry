@@ -2,7 +2,13 @@ library(stringr)
 library(dplyr)
 
 ################################################################################
-# import_pheno_v8
+#' import_pheno_v8
+#' 
+#' This function imports TSE Systems PhenoMaster v8 indirect calorimetry data sets
+#' @param file input file
+#' @param file_out output file
+#' @examples 
+#' import_pheno_v8(input_file, output_file)
 ################################################################################
 import_pheno_v8 <- function(file, file_out) {
    toskip <- 0

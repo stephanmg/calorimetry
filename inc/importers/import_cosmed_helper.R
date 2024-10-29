@@ -4,7 +4,10 @@ library("tidyr")
 library("lubridate")
 
 ################################################################################
-# reformat_time_for_cosmed
+#' reformat_time_for_cosmed
+#' 
+#' This function reformats the time from cosmed format to general format
+#' @param time time
 ################################################################################
 reformat_time_for_cosmed <- function(time) {
    td <- seconds_to_period(time)
@@ -12,7 +15,14 @@ reformat_time_for_cosmed <- function(time) {
 }
 
 ################################################################################
-# import_cosmed
+#' import_cosmed
+#' 
+#' This function imports a COSMED indirect calorimetry data file
+#' @param file input file
+#' @param file_out output file
+#' @examples 
+#' import_cosmed(input_file, output_file)
+#' @export
 ################################################################################
 import_cosmed  <- function(file, file_out) {
    df <- read_excel(file)
