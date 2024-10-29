@@ -30,6 +30,8 @@ jobs:
         run: |
            mkdir docs/md
            mkdir docs/rst
+           chmod +x Rd_to_rst.sh
+           chmod +x populate_api_docs.sh
            chmod +x build_sphinx_docs.sh
            ./build_sphinx_docs.sh
       

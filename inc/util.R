@@ -29,7 +29,6 @@ indicate_plot_rendered <- function(p, output) {
       outputOptions(output, "plotRendered", suspendWhenHidden = FALSE)
 }
 
-
 ################################################################################
 # generate statistical table in case we have multiple comparisons
 ################################################################################
@@ -91,6 +90,15 @@ process_return_value_for_statistic <- function(value, as_ui=TRUE) {
 
 ################################################################################
 # coarsening data sets
+#' coarsen_data_sets
+#' 
+#' This function coarsens a data frame according to the numerical coarsening factor
+#' 
+#' @param df data frame
+#' @param coarsening_factor coarsening factor
+#' @examples 
+#' coarsen_data_sets(values, 2)
+#' @export 
 ################################################################################
 coarsen_data_sets <- function(df, coarsening_factor) {
    # assumes that the data frame is sorted ascending in time, which should be the case
@@ -150,6 +158,17 @@ remove_z_score_outliers <- function(df, sd=1) {
 
 ################################################################################
 # enrich with metadata
+#' enrich_with_metadata
+#' 
+#' Enrich data frame with metadata
+#' 
+#' @param finalC1 data frame
+#' @param C1meta metadata from data files in finalC1
+#' @param havemetadatafile boolean to indicate if we have structured metadata sheet
+#' @param metadatafile structured metadata sheet
+#' @examples 
+#' enrich_with_metadata(values, metadata_basic, TRUE, "metadata.xlsx")
+#' @export
 ################################################################################
 enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
    df <- finalC1
@@ -276,6 +295,14 @@ get_global_offset_for_day_night <- function(df) {
 
 ################################################################################
 # convert df to zeitgeber zeit
+#' zeitgeber_zeit
+#' 
+#' Converts the time to zeitgeber zeit
+#' @param df data frame
+#' @param light_on indicates when day starts (light on typically)
+#' @examples 
+#' zeitgeber_zeit(values, 8)
+#' @export
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
    # TODO: this needs to be revised, if one want to select indvidual calendrical days, because running_total.sec == 0 will not be found

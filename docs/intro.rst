@@ -1,5 +1,8 @@
-Introduction
+What is CALOR?
 ============
+
+CALOR is a web application based on Shiny R to allow streamlined visualization and statistical analysis of
+indirect calorimetry data set making use of structured metadata to faciliate downstream analysis tasks.
 
 For a very brief tour use the **User guide** button in the **Visualization and statistical analysis** tab
 Short written examples are accessible through the **Getting help** button on the landing page.
@@ -88,6 +91,9 @@ Load example data sets and metadata, either **UCP1 KO** or **DAKO** are availabl
 
    During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the **Data curation** 
    panel analogue to the previous **Plotting** section to visualize and analyze results.
+
+   Note that all plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area,
+   a menu with options will appear at the top border of the plotting area then.
 
 
 5. Data export

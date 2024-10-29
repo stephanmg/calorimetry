@@ -6,6 +6,23 @@ library(ggpubr)
 # Recode (from dplyr) hidden by car::recode and (from purr) hidden by car::some. 
 # Thus we don't use of library(car), but we use double colon for absolute scoping
 
+################################################################################
+# body composition
+#' body_composition
+#' 
+#' This function generates and overview of body composition and other recorded metadata
+#' 
+#' @param finalC1 input data
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' body_composition(values, full_metadata, input, output, session, global_data, 1)
+#' @export
+################################################################################
 body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))

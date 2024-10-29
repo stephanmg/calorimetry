@@ -1,3 +1,18 @@
+################################################################################
+#' goxlox
+#' 
+#' This function calculates lipid and glucose oxidation
+#' @param finalC1 input data
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' goxlox(values, full_metadata, input, output, session, global_data, 1)
+#' @export
+################################################################################
 goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))

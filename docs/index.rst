@@ -6,13 +6,22 @@
 Welcome to CALOR's documentation!
 =================================
 
+Introduction
+============
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
 
-
-   faq
    intro
+   faq
+   code
+
+
+API Documentation
+=================
+.. toctree::
+   :maxdepth: 1
+
+   api
 
 
 Indices and tables

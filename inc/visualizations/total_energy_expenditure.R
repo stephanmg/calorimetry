@@ -1,3 +1,20 @@
+################################################################################
+#' total_energy_expenditure
+#' 
+#' This function calculates the total energy expenditure
+#' 
+#' @param finalC1 input data
+#' @param C1meta basic metadata
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' total_energy_expenditure(values, basic_metadata, full_metadata, input, output, session, global_data, 1)
+#' @export
+################################################################################
 total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# assign colors based on animals
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
