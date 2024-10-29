@@ -7,7 +7,14 @@ library(plotly)
 library(shinyalert)
 
 ################################################################################
-# get study description
+#' get_study_description_from_metadata
+#' 
+#' This function extract study description from metadata sheet
+#' @param file input file
+#' @examples 
+#' get_study_description_from_metadata(input_file)
+#' @export
+#' 
 ################################################################################
 get_study_description_from_metadata <- function(file) {
    df <- read_excel(file)
@@ -20,7 +27,13 @@ get_study_description_from_metadata <- function(file) {
 }
 
 ################################################################################
-# get covariates and units
+#' get_covariates_and_units
+#' 
+#' This function gets covariates with units from metadata sheet
+#' @param file input_file
+#' @examples 
+#' get_covariates_and_units(input_file)
+#' @export
 ################################################################################
 get_covariates_and_units <- function(file) {
    df <- read_excel(file)
@@ -52,12 +65,17 @@ get_covariates_and_units <- function(file) {
    if ( ! ( (length(covariates) == 0) || (length(units_values) == 0))) {
       df_meta <- data.frame(covariates, units_values)            
    }
-   print(df_meta)
    return(df_meta)
 }
 
 ################################################################################
-# get constant and value pairs from metadata sheet
+#' get_constants
+#' 
+#' This function gets constant and value pairs from metadata sheet
+#' @param file input file
+#' @examples 
+#' get_constants(input_file)
+#' @export
 ################################################################################
 get_constants <- function(file) {
    df <- read_excel(file)
@@ -77,20 +95,21 @@ get_constants <- function(file) {
    if (! ((length(constants) == 0) || (length(constants_values) == 0))) {
      df_meta <- data.frame(constant = constants, value = constants_values)
    }
-   print(df_meta)
    return(df_meta)
 }
 
 ################################################################################
-# get full metadata from metadata sheet
+#' get_true_metadata
+#'  
+#' This function loads the true metadata from the Metadata Sheet (.xlsx)
+#' @param file input file
+#' @param load_example_data
+#' @examples 
+#' get_true_metadata(input_file, FALSE)
+#' @export
 ################################################################################
 get_true_metadata <- function(file, load_example_data) {
-   df <- NULL
-   #if (load_example_data) {
-   #   df <- read_excel(paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_metadata.xlsx", sep = ""))
-   #} else {
-     df <- read_excel(file)
-   #}
+   df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
 
    from_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "Sample-Section"))) %>% pull(ind)
@@ -184,7 +203,6 @@ get_true_metadata <- function(file, load_example_data) {
    }
 
    # return the compiled metadata
-   print(df_meta)
    return(df_meta)
 
 }
