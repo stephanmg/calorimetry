@@ -1,7 +1,7 @@
-
-
 ################################################################################
-# get git info from repository
+#' get_git_info_from_repository
+#' 
+#' This function is used to create the git branch information for the UI
 ################################################################################
 get_git_information_from_repository <- function() {
       repo <- git2r::repository(".")
