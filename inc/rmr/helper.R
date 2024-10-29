@@ -3,7 +3,9 @@ library(ggplot2)
 library(shinyalert)
 
 ################################################################################
-# annotate RMR days
+#' annotate_rmr_days
+#' 
+#' Helper function to annotate RMR days
 ################################################################################
 annotate_rmr_days <- function(df) {
    df_anno <- df %>% group_by(Animal) %>% mutate(Day = ceiling(Time / (24*60))) %>% ungroup()
@@ -13,38 +15,41 @@ annotate_rmr_days <- function(df) {
 
 
 ################################################################################
-# padding_helper
+#' padding_helper
+#' 
+#' This function used to pad data to same length in RMR calculations
 ################################################################################
 padding_helper <- function(df) {
    # Find the last row for each group
-df_max_index <- df %>%
-  group_by(Group) %>%
-  slice(n()) %>%
-  ungroup()
+   df_max_index <- df %>%
+   group_by(Group) %>%
+   slice(n()) %>%
+   ungroup()
 
-# Function to insert a row after the max index for each group
-insert_row <- function(data, row, after) {
-  data <- rbind(data[1:after, ], row, data[(after + 1):nrow(data), ])
-  return(data)
-}
+   # Function to insert a row after the max index for each group
+   insert_row <- function(data, row, after) {
+      data <- rbind(data[1:after, ], row, data[(after + 1):nrow(data), ])
+      return(data)
+   }
 
-# Initialize a new data frame to store the results
-new_df <- df
+   # Initialize a new data frame to store the results
+   new_df <- df
 
-# Loop through each group to insert the new row
-for (i in seq_len(nrow(df_max_index))) {
-  row_to_insert <- df_max_index[i, ]
-  group_rows <- which(df$Group == df_max_index$Group[i])
-  max_index <- max(group_rows)
-  new_df <- insert_row(new_df, row_to_insert, max_index)
-
-}
-return(new_df)
+   # Loop through each group to insert the new row
+   for (i in seq_len(nrow(df_max_index))) {
+      row_to_insert <- df_max_index[i, ]
+      group_rows <- which(df$Group == df_max_index$Group[i])
+      max_index <- max(group_rows)
+      new_df <- insert_row(new_df, row_to_insert, max_index)
+   }
+   return(new_df)
 }
 
 
 ################################################################################
-# partition
+#' partition
+#' 
+#' Helper function to partition data 
 ################################################################################
 partition <- function(mydf) {
    df <- mydf
@@ -75,10 +80,12 @@ partition <- function(mydf) {
 
 
 ################################################################################
-# cv
+#' cv
+#' 
+#' This function calculates the coefficient of variation for data frmae
+#' @param mydf data frame
+#' @param window window size
 ################################################################################
-# mydf, data
-# window, size
 cv <- function(mydf, window = 2) {
    df <- mydf
    df_new <- data.frame()
@@ -102,7 +109,9 @@ cv <- function(mydf, window = 2) {
 }
 
 ################################################################################
-# reformat
+#' reformat
+#' 
+#' This function reformats the calculates RMR accordingly for post processing
 ################################################################################
 # df_new, data
 reformat <- function(df_new) {
@@ -116,7 +125,9 @@ reformat <- function(df_new) {
 
 
 ################################################################################
-# get_time_diff
+#' get_time_diff
+#' 
+#' This function get's the time difference (measurement interval length) in minutes
 ################################################################################
 get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
@@ -154,7 +165,9 @@ get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
 }
 
 ################################################################################
-# get_date_range
+#' get_date_range
+#' 
+#' This function get's all available dates in the data sets
 ################################################################################
 get_date_range <- function(df) {
  date_first <- df %>% select(Datetime) %>% first() %>% pull()
@@ -166,7 +179,9 @@ get_date_range <- function(df) {
 
 
 ################################################################################
-# check_for_cosmed
+#' check_for_cosmed
+#' 
+#' Helper function to check for COSMED (.xlsx) data sets
 ################################################################################
 check_for_cosmed <- function(file) {
    if (length(excel_sheets(file)) == 2) {

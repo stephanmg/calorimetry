@@ -2,7 +2,9 @@ library(dplyr)
 source("inc/rmr/extract_rmr.R")
 
 ################################################################################
-# pretty_print_interval_length_list
+#' pretty_print_interval_length_list
+#' 
+#' This function pretty prints the interval length list with cohort information
 ################################################################################
 pretty_print_interval_length_list <- function(interval_length_list_per_cohort_and_animals) {
    for (name in names(interval_length_list_per_cohort_and_animals)) {
@@ -14,7 +16,9 @@ pretty_print_interval_length_list <- function(interval_length_list_per_cohort_an
 
 
 ################################################################################
-# lookup_interval_length
+#' lookup_interval_length
+#' 
+#' This function is used to lookup the interval length based on a cohort
 ################################################################################
 lookup_interval_length <- function(interval_length_list_per_cohort_and_animals, value) {
    for (item in interval_length_list_per_cohort_and_animals) {
@@ -26,7 +30,9 @@ lookup_interval_length <- function(interval_length_list_per_cohort_and_animals, 
 }
 
 ################################################################################
-# lookup_cohort_belonging
+#' lookup_cohort_belonging
+#' 
+#' This function looks up the cohort a given animal id belongs to
 ################################################################################
 lookup_cohort_belonging <- function(interval_length_list_per_cohort_and_animals, id) {
    for (name in names(interval_length_list_per_cohort_and_animals)) {
@@ -39,7 +45,9 @@ lookup_cohort_belonging <- function(interval_length_list_per_cohort_and_animals,
 
 
 ################################################################################
-# extract_rmr_helper
+#' extract_rmr_helper
+#' 
+#' This function is a helper method/wrapper to calculate the resting metabolic rate
 ################################################################################
 extract_rmr_helper <- function(interval_length = 15, percentage_best = 1, M = 1) {
    df <- read.csv2("df_for_cov_analysis.csv")
