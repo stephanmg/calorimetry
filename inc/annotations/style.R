@@ -1,5 +1,7 @@
 ################################################################################
-# add stylize plotting control for basic plots
+#' add_stylize_plot_plotting_control
+#' 
+#' This function adds UI elements to allow to customize the plot appearance
 ################################################################################
 add_stylize_plot_plotting_control <- function() {
 	return(
