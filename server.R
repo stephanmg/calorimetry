@@ -55,7 +55,6 @@ source("inc/annotations/style.R") # for styling of basic plots
 ################################################################################
 # Statistics
 ################################################################################
-source("inc/statistics/do_ancova.R") # for ancova without metadata
 source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 
 ################################################################################
