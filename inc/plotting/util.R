@@ -1,5 +1,10 @@
 ################################################################################
-# add visualization shape (geom shape)
+#' add_visualization_type
+#' 
+#' This function adds the visualization shape (geom shape)
+#' @param p plot object
+#' @param type geom shape type
+#' @param with_point overlay with geom_point as well or not
 ################################################################################
 add_visualization_type <- function(p, type, with_point=TRUE) {
 	if (type == "Violinplot") { 
