@@ -18,9 +18,30 @@ CALOR is a holistic web application for data integration, visualization and stat
 <hr/>
 
 
-# User manual
+# For users
 
-Documentation here: https://stephanmg.github.io/calorimetry
+Documentation available through Github Pages: https://stephanmg.github.io/calorimetry
+
+The app is available on the following web sites: 
+- [CALOR in ShinyApps](https://calorimetry.shinyapps.io/calorimetry/) or 
+- [CALOR on on-premise Uni Bonn](https://shinys.iaas.uni-bonn.de/Calo).
+
+## Standalone Desktop apps
+
+One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
+
+Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
+
+## Metadata Sheet
+
+One can use the metadata shiny app converter app: https://github.com/stephanmg/metadata-converter to generate a truncated metadata sheet.
+
+## Caveats
+
+- Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments (should not happen often)
+- IC experiments might have not the same length of time, currently plots are thus not equal in length on the time axis
+
+# For developers
 
 ## Option 1: DockerHub / Docker.io
 
@@ -36,7 +57,7 @@ docker run --name CALOR -it -p 1338:1338 stephanmg/CALOR
 
 Note that you can also build your own container from the `Dockerfile` provided with either `docker` or `podman`.
 
-## Option 2: ShinyApps.io 
+## Option 2: ShinyApps.io and on-premise Uni Bonn
 The CALOR application is also hosted on http://shinyapps.io/stephanmg/CALOR
 and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 
@@ -45,25 +66,4 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 2. Install dependencies with `Rscript -e "library(renv); renv::restore()"` from the current working directory
 3. Run `Rscript startapp.R` from base directory (inside *this* respository)
 
-
-## Demonstration of application
-Visit the following website: [Shiny Calo App](https://calorimetry.shinyapps.io/calorimetry/)
-
-## Caveats
-
-- Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments
-- IC experiments might have not the same length of time, currently plots are thus not equal in length on the time axis
-
-## Metadata
-
-One can use the metadata shiny app converter app: https://github.com/stephanmg/metadata-converter to generate a truncated metadata sheet.
-
-## Standalone Desktop apps
-
-One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
-
-Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
-
-
-# Latest changes
-
+## Latest changes
