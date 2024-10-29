@@ -4,7 +4,13 @@ library(lme4)
 fittedValues <- NULL
 
 ################################################################################
-# linear mixed effect modelling
+#' model_effects
+#' 
+#' This function uses a linear mixed effect model to explain effects on a dependent var
+#' @param df  data frame
+#' @param dep_var dependent variable
+#' @param input shiny input
+#' @export
 ################################################################################
 model_effects <- function(df, dep_var, input) {
 	fixed_effects <- sapply(1:(input$how_many_fixed_effects), function(i) input[[paste0("fixed_effect_variable_", i)]])
@@ -23,7 +29,9 @@ model_effects <- function(df, dep_var, input) {
 }
 
 ################################################################################
-# visualizing the linear mixed effect modelling results
+#' visualize_model_effects
+#' 
+#' This functions visualizes the linear mixed effect modelling results
 ################################################################################
 visualize_model_effects <- function(df, dep_var, input, output) {
 	# set up LME model
@@ -60,7 +68,9 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 }
 
 ################################################################################
-# create UI for modelling
+#' create_lme_model_ui
+#' 
+#' This function creates UI for LME modelling
 ################################################################################
 create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var) {
 	print("before creating model:")

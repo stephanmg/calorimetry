@@ -5,7 +5,9 @@ library(broom)
 library(emmeans)
 
 ################################################################################
-# Get r squared clean for plotly
+#' get_r_squared_clean
+#' 
+#' This function get's the R-squared value in a clean way for plotly
 ################################################################################
 get_r_squared_clean <- function(rvalue) {
   r_squared_value <- sub(".*italic\\(R\\)\\^2\\s=\\s(-?[0-9.]+).*", "\\1", rvalue)
@@ -13,7 +15,9 @@ get_r_squared_clean <- function(rvalue) {
 }
 
 ################################################################################
-# Calculate statistic based on provided method
+#' calculate_statistic
+#' 
+#' This function calculate statistic based on provided method: mean or median
 ################################################################################
 calculate_statistic <- function(data, method) {
   switch(method,
@@ -23,7 +27,9 @@ calculate_statistic <- function(data, method) {
 }
 
 ################################################################################
-# do_ancova_alternative
+#' do_ancova_alternative
+#' 
+#' This function performs multi-way ANCOVA or ANOVA analysis
 ################################################################################
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
@@ -201,8 +207,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       }
     }
   }
-
-  print("a")
 
   p <- NULL
   pwc <- NULL
