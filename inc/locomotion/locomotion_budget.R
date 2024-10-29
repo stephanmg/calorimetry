@@ -6,7 +6,13 @@ library(ggExtra)
 library(stringr)
 
 ################################################################################
-# plot_locomotion_budget
+#' plot_locomotion_budget
+#' 
+#' This function plots the locomotional budget from a Sable Systems Promethion file
+#' @param file input file
+#' @examples 
+#' plot_locomotion_budget(input_file)
+#' @export
 ################################################################################
 plot_locomotion_budget <- function(file) {
    sheet <- "Behavior_List"

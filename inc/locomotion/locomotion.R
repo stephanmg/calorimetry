@@ -5,7 +5,24 @@ library(viridis)
 library(ggExtra)
 
 ################################################################################
-# plot_locomotion
+#' plot_locomotion
+#' 
+#' This function plots the locomotion / probability density map of a standard 
+#' Sable Systems Promethion file
+#' @param file input file
+#' @param x_min_food
+#' @param x_max_food
+#' @param y_min_food
+#' @param y_max_food
+#' @param x_min_scale
+#' @param x_max_scale
+#' @param y_min_scale
+#' @param y_max_scale
+#' @param x_min_bottle
+#' @param x_max_bottle
+#' @param y_min_bottle
+#' @param y_max_bottle
+#' 
 ################################################################################
 plot_locomotion <- function(file, x_min_food = 2, x_max_food = 9.5, y_min_food = 4, y_max_food = 16, x_min_scale = 20.5, x_max_scale = 29, y_min_scale = 4.2, y_max_scale = 9.5, x_min_bottle = 20.5, x_max_bottle = 28, y_min_bottle = 12, y_max_bottle = 15.5) {
    sheet <- "Behavior_List"
