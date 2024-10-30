@@ -1,5 +1,5 @@
 What is CALOR?
-============
+==============
 
 CALOR is a web application based on Shiny R to allow streamlined visualization and statistical analysis of
 indirect calorimetry data set making use of structured metadata to faciliate downstream analysis tasks.
@@ -46,8 +46,8 @@ Load example data sets and metadata, either **UCP1 KO** or **DAKO** are availabl
 
    First option: Provide an Excel (*.xlsx*) file with the following column structure:
 
-   Example metadata table for metadata converter
-   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Example metadata table for metadata converter
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
    +-----------+--------+------+----------+-------------+----------+---------+----------+--------+----------+--------+
    | Animal #  | sex    | diet | genotype | age at start| bw start | bw end  | fm start | fm_end | lm start | lm end |
