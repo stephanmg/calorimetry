@@ -277,7 +277,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (input$kj_or_kcal == "mW") {
 		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " "))
 	} else {
-		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/ h]", sep = " "))
+		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/h]", sep = " "))
 	}
 
 	# add light cycle annotation
@@ -292,7 +292,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	}
 
 	# add title
-	p <- p + ggtitle(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]", " using equation ", pretty_print_equation(input$myp)))
+	p <- p + ggtitle(paste0("Energy expenditure [", input$kj_or_kcal, "/h]", " using equation ", pretty_print_equation(input$myp)))
 
 	# group with group from metadata
 	if (input$with_facets) {

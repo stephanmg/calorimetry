@@ -103,7 +103,7 @@ get_constants <- function(file) {
 #'  
 #' This function loads the true metadata from the Metadata Sheet (.xlsx)
 #' @param file input file
-#' @param load_example_data
+#' @param load_example_data TRUE if example data should be loaded (default: FALSE)
 #' @examples 
 #' get_true_metadata(input_file, FALSE)
 #' @export

@@ -10,18 +10,18 @@ library(ggExtra)
 #' This function plots the locomotion / probability density map of a standard 
 #' Sable Systems Promethion file
 #' @param file input file
-#' @param x_min_food
-#' @param x_max_food
-#' @param y_min_food
-#' @param y_max_food
-#' @param x_min_scale
-#' @param x_max_scale
-#' @param y_min_scale
-#' @param y_max_scale
-#' @param x_min_bottle
-#' @param x_max_bottle
-#' @param y_min_bottle
-#' @param y_max_bottle
+#' @param x_min_food min x coordinate of food hamper
+#' @param x_max_food max x coordinate of food hamper
+#' @param y_min_food min y coordinate of food hamper
+#' @param y_max_food max y coordinate of food hamper
+#' @param x_min_scale min x scale factor
+#' @param x_max_scale max x scale factor
+#' @param y_min_scale min y scale factor
+#' @param y_max_scale max y scale factor
+#' @param x_min_bottle min x coordinate water bottle
+#' @param x_max_bottle max x coordinate water bottle
+#' @param y_min_bottle min y coordinate water bottle
+#' @param y_max_bottle max y coordinate water bottle
 #' 
 ################################################################################
 plot_locomotion <- function(file, x_min_food = 2, x_max_food = 9.5, y_min_food = 4, y_max_food = 16, x_min_scale = 20.5, x_max_scale = 29, y_min_scale = 4.2, y_max_scale = 9.5, x_min_bottle = 20.5, x_max_bottle = 28, y_min_bottle = 12, y_max_bottle = 15.5) {
