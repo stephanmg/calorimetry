@@ -1,9 +1,16 @@
 library(lme4)
 
+# TODO replace with sessionStore(...) otherwise unsafe in multi user context
 fittedValues <- NULL
 
 ################################################################################
-# linear mixed effect modelling
+#' model_effects
+#' 
+#' This function uses a linear mixed effect model to explain effects on a dependent var
+#' @param df  data frame
+#' @param dep_var dependent variable
+#' @param input shiny input
+#' @export
 ################################################################################
 model_effects <- function(df, dep_var, input) {
 	fixed_effects <- sapply(1:(input$how_many_fixed_effects), function(i) input[[paste0("fixed_effect_variable_", i)]])
@@ -13,8 +20,6 @@ model_effects <- function(df, dep_var, input) {
 	fixed_effects_formula <- paste(fixed_effects, collapse = " + ") 
 	random_effects_formula <- paste("(1 |", random_effects, ")", collapse = " + ") 
 	formula_string <- paste(dep_var, "~", fixed_effects_formula, "+", random_effects_formula) 
-	print("df col names:")
-	print(names(df))
 	lmm <- lmer(as.formula(formula_string), data = df)
 	fixed_effects_df <- as.data.frame(coef(summary(lmm)))
 	random_effects_df <- as.data.frame(VarCorr(lmm))
@@ -22,7 +27,9 @@ model_effects <- function(df, dep_var, input) {
 }
 
 ################################################################################
-# visualizing the linear mixed effect modelling results
+#' visualize_model_effects
+#' 
+#' This functions visualizes the linear mixed effect modelling results
 ################################################################################
 visualize_model_effects <- function(df, dep_var, input, output) {
 	# set up LME model
@@ -59,11 +66,11 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 }
 
 ################################################################################
-# create UI for modelling
+#' create_lme_model_ui
+#' 
+#' This function creates UI for LME modelling
 ################################################################################
 create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var) {
-	print("before creating model:")
-	print(names(df_to_plot))
 	output$modelling <- renderUI({
 		tagList(
 			h4("Modelling dependent variable with an LME model"),

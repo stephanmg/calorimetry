@@ -3,7 +3,11 @@ source("inc/metadata/read_metadata.R")
 library(glue)
 
 ################################################################################
-# style plot
+#' style_plot
+#' 
+#' This function is used to stylize the plotting result in the UI
+#' @param p plot object
+#' @param input shiny input
 ################################################################################
 style_plot <- function(p, input) {
       # TODO: it is easier to configure the plot a-priori, i.e. before we convert to a plotly object with ggplotly, see how to do do this, convert later?
@@ -20,7 +24,9 @@ style_plot <- function(p, input) {
 }
 
 ################################################################################
-# indicate if plot has been rendered or not
+#' indicate_plot_rendered
+#' 
+#' Indicate if plot has been rendered already or not
 ################################################################################
 indicate_plot_rendered <- function(p, output) {
       output$plotRendered <- reactive({
@@ -29,9 +35,10 @@ indicate_plot_rendered <- function(p, output) {
       outputOptions(output, "plotRendered", suspendWhenHidden = FALSE)
 }
 
-
 ################################################################################
-# generate statistical table in case we have multiple comparisons
+#' generate_statistical_table
+#' 
+#' This function generate statistical table in case we have multiple comparisons
 ################################################################################
 generate_statistical_table <- function(results) {
    if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
@@ -58,7 +65,10 @@ generate_statistical_table <- function(results) {
 }
 
 ################################################################################
-# process return value and creates UI if requested
+#' process_return_value_for_statistic
+#' 
+#' Helper method to return value for statistic after calculation, e.g. pretty
+#' print the digits and round
 ################################################################################
 process_return_value_for_statistic <- function(value, as_ui=TRUE) {
    if (is.numeric(value) && length(value) == 1) {
@@ -91,6 +101,15 @@ process_return_value_for_statistic <- function(value, as_ui=TRUE) {
 
 ################################################################################
 # coarsening data sets
+#' coarsen_data_sets
+#' 
+#' This function coarsens a data frame according to the numerical coarsening factor
+#' 
+#' @param df data frame
+#' @param coarsening_factor coarsening factor
+#' @examples 
+#' coarsen_data_sets(values, 2)
+#' @export 
 ################################################################################
 coarsen_data_sets <- function(df, coarsening_factor) {
    # assumes that the data frame is sorted ascending in time, which should be the case
@@ -101,6 +120,15 @@ coarsen_data_sets <- function(df, coarsening_factor) {
 
 ################################################################################
 # remove zero values
+#' remove_zero_values
+#'
+#' This function removes zero measurement values, based on epsilon threshold
+#'
+#' @param df data frame
+#' @param eps epsilon threshold
+#' @examples
+#' remove_zero_values(values, 0.0001)
+#' @export
 ################################################################################
 remove_zero_values <- function(df, eps) {
    target_columns <- c("O2_[%]", "CO2_[%]", "VCO2_[ml/h]", "VO2_[ml/h]")
@@ -115,6 +143,15 @@ remove_zero_values <- function(df, eps) {
 ################################################################################
 # remove z score outliers
 ################################################################################
+#' remove_z_score_outliers
+#'
+#' This function removes outliers based on multiples of the standard deviation
+#' 
+#' @param df data frame
+#' @param sd multiple of the standard deviation (default=1)
+#' @examples
+#' remove_z_score_outliers(values, sd=2)
+#' @export
 remove_z_score_outliers <- function(df, sd=1) {
    target_columns <- c("O2_[%]", "CO2_[%]", "VCO2_[ml/h]", "VO2_[ml/h]")
    available_columns = intersect(target_columns, colnames(df))
@@ -132,48 +169,53 @@ remove_z_score_outliers <- function(df, sd=1) {
 
 ################################################################################
 # enrich with metadata
+#' enrich_with_metadata
+#' 
+#' Enrich data frame with metadata
+#' 
+#' @param finalC1 data frame
+#' @param C1meta metadata from data files in finalC1
+#' @param havemetadatafile boolean to indicate if we have structured metadata sheet
+#' @param metadatafile structured metadata sheet
+#' @examples 
+#' enrich_with_metadata(values, metadata_basic, TRUE, "metadata.xlsx")
+#' @export
 ################################################################################
 enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
    df <- finalC1
    if (havemetadata) {
       metadata <- get_true_metadata(metadatafile$datapath)
-      print(metadata)
       # fall back to TSE metadata
       if (is.null(metadata)) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))
       }
 
- # add some calculated metadata 
-   delta_pairs <- list(
-      c("bw_start", "bw_end", "delta_bw"),
-      c("fm_start", "fm_end", "delta_fm"),
-      c("lm_start", "lm_end", "delta_lm")
-   )
-   
+      # add some calculated metadata 
+      delta_pairs <- list(
+         c("bw_start", "bw_end", "delta_bw"),
+         c("fm_start", "fm_end", "delta_fm"),
+         c("lm_start", "lm_end", "delta_lm")
+      )
+      
 
-    add_delta_columns <- function(df, column_pairs) {
-    for (pair in column_pairs) {
-      start_col <- pair[1]
-      end_col <- pair[2]
-      delta_col <- pair[3]
-      if (all(c(start_col, end_col) %in% names(df)) && !(delta_col %in% names(df))) {
-         df <- df %>%
-         mutate(!!delta_col := as.numeric(!!sym(end_col)) - as.numeric(!!sym(start_col)))
+      add_delta_columns <- function(df, column_pairs) {
+         for (pair in column_pairs) {
+            start_col <- pair[1]
+            end_col <- pair[2]
+            delta_col <- pair[3]
+            if (all(c(start_col, end_col) %in% names(df)) && !(delta_col %in% names(df))) {
+               df <- df %>%
+               mutate(!!delta_col := as.numeric(!!sym(end_col)) - as.numeric(!!sym(start_col)))
+            }
+         }
+         return(df)
       }
-   }
-   return(df)
-   }
 
-   metadata <- add_delta_columns(metadata, delta_pairs)
-
-   print("columns:")
-   print(names(metadata))
-
-
+      metadata <- add_delta_columns(metadata, delta_pairs)
       # instead na.omit() we need to use select to remove columns which are all NA before joining, 
       # this might be because we have columns, e.g. dob which are not present at all in TSE files and also not in the metadata sheet as well
-      print("before metadata join")
-      print(metadata)
+      # or also if not all cohort  files are used with the animal ids recorded in the metadata sheet, or: if
+      # the metadata sheet contains nan values... for i.e. lm_start etc.
       # need to remove all nan columns because individual cohorts might not have the same columns
       df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals")) 
    } else {
@@ -201,16 +243,13 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       for (col in colnames(df_filtered)) {
          if (col %in% c("Sex", "Diet", "Genotype", "Box", "Box_NA", "Dob")) { # factor columns from TSE standard header
             df_filtered[[col]] = as.factor(df_filtered[[col]])
-         } # remaning columns are assumed to be numerical and used as covariates
+         } # renaming columns are assumed to be numerical and used as covariates
       }
       metadata <- df_filtered 
-      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when switching between pnales occassionally?
-      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates
+      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when switching between panels occassionally?
+      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates?
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
-
-  
- 
    return(list("data"=df, "metadata"=metadata))
 }
 
@@ -256,10 +295,19 @@ get_global_offset_for_day_night <- function(df) {
 
 ################################################################################
 # convert df to zeitgeber zeit
+#' zeitgeber_zeit
+#' 
+#' Converts the time to zeitgeber zeit
+#' @param df data frame
+#' @param light_on indicates when day starts (light on typically)
+#' @examples 
+#' zeitgeber_zeit(values, 8)
+#' @export
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
-   # TODO: this needs to be revised, if one want to select indvidual calendrical days, because running_total.sec == 0 will not be found
-   # TODO: For RMR  this is grouped, need to see why
+   # TODO: this needs to be revised, if one want to select indvidual calendrical days,
+   # because running_total.sec == 0 will not be foun, also for RMR the following df
+   # is grouped and needs to be converted before writing. Why?
    write.csv2(apply(df, 2, as.character), "directly_before_offsets.csv")
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
@@ -390,14 +438,13 @@ get_factor_columns <- function(df) {
 # get non-factor columns
 ################################################################################
 get_non_factor_columns <- function(df) {
-   # TODO: should non-factor columns be numeric? in ANOVA/ANCOVA covariates should be numeric
    return(names(df)[sapply(df, Negate(is.factor))])
-	#non_factor_columns <- sapply(df, Negate(is.factor))
-   #return(names(df)[non_factor_columns & sapply(df, is.numeric)])
 }
 
 ################################################################################
-# generate new download buttons
+#' get_new_download_buttons
+#' 
+#' This function generate new download buttons to get plot as specified by div element
 ################################################################################
 get_new_download_buttons <- function(plot_div='') {
    new_buttons <- list(

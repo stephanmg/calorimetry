@@ -2,7 +2,9 @@ library(shiny)
 library(cicerone)
 
 ################################################################################
-# guide
+#' guide
+#' 
+#' This function creates a simple user guide navigating the user through the app
 ################################################################################
 guide <- Cicerone$
     new(id = "guide")$

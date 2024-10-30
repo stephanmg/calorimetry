@@ -1,3 +1,18 @@
+################################################################################
+#' resting_metabolic_rate
+#' 
+#' This function calculates the resting metabolic rate
+#' @param finalC1 input data
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' resting_metabolic_rate(values, full_metadata, input, output, session, global_data, 1)
+#' @export
+################################################################################
 resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	component2 <- ""
 	if (length(input$cvs) == 2) {

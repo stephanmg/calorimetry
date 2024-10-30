@@ -5,7 +5,10 @@ library(dplyr)
 library(patchwork)
 
 ################################################################################
-# do_extract
+#' do_extract
+#' 
+#' This function does the heavy lifting, calculating the interval-based resting
+#' metabolic rates based on the coefficient of variation criteria
 ################################################################################
 # N specifies the number of total intervals of time increase of e.g. 15 minutes
 # M specifies the number of intervals one wishes to find a minimum energy exp.
@@ -40,7 +43,9 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 }
 
 ################################################################################
-# create_df
+#' create_df
+#' 
+#' This function prepares the data frame for resting metabolic rate calculation
 ################################################################################
 # df, data frame
 # component, either O2 or CO2
@@ -71,7 +76,9 @@ filename <- "test_O2.pdf"
 percentage <- 5
 
 ################################################################################
-# extract_rmr
+#' extract_rmr
+#' 
+#' This function extracts the resting metabolic rate from the data frame
 ################################################################################
 extract_rmr <- function(data, M = 5, PERCENTAGE = 5, interval_length = 15) {
    N <- nrow(data)

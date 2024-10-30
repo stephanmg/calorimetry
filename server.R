@@ -55,7 +55,6 @@ source("inc/annotations/style.R") # for styling of basic plots
 ################################################################################
 # Statistics
 ################################################################################
-source("inc/statistics/do_ancova.R") # for ancova without metadata
 source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 
 ################################################################################
@@ -92,7 +91,7 @@ source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR es
 source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
-# TODO: Global variables - not safe in multi-user context, also obsolete, remove!)
+# TODO: Global variables - not safe in multi-user context
 ################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -126,7 +125,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    #############################################################################
    # Data read-in
-   # FIXME: Could be improve if more example data sets are required.
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
@@ -197,12 +195,16 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       if (length(excel_sheets(file)) == 2) {
         if (check_for_cosmed(file)) {
             output$file_type_detected <- renderText("Input file type detected as: COSMED")
+            storeSession(session$token, "input_file_type", "COSMED", global_data)
             import_cosmed(file, tmp_file)
         } else {
             output$file_type_detected <- renderText("Unknown file type detected from Excel")
+            storeSession(session$token, "input_file_type", "Unknown", global_data)
         }
       } else {
         output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+        updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
+        storeSession(session$token, "input_file_type", "Sable", global_data)
         import_promethion(file, tmp_file)
       }
       file <- tmp_file
@@ -212,24 +214,28 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # LabMaster V5 (horizontal format)
    if (grepl("V5", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "LabMaster/V5", global_data)
       sep <- ";"
       dec <- "."
    }
 
    # LabMaster V6
    if (grepl("V6", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "LabMaster/V6", global_data)
       sep <- ";"
       dec <- ","
    }
 
-   # Phenomaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
+   # PhenoMaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
    if (grepl("V7", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "PhenoMaster/V7", global_data)
       sep <- ","
       dec <- "."
    }
 
-   # Phenomaster V8
+   # PhenoMaster V8
    if (grepl("V8", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "PhenoMaster/V8", global_data)
       tmp_file <- tempfile()
       import_pheno_v8(file, tmp_file)
       file <- tmp_file
@@ -743,7 +749,6 @@ server <- function(input, output, session) {
       }
    )
 
-
    # Draw initial number of files -> typically one file
    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1))
 
@@ -760,14 +765,16 @@ server <- function(input, output, session) {
 
 
    # Dynamically create fileInput fields by the number of requested files of the user
-   output$fileInputs <- renderUI({
-      html_ui <- " "
-      for (i in seq_along(input$nFiles)) {
-         html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-            label = paste0("Cohort ", i)))
-         }
-      HTML(html_ui)
-      })
+   observeEvent(input$nFiles, {
+      output$fileInputs <- renderUI({
+         html_ui <- " "
+         for (i in 1:input$nFiles) {
+            html_ui <- paste0(html_ui, fileInput(paste0("File", i),
+               label = paste0("Cohort ", i)))
+            }
+         HTML(html_ui)
+         })
+   })
 
    #####################################################################################################################
    # Observer plotly_click (mouse left-click)
@@ -851,13 +858,13 @@ server <- function(input, output, session) {
          text2 <- ""
          switch(input$variable1,
          Weir = {
-            text1 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
+            text1 <- "$$ \\tag{2} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
          Heldmaier1 = {
             text1 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          Heldmaier2 = {
-            text1 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
+            text1 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
             text1 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O_2[\\frac{ml}{h}] + 5.09 \\times RER $$"
@@ -877,13 +884,13 @@ server <- function(input, output, session) {
 
          switch(input$variable2,
          Weir = {
-            text2 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{2} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
          Heldmaier1 = {
             text2 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          Heldmaier2 = {
-            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
             text2 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
@@ -923,7 +930,8 @@ server <- function(input, output, session) {
    #####################################################################################################################
    # Observe plot type
    #####################################################################################################################
-   # TODO: check that this is maybe the problematic code which leads to the HP / HP2 issue in RMR, but maybe already fixed.
+   # TODO: check that this is in fact the problematic code which leads to the HP / HP2 issue in RMR
+   # on server side, but it appears it is already fixed by now.
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
@@ -939,7 +947,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
+         selectInput(inputId = "myr", label = "Choose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
     })
 
    observeEvent(input$plot_type, {
@@ -1116,6 +1124,8 @@ server <- function(input, output, session) {
 
 
                showTab(inputId = "additional_content", target = "Summary statistics")
+               showTab(inputId = "additional_content", target = "Modelling")
+
                write.csv2(real_data$data, "before_rmr_written.csv")
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
@@ -1258,7 +1268,6 @@ server <- function(input, output, session) {
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
                         p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) 
                         p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
-                        # TODO: use this auto-scale feature also in all other plots
                         if (!input$auto_scale_rmr_plot_limits_x) {
                            p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
                         }
@@ -1414,6 +1423,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical testing")
+               showTab(inputId = "additional_content", target = "Modelling")
             output$explanation <- renderUI({
                str1 <- "<h3> Glucose, lipid and protein oxidation </h3>"
                   str2 <- "Displays the glucose, lipid and protein oxidation by means of respiratory gas exchange measurements during indirect calorimetry"
@@ -1483,6 +1493,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
                str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1494,6 +1505,7 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
+               hideTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw measurements and derived quantities </h3>"
@@ -1504,10 +1516,12 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               hideTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "BodyComposition") {
                #hideTab(inputId = "additional_content", target = "Basic plot")
                hideTab(inputId = "additional_content", target = "Summary statistics")
@@ -1609,6 +1623,7 @@ server <- function(input, output, session) {
       HTML(html_ui)
       })
    })
+
    # TODO: enable this after merging, as the metadata sheet is supported fully only in branch with_metadata_sheet
    #updateCheckboxInput(session, "havemetadata", value = TRUE)
    #output$metadatafile <- renderUI({
@@ -1619,7 +1634,6 @@ server <- function(input, output, session) {
    #      placeholder = "example metadata.xlsx"))
    #   HTML(html_ui)
    #})
-   })
 
    #############################################################################
    # Observe select_day input

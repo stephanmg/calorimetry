@@ -1,3 +1,20 @@
+################################################################################
+#' total_energy_expenditure
+#' 
+#' This function calculates the total energy expenditure
+#' 
+#' @param finalC1 input data
+#' @param C1meta basic metadata
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' total_energy_expenditure(values, basic_metadata, full_metadata, input, output, session, global_data, 1)
+#' @export
+################################################################################
 total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# assign colors based on animals
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
@@ -41,9 +58,9 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	if (input$use_zeitgeber_time) {
 		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-	if (input$only_full_days_zeitgeber) {
-		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-	} 
+		if (input$only_full_days_zeitgeber) {
+			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+		} 
 	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
 	} else {

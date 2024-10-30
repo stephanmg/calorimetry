@@ -83,3 +83,12 @@ csvs/
 
 # old stuff (backup)
 old/
+
+# NAMESPACE
+NAMESPACE
+
+# R
+R/
+
+# docs build files, ignore them as GHA builds them
+docs/_build/

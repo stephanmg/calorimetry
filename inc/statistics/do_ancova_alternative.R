@@ -5,7 +5,9 @@ library(broom)
 library(emmeans)
 
 ################################################################################
-# Get r squared clean for plotly
+#' get_r_squared_clean
+#' 
+#' This function get's the R-squared value in a clean way for plotly
 ################################################################################
 get_r_squared_clean <- function(rvalue) {
   r_squared_value <- sub(".*italic\\(R\\)\\^2\\s=\\s(-?[0-9.]+).*", "\\1", rvalue)
@@ -13,7 +15,9 @@ get_r_squared_clean <- function(rvalue) {
 }
 
 ################################################################################
-# Calculate statistic based on provided method
+#' calculate_statistic
+#' 
+#' This function calculate statistic based on provided method: mean or median
 ################################################################################
 calculate_statistic <- function(data, method) {
   switch(method,
@@ -23,17 +27,19 @@ calculate_statistic <- function(data, method) {
 }
 
 ################################################################################
-# do_ancova_alternative
+#' do_ancova_alternative
+#' 
+#' This function performs multi-way ANCOVA or ANOVA analysis
 ################################################################################
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
-  write.csv2(df, "in_Ancova.csv")
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
       df <- df %>% rename(Genotype = `Genotype.x`)
     }
   }
+
 
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
@@ -63,6 +69,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
+
   # for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed, see TODOs below
   if (dep_var == "HP") {
     df <- df %>% select(-Days)
@@ -73,6 +80,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (num_covariates > 1) {
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
+
 
   # TODO: v0.4.0 - Rename TEE for ANCOVA 
   # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
@@ -202,8 +210,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  print("a")
-
   p <- NULL
   pwc <- NULL
   if (test_type == "1-way ANCOVA") {
@@ -234,13 +240,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    # TODO: v0.4.0 - get all statistics ANCOVA
-    # into table for 2-way ANCOVA, more than one comparison of course, 
-    # thus multiple to report in table format, for a 1-way ANCOVA we simply report the first()
-    print(pwc)
     pwc <- pwc %>% first()
   }
-
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)

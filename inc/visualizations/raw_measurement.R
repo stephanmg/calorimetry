@@ -2,7 +2,19 @@ library(DT)
 source("inc/statistics/lme_model.R")
 
 ################################################################################
-# raw measurement
+#' raw_measurement
+#' 
+#' This function displays raw measurements
+#' @param finalC1 input data
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' raw_measurement(values, full_metadata, input, output, session, global_data, 1)
+#' @export
 ################################################################################
 raw_measurement <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# colors for plotting as factor

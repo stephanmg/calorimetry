@@ -1,10 +1,20 @@
 library(ggplot2)
 
 ################################################################################
-# draw_day_night_rectangles
+#' draw_day_night_rectangles
+#'
+#' This function inks the day with a light color and night with a darker color
+#' @param df data frame
+#' @param p plot object
+#' @param light_start start of light cycle
+#' @param light_end end of light cycle
+#' @param light_offset offset of light cycle from start of day (for zeitgeber time always 0)
+#' @param day_color color for light phase (day)
+#' @param night_color color for dark phase (night)
+#' @param light_cycle choose Day or Night 
 ################################################################################
 draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night")) {
-   # day/night assumed to be always of length 12 (light_end-light_start)
+   # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
    intervals <- seq(min(df$x, na.rm=T), max(df$x, na.rm=T), 12)
 
    # zeitgeber zeit assumes to start with day not night

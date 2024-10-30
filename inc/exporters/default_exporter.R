@@ -1,7 +1,12 @@
 source("inc/session_management.R")
 
 ################################################################################
-# Prepare data frame from plot for export
+#' prepare_data_frame_for_export
+#' 
+#' This function prepares the data frame with calculated quantities for export
+#' @param df_to_plot data frame
+#' @param global_data hash table containing variables during session
+#' @param session shiny session
 ################################################################################
 prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
@@ -14,7 +19,16 @@ prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
 
 
 ################################################################################
-# Export all data as zip archive
+#' do_export_all_data
+#' 
+#' This function exports all data calculated during the app usage as an archive
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param file_output output file path chosen by user
+#' @param do_plotting plotting routines
+#' @param global_data hash table containing variables during session
+#' @export
 ################################################################################
 do_export_all_data <- function(input, output, session, file_output, do_plotting, global_data) {
    plot_csv <- file.path(tempdir(), "df_plot.csv")
