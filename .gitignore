@@ -90,3 +90,5 @@ NAMESPACE
 # R
 R/
 
+# docs build files, ignore them as GHA builds them
+docs/_build/
