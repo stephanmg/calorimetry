@@ -240,13 +240,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    # TODO: v0.4.0 - get all statistics ANCOVA
-    # into table for 2-way ANCOVA, more than one comparison of course, 
-    # thus multiple to report in table format, for a 1-way ANCOVA we simply report the first()
-    print(pwc)
     pwc <- pwc %>% first()
   }
-
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)

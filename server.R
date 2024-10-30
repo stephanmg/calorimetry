@@ -91,7 +91,7 @@ source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR es
 source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
-# TODO: Global variables - not safe in multi-user context, also obsolete, remove!)
+# TODO: Global variables - not safe in multi-user context
 ################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -125,7 +125,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    #############################################################################
    # Data read-in
-   # FIXME: Could be improve if more example data sets are required.
    #############################################################################
    fileFormatTSE <- FALSE
    finalC1 <- c()
@@ -931,7 +930,8 @@ server <- function(input, output, session) {
    #####################################################################################################################
    # Observe plot type
    #####################################################################################################################
-   # TODO: check that this is maybe the problematic code which leads to the HP / HP2 issue in RMR, but maybe already fixed.
+   # TODO: check that this is in fact the problematic code which leads to the HP / HP2 issue in RMR
+   # on server side, but it appears it is already fixed by now.
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
@@ -1268,7 +1268,6 @@ server <- function(input, output, session) {
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
                         p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) 
                         p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
-                        # TODO: use this auto-scale feature also in all other plots
                         if (!input$auto_scale_rmr_plot_limits_x) {
                            p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
                         }
@@ -1624,6 +1623,7 @@ server <- function(input, output, session) {
       HTML(html_ui)
       })
    })
+
    # TODO: enable this after merging, as the metadata sheet is supported fully only in branch with_metadata_sheet
    #updateCheckboxInput(session, "havemetadata", value = TRUE)
    #output$metadatafile <- renderUI({

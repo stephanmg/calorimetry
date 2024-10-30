@@ -185,45 +185,37 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
    df <- finalC1
    if (havemetadata) {
       metadata <- get_true_metadata(metadatafile$datapath)
-      print(metadata)
       # fall back to TSE metadata
       if (is.null(metadata)) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))
       }
 
- # add some calculated metadata 
-   delta_pairs <- list(
-      c("bw_start", "bw_end", "delta_bw"),
-      c("fm_start", "fm_end", "delta_fm"),
-      c("lm_start", "lm_end", "delta_lm")
-   )
-   
+      # add some calculated metadata 
+      delta_pairs <- list(
+         c("bw_start", "bw_end", "delta_bw"),
+         c("fm_start", "fm_end", "delta_fm"),
+         c("lm_start", "lm_end", "delta_lm")
+      )
+      
 
-    add_delta_columns <- function(df, column_pairs) {
-    for (pair in column_pairs) {
-      start_col <- pair[1]
-      end_col <- pair[2]
-      delta_col <- pair[3]
-      if (all(c(start_col, end_col) %in% names(df)) && !(delta_col %in% names(df))) {
-         df <- df %>%
-         mutate(!!delta_col := as.numeric(!!sym(end_col)) - as.numeric(!!sym(start_col)))
+      add_delta_columns <- function(df, column_pairs) {
+         for (pair in column_pairs) {
+            start_col <- pair[1]
+            end_col <- pair[2]
+            delta_col <- pair[3]
+            if (all(c(start_col, end_col) %in% names(df)) && !(delta_col %in% names(df))) {
+               df <- df %>%
+               mutate(!!delta_col := as.numeric(!!sym(end_col)) - as.numeric(!!sym(start_col)))
+            }
+         }
+         return(df)
       }
-   }
-   return(df)
-   }
 
-   metadata <- add_delta_columns(metadata, delta_pairs)
-
-   print("columns:")
-   print(names(metadata))
-
-
+      metadata <- add_delta_columns(metadata, delta_pairs)
       # instead na.omit() we need to use select to remove columns which are all NA before joining, 
       # this might be because we have columns, e.g. dob which are not present at all in TSE files and also not in the metadata sheet as well
       # or also if not all cohort  files are used with the animal ids recorded in the metadata sheet, or: if
       # the metadata sheet contains nan values... for i.e. lm_start etc.
-      print("before metadata join")
-      print(metadata)
       # need to remove all nan columns because individual cohorts might not have the same columns
       df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals")) 
    } else {
@@ -251,14 +243,13 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       for (col in colnames(df_filtered)) {
          if (col %in% c("Sex", "Diet", "Genotype", "Box", "Box_NA", "Dob")) { # factor columns from TSE standard header
             df_filtered[[col]] = as.factor(df_filtered[[col]])
-         } # remaning columns are assumed to be numerical and used as covariates
+         } # renaming columns are assumed to be numerical and used as covariates
       }
       metadata <- df_filtered 
-      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when switching between pnales occassionally?
-      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates
+      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when switching between panels occassionally?
+      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates?
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
-
    return(list("data"=df, "metadata"=metadata))
 }
 
@@ -314,8 +305,9 @@ get_global_offset_for_day_night <- function(df) {
 #' @export
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
-   # TODO: this needs to be revised, if one want to select indvidual calendrical days, because running_total.sec == 0 will not be found
-   # TODO: For RMR  this is grouped, need to see why
+   # TODO: this needs to be revised, if one want to select indvidual calendrical days,
+   # because running_total.sec == 0 will not be foun, also for RMR the following df
+   # is grouped and needs to be converted before writing. Why?
    write.csv2(apply(df, 2, as.character), "directly_before_offsets.csv")
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
@@ -446,10 +438,7 @@ get_factor_columns <- function(df) {
 # get non-factor columns
 ################################################################################
 get_non_factor_columns <- function(df) {
-   # TODO: should non-factor columns be numeric? in ANOVA/ANCOVA covariates should be numeric
    return(names(df)[sapply(df, Negate(is.factor))])
-	#non_factor_columns <- sapply(df, Negate(is.factor))
-   #return(names(df)[non_factor_columns & sapply(df, is.numeric)])
 }
 
 ################################################################################

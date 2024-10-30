@@ -20,8 +20,6 @@ model_effects <- function(df, dep_var, input) {
 	fixed_effects_formula <- paste(fixed_effects, collapse = " + ") 
 	random_effects_formula <- paste("(1 |", random_effects, ")", collapse = " + ") 
 	formula_string <- paste(dep_var, "~", fixed_effects_formula, "+", random_effects_formula) 
-	print("df col names:")
-	print(names(df))
 	lmm <- lmer(as.formula(formula_string), data = df)
 	fixed_effects_df <- as.data.frame(coef(summary(lmm)))
 	random_effects_df <- as.data.frame(VarCorr(lmm))
@@ -73,8 +71,6 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 #' This function creates UI for LME modelling
 ################################################################################
 create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var) {
-	print("before creating model:")
-	print(names(df_to_plot))
 	output$modelling <- renderUI({
 		tagList(
 			h4("Modelling dependent variable with an LME model"),
