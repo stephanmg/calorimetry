@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>draw_day_night_rectangles &#8212; CALOR  documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="goxlox" href="goxlox.html" />
+    <link rel="prev" title="zeitgeber_zeit" href="zeitgeber_zeit.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="draw-day-night-rectangles">
+<h1>draw_day_night_rectangles<a class="headerlink" href="#draw-day-night-rectangles" title="Permalink to this heading">¶</a></h1>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>This function inks the day with a light color and night with a darker
+color</p>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-r notranslate"><div class="highlight"><pre><span></span><span class="nf">draw_day_night_rectangles</span><span class="p">(</span>
+<span class="w">  </span><span class="n">df</span><span class="p">,</span>
+<span class="w">  </span><span class="n">p</span><span class="p">,</span>
+<span class="w">  </span><span class="n">light_start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">7</span><span class="p">,</span>
+<span class="w">  </span><span class="n">light_end</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">19</span><span class="p">,</span>
+<span class="w">  </span><span class="n">light_offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span><span class="p">,</span>
+<span class="w">  </span><span class="n">day_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;yellow&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">night_color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;grey&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="n">light_cycle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">&quot;Day&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Night&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">df</span></code>: data frame</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code>: plot object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">light_start</span></code>: start of light cycle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">light_end</span></code>: end of light cycle</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">light_offset</span></code>: offset of light cycle from start of day (for
+zeitgeber time always 0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">day_color</span></code>: color for light phase (day)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">night_color</span></code>: color for dark phase (night)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">light_cycle</span></code>: choose Day or Night</p></li>
+</ul>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CALOR</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">What is CALOR?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../code.html">Code availability and development</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../api.html">API Documentation</a><ul>
+      <li>Previous: <a href="zeitgeber_zeit.html" title="previous chapter">zeitgeber_zeit</a></li>
+      <li>Next: <a href="goxlox.html" title="next chapter">goxlox</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2024, Stephan Grein.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/rst/draw_day_night_rectangles.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

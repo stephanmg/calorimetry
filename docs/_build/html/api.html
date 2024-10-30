@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>API Documentation &#8212; CALOR  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=4f649999" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=039e1c02" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js?v=b3ba4146"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=4825356b"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="get_covariates_and_units" href="rst/get_covariates_and_units.html" />
+    <link rel="prev" title="Code availability and development" href="code.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="api-documentation">
+<h1>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this heading">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_covariates_and_units.html">get_covariates_and_units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/annotate_rmr_days.html">annotate_rmr_days</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/total_energy_expenditure.html">total_energy_expenditure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/lookup_cohort_belonging.html">lookup_cohort_belonging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/extract_rmr_helper.html">extract_rmr_helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_git_information_from_repository.html">get_git_info_from_repository</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/check_for_cosmed.html">check_for_cosmed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_time_diff.html">get_time_diff</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/pretty_print_interval_length_list.html">pretty_print_interval_length_list</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/do_ancova_alternative.html">do_ancova_alternative</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_study_description_from_metadata.html">get_study_description_from_metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/reformat_time_for_cosmed.html">reformat_time_for_cosmed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/do_extract.html">do_extract</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/extract_rmr.html">extract_rmr</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/import_pheno_v8.html">import_pheno_v8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_new_download_buttons.html">get_new_download_buttons</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/create_lme_model_ui.html">create_lme_model_ui</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/resting_metabolic_rate.html">resting_metabolic_rate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/padding_helper.html">padding_helper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_date_range.html">get_date_range</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/reformat.html">reformat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/lookup_interval_length.html">lookup_interval_length</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/import_cosmed.html">import_cosmed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/cv.html">cv</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/remove_zero_values.html">remove_zero_values</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/do_export_all_data.html">do_export_all_data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/guide.html">guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/model_effects.html">model_effects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/visualize_model_effects.html">visualize_model_effects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/energy_expenditure.html">energy_expenditure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_true_metadata.html">get_true_metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/enrich_with_metadata.html">enrich_with_metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/plot_locomotion_budget.html">plot_locomotion_budget</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/create_df.html">create_df</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/calculate_statistic.html">calculate_statistic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/coarsen_data_sets.html">coarsen_data_sets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/prepare_data_frame_for_export.html">prepare_data_frame_for_export</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/remove_z_score_outliers.html">remove_z_score_outliers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/partition.html">partition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/add_stylize_plot_plotting_control.html">add_stylize_plot_plotting_control</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/body_composition.html">body_composition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/zeitgeber_zeit.html">zeitgeber_zeit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/draw_day_night_rectangles.html">draw_day_night_rectangles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/goxlox.html">goxlox</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/process_return_value_for_statistic.html">process_return_value_for_statistic</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/raw_measurement.html">raw_measurement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/plot_locomotion.html">plot_locomotion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/indicate_plot_rendered.html">indicate_plot_rendered</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/style_plot.html">style_plot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/generate_statistical_table.html">generate_statistical_table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_r_squared_clean.html">get_r_squared_clean</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/import_promethion.html">import_promethion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rst/get_constants.html">get_constants</a></li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">CALOR</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is CALOR?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Code availability and development</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Documentation</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="code.html" title="previous chapter">Code availability and development</a></li>
+      <li>Next: <a href="rst/get_covariates_and_units.html" title="next chapter">get_covariates_and_units</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2024, Stephan Grein.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.1.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="_sources/api.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
