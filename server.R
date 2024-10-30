@@ -196,12 +196,16 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       if (length(excel_sheets(file)) == 2) {
         if (check_for_cosmed(file)) {
             output$file_type_detected <- renderText("Input file type detected as: COSMED")
+            storeSession(session$token, "input_file_type", "COSMED", global_data)
             import_cosmed(file, tmp_file)
         } else {
             output$file_type_detected <- renderText("Unknown file type detected from Excel")
+            storeSession(session$token, "input_file_type", "Unknown", global_data)
         }
       } else {
         output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
+        updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
+        storeSession(session$token, "input_file_type", "Sable", global_data)
         import_promethion(file, tmp_file)
       }
       file <- tmp_file
@@ -211,24 +215,28 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # LabMaster V5 (horizontal format)
    if (grepl("V5", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "LabMaster/V5", global_data)
       sep <- ";"
       dec <- "."
    }
 
    # LabMaster V6
    if (grepl("V6", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "LabMaster/V6", global_data)
       sep <- ";"
       dec <- ","
    }
 
-   # Phenomaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
+   # PhenoMaster V7: Date separated via /, Time Hour:Minutes, decimal separator ., field separator ,
    if (grepl("V7", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "PhenoMaster/V7", global_data)
       sep <- ","
       dec <- "."
    }
 
-   # Phenomaster V8
+   # PhenoMaster V8
    if (grepl("V8", fileFormatTSE)) {
+      storeSession(session$token, "input_file_type", "PhenoMaster/V8", global_data)
       tmp_file <- tempfile()
       import_pheno_v8(file, tmp_file)
       file <- tmp_file
@@ -851,13 +859,13 @@ server <- function(input, output, session) {
          text2 <- ""
          switch(input$variable1,
          Weir = {
-            text1 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
+            text1 <- "$$ \\tag{2} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
          Heldmaier1 = {
             text1 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          Heldmaier2 = {
-            text1 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
+            text1 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
             text1 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O_2[\\frac{ml}{h}] + 5.09 \\times RER $$"
@@ -877,13 +885,13 @@ server <- function(input, output, session) {
 
          switch(input$variable2,
          Weir = {
-            text2 <- "$$ \\tag{1} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{2} 16.3 \\times \\dot{V}O_2[\\frac{ml}{h}] + 4.57 \\times \\dot{V}CO_2[\\frac{ml}{h}] $$"
          },
          Heldmaier1 = {
             text2 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          Heldmaier2 = {
-            text2 <- "$$ \\tag{2} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
             text2 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
@@ -939,7 +947,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
+         selectInput(inputId = "myr", label = "Choose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
     })
 
    observeEvent(input$plot_type, {

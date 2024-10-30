@@ -18,3 +18,7 @@ A: Use the provided template for the metadata sheet in .xlsx format. Otherwise, 
 Q: Why does my PhenoMaster column format throw an error?
 
 A: Currently PhenoMaster is only supported in row format.
+
+Q: Why do I receive an error `Error: [object Object]` in statistical testing panel without a metadata file?
+
+A: Most likely the statistical method is not appropriate for the provided data sets. A metadata file will fix this error.

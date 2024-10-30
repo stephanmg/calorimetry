@@ -33,13 +33,13 @@ calculate_statistic <- function(data, method) {
 ################################################################################
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
-  write.csv2(df, "in_Ancova.csv")
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
       df <- df %>% rename(Genotype = `Genotype.x`)
     }
   }
+
 
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
@@ -69,6 +69,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
+
   # for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed, see TODOs below
   if (dep_var == "HP") {
     df <- df %>% select(-Days)
@@ -79,6 +80,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (num_covariates > 1) {
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
+
 
   # TODO: v0.4.0 - Rename TEE for ANCOVA 
   # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
