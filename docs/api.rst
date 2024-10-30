@@ -2,7 +2,7 @@ API Documentation
 =================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    rst/get_covariates_and_units
    rst/annotate_rmr_days
