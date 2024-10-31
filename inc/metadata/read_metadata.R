@@ -191,7 +191,7 @@ get_true_metadata <- function(file, load_example_data) {
 
    # check if metadata has been formatted properly 
    if (inherits(df_meta, "try-error")) {
-      shinyalert("Warning", "Metadata sheet wrongly formatted. Please check within Excel for correctness. Fallback to TSE metadata header. Required information missing: Genotype, Sex, Age, Diet, lean_mass, fat_mass and body_weight are required.", showCancelButton = TRUE)
+      shinyalert("Warning", "Metadata sheet is lacking informations. Fallback to data file metadata headers. Required columns: Genotype, Sex, Age, Diet, lm_start, lm_end, fm_start, fm_end, bw_start and bw_end", showCancelButton = TRUE)
       return(NULL)
    }
 
