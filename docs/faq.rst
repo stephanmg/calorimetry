@@ -20,3 +20,7 @@ A: Currently PhenoMaster is only supported in row format.
 Q: Why do I receive an error `Error: [object Object]` in statistical testing panel without a metadata file?
 
 A: Most likely the statistical method is not appropriate for the provided data sets. A metadata file will fix this error.
+
+Q: I receive an error `Error: [object Object]` in statistical testing panel for energy expenditure?
+
+A: Make sure, that you calculated first, TotalEnergyExpenditure and then RestingMetabolicRate. Omiting one of these calculations will lead to the received error.
