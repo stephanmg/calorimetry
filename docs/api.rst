@@ -2,58 +2,58 @@ API Documentation
 =================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
+   rst/get_new_download_buttons
+   rst/style_plot
+   rst/get_git_information_from_repository
+   rst/indicate_plot_rendered
+   rst/create_df
+   rst/goxlox
+   rst/get_study_description_from_metadata
+   rst/padding_helper
+   rst/draw_day_night_rectangles
+   rst/get_constants
+   rst/partition
+   rst/visualize_model_effects
+   rst/get_date_range
    rst/get_covariates_and_units
+   rst/plot_locomotion
+   rst/lookup_cohort_belonging
    rst/annotate_rmr_days
    rst/total_energy_expenditure
-   rst/lookup_cohort_belonging
-   rst/extract_rmr_helper
-   rst/get_git_information_from_repository
    rst/check_for_cosmed
-   rst/get_time_diff
-   rst/pretty_print_interval_length_list
-   rst/do_ancova_alternative
-   rst/get_study_description_from_metadata
-   rst/reformat_time_for_cosmed
-   rst/do_extract
-   rst/extract_rmr
-   rst/import_pheno_v8
-   rst/get_new_download_buttons
-   rst/create_lme_model_ui
-   rst/resting_metabolic_rate
-   rst/padding_helper
-   rst/get_date_range
-   rst/reformat
-   rst/lookup_interval_length
-   rst/import_cosmed
-   rst/cv
-   rst/remove_zero_values
-   rst/do_export_all_data
    rst/guide
-   rst/model_effects
-   rst/visualize_model_effects
+   rst/plot_locomotion_budget
+   rst/create_lme_model_ui
    rst/energy_expenditure
+   rst/reformat_time_for_cosmed
+   rst/pretty_print_interval_length_list
+   rst/raw_measurement
+   rst/do_export_all_data
+   rst/generate_statistical_table
+   rst/body_composition
+   rst/do_ancova_alternative
+   rst/lookup_interval_length
+   rst/remove_zero_values
+   rst/add_stylize_plot_plotting_control
+   rst/import_cosmed
+   rst/calculate_statistic
+   rst/import_promethion
+   rst/zeitgeber_zeit
+   rst/resting_metabolic_rate
+   rst/model_effects
+   rst/prepare_data_frame_for_export
+   rst/process_return_value_for_statistic
+   rst/cv
+   rst/extract_rmr
+   rst/do_extract
+   rst/get_r_squared_clean
+   rst/reformat
    rst/get_true_metadata
    rst/enrich_with_metadata
-   rst/plot_locomotion_budget
-   rst/create_df
-   rst/calculate_statistic
+   rst/import_pheno_v8
+   rst/get_time_diff
+   rst/extract_rmr_helper
    rst/coarsen_data_sets
-   rst/prepare_data_frame_for_export
    rst/remove_z_score_outliers
-   rst/partition
-   rst/add_stylize_plot_plotting_control
-   rst/body_composition
-   rst/zeitgeber_zeit
-   rst/draw_day_night_rectangles
-   rst/goxlox
-   rst/process_return_value_for_statistic
-   rst/raw_measurement
-   rst/plot_locomotion
-   rst/indicate_plot_rendered
-   rst/style_plot
-   rst/generate_statistical_table
-   rst/get_r_squared_clean
-   rst/import_promethion
-   rst/get_constants
