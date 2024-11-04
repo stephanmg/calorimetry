@@ -3,6 +3,18 @@ source("inc/metadata/read_metadata.R")
 library(glue)
 
 ################################################################################
+#' get_metadata datapath
+#' 
+#' This function gets the datapath (file) either from the UI by user input or
+#' loads automatically the datapath from example data sets (also issued by the
+#' user). Note that in Shiny R fileInput(...) elements are read-only, thus can't
+#' be directly modified and we do have to workaround this. (Note that read-only
+#' is intentional, since datapath are temporary files on disk in /tmp directory)
+#' 
+#' @param input shiny input
+#' @param session shiny session
+#' @param global_data global data
+################################################################################
 get_metadata_datapath <- function(input, session, global_data) {
    use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
    datapath <- input$metadatafile$datapath
