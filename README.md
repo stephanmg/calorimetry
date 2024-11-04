@@ -66,5 +66,10 @@ and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
 2. Install dependencies with `Rscript -e "library(renv); renv::restore()"` from the current working directory
 3. Run `Rscript startapp.R` from base directory (inside *this* respository)
 
+Note for developers: After building documentation a folder `R` will be created in the root directory. Manually
+delete this folder and do not add for tracking with Git, nor deploy, as this interferes with the Shiny app. 
+We need to fake a proper R package structure in order to use the `roxygenise` functions, but do not need the
+structure after docs have been generated.
+
 ## Latest changes
 

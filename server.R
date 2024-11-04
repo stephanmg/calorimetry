@@ -153,7 +153,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       file <- file$datapath
       if (use_example_data) {
          if (use_example_data_set) {
-            file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data_", i, ".csv"), sep = "")
+            file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data/UCP1KO/", "example_data_", i, ".csv"), sep = "")
          }
       }
       con <- file(file)
