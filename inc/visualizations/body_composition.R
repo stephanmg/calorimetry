@@ -27,7 +27,7 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 	# Enrich with metadata
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 	# TODO: Is this necessary? could also just take the metadata depending on input$havemetadata
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, get_metadata_datapath(input, session, global_data))
 	true_metadata <- data_and_metadata$metadata
 	# TODO: Refactor to use more suitable variable names
 	finalC1 <- true_metadata

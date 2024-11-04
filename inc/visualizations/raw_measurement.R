@@ -20,7 +20,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 	# get metadata from tse header only
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+	metadatafile <- get_metadata_datapath(input, session, global_data)
+	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
@@ -47,7 +48,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# in case we have metadata, override with values from sheet
 	if (input$havemetadata) {
-		light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 	}
 
 	# in case no information in metadata sheet, override light cycle manually
@@ -182,7 +183,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		p <- p + my_lights
 	}
 
-	p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
+	p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
 	p <- p + xlab("Zeitgeber time [h]")
 
 	convert <- function(x) {
@@ -259,7 +260,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
 	output$plot_statistics_details <- renderPlotly({
 		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
-		p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath))
+		p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
 
 		if (!input$auto_scale_rmr_plot_limits_x) {
 			p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
@@ -279,8 +280,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	output$plot_statistics_details2 <- renderPlotly({
 		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-		p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
-		p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile$datapath)) 
+		p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) 
+		p <- p + ylab(pretty_print_variable(mylabel, metadatafile)) 
 		p <- p + ggtitle(input$study_description)
 
 		if (!input$auto_scale_rmr_plot_limits_x2) {
@@ -400,7 +401,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# indicate night start
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	# set title and display buttons
-	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, input$metadatafile$datapath), " using equation ", pretty_print_equation(input$variable1)))
+	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
 	if (input$toggle_outliers) { p <- p + geom_point() }
 	# center x axis

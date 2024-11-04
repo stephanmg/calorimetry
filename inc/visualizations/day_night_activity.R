@@ -3,7 +3,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
 	# get metadata from tse header only
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, get_metadata_datapath(input, session, global_data))
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 	
@@ -14,7 +14,7 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 
 	light_on <- 720
 	if (input$havemetadata) {
-		light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- 60 * as.integer(get_constants(get_metadata_datapath(input, session, global_data)) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 	}
 
 	if (input$override_metadata_light_cycle) {
@@ -76,9 +76,9 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
 			hr(style = "width: 75%"),
-			renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
+			renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, "NightDay", input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, get_metadata_datapath(input, session, global_data))) + ylab(pretty_print_label(input$dep_var, get_metadata_datapath(input, session, global_data))) + ggtitle(input$study_description)),
 			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
+			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(DayNight, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "HP", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, get_metadata_datapath(input, session, global_data))) + ylab(pretty_print_label(input$dep_var,get_metadata_datapath(input, session, global_data))) + ggtitle(input$study_description)))
 		)
 	})
 

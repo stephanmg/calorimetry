@@ -22,8 +22,9 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
 	# join either metadata from sheet or tse supported header columns (see above) to measurement data
-	# enrich with metadata from TSE header (C1meta) or from metadata sheet (input$metadatafile)
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+	# enrich with metadata from TSE header (C1meta) or from metadata sheet (metadatafile)
+	metadatafile <- get_metadata_datapath(input, session, global_data)
+	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
@@ -47,7 +48,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# otherwise take from metadata sheet  
 	if (input$havemetadata) {
-		light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 	}
 
 	# force override if metadata was available
@@ -179,7 +180,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 				EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 
 				p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
-				p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
+				p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable("EE", metadatafile)) + ggtitle(input$study_description)
 				ggplotly(p)
 			}),
 			hr(style = "width: 75%"),
@@ -188,7 +189,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 					EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 					EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 					p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-					p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_variable("EE", input$metadatafile$datapath)) + ggtitle(input$study_description)
+					p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_variable("EE", metadatafile)) + ggtitle(input$study_description)
 					ggplotly(p)
 				})),
 		)

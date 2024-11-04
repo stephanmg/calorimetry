@@ -14,6 +14,7 @@
 #' @export
 ################################################################################
 resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+	metadatafile <- get_metadata_datapath(input, session, global_data)
 	component2 <- ""
 	if (length(input$cvs) == 2) {
 		component <- input$cvs[[1]]
@@ -32,7 +33,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 
 	light_on <- 720
 	if (input$havemetadata) {
-		light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- 60 * as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 	}
 
 	if (input$override_metadata_light_cycle) {
@@ -150,7 +151,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	df_plot_total$Animals = df_plot_total$Animal
 	# since NAs might be introduced due to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
 	# this is from multiple cohorts case, for a single cohrot we should never have the nas introduced in the first place
-	df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data %>% na.omit()
+	df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)$data %>% na.omit()
 	write.csv2(df_plot_total, "after_enriching_again.csv")
 
 	# Select sexes

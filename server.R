@@ -62,7 +62,6 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 ################################################################################
 source("inc/metadata/read_metadata.R") 
 
-use_example_data <- FALSE
 ################################################################################
 # Export functionality
 ################################################################################
@@ -132,17 +131,30 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 7))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob")
+
+   # check if we need to use example data or not
+   use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+   if (is.null(use_example_data)) {
+      storeSession(session$token, "use_example_data", FALSE, global_data)
+   }
+   use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+
+   use_example_data_set <- getSession(session$token, global_data)[["example_data_single"]]
    num_files <- 4
    if (!use_example_data) {
       num_files <- input$nFiles
    } 
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 
+	metadatafile <- get_metadata_datapath(input, session, global_data)
+
    for (i in 1:num_files) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
       if (use_example_data) {
-         file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data_", i, ".csv"), sep = "")
+         if (use_example_data_set) {
+            file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data_", i, ".csv"), sep = "")
+         }
       }
       con <- file(file)
       line <- readLines(con, n = 2)
@@ -150,7 +162,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       fileFormatTSE <- line[2]
       studyDescription <- line[1]
       if  (input$havemetadata) {
-         output$study_description <- renderText(paste0("Study description: ", get_study_description_from_metadata(input$metadatafile$datapath)))
+         output$study_description <- renderText(paste0("Study description: ", get_study_description_from_metadata(metadatafile)))
       } else {
          output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
       }
@@ -1040,6 +1052,7 @@ server <- function(input, output, session) {
       # req(input$File1)
       # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
       output$plot <- renderPlotly({
+         use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
          if (is.null(input$File1) && !use_example_data) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
          } else {
@@ -1068,7 +1081,8 @@ server <- function(input, output, session) {
             #############################################################################
             if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
                if (input$havemetadata) {
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile)
                   output$facets_by_data_one <- renderUI(
                   selectInput(inputId = "facets_by_data_one", label = "Choose facet",
                   selected = "Animals", choices = colnames(true_metadata)))
@@ -1090,7 +1104,8 @@ server <- function(input, output, session) {
             #############################################################################
             if (input$havemetadata) {
                if (is.null(input$condition_type)) {
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile, FALSE)
                   output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
             } else {
@@ -1105,7 +1120,7 @@ server <- function(input, output, session) {
             #############################################################################
             observeEvent(input$condition_type, {
             if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
+               true_metadata <- get_true_metadata(metadatafile, FALSE)
                output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
             } else {
                tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
@@ -1237,7 +1252,7 @@ server <- function(input, output, session) {
          write.csv2(df_total, "test_for_rmr.csv")
          df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
-      data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, input$metadatafile)
+      data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
       #df_total <- data_and_metadata$data
       true_metadata <- data_and_metadata$metadata
       print("true_metadata")
@@ -1246,7 +1261,6 @@ server <- function(input, output, session) {
 
 
          if (input$havemetadata || !input$havemetadata) {
-               # true_metadata <- get_true_metadata(input$metadatafile$datapath)
                output$test <- renderUI({
                   tagList(
                      h4("Configuration"),
@@ -1266,8 +1280,8 @@ server <- function(input, output, session) {
                      hr(style = "width: 75%"),
                      renderPlotly({
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
-                        p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
+                        p <- p + xlab(pretty_print_label(input$covar, metadatafile)) 
+                        p <- p + ylab(pretty_print_label(input$dep_var, metadatafile)) 
                         if (!input$auto_scale_rmr_plot_limits_x) {
                            p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
                         }
@@ -1298,8 +1312,8 @@ server <- function(input, output, session) {
                      hr(style = "width: 75%"),
                      conditionalPanel("input.num_covariates == '2'", renderPlotly({
                         p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-                        p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
+                        p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) 
+                        p <- p + ylab(pretty_print_label(input$dep_var, metadatafile)) 
                         if (!input$auto_scale_rmr_plot_limits_x2) {
                            p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
                         }
@@ -1611,7 +1625,8 @@ server <- function(input, output, session) {
    # Load example data
    #############################################################################
    observeEvent(input$example_data_single, {
-    use_example_data <<- TRUE
+   storeSession(session$token, "use_example_data", TRUE, global_data)
+   storeSession(session$token, "example_data_single", TRUE, global_data)
     output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
 
     output$fileInputs <- renderUI({
@@ -1622,22 +1637,19 @@ server <- function(input, output, session) {
          }
       HTML(html_ui)
       })
-   })
 
-   # TODO: provide also metadata, note that datapath is read-only in fileInput
-   # we need to refactor, such that we can get input$metadatafile$datapath or
-   # if example data needed we return another file path
-   #updateCheckboxInput(session, "havemetadata", value = TRUE)
-   #output$metadatafile <- renderUI({
-   #   html_ui <- " "
-   #   html_ui <- paste0(html_ui,
-   #      fileInput("metadatafile",
-   #      label = "Metadata file",
-   #      placeholder = "example metadata.xlsx"))
-   #   HTML(html_ui)
-   #   #removeUI(selector = "#metadatafile")
-   #   #input$metadatafile$datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), ("example_metadata.xlsx"))
-   #})
+      # we need to refactor, such that we can get input$metadatafile$datapath or
+      # if example data needed we return another file path
+      updateCheckboxInput(session, "havemetadata", value = TRUE)
+      output$metadatafile <- renderUI({
+         html_ui <- " "
+         html_ui <- paste0(html_ui,
+            fileInput("metadatafile",
+            label = "Metadata file",
+            placeholder = "example metadata.xlsx"))
+         HTML(html_ui)
+      })
+   })
 
    #############################################################################
    # Observe select_day input

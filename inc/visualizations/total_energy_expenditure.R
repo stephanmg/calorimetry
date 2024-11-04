@@ -21,7 +21,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	finalC1$Animals <- colors
 
 	# enrich with metadata
-	data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, input$metadatafile)
+	metadatafile <- get_metadata_datapath(input, session, global_data)
+	data_and_metadata <- enrich_with_metadata(finalC1, C1meta, input$havemetadata, metadatafile)
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
@@ -43,7 +44,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	# use defaults for light, cycle then try metadata, otherwise force override
 	light_on <- 720
 	if (input$havemetadata) {
-		light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- 60 * as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 	}
 	if (input$override_metadata_light_cycle) {
 		light_on <- 60 * input$light_cycle_start
@@ -155,9 +156,9 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
 			hr(style = "width: 75%"),
-			renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
+			renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description)),
 			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
+			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description)))
 		)
 		})
 

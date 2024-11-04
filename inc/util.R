@@ -3,6 +3,19 @@ source("inc/metadata/read_metadata.R")
 library(glue)
 
 ################################################################################
+get_metadata_datapath <- function(input, session, global_data) {
+   use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+   datapath <- input$metadatafile$datapath
+   if (use_example_data) {
+      example_data_set <- getSession(session$token, global_data)[["example_data_single"]]
+      if (example_data_set) {
+        datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), ("example_metadata_1.xlsx"), sep="")
+      }
+   }
+   return(datapath)
+}
+
+################################################################################
 #' style_plot
 #' 
 #' This function is used to stylize the plotting result in the UI
@@ -184,7 +197,7 @@ remove_z_score_outliers <- function(df, sd=1) {
 enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
    df <- finalC1
    if (havemetadata) {
-      metadata <- get_true_metadata(metadatafile$datapath)
+      metadata <- get_true_metadata(metadatafile)
       # fall back to TSE metadata
       if (is.null(metadata)) {
          return(enrich_with_metadata(finalC1, C1meta, FALSE, metadatafile))

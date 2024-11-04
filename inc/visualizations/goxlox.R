@@ -18,7 +18,8 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
 	# get metadata from tse header only
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
+	metadatafile <- get_metadata_datapath(input, session, global_data)
+	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
@@ -41,7 +42,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	light_on <- input$light_cycle_start 
 
 	if (input$havemetadata) {
-		light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
 	}
 
 	# if one wishes, one can override the light cycle configuration from metadata sheet
@@ -166,9 +167,9 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
 			hr(style = "width: 75%"),
-			renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
+			renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description)),
 			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
+			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description)))
 		)
 	})
 
