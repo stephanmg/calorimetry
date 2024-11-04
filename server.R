@@ -1625,21 +1625,19 @@ server <- function(input, output, session) {
    # Load example data
    #############################################################################
    observeEvent(input$example_data_single, {
-   storeSession(session$token, "use_example_data", TRUE, global_data)
-   storeSession(session$token, "example_data_single", TRUE, global_data)
-    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
+      storeSession(session$token, "use_example_data", TRUE, global_data)
+      storeSession(session$token, "example_data_single", TRUE, global_data)
+      output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
 
-    output$fileInputs <- renderUI({
-      html_ui <- " "
-      for (i in seq_along(1:4)) {
+     output$fileInputs <- renderUI({
+       html_ui <- " "
+       for (i in seq_along(1:4)) {
          html_ui <- paste0(html_ui, fileInput(paste0("File", i),
             label = paste0("Cohort #", i), placeholder = paste0("example data set ", i, ".csv")))
          }
-      HTML(html_ui)
+       HTML(html_ui)
       })
 
-      # we need to refactor, such that we can get input$metadatafile$datapath or
-      # if example data needed we return another file path
       updateCheckboxInput(session, "havemetadata", value = TRUE)
       output$metadatafile <- renderUI({
          html_ui <- " "
