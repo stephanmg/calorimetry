@@ -132,13 +132,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    finalC1meta <- data.frame(matrix(nrow = 0, ncol = 7))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
    colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob")
-    num_files <- 4
+   num_files <- 4
    if (!use_example_data) {
       num_files <- input$nFiles
    } 
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 
-   for (i in 1:input$nFiles) {
+   for (i in 1:num_files) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
       if (use_example_data) {
@@ -1624,7 +1624,9 @@ server <- function(input, output, session) {
       })
    })
 
-   # TODO: enable this after merging, as the metadata sheet is supported fully only in branch with_metadata_sheet
+   # TODO: provide also metadata, note that datapath is read-only in fileInput
+   # we need to refactor, such that we can get input$metadatafile$datapath or
+   # if example data needed we return another file path
    #updateCheckboxInput(session, "havemetadata", value = TRUE)
    #output$metadatafile <- renderUI({
    #   html_ui <- " "
@@ -1633,6 +1635,8 @@ server <- function(input, output, session) {
    #      label = "Metadata file",
    #      placeholder = "example metadata.xlsx"))
    #   HTML(html_ui)
+   #   #removeUI(selector = "#metadatafile")
+   #   #input$metadatafile$datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), ("example_metadata.xlsx"))
    #})
 
    #############################################################################
