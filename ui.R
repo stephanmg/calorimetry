@@ -214,9 +214,18 @@ sidebar_content <- sidebarPanel(
           background-color: #81D4FA; /* Darker shade for hover */
           border-color: #81D4FA;
         }
+        #refresh {
+         background-color: #8DBBD0;
+         border-color: #8DBBD0;
+      }
+        #refresh:hover {
+         background-color: #6E98AA;
+         border-color: #6E98AA
+         }
    ")),
    actionButton("plotting", "Show",),
-   actionButton("reset", "Reset"),
+   actionButton("refresh", "Refresh"),
+   actionButton("reset", "Reset")
    ))),
    hr(),
    fluidPage(

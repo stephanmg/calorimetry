@@ -18,7 +18,12 @@
 #' @export
 ################################################################################
 energy_expenditure <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
-# colors for plotting as factor
+	# if plot already created from data set, do not re-do plot
+	if (!is.null(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])) {
+		return(getSession(session$token, global_data)[["plot_for_ee"]])
+	}
+
+	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
 	# join either metadata from sheet or tse supported header columns (see above) to measurement data
@@ -329,9 +334,12 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (!is.null(EE_for_model)) {
 		EE_for_model <- EE_for_model %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		EE_for_model <- EE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
+		write.csv2(EE_for_model, "ee_before_lme_model.csv")
 		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
 		create_lme_model_ui(input, output, true_metadata, EE_for_model, "EE")
 	}
 
+	storeSession(session$token, "plot_for_ee", p, global_data)
+	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
 	return(p)
 }

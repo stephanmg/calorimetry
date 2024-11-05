@@ -17,6 +17,10 @@ source("inc/statistics/lme_model.R")
 #' @export
 ################################################################################
 raw_measurement <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+	# if plot already created from data set, do not re-do plot
+	if (!is.null(getSession(session$token, global_data)[["is_Raw_calculated"]])) {
+		return(getSession(session$token, global_data)[["plot_for_raw"]])
+	}
 	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 	# get metadata from tse header only
@@ -424,6 +428,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# create LME model UI
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr)
 
+	storeSession(session$token, "plot_for_raw", p, global_data)
+	storeSession(session$token, "is_Raw_calculated", TRUE, global_data)
 	# return current plot of raw measurements
 	return(p)
 }

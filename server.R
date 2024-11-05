@@ -265,7 +265,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-      print(C1meta)
+   print(C1meta)
 
    #############################################################################
    # Curate data frame
@@ -1666,5 +1666,13 @@ server <- function(input, output, session) {
       click("plotting")
       selected_animals <<- input$select_animal
       storeSession(session$token, "selected_animals", input$select_animal, global_data)
+   })
+
+   #############################################################################
+   # Refresh
+   #############################################################################
+   observeEvent(input$refresh, {
+      storeSession(session$token, paste0("is_", input$plot_type, "calculated"), NULL, global_data)
+      click("plotting")
    })
 }
