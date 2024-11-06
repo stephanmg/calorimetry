@@ -299,9 +299,9 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (input$with_facets) {
 	if (!is.null(input$facets_by_data_one)) {
 		if (input$orientation == "Horizontal") {
-			p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+			p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
 		} else {
-			p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+			p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 		}
 	}
 	}

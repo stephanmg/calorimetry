@@ -171,6 +171,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
 	}
 
+
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
 
@@ -179,7 +180,12 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
 	colnames(lights) <- c("x", "y")
 	if (input$timeline) {
+		print(input$light_cycle_start)
+		print(input$light_cycle_stop)
 		my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
+		print("my lights:")
+		print(my_lights)
+		print("no lights?!")
 		p <- p + my_lights
 	}
 
@@ -379,9 +385,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
-				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
 			} else {
-				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
 		}
 	}
@@ -393,6 +399,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# need to start at 0 and 12 for zeitgeber time
 	light_offset <- -12 # otherwise outside 0 on left
+	light_offset <- light_offset 
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")

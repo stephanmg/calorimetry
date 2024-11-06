@@ -14,6 +14,7 @@
 #' @export
 ################################################################################
 resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
 	metadatafile <- get_metadata_datapath(input, session, global_data)
 	component2 <- ""
 	if (length(input$cvs) == 2) {
@@ -62,7 +63,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
 
-	# TODO: v0.4.0- Add back animal and days selection as in EE, Raw, and GoxLox panels
+	# TODO: v0.4.0 - Add back animal and days selection as in EE, Raw, and GoxLox panels
 
 	# df already prepared to be day and night summed activities
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
@@ -179,9 +180,9 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
-				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
 			} else {
-				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
 		}
 	} else {
@@ -217,14 +218,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
 	colnames(lights) <- c("x", "y")
 	
-	#if (input$timeline) {
-	#	light_offset <- 0
-		# this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
-	#	my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
-	#	p <- p + my_lights
-	#}
-
-
 	p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
 	p <- p + xlab("Zeitgeber time [h]")
 	p <- p + ggtitle("Resting metabolic rates")
@@ -234,6 +227,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)), breaks=seq(0, max(df_plot_total$Time), by=(4*60)), labels=convert_minutes_to_hours(seq(0, max(df_plot_total$Time), by=(4*60))))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
+
 	finalC1 <- df_plot_total
 	return(list("finalC1"=finalC1, "plot"=p))
 }

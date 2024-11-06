@@ -117,7 +117,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	TEE$Animals <- as.factor(TEE$Animals)
 	if (input$with_facets) {
 		if (input$facets_by_data_one %in% names(finalC1)) {
-		TEE$Facet <- as.factor(TEE$Facet)
+			TEE$Facet <- as.factor(TEE$Facet)
 		}
 	}
 	write.csv2(TEE, "tee.csv")
@@ -127,16 +127,18 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 	TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
+
 	p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
 	p <- add_visualization_type(p, input$box_violin_or_other, TRUE)
 	p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
+
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
-		if (input$orientation == "Horizontal") {
-		p <- p + facet_grid(as.formula(".~Facet"))
-		} else {
-		p <- p + facet_grid(as.formula("Facet~."))
-		}
+			if (input$orientation == "Horizontal") {
+				p <- p + facet_grid(as.formula(".~Facet"), scales="free_x")
+			} else {
+				p <- p + facet_grid(as.formula("Facet~."), scales="free_y")
+			}
 		}
 	}
 		output$test <- renderUI({
