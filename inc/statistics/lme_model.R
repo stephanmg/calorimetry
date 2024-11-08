@@ -89,6 +89,32 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 			hr(),
 			uiOutput("fixed_effect_overview"),
 			h5("Summary tables"),
+			tags$style(HTML("
+				table.dataTable tbody td {
+					background-color: white !important;
+					color: black !important
+				}
+				table.dataTable thead td {
+					color: white !important;
+				}
+
+				table.dataTable thead tr {
+					color: white !important;
+				}
+
+				table.dataTable tfoot th {
+					color: white !important;
+				}
+
+				.dataTables_wrapper .dataTables_paginate .paginate_button {
+					color: white !important;
+				}
+
+				.dataTables_wrapper .dataTables_info {
+					color: white !improtant;
+				}
+
+			")),
 			renderDT({
 				datatable(model_effects(df_to_plot, my_dep_var, input)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, my_dep_var, input)$df1), color='white', backgroundColor = 'black')
 			}),

@@ -377,7 +377,10 @@ pretty_print_label <- function(label, metadata, ee_unit) {
    # these units are fixed by convenience of plotting typically
    pretty_label <- gsub("TEE", paste0("TEE [kJ/day]"), pretty_label)
    pretty_label <- gsub("RMR", paste0("RMR [kJ/day]"), pretty_label)
-   pretty_label <- gsub("GoxLox", paste0("GoxLox [ml/h]"), pretty_label)
+   pretty_label <- gsub("Glucose oxidation", paste0("Glucose oxidation [ml/h]"), pretty_label)
+   pretty_label <- gsub("Fat oxidation", paste0("Fat oxidation [ml/h]"), pretty_label)
+   pretty_label <- gsub("Nitrogen oxidation", paste0("Nitrogen oxidation [ml/h]"), pretty_label)
+   pretty_label <- gsub("Protein oxidation", paste0("Protein oxidation [ml/h]"), pretty_label)
    pretty_label <- gsub("HP", paste0("Energy expenditure [kJ/day]"), pretty_label)
    # get relevant data from metadata
    if (!is.null(metadata)) {
@@ -465,6 +468,27 @@ get_factor_columns <- function(df) {
 get_non_factor_columns <- function(df) {
    return(names(df)[sapply(df, Negate(is.factor))])
 }
+
+################################################################################
+# get columns with at least two levels
+################################################################################
+get_columns_with_at_least_two_levels <- function(df) {
+   #columns_with_two_levels <- sapply(df, function(col) is.factor(col) || is.character(col) || length(unique(col)) >= 2)
+   columns_with_two_levels_or_more <- names(df)[sapply(df, function(col) is.factor(col) && nlevels(col) >= 2)]
+   return(columns_with_two_levels_or_more)
+}
+
+################################################################################
+# check if at least two cohorts available
+################################################################################
+has_cohorts <- function(df, colname="Cohort") {
+   if (colname %in% colnames(df)) {
+      if (length(unique(df[[colname]]))) {
+         return(colname)
+      }
+   }
+}
+
 
 ################################################################################
 #' get_new_download_buttons

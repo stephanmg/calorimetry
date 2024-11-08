@@ -1530,7 +1530,6 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
-               hideTab(inputId = "additional_content", target = "Modelling")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")

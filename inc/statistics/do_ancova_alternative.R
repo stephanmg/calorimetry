@@ -146,7 +146,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   } 
 
-  if (test_type == "2-way ANCOVA") {
+  if (test_type == "2-way ANCOVA" || test_type == "2-way ANOVA") {
     if (dep_var == "HP") {
       if (num_covariates > 1) {
         df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days")) %>% distinct()
@@ -159,8 +159,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   p2 <- NULL
   p3 <- NULL
   if (dep_var == "TEE") {
-    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
+    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line") 
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+    p2 <- p2 + geom_point(aes(text=paste0("Animals:", Animals)), label = "", color = "transparent", alpha=0)
 
     if (num_covariates > 1) {
      p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
@@ -168,19 +169,21 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
 
   } else {
-    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line")
-    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
-     if (num_covariates > 1) {
-     p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
-     p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+    label_y <- c(max(df$TEE)+2, max(df$TEE)+8)
+    df <- df %>% rename(!!dep_var := TEE)
+    p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line")
+    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, geom="text", output.type = "text", parse=FALSE)
+    p2 <- p2 + geom_point(aes(text=paste0("Animals:", Animals)), label = "", color = "transparent", alpha=0)
+    df <- df %>% rename(TEE := !!dep_var)
+    if (num_covariates > 1) {
+      p3 <- ggscatter(df, x = "Weight2", y = dep_var, color = "group", add = "reg.line")
+      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
     }
-
-
   }
 
   p2 <- p2 + labs(colour=group)
   if (num_covariates > 1) {
-   p3 <- p3 + labs(colour=group)
+    p3 <- p3 + labs(colour=group)
   }
 
   # 1-way ANCOVA based on user input grouping variable
@@ -253,6 +256,18 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   model.metrics <- augment(model)
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
+
+
+  if (test_type == "1-way ANOVA") {
+    p2 <- ggboxplot(df, x = "group", y = "TEE", color = "group") + stat_compare_means()
+  }
+
+  if (test_type == "2-way ANOVA") {
+    print("in anova")
+    print(df)
+    df$Days <- as.factor(df$Days)
+    p2 <- ggboxplot(df, "group", "TEE", color = "Days") + stat_compare_means()
+  }
 
   return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))
 }

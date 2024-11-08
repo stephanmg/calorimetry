@@ -141,7 +141,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			}
 		}
 	}
-		output$test <- renderUI({
+	
+	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
 			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),

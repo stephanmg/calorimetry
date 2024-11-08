@@ -192,6 +192,22 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 					p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_variable("EE", metadatafile)) + ggtitle(input$study_description)
 					ggplotly(p)
 				})),
+			hr(style = "width: 50%"),
+			h4("Plotting control"),
+			fluidRow(
+				column(6,
+				h5("x-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
+				numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
+				numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
+				),
+				column(6,
+				h5("y-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
+				numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
+				numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
+				)
+			)
 		)
 		})
 

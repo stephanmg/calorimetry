@@ -131,6 +131,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
+
+
 	df_to_plot <- finalC1
 	# if we do not have metadata, this comes from some not-clean TSE headers
 	if (!input$havemetadata) { df_to_plot$`Animal.No.` <- df_to_plot$Animals }
@@ -197,29 +199,47 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		paste(splitted[[1]][1], "", sep = "")
 	}
 
+
+
+	print(df_to_plot)
+	write.csv2(df_to_plot, "before_ancova_we_wanna_see.csv")
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 	df_to_plot$GoxLox = df_to_plot[input$myr]
-	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum) %>% rename("Raw" = input$myr)
+	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$DayCount), FUN = sum) %>% rename("Raw" = input$myr)
+
+	# add cohort information
+	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+	GoxLox$Cohort <- sapply(GoxLox$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
+	
+	# store calculated results
 	storeSession(session$token, "df_raw", GoxLox, global_data)
+	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+	
+	choices = c(get_columns_with_at_least_two_levels(true_metadata), has_cohorts(GoxLox))
 
 	# Statistics section st art
 	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way-ANOVA")),
+			#conditionalPanel("input.test_statistic == '1-way ANOVA' || input.test_statistic == '2-way ANOVA", checkboxInput("add_points_to_anova", "Add points")),
+			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way ANOVA"), selected = "1-way ANOVA"),
 			selectInput("dep_var", "Dependent variable", choice = c("Raw")),
-			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-			selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
+			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
+			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(GoxLox)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
+			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
+			#conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("facet_wrap_for_2_way_analysis", "Wrapping facet", choices = c(input$indep_var2))),
+			#conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("facet_wrap_for_2_way_analysis_orientation", "Wrap orientation", choices = c("Horizontal", "Vertical"))),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
 			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
+			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
 			hr(style = "width: 50%"),
 			h4("Advanced"),
+			checkboxInput("add_points_to_anova_or_ancova", "Add points"),
 			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
+			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE)),
 			hr(style = "width: 75%"),
 			# here we fill the plot below with data
 			plotlyOutput("plot_statistics_details"),
@@ -243,7 +263,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			conditionalPanel("input.num_covariates == '2'", 
 			plotlyOutput("plot_statistics_details2"),
 			hr(style = "width: 50%"),
-
 			h4("Plotting control"),
 			fluidRow(
 				column(6,
@@ -258,15 +277,30 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
 				numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
 				)
-			),
+			)
 			))
 		})
 
 	# TODO: v0.4.0 - example how to get plot download for selected plot only, add everywhere else too?
 	# get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
+
 	output$plot_statistics_details <- renderPlotly({
 		p <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
-		p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
+		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
+            hideTab(inputId = "additional_content", target = "Details")
+			p <- p + xlab(pretty_print_label(input$depvar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
+			p <- p + labs(color = input$indep_var)
+			if (input$test_statistic == '1-way ANOVA') {
+				if (input$add_points_to_anova_or_ancova) {
+					p <- p + geom_jitter(width = 0.2, aes(color = group)) + labs(input$indep_var)
+				}
+			} else {
+				p <- p + facet_wrap(as.formula(paste("~", input$indep_var2)))
+			}
+		} else {
+            showTab(inputId = "additional_content", target = "Details")
+			p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
+		}
 
 		if (!input$auto_scale_rmr_plot_limits_x) {
 			p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
@@ -276,12 +310,17 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
 		}
 
-
 		p <- p + ggtitle(input$study_description) 
 		ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
+	})
+
+	# required to keep the currently selected indep_var
+	observeEvent(input$indep_var, {
+		storeSession(session$token, "selected_indep_var", input$indep_var, global_data)
+		updateSelectInput(session, "indep_var", choices=choices, selected = getSession(session$token, global_data)[["selected_indep_var"]])
 	})
 
 	output$plot_statistics_details2 <- renderPlotly({
@@ -389,6 +428,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			} else {
 				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
+		}
+		if (input$add_average_with_se) {
+			p <- p + geom_smooth(aes_string(x = "running_total.hrs.halfhour", y = input$myr), method = input$averaging_method_with_facets, se = TRUE, inherit.aes = FALSE, multiplier=3)
 		}
 	}
 

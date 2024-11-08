@@ -395,13 +395,15 @@ main_content <- mainPanel(
          tagList(
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered", checkboxInput("stylize_plot", "Stylize plot")),
-            conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control"))
+            conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
+            conditionalPanel("input.with_facets == true", checkboxInput("add_average_with_se", "Smooth facets")),
+            conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets", "Method for smoothing", choices=c("loess", "lm"), selected="loess"))
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
-      tabPanel("Modelling", uiOutput("modelling")),
       tabPanel("Details", uiOutput("details")),
+      tabPanel("Modelling", uiOutput("modelling")),
       tabPanel("Explanation", htmlOutput("explanation"))
    )
 )
