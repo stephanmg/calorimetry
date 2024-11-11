@@ -2,6 +2,213 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
+add_anova_ancova_panel <- function(input, output, session, global_data, true_metadata, input_df, metadatafile, mylabel) {
+   # cohort information
+	choices = c(get_columns_with_at_least_two_levels(true_metadata), has_cohorts(input_df))
+   # statistics start
+	output$test <- renderUI({
+		tagList(
+			h4("Configuration"),
+			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way ANOVA"), selected = "1-way ANOVA"),
+			selectInput("dep_var", "Dependent variable", choice = c("Raw")),
+			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
+			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(input_df)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
+			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
+			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
+			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
+			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
+			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
+			hr(style = "width: 50%"),
+			h4("Advanced"),
+			checkboxInput("add_points_to_anova_or_ancova", "Add points"),
+			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
+			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
+			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE)),
+			hr(style = "width: 75%"),
+			# here we fill the plot below with data
+			plotlyOutput("plot_statistics_details"),
+			hr(style = "width: 50%"),
+			h4("Plotting control"),
+			fluidRow(
+				column(6,
+				h5("x-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
+				numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
+				numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
+				),
+				column(6,
+				h5("y-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
+				numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
+				numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
+				)
+			),
+			hr(style = "width: 75%"),
+			conditionalPanel("input.num_covariates == '2'", 
+			plotlyOutput("plot_statistics_details2"),
+			hr(style = "width: 50%"),
+			h4("Plotting control"),
+			fluidRow(
+				column(6,
+				h5("x-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
+				numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
+				numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
+				),
+				column(6,
+				h5("y-axis limits"),
+				checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
+				numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
+				numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
+				)
+			)
+			))
+		})
+
+	# TODO: v0.4.0 - example how to get plot download for selected plot only, add everywhere else too?
+	# get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
+
+	output$plot_statistics_details <- renderPlotly({
+		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
+		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
+            hideTab(inputId = "additional_content", target = "Details")
+			p <- p + xlab(pretty_print_label(input$depvar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
+			p <- p + labs(color = input$indep_var)
+			if (input$test_statistic == '1-way ANOVA') {
+				if (input$add_points_to_anova_or_ancova) {
+					p <- p + geom_jitter(width = 0.2, aes(color = group)) + labs(input$indep_var)
+				}
+			} else {
+				p <- p + facet_wrap(as.formula(paste("~", input$indep_var2)))
+			}
+		} else {
+            showTab(inputId = "additional_content", target = "Details")
+			p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
+		}
+
+		if (input$test_statistic == '1-way ANCOVA' || input$test_statistic == '2-way ANCOVA') {
+			if (!input$auto_scale_rmr_plot_limits_x) {
+				p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
+			}
+
+			if (!input$auto_scale_rmr_plot_limits_y) {
+				p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
+			}
+		}
+
+		p <- p + ggtitle(input$study_description) 
+		ggplotly(p) %>% config(displaylogo = FALSE, 
+				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
+				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+				list("hoverClosestCartesian", "hoverCompareCartesian")))
+	})
+
+	# required to keep the currently selected indep_var
+	observeEvent(input$indep_var, {
+		storeSession(session$token, "selected_indep_var", input$indep_var, global_data)
+		updateSelectInput(session, "indep_var", choices=choices, selected = getSession(session$token, global_data)[["selected_indep_var"]])
+	})
+
+	output$plot_statistics_details2 <- renderPlotly({
+		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
+		p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) 
+		p <- p + ylab(pretty_print_variable(mylabel, metadatafile)) 
+		p <- p + ggtitle(input$study_description)
+
+		if (!input$auto_scale_rmr_plot_limits_x2) {
+			p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
+		}
+
+		if (!input$auto_scale_rmr_plot_limits_y2) {
+			p <- p + ylim(c(input$y_min_rmr_plot2, input$y_max_rmr_plot2))
+		}
+
+		p <- p + ggtitle(input$study_description) 
+		ggplotly(p) %>% config(displaylogo = FALSE, 
+				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details2")), 
+				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+				list("hoverClosestCartesian", "hoverCompareCartesian")))
+
+	})
+
+	output$details <- renderUI({
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+		tagList(
+			h3("Post-hoc analysis"),
+			plotlyOutput("post_hoc_plot"),
+			hr(style = "width: 75%"),
+			h4("Results of statistical testing"),
+			tags$table(
+				tags$thead(
+					tags$tr(
+					tags$th("p-value", style="width: 100px"),
+					tags$th("p-value (adjusted)", style="width: 100px"),
+					tags$th("significance level", style="width: 100px"),
+					tags$th("degrees of freedom", style="width: 100px" ),
+					tags$th("test statistic", style="width: 100px")
+					)
+				),
+				tags$tbody(
+					generate_statistical_table(results)
+				)
+			),
+			h4("Test assumptions"),
+			tags$table(
+				tags$thead(
+					tags$tr(
+					tags$th("Description", style="width:200px"),
+					tags$th("Name of significance test", style="width:200px"),
+					tags$th("Null hypothesis", style="width:400px"),
+					tags$th("p-value", style="width:200px"),
+					tags$th("Status", style="width:200px")
+					)
+				),
+				tags$tbody(
+					tags$tr(
+					tags$td("Homogeneity of variances", style="width:200px"),
+					tags$td("Levene's test", style="width:200px"),
+					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
+					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
+					tags$td(
+						if (as.numeric(results$levene$p) < input$alpha_level) {
+							icon("times")
+						} else {
+							icon("check")
+						}
+					,style="width: 200px"
+					)
+					),
+					tags$tr(
+					tags$td("Normality of residuals", style="width:200px"),
+					tags$td("Shapiro-Wilk test", style="width:200px"),
+					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
+					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
+					tags$td(
+						if (as.numeric(results$shapiro$p.value) < input$alpha_level) {
+							icon("times")
+						} else {
+							icon("check")
+						}
+					,style="width: 200px"
+					)
+					)
+				)
+			),
+		)
+	})
+
+	# TODO: results is calculated multiple times, in fact only once should be necessary... optimize this.
+	output$post_hoc_plot <- renderPlotly({
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "Raw", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+		p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
+		ggplotly(p) %>% config(displaylogo = FALSE, 
+			modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
+			list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
+			list("hoverClosestCartesian", "hoverCompareCartesian")))
+	})
+}
+
+
 ################################################################################
 #' filter_for_days_and_animals
 #' 
