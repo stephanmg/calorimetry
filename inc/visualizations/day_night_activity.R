@@ -59,6 +59,9 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 	DayNight$NightDay <- as.factor(DayNight$NightDay)
 	storeSession(session$token, "df_day_night", apply(DayNight, 2, as.character), global_data)
 
+	# Filtering for animals and Days
+	add_filtering_for_days_and_animals(input, session, output, DayNight, global_data)
+	
 	# Statistics section
 	output$test <- renderUI({
 		tagList(

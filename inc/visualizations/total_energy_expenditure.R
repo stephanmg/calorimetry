@@ -62,8 +62,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
-	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
@@ -127,6 +127,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 	TEE$Cohort <- sapply(TEE$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 
+	# Filtering for animals and Days
+	add_filtering_for_days_and_animals(input, session, output, TEE, global_data)
 
 	p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
 	p <- add_visualization_type(p, input$box_violin_or_other, TRUE)

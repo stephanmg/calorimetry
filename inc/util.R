@@ -3,6 +3,35 @@ source("inc/metadata/read_metadata.R")
 library(glue)
 
 ################################################################################
+#' filter_for_days_and_animals
+#' 
+################################################################################
+	# Filtering for animals and Days
+add_filtering_for_days_and_animals <- function(input, session, output, df, global_data) {
+	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
+	if (!is.null(selected_animals)) {
+		df <- df %>% filter(`Animals` %in% selected_animals)
+		updateSelectInput(session, "select_animal", selected=selected_animals)
+	} else {
+		output$select_animal <- renderUI({
+			selectInput("select_animal", "Select animals(s):", choices = unique(df$Animals), selected = unique(df$Animals), multiple = TRUE)
+		})
+		storeSession(session$token, "selected_animals", unique(df$Animals), global_data)
+	}
+
+	selected_days <- getSession(session$token, global_data)[["selected_days"]]
+	if (!is.null(selected_days)) {
+		df <- df %>% filter(`Days` %in% selected_days)
+		updateSelectInput(session, "select_day", selected=selected_days)
+	} else {
+		storeSession(session$token, "selected_days", unique(df$Days), global_data)
+		output$select_day <- renderUI({
+			selectInput("select_day", "Select days(s):", choices = unique(df$Days), selected = unique(df$Days), multiple = TRUE)
+		})
+	}
+}
+
+################################################################################
 #' get_metadata datapath
 #' 
 #' This function gets the datapath (file) either from the UI by user input or

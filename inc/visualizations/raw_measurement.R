@@ -25,9 +25,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	finalC1 <- data_and_metadata$data
 	true_metadata <- data_and_metadata$metadata
 
-	print("after enrichting:")
-	print(names(finalC1))
-
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
@@ -302,12 +299,14 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
 		}
 
-		if (!input$auto_scale_rmr_plot_limits_x) {
-			p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
-		}
+		if (input$test_statistic == '1-way ANCOVA' || input$test_statistic == '2-way ANCOVA') {
+			if (!input$auto_scale_rmr_plot_limits_x) {
+				p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
+			}
 
-		if (!input$auto_scale_rmr_plot_limits_y) {
-			p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
+			if (!input$auto_scale_rmr_plot_limits_y) {
+				p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
+			}
 		}
 
 		p <- p + ggtitle(input$study_description) 
