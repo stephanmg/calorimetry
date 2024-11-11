@@ -1417,8 +1417,7 @@ server <- function(input, output, session) {
                if (!is.null(RMR_for_model)) {
                   RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
                   write.csv2(RMR_for_model, "tee_before_lme_model.csv")
-                  #create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
-                  create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR")
+                  create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR", session, global_data)
                }
               }
            } else if (input$plot_type == "CompareHeatProductionFormulas") {
