@@ -346,7 +346,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		EE_for_model <- EE_for_model %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		EE_for_model <- EE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
 		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
-		create_lme_model_ui(input, output, true_metadata, EE_for_model, "EE")
+		create_lme_model_ui(input, output, true_metadata, EE_for_model, "EE", session, global_data)
 	}
 
 	return(p)

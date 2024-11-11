@@ -250,7 +250,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		TEE_for_model <- TEE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
 		write.csv2(TEE_for_model, "tee_before_lme_model.csv")
 		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
-		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE")
+		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE", session, global_data)
 	}
 
 

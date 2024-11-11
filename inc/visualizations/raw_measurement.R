@@ -467,7 +467,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 	# create LME model UI
-	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr)
+	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr, session, global_data)
 
 	# return current plot of raw measurements
 	return(p)
