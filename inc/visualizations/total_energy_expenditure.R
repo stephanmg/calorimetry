@@ -142,6 +142,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		}
 	}
 	
+	# Statistics section
+	# TODO: Replace with utility function
 	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
