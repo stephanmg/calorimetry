@@ -300,8 +300,9 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
          } # renaming columns are assumed to be numerical and used as covariates
       }
       metadata <- df_filtered 
-      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when switching between panels occassionally?
-      # data needs to be filtered because sometimes we double merge the finalC1, creating duplicates?
+      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when
+      # switching between panels occassionally? data needs to be filtered because sometimes we
+      # double merge the finalC1, creating duplicates?
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }
    return(list("data"=df, "metadata"=metadata))
@@ -359,7 +360,7 @@ get_global_offset_for_day_night <- function(df) {
 #' @export
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
-   # TODO: this needs to be revised, if one want to select indvidual calendrical days,
+   # TODO: v0.5.0 - this needs to be revised, if one want to select indvidual calendrical days,
    # because running_total.sec == 0 will not be foun, also for RMR the following df
    # is grouped and needs to be converted before writing. Why?
    write.csv2(apply(df, 2, as.character), "directly_before_offsets.csv")

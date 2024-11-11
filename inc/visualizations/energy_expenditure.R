@@ -79,10 +79,11 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	}
 	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
+	
 	# TODO: v0.4.0 - add possibility to not use zeitgeber zeit if (input$use_zeitgeber_zeit) { ... }
-	# basically look at TEE; GoxLox, or DayNightAcvitiy panel...
+	# basically look at TEE, GoxLox, or DayNightActivity panel for an example
 	# for days and animals selection use get_days_and_animals_for_select(finalC1) not alternative,
-	# code above must be wrapped into if statements accordingly...
+	# code above must be wrapped into if statements accordingly of course
 
 	# select days
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]

@@ -12,8 +12,8 @@ library(ggpubr)
 #' 
 #' This function generates and overview of body composition and other recorded metadata
 #' 
-#' @param finalC1 input data
-#' @param finalC1meta combined metadata
+#' @param body_comp_df input data
+#' @param tse_metadata combined metadata
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
@@ -23,14 +23,12 @@ library(ggpubr)
 #' body_composition(values, full_metadata, input, output, session, global_data, 1)
 #' @export
 ################################################################################
-body_composition <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+body_composition <- function(body_comp_df, tse_metadata, input, output, session, global_data, scaleFactor) {
 	# Enrich with metadata
-	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-	# TODO: Is this necessary? could also just take the metadata depending on input$havemetadata
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, get_metadata_datapath(input, session, global_data))
+	body_comp_df$Animals <- as.factor(`$`(body_comp_df, "Animal No._NA"))
+	data_and_metadata <- enrich_with_metadata(body_comp_df, tse_metadata, input$havemetadata, get_metadata_datapath(input, session, global_data))
 	true_metadata <- data_and_metadata$metadata
-	# TODO: Refactor to use more suitable variable names
-	finalC1 <- true_metadata
+	body_comp_df <- true_metadata
 	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
 		tagList(
@@ -43,8 +41,9 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 		)
 	})
 
-	# TODO: should we only allow how_many_comparions to be restricted to groups 
-	# hich have at least 2 levels? comparions with only one group are futile...
+	# TODO: Should we only allow how_many_comparions to be restricted to groups 
+	# which have at least 2 levels? comparisons of groups with only 1-lvl are futile:
+	# Use util.R to filter for categorical columns of at least 2 levels.
 	# selection fields for factors for each group
 	output$selection_sliders <- renderUI({
 		n <- input$how_many_comparisons
@@ -113,28 +112,28 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 					lapply(1:length(m), function(j) {
 						output[[paste0("plot_factor_", i, "_group_", j)]] <- renderPlot({
 							my_var <- input[[paste0("select_group_", i)]]
-							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
+							body_comp_df[[my_var]] <- as.numeric(body_comp_df[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
-								anova_result <- aov(formula, data=finalC1)
+								anova_result <- aov(formula, data=body_comp_df)
 							} else {
-								anova_result <- kruskal.test(formula, data=finalC1)
+								anova_result <- kruskal.test(formula, data=body_comp_df)
 							}
-							combinations <- combn(levels(finalC1[[input[[paste0("how_many_for_anova_", i)]][j]]]), m = 2, simplify = FALSE)
+							combinations <- combn(levels(body_comp_df[[input[[paste0("how_many_for_anova_", i)]][j]]]), m = 2, simplify = FALSE)
 							print("2 combinations:")
 							print(combinations)
-							ggplot(finalC1, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]], fill=input[[paste0("how_many_for_anova_", i)]][j])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(comparisons = combinations, method="t.test", label="p.signif", bracket.size = 0.5, step.increase=0.1, tip.length=0.01, aes(label=paste0("p = ", ..p.format.., ", ", ..p.signif..)))
+							ggplot(body_comp_df, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]], fill=input[[paste0("how_many_for_anova_", i)]][j])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(comparisons = combinations, method="t.test", label="p.signif", bracket.size = 0.5, step.increase=0.1, tip.length=0.01, aes(label=paste0("p = ", ..p.format.., ", ", ..p.signif..)))
 						})
 						output[[paste0("plot_factor_summary_", i, "_group_", j)]] <- renderDT({
 							my_var <- input[[paste0("select_group_", i)]]
-							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
+							body_comp_df[[my_var]] <- as.numeric(body_comp_df[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
-								anova_result <- aov(formula, data=finalC1)
+								anova_result <- aov(formula, data=body_comp_df)
 							} else {
-								anova_result <- kruskal.test(formula, data=finalC1)
+								anova_result <- kruskal.test(formula, data=body_comp_df)
 							}
 							anova_summary <- as.data.frame(summary(anova_result)[[1]])
 							datatable(anova_summary, options = list(pageLength = 5, autowidth = TRUE), rownames = TRUE) %>% formatStyle(columns=names(anova_summary), color="white", backgroundColor="black")
@@ -142,18 +141,18 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 						output[[paste0("plot_factor_assumption_normality_", i, "_group_", j)]] <- renderPlot({
 							my_var <- input[[paste0("select_group_", i)]]
-							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
+							body_comp_df[[my_var]] <- as.numeric(body_comp_df[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
-								anova_result <- aov(formula, data=finalC1)
+								anova_result <- aov(formula, data=body_comp_df)
 							} else {
-								anova_result <- kruskal.test(formula, data=finalC1)
+								anova_result <- kruskal.test(formula, data=body_comp_df)
 							}
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							# TODO: v0.5.0 - shapiro can only take 5000 samples maximum, replace with other test
+							# TODO: v0.5.0 - Shapiro can only take 5000 samples maximum, replace with other test
 							# Replace with nortest ad.test(data$variable) or 
 							# anderson darling test (gives more weight to tails) or
 							# cramer von mises (prefered, asseses entire distribution equally/comprehensively tails + centers) or
@@ -165,17 +164,17 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 
 						output[[paste0("plot_factor_assumption_residuals_", i, "_group_", j)]] <- renderPlot({
 							my_var <- input[[paste0("select_group_", i)]]
-							finalC1[[my_var]] <- as.numeric(finalC1[[my_var]])
+							body_comp_df[[my_var]] <- as.numeric(body_comp_df[[my_var]])
 							anova_result <- NULL
 							formula <- as.formula(paste0(input[[paste0("select_group_", i)]], " ~ ", input[[paste0("how_many_for_anova_", i)]][j]))
 							if (input$test_statistic == "ANOVA") {
-								anova_result <- aov(formula, data=finalC1)
+								anova_result <- aov(formula, data=body_comp_df)
 							} else {
-								anova_result <- kruskal.test(formula, data=finalC1)
+								anova_result <- kruskal.test(formula, data=body_comp_df)
 							}
 
 							standardized_residuals <- rstandard(anova_result)
-							levene_result <- leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=finalC1)
+							levene_result <- leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=body_comp_df)
 							ggplot(data = data.frame(StandardizedResiduals = standardized_residuals), aes(sample=StandardizedResiduals)) + stat_qq() + stat_qq_line() + labs(x = "Theoretical quantiles", y = "Standardized residuals", title=paste0("Levene's test for homogenity of variances: p-value = ", levene_result[["Pr(>F)"]][1]))
 						})
 
@@ -187,35 +186,35 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 					output[[paste0("n_way_anova_", i)]] <- renderPlot({
 						indep_vars <- input[[paste0("how_many_for_anova_", i)]]
 						dep_var <- paste0(input[[paste0("select_group_", i)]])
-						finalC1[[dep_var]] <- as.numeric(finalC1[[dep_var]])
+						body_comp_df[[dep_var]] <- as.numeric(body_comp_df[[dep_var]])
 						anova_formula <- as.formula(paste(dep_var, "~", paste(indep_vars, collapse = "*")))
-						anova_result <- aov(anova_formula, data=finalC1)
+						anova_result <- aov(anova_formula, data=body_comp_df)
 
 						# combinations: we need to first create all possible combinations of all levels of each factor
-						combinations <- lapply(indep_vars, function(f) levels(finalC1[[f]]))
+						combinations <- lapply(indep_vars, function(f) levels(body_comp_df[[f]]))
 						combinations <- expand.grid(combinations)
 						combinations$combined <- apply(combinations, 1, paste, collapse = ",")
 
 						if (length(indep_vars) == 2) {
 							# then we need to create for a 2-way ANOVA all pairwise grouped pairs, i.e. ("A,D" vs "B,C")
-							finalC1$Combined <- interaction(finalC1[, indep_vars], sep=",")
-							existing_combos <- unique(finalC1$Combined)
+							body_comp_df$Combined <- interaction(body_comp_df[, indep_vars], sep=",")
+							existing_combos <- unique(body_comp_df$Combined)
 							available_combinations <- combinations[combinations$combined %in% existing_combos, ]
 
 							combined_levels <- available_combinations$combined
 							combinations <- combn(combined_levels, 2, simplify = FALSE)
-							# Note: we need to use the Combined column from finalC1, since we did find only VALID pairs for the statistical annotation
-							ggplot(finalC1, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
+							# Note: we need to use the Combined column from body_comp_df, since we did find only VALID pairs for the statistical annotation
+							ggplot(body_comp_df, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
 						} else if (length(indep_vars) == 3) {
 							# TODO: v0.5.0 - Add statistics, comparison groups need to be created differently then for 3-way ANOVA
-							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(". ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
+							ggplot(body_comp_df, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(". ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else if (length(indep_vars) == 4) {
 							# TODO: v0.5.0 - Add statistics, comparions groups need to be created differently then for 4-way ANOVA
-							ggplot(finalC1, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(indep_vars[4], " ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
+							ggplot(body_comp_df, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(indep_vars[4], " ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else { # general >= 5-way ANOVA, consider here to implement interaction plots rather than visualizations
 							# Higher than 5-way ANOVA we will not be supported with visualizations other than interaction plots.
 							# TODO: v0.5.0 - Add visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
-							ggplot(finalC1, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) 
+							ggplot(body_comp_df, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) 
 						}
 					})
 
@@ -223,9 +222,9 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 					output[[paste0("n_way_anova_summary_", i)]] <- renderDT({
 						indep_vars <- input[[paste0("how_many_for_anova_", i)]]
 						dep_var <- paste0(input[[paste0("select_group_", i)]])
-						finalC1[[dep_var]] <- as.numeric(finalC1[[dep_var]])
+						body_comp_df[[dep_var]] <- as.numeric(body_comp_df[[dep_var]])
 						anova_formula <- as.formula(paste(dep_var, "~", paste(indep_vars, collapse = "*")))
-						anova_result <- aov(anova_formula, data=finalC1)
+						anova_result <- aov(anova_formula, data=body_comp_df)
 						anova_summary <- as.data.frame(summary(anova_result)[[1]])
 						datatable(anova_summary, options = list(pageLength = 5, autowidth = TRUE), rownames = TRUE) %>% formatStyle(columns=names(anova_summary), color="white", backgroundColor="black")
 					})
@@ -238,7 +237,8 @@ body_composition <- function(finalC1, finalC1meta, input, output, session, globa
 	if (ncol(true_metadata) > 12) { colors <- colorRampPalette(colors)(ncol(true_metadata)) }
 	# Create overview of available metadata
 	plots <- lapply(1:length(names(true_metadata)), function(i) {
-		# TODO: Should this be restricted to factor columns only? Or plot numeric columns differently for a better visualization?
+		# TODO: Should this be restricted to factor columns only? 
+		# Or plot numerical columns differently for a better visualization?
 		col_name <- names(true_metadata)[i]
 		p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + theme_minimal() + labs(title = "Histograms of available metadata", y="Frequency", x = col_name) + theme(axis.text.x = element_text(angle = 45))
 		ggplotly(p) %>% layout(xaxis = list(title = col_name), yaxis=list(title = "Count"))
