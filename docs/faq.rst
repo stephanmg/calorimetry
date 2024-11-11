@@ -24,3 +24,7 @@ A: Most likely the statistical method is not appropriate for the provided data s
 Q: I receive an error `Error: [object Object]` in statistical testing panel for energy expenditure?
 
 A: Make sure, that you calculated first, TotalEnergyExpenditure and then RestingMetabolicRate. Omiting one of these calculations will lead to the received error.
+
+Q: Data file can't be read at all when metadata is provided with an error: `Error [object Object]` or `Argument is of length 0`?
+
+A: The TSE header must be valid, e.g. Weight with `.` instead of `.`, and if metadata `Genotype` etc. is used in metadata sheet as well, data have to be match the TSE header (e.g. no other groups like mis-spelled `cntrl` in TSE header if in metadata sheet is cntl and wt for instance allowed). Either fix in app or otherwise do not export TSE header from phenomaster at all and only fill metadata sheet. Also, when providing TSE files, the header must be valid.
