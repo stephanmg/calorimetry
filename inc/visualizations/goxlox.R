@@ -149,96 +149,11 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
 	GoxLox <- GoxLox %>% rename(GoxLox = x)
 	storeSession(session$token, "df_gox_lox", GoxLox, global_data)
+	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 
-	output$test <- renderUI({
-		tagList(
-			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-			selectInput("dep_var", "Dependent variable", choice = c("GoxLox")),
-			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-			selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-			hr(style = "width: 50%"),
-			h4("Advanced"),
-			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
-			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-			hr(style = "width: 75%"),
-			renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_label(input$goxlox, metadatafile)) + ggtitle(input$study_description)),
-			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description)))
-		)
-	})
-
-	output$details <- renderUI({
-		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-		tagList(
-			h3("Post-hoc analysis"),
-			renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-			hr(style = "width: 75%"),
-			h4("Results of statistical testing"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("p-value", style="width: 100px"),
-					tags$th("p-value (adjusted)", style="width: 100px"),
-					tags$th("significance level", style="width: 100px"),
-					tags$th("degrees of freedom", style="width: 100px" ),
-					tags$th("test statistic", style="width: 100px")
-					)
-				),
-				tags$tbody(
-					generate_statistical_table(results)
-					)
-			),
-			h4("Test assumptions"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("Description", style="width:200px"),
-					tags$th("Name of significance test", style="width:200px"),
-					tags$th("Null hypothesis", style="width:400px"),
-					tags$th("p-value", style="width:200px"),
-					tags$th("Status", style="width:200px")
-					)
-				),
-				tags$tbody(
-					tags$tr(
-					tags$td("Homogeneity of variances", style="width:200px"),
-					tags$td("Levene's test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$levene$p) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					),
-					tags$tr(
-					tags$td("Normality of residuals", style="width:200px"),
-					tags$td("Shapiro-Wilk test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$shapiro$p.value) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					)
-				)
-			),
-		)
-	})
-
+	# add anova/ancova panel
+	add_anova_ancova_panel(input, output, session, global_data, true_metadata, GoxLox, metadatafile, "GoxLox", "GoxLox")
+	
 	p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
 	# timeline

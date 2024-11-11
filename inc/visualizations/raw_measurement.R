@@ -32,7 +32,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
-	# filter conditions
+	# Filter conditions based on factor level
 	if (input$with_grouping) {
 		my_var <- input$condition_type
 		if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
@@ -74,7 +74,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
 
-	# annotations
+	# annotations for days
 	finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
@@ -85,8 +85,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
-	selected_days <- getSession(session$token, global_data)[["selected_days"]]
 	# set default for animals and selected days: typically all selected at the beginning
+	selected_days <- getSession(session$token, global_data)[["selected_days"]]
 	if (is.null(selected_days)) {
 		output$select_day <- renderUI({
 			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
@@ -98,7 +98,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
 		})
 	}
-
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 	if (is.null(selected_animals)) {
 		output$select_animal <- renderUI({
@@ -121,13 +120,13 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
 	}
 
+	# prepare grouping of data frame
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
-
 	df_to_plot <- finalC1
+
 	# if we do not have metadata, this comes from some not-clean TSE headers
 	if (!input$havemetadata) { df_to_plot$`Animal.No.` <- df_to_plot$Animals }
 
@@ -172,42 +171,40 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	mylabel <- gsub("_", " ", mylabel)
 
 	# annotate timeline
-	# TODO: Raw does not work df_to_plot does not contain only full days, but finalC1 does, see GOxLox and EE works too with finalC1, change here too
 	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
 	colnames(lights) <- c("x", "y")
 	if (input$timeline) {
-		print(input$light_cycle_start)
-		print(input$light_cycle_stop)
 		my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-		print("my lights:")
-		print(my_lights)
-		print("no lights?!")
 		p <- p + my_lights
 	}
 
+	# set axis labels 
 	p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
 	p <- p + xlab("Zeitgeber time [h]")
 
+	# helper to convert datetime format
 	convert <- function(x) {
 		splitted <- strsplit(as.character(x), " ")
 		paste(splitted[[1]][1], "", sep = "")
 	}
 
-	# df to plot now contains the summed oxidation over individual days   
+	# df to plot now contains the summed raw values for each individual day
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-	df_to_plot$GoxLox = df_to_plot[input$myr]
-	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$DayCount), FUN = sum) %>% rename("Raw" = input$myr)
+	df_to_plot$raw_df = df_to_plot[input$myr]
+	raw_df <- aggregate(df_to_plot$raw_df, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$DayCount), FUN = sum) %>% rename("Raw" = input$myr)
 
 	# add cohort information
 	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-	GoxLox$Cohort <- sapply(GoxLox$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
+	raw_df$Cohort <- sapply(raw_df$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 	
 	# store calculated results
-	storeSession(session$token, "df_raw", GoxLox, global_data)
+	storeSession(session$token, "df_raw", raw_df, global_data)
 	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 	
-	add_anova_ancova_panel(input, output, session, global_data, true_metadata, GoxLox, metadatafile, mylabel)
+	# add anova/ancova panel
+	add_anova_ancova_panel(input, output, session, global_data, true_metadata, raw_df, metadatafile, mylabel, "Raw")
 	
+	# add facetting
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
@@ -228,7 +225,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# need to start at 0 and 12 for zeitgeber time
 	light_offset <- -12 # otherwise outside 0 on left
-	light_offset <- light_offset 
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
@@ -242,9 +238,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$toggle_outliers) { p <- p + geom_point() }
 	# center x axis
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
-	print(min(lights$x))
-	print(max(lights$x))
-	# basic plotly config
 	# toggle outliers
 	if (input$toggle_outliers) {
 		exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
