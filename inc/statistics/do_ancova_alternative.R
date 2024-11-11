@@ -126,10 +126,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
   df$TEE <- as.numeric(df$TEE)
 
-
   print(levels(df$group))
   print(levels(df$Animals))
-  # TODO: v0.4.0 - add also ANOVAs
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
@@ -257,14 +255,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
-
+  # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
     p2 <- ggboxplot(df, x = "group", y = "TEE", color = "group") + stat_compare_means()
   }
 
   if (test_type == "2-way ANOVA") {
-    print("in anova")
-    print(df)
     df$Days <- as.factor(df$Days)
     p2 <- ggboxplot(df, "group", "TEE", color = "Days") + stat_compare_means()
   }

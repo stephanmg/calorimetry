@@ -242,7 +242,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
 	# timeline
-	# TODO: v0.4.0 - Debug why this is not displayed locally but on server
 	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot$GoxLox)
 	colnames(lights) <- c("x", "y")
 	if (input$timeline) {

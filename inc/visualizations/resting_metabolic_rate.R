@@ -63,8 +63,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
 
-	# TODO: v0.4.0 - Add back animal and days selection as in EE, Raw, and GoxLox panels
-
 	# df already prepared to be day and night summed activities
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 

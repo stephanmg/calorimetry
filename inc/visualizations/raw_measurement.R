@@ -123,12 +123,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
 
-	# Day Night filtering
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
-
-
 
 	df_to_plot <- finalC1
 	# if we do not have metadata, this comes from some not-clean TSE headers

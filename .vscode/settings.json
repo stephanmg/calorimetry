@@ -10,4 +10,7 @@
           "color": "#ff0000"
         },
       ],
+      "vim.foldfix": true,
+      "editor.folding": true,
+      "editor.foldingStrategy": auto,
 }
