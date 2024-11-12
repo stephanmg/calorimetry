@@ -673,7 +673,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # increase plot size
       p %>% layout(height=1000)
-      
+
       p
    },
    #####################################################################################################################
@@ -1537,6 +1537,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
+               showTab(inputId = "additional_content", target = "Explanation")
            } else if (input$plot_type == "TotalEnergyExpenditure") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
@@ -1630,7 +1631,6 @@ server <- function(input, output, session) {
             }
          )
       }
-
     })
 
    #############################################################################
