@@ -66,7 +66,33 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 			selectInput("test_statistic", "Test statistic", choices=c("ANOVA", "Kruskal-Wallis rank sum test"), selected="ANOVA", multiple=FALSE),
 			checkboxInput("check_validity_of_assumptions", "Check validity of test assumptions", value = FALSE),
 			uiOutput("selection_sliders"),
-			uiOutput("plotOutputs")
+			uiOutput("plotOutputs"),
+			tags$style(HTML("
+			table.dataTable tbody td {
+				background-color: white !important;
+				color: black !important
+			}
+			table.dataTable thead td {
+				color: white !important;
+			}
+
+			table.dataTable thead tr {
+				color: white !important;
+			}
+
+			table.dataTable tfoot th {
+				color: white !important;
+			}
+
+			.dataTables_wrapper .dataTables_paginate .paginate_button {
+				color: white !important;
+			}
+
+			.dataTables_wrapper .dataTables_info {
+				color: white !improtant;
+			}"
+			)
+			)
 		)
 	})
 
