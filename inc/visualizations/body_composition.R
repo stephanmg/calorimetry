@@ -2,12 +2,41 @@ library(patchwork)
 library(RColorBrewer)
 library(DT)
 library(ggpubr)
+
 # Note: library usage of car breaks RMR calculations from *this* file... Reason?
 # Recode (from dplyr) hidden by car::recode and (from purr) hidden by car::some. 
 # Thus we don't use of library(car), but we use double colon for absolute scoping
 
 ################################################################################
-# body composition
+#' col_name_pretty
+#' 
+#' This function prettifies the column name of metadata
+#' @param col_name
+#' @examples
+#' col_name("some_col_name")
+#' @export
+################################################################################
+col_name_pretty <- function(col_name) {
+	return(switch(col_name,
+		lm_start = "Lean mass (Start) [g]",
+		lm_end = "Lean mass (End) [g]",
+		fm_start = "Fat mass (Start) [g]",
+		fm_end = "Fat mass (End) [g]",
+		bw_start = "Body weight (Start) [g]",
+		bw_end = "Body weight (End) [g]",
+		Animals = "Animal ID",
+		Diet = "Diet",
+		Genotype = "Genotype",
+		Sex = "Sex",
+		Age = "Age [wks]",
+		delta_bw = "Delta Body weight [g]",
+		delta_fm = "Delta Fat mass [g]",
+		delta_lm = "Delta Lean mass [g]",
+		col_name
+	))
+}
+
+################################################################################
 #' body_composition
 #' 
 #' This function generates and overview of body composition and other recorded metadata
@@ -236,14 +265,23 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 	colors = brewer.pal(ncol(true_metadata), "Set3") # has 12 colors, will need to extend otherwise
 	if (ncol(true_metadata) > 12) { colors <- colorRampPalette(colors)(ncol(true_metadata)) }
 	# Create overview of available metadata
-	plots <- lapply(1:length(names(true_metadata)), function(i) {
-		# TODO: Should this be restricted to factor columns only? 
-		# Or plot numerical columns differently for a better visualization?
+	plots <- lapply(order(names(true_metadata)), function(i) {
 		col_name <- names(true_metadata)[i]
-		p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + theme_minimal() + labs(title = "Histograms of available metadata", y="Frequency", x = col_name) + theme(axis.text.x = element_text(angle = 45))
-		ggplotly(p) %>% layout(xaxis = list(title = col_name), yaxis=list(title = "Count"))
+		if (is.numeric(true_metadata[[col_name]])) {
+			p <- ggplot(true_metadata, aes_string(y=col_name)) + geom_violin(aes_string(x=col_name), fill=colors[i]) + ylab("Density") + xlab(col_name)
+		} else if (col_name == "lm_end" || col_name == "lm_start" || col_name == "fm_end" || col_name == "fm_start" || col_name == "bw_start" || col_name == "bw_end") {
+			true_metadata[[col_name]] = as.numeric(true_metadata[[col_name]])
+			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_density(fill=colors[i]) + ylab("Density") + xlab(col_name)
+		} else {
+			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") 
+		}
+		p <- p + theme(axis.title.x = element_text(size=10, face="bold"))
+		p <- p + theme(axis.title.y = element_text(size=10, face="bold"))
+		p <- p + xlab(col_name_pretty(col_name))
+		p <- ggplotly(p) 
 	})
 
-	combined_plot <- subplot(plots, nrows = 2, margin = 0.05)
+	combined_plot <- subplot(plots, nrows = as.integer(ncol(true_metadata)/3)+1, margin = 0.05, shareX = FALSE, shareY=FALSE, titleX = TRUE, titleY=TRUE) 
+	combined_plot <- combined_plot %>% layout(height=1000)
 	return(combined_plot)
 }

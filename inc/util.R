@@ -258,7 +258,6 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
          c("fm_start", "fm_end", "delta_fm"),
          c("lm_start", "lm_end", "delta_lm")
       )
-      
 
       add_delta_columns <- function(df, column_pairs) {
          for (pair in column_pairs) {

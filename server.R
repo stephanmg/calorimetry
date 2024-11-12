@@ -671,9 +671,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # indicate if plot available
       indicate_plot_rendered(p, output)
 
-      # style plot
-      p <- style_plot(p, input)
-
+      # increase plot size
+      p %>% layout(height=1000)
+      
       p
    },
    #####################################################################################################################
