@@ -5,4 +5,4 @@ library(here)
 test_dir(here::here("tests/testthat/"))
 
 # integration tests
-# test_dir(here:here("tests/shinytest/"))
+test_dir(here:here("tests/shinytest/"))

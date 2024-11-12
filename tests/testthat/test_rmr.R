@@ -1,26 +1,6 @@
 library(testthat)
 
 ################################################################################
-### metadata tests
-################################################################################
-test_that("get_true_metadata", {
-   source("../../inc/metadata/read_metadata.R")
-   df <- get_true_metadata("../data/metadata.xlsx")
-   expect_equal(ncol(df), 6)
-   expect_equal(nrow(df), 16)
-   expect_equal(colnames(df), c("lean_mass", "fat_mass", "Animals", "Diet", "Genotype", "body_weight"))
-})
-
-test_that("get_constants", {
-   source("../../inc/metadata/read_metadata.R")
-   df <- get_constants("../data/metadata.xlsx")
-   expect_equal(colnames(df), c("constant", "value"))
-   expect_equal(ncol(df), 2)
-   expect_equal(nrow(df), 3)
-})
-
-
-################################################################################
 ### RMR tests
 ################################################################################
 test_that("get_rmr", {

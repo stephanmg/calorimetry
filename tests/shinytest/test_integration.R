@@ -1,4 +1,4 @@
-library(shinytest)
+library(shinytest2)
 app <- ShinyDriver$new("../../")
 app$snapshotInit("mytest")
 
