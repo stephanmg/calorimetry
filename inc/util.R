@@ -6,7 +6,6 @@ library(glue)
 #' filter_for_days_and_animals
 #' 
 ################################################################################
-	# Filtering for animals and Days
 add_filtering_for_days_and_animals <- function(input, session, output, df, global_data) {
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 	if (!is.null(selected_animals)) {

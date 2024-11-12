@@ -9,6 +9,16 @@ library(cicerone)
 guide <- Cicerone$
     new(id = "guide")$
     step(
+        "example_data_single",
+        "Example data set UCKP1 KO",
+        "Choose example data set I to explore app features"
+    )$
+    step(
+        "example_data_single_alternative",
+        "Example data set DAKO",
+        "Choose example data set II to explore app features"
+    )$
+    step(
         "heat_production_equations",
         "Heat production equations",
         "Choose your desired heat production equation from the list above and select the unit (kJ or kcal) for energy expenditure."
@@ -24,14 +34,9 @@ guide <- Cicerone$
         "Specify how many data sets (cohorts) you wish to upload and analyze"
     )$
     step(
-        "negative_values",
-        "Plausability check",
+        "use_raw_data_curation",
+        "Raw data curation",
         "Indicate if you wish to automatically filter out e.g. negative values or inconsistent raw measurements"
-    )$
-    step(
-        "highly_varying_measurements",
-        "Data curation",
-        "Indicate if you wish to filter out highly (unphysiologically) varying raw measurements"
     )$
     step(
         "plotting",
@@ -62,4 +67,33 @@ guide <- Cicerone$
         "export_file_name",
         "Save data",
         "Choose a file name to save compiled data sets and calculated quantities. Plotting data frame can be exported as individual .csv files below as well."
+    )$
+    step(
+        "session_info",
+        "Session information",
+        "Provide information of current user session during a bug report"
+    )$
+    step("git_info",
+        "Version information",
+        "Provide information of current version during a bug report"
+    )$
+    step("plot",
+        "Basic plot",
+        "The basic plot is the starting point of analyses. A scatter plot over time with the measured or calculated quantity or a boxplot of measurements or calculated quantity per Day is plotted."
+    )$
+    step("test",
+        "Statistical testing",
+        "The panel allows to do ANOVA or ANCOVA after the Basic plot has been inspected"
+    )$
+    step("details",
+        "Details",
+        "Details panel summaries the statistics (post-hoc test) and effect sizes"
+    )$
+    step("summary",
+        "Summary",
+        "Summary panel provides summary statistics of quantities of interest of a dependent variable"
+    )$
+    step("modelling",
+        "Modelling",
+        "Modelling panel provides means to construct a linear mixed effect model with a variable number of fixed and random effects"
     )

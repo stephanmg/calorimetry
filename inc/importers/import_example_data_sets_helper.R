@@ -2,6 +2,11 @@
 #' add_example_data sets
 #' 
 #' Adds two loadable example data sets 
+#' 
+#' @param input
+#' @param session
+#' @param output
+#' @param global_data
 #############################################################################
 add_example_data_sets <- function(input, session, output, global_data) {
 	#############################################################################
