@@ -955,7 +955,7 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
-               label = "Choose prefered method for calculating caloric equivalent over time",
+               label = "Chosen prefered method for calculating caloric equivalent over time",
                choices = c(input$variable1), selected = input$variable1))
          })
 
@@ -967,7 +967,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Choose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
+         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
     })
 
    observeEvent(input$plot_type, {
@@ -1092,7 +1092,7 @@ server <- function(input, output, session) {
 	               metadatafile <- get_metadata_datapath(input, session, global_data)
                   true_metadata <- get_true_metadata(metadatafile)
                   output$facets_by_data_one <- renderUI(
-                  selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+                  selectInput(inputId = "facets_by_data_one", label = "Chosen facet",
                   selected = "Animals", choices = colnames(true_metadata)))
                 } else {
                   df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
@@ -1102,7 +1102,7 @@ server <- function(input, output, session) {
                   our_group_names <- unique(colnames(df_filtered))
 
                   output$facets_by_data_one <- renderUI(
-                     selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+                     selectInput(inputId = "facets_by_data_one", label = "Chosen facet",
                      selected = "Animals", choices = our_group_names))
                   }
              }  
