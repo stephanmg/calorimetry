@@ -44,7 +44,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: v0.4.0 - Rename covariates ANCOVA
+  # TODO: Rename covariates ANCOVA
   # First covariate, rename Weight -> Covariate1
   # Second covariate, rename Weight2 -> Covariate2
   names(df)[names(df) == indep_var] <- "Weight"
@@ -82,7 +82,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
 
-  # TODO: v0.4.0 - Rename TEE for ANCOVA 
+  # TODO: Rename TEE for ANCOVA 
   # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
   if (dep_var == "TEE") {
     df <- df %>% select(all_of(to_select_columns))

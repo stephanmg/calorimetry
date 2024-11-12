@@ -96,9 +96,6 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 		)
 	})
 
-	# TODO: Should we only allow how_many_comparions to be restricted to groups 
-	# which have at least 2 levels? comparisons of groups with only 1-lvl are futile:
-	# Use util.R to filter for categorical columns of at least 2 levels.
 	# selection fields for factors for each group
 	output$selection_sliders <- renderUI({
 		n <- input$how_many_comparisons
