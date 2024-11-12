@@ -38,6 +38,7 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 
 ################################################################################
 # Locomotion helpers
@@ -140,7 +141,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
 
    use_example_data_set <- getSession(session$token, global_data)[["example_data_single"]]
-   num_files <- 4
+   num_files <- getSession(session$token, global_data)[["example_data_single_length"]]
+
    if (!use_example_data) {
       num_files <- input$nFiles
    } 
@@ -153,7 +155,13 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       file <- file$datapath
       if (use_example_data) {
          if (use_example_data_set) {
-            file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data/UCP1KO/", "example_data_", i, ".csv"), sep = "")
+            example_data_set_name <- getSession(session$token, global_data)[["example_data_single_name"]]
+            if (example_data_set_name == "UCP1KO") {
+               file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data/UCP1KO/", "example_data_", i, ".csv"), sep = "")
+            }
+            if (example_data_set_name == "DAKO") {
+               file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data/DAKO/", "example_data_", i, ".csv"), sep = "")
+            }
          }
       }
       con <- file(file)
@@ -1555,6 +1563,11 @@ server <- function(input, output, session) {
       # scroll to top after click on plot only
       #shinyjs::runjs("window.scrollTo(0, 50);")
     })
+
+   #############################################################################
+   # Add example data sets
+   #############################################################################
+   add_example_data_sets(input, session, output, global_data)
  
    #############################################################################
    # Helpers to hide/show components
@@ -1619,33 +1632,6 @@ server <- function(input, output, session) {
       }
 
     })
-   #############################################################################
-   # Load example data
-   #############################################################################
-   observeEvent(input$example_data_single, {
-      storeSession(session$token, "use_example_data", TRUE, global_data)
-      storeSession(session$token, "example_data_single", TRUE, global_data)
-      output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
-
-     output$fileInputs <- renderUI({
-       html_ui <- " "
-       for (i in seq_along(1:4)) {
-         html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-            label = paste0("Cohort #", i), placeholder = paste0("example data set ", i, ".csv")))
-         }
-       HTML(html_ui)
-      })
-
-      updateCheckboxInput(session, "havemetadata", value = TRUE)
-      output$metadatafile <- renderUI({
-         html_ui <- " "
-         html_ui <- paste0(html_ui,
-            fileInput("metadatafile",
-            label = "Metadata file",
-            placeholder = "example metadata.xlsx"))
-         HTML(html_ui)
-      })
-   })
 
    #############################################################################
    # Observe select_day input

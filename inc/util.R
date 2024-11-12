@@ -50,7 +50,15 @@ get_metadata_datapath <- function(input, session, global_data) {
    if (use_example_data) {
       example_data_set <- getSession(session$token, global_data)[["example_data_single"]]
       if (example_data_set) {
-        datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data/UCP1KO/example_metadata_1.xlsx", sep="")
+         name_of_example_data <- getSession(session$token, global_data)[["example_data_single_name"]]
+         if (name_of_example_data == "UCP1KO") {
+            datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data/UCP1KO/example_metadata_1.xlsx", sep="")
+         } 
+
+         if (name_of_example_data == "DAKO") {
+            datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data/UCP1KO/example_metadata_1.xlsx", sep="")
+         } 
+
       }
    }
    return(datapath)
