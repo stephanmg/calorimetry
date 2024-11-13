@@ -5,6 +5,7 @@ library(glue)
 ################################################################################
 #' filter_for_days_and_animals
 #' 
+#' This methods adds UI elements for filtering for days and animals
 ################################################################################
 add_filtering_for_days_and_animals <- function(input, session, output, df, global_data) {
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
