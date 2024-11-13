@@ -28,6 +28,7 @@ add_filtering_for_days_and_animals <- function(input, session, output, df, globa
 			selectInput("select_day", "Select days(s):", choices = unique(df$Days), selected = unique(df$Days), multiple = TRUE)
 		})
 	}
+   return(df)
 }
 
 ################################################################################
@@ -71,9 +72,8 @@ get_metadata_datapath <- function(input, session, global_data) {
 #' @param input shiny input
 ################################################################################
 style_plot <- function(p, input) {
-      # TODO: it is easier to configure the plot a-priori, i.e. before we convert to a plotly object with ggplotly, see how to do do this, convert later?
-      # if plot has been rendered we display stylize_plot checkbox in UI, then we can trigger stylizing of the plot
-      # we need to use the ggplot2 object to make all modificatiosn required, the below options might not alway work too
+      # TODO: Configure the plot a-priori, i.e. before we convert to a plotly object with ggplotly
+      # Usually it is easier to customize the ggplot object before converting it to a plotly object
       if (input$stylize_plot) {
          p <- p %>% layout(xaxis = list(title=input$stylize_plot_axes_x_axis_label, tickfont = list(size=input$stylize_plot_axes_x_axis_tickfont_size, color=input$stylize_plot_axes_x_axis_color), font = list(size=input$stylize_plot_axes_x_axis_font_size, color=input$stylize_plot_axes_x_ticks_color)))
          p <- p %>% layout(yaxis = list(title=input$stylize_plot_axes_y_axis_label, tickfont = list(size=input$stylize_plot_axes_y_axis_tickfont_size, color=input$stylize_plot_axes_y_axis_color), font = list(size=input$stylize_plot_axes_y_axis_font_size, color=input$stylize_plot_axes_y_ticks_color)))
@@ -306,8 +306,8 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
          } # renaming columns are assumed to be numerical and used as covariates
       }
       metadata <- df_filtered 
-      # TODO: figure out prime reason why sometimes doubly-joined, potential reason: happens when
-      # switching between panels occassionally? data needs to be filtered because sometimes we
+      # FIXME: Figure out prime reason why sometimes doubly-joined, potential reason: Happens when
+      # switching between panels occassionally? Data needs to be filtered because sometimes we
       # double merge the finalC1, creating duplicates?
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
    }

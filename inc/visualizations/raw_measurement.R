@@ -55,8 +55,36 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# display zeitgeber zeit
 	write.csv2(finalC1, "before_to_zeitgeber.csv")
-	finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-	write.csv2(finalC1, "to_zeitgeber.csv")
+	#finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+
+	convert <- function(x) {
+		splitted <- strsplit(as.character(x), " ")
+		paste(splitted[[1]][2], ":00", sep = "")
+	}
+
+	# when zeitgeber time should be used  
+	if (input$use_zeitgeber_time) {
+		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		if (input$only_full_days_zeitgeber) {
+			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+		} 
+		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	} else {
+		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+		finalC1$NightDay <- as.factor(finalC1$NightDay)
+		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+	}
+
+	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
+	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
+	finalC1$Animals <- colors
+
+
+	print("here?")
+	#write.csv2(finalC1, "to_zeitgeber.csv")
 
 	# format variable from UI to compatible TSE format
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
@@ -152,7 +180,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
 	# plot basic plot
-	write.csv2(df_to_plot, "df_to_plot_failing.csv")
+	print("there?")
+	#write.csv2(df_to_plot, "df_to_plot_failing.csv")
 
 	# TODO: v0.6 - factor this out as utility or method, can be re-used in other panels after discussion
 	# replot outlier removed data, only if toggled: outlier removal by selection
@@ -196,7 +225,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 
 	print(df_to_plot)
-	write.csv2(df_to_plot, "before_ancova_we_wanna_see.csv")
+	#write.csv2(df_to_plot, "before_ancova_we_wanna_see.csv")
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 	df_to_plot$GoxLox = df_to_plot[input$myr]
