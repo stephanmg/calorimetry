@@ -204,12 +204,12 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 
 							residuals <- resid(anova_result)
 							fitted <- fitted(anova_result)
-							# TODO: v0.5.0 - Shapiro can only take 5000 samples maximum, replace with other test
+							# FIXME - Shapiro can only take 5000 samples at maximum, replace with other test
 							# Replace with nortest ad.test(data$variable) or 
-							# anderson darling test (gives more weight to tails) or
-							# cramer von mises (prefered, asseses entire distribution equally/comprehensively tails + centers) or
-							# lilliefors (non -parametric approach).
-							# for smaller data sets can use shapiro or ks test, also shapiro wilk is prefered here
+							# Anderson Darling test (gives more weight to tails) or
+							# Cramer von Mises (prefered since it asseses the entire distribution equally/comprehensively tails + centers) or
+							# Lilliefors (a non-parametric approach). Maybe make this also option to let the user chose from.
+							# For smaller data sets can use simple Shapiro or KS-test, note that Shapiro_Wilk is prefered here
 							shapiro_result <- shapiro.test(residuals(anova_result)[0:5000]) 
 							ggplot(data = data.frame(Fitted=fitted, Residuals = residuals), aes(x = Fitted, y=Residuals)) + geom_point() + geom_hline(yintercept = 0, linetype = "dashed", color = "red") + labs(x="Fitted values", y = "Residuals", title = paste0("Shapiro-Wilk test for normality: p-value = ", shapiro_result$p.value))
 						})
@@ -258,14 +258,14 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 							# Note: we need to use the Combined column from body_comp_df, since we did find only VALID pairs for the statistical annotation
 							ggplot(body_comp_df, aes_string(x = "Combined", y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) + stat_compare_means(comparisons = combinations, method="t.test", label="p.format", bracket.size = 0.5, step.increase=0.1, tip.length=0.01)
 						} else if (length(indep_vars) == 3) {
-							# TODO: v0.5.0 - Add statistics, comparison groups need to be created differently then for 3-way ANOVA
+							# FIXME - Add statistics, comparison groups need to be created differently then for 3-way ANOVA
 							ggplot(body_comp_df, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(". ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else if (length(indep_vars) == 4) {
-							# TODO: v0.5.0 - Add statistics, comparions groups need to be created differently then for 4-way ANOVA
+							# FIXME - Add statistics, comparions groups need to be created differently then for 4-way ANOVA
 							ggplot(body_comp_df, aes(x=indep_vars[2], y=dep_var, fill=indep_vars[1])) + geom_boxplot() + facet_grid(as.formula(paste0(indep_vars[4], " ~ ", indep_vars[3]))) + ggtitle(paste(indep_vars, collapse=",")) 
 						} else { # general >= 5-way ANOVA, consider here to implement interaction plots rather than visualizations
 							# Higher than 5-way ANOVA we will not be supported with visualizations other than interaction plots.
-							# TODO: v0.5.0 - Add visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
+							# FIXME - Add visualization with estimated marginal means, aka interaction plots as in our ANCOVA statistics panel
 							ggplot(body_comp_df, aes_string(x = paste("interaction(", paste(indep_vars, collapse=","), ")"), y = dep_var, fill=indep_vars[1])) + geom_boxplot()  + ggtitle(paste(indep_vars, collapse=",")) 
 						}
 					})
