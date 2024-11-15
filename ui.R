@@ -118,6 +118,7 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h1("Data set loading"),
       br(),
+      h3("Application examples"),
       actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
       actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
@@ -193,8 +194,9 @@ sidebar_content <- sidebarPanel(
       checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
       checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
       conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-   ),
-   h3("Plotting controls"),
+   )
+   ))),
+h3("Plotting controls"),
    tags$style(HTML("
         #reset {
           background-color: #637DFF; /* Pastel Blue */
@@ -235,9 +237,8 @@ sidebar_content <- sidebarPanel(
    actionButton("plotting", "Show plot",),
    actionButton("refresh", "Refresh"),
    actionButton("reset", "Reset"),
-   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE)
-   ))),
-   hr(),
+   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
+
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",

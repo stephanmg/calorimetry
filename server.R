@@ -1597,7 +1597,7 @@ server <- function(input, output, session) {
    # Hide certain components on startup
    #############################################################################
    lapply(
-      X = c("DE", "PC", "DC"),
+      X = c("DE", "PC", "DC", "HP"),
       FUN = function(i) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
@@ -1616,7 +1616,7 @@ server <- function(input, output, session) {
    observeEvent(input$guide, {
       # for guide, we need to see all components
       lapply(
-         X = c("DC", "DE", "PC"),
+         X = c("DC", "DE", "PC", "HP"),
          FUN = function(i) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
