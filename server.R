@@ -778,6 +778,7 @@ server <- function(input, output, session) {
             paste0("all_data-", Sys.Date(), ".zip")
          },
          content = function(file) {
+            print("Here?")
             zip_file = do_export_all_data(input, output, session, file, do_plotting, global_data)
             file.copy(zip_file, file)
          }

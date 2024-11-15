@@ -31,48 +31,35 @@ prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
 #' @export
 ################################################################################
 do_export_all_data <- function(input, output, session, file_output, do_plotting, global_data) {
-   plot_csv <- file.path(tempdir(), "df_plot.csv")
-   df_csv <- file.path(tempdir(), "df_input_data.csv")
+   # Individual files for zip archive
+   df_df <- file.path(tempdir(), "df_df.csv")
    df_tee_and_rmr <- file.path(tempdir(), "df_tee_and_rmr.csv")
    df_day_night <- file.path(tempdir(), "df_day_night.csv")
    df_gox_lox <- file.path(tempdir(), "df_gox_lox.csv")
    df_raw <- file.path(tempdir(), "df_raw.csv")
-   file <- input$File1
-   if (is.null(input$File1)) {
-      output$message <- renderText("Not any cohort data given by the user.")
-   } else {
-      file <- input$File1
-      real_data <- do_plotting(file$datapath, input, input$sick, output, session)
 
-      # compiled input data cohorts (should always be available after loading of data sets)
-      write.csv2(read.csv2("finalC1.csv"), file = df_csv)
+   # Additional data from other panels
+   day_night <- getSession(session$token, global_data)[["df_day_night"]]
+   TEE_and_RMR <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+   goxlox <- getSession(session$token, global_data)[["df_gox_lox"]]
+   raw <- getSession(session$token, global_data)[["df_raw"]]
+   df <- getSession(session$token, global_data)[["finalC1"]]
 
-      # Data from main plotting panel not always available
-      df_to_plot <- getSession(session$token, global_data)[["reactive_data"]]
-      if (!is.null(df_to_plot)) {
-         write.csv2(prepare_data_frame_for_export(df_to_plot(), global_data, session), file = plot_csv)
-      }
+   # Day and Night Activity
+   if (!is.null(day_night)) { write.csv2(day_night, file = df_day_night) }
+   # TEE and RMR 
+   if (!is.null(TEE_and_RMR)) { write.csv2(TEE_and_RMR, file = df_tee_and_rmr) }
+   # GoxLox 
+   if (!is.null(goxlox)) { write.csv2(goxlox, file = df_gox_lox) }
+   # Raw
+   if (!is.null(raw)) { write.csv2(raw, file = df_raw) }
+   # Total data frame
+   if (!is.null(df)) { write.csv2(df, file = df_df) }
 
-      # Additional data from other panels
-      day_night <- getSession(session$token, global_data)[["df_day_night"]]
-	   TEE_and_RMR <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-	   goxlox <- getSession(session$token, global_data)[["df_gox_lox"]]
-	   raw <- getSession(session$token, global_data)[["df_raw"]]
-
-      # Day and Night Activity
-      if (!is.null(day_night)) { write.csv2(day_night, file = df_day_night) }
-      # TEE and RMR 
-      if (!is.null(TEE_and_RMR)) { write.csv2(TEE_and_RMR, file = df_tee_and_rmr) }
-      # GoxLox 
-      if (!is.null(goxlox)) { write.csv2(goxlox, file = df_gox_lox) }
-      # Raw
-      if (!is.null(raw)) { write.csv2(raw, file = df_raw) }
-
-      # Create zip file of all files
-      zip_file <- file.path(tempdir(), "all_data.zip")
-      zip(zipfile=zip_file, files = c(plot_csv, df_csv, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw))
-      return(zip_file)
-   }
+   # Create zip file of all files
+   zip_file <- file.path(tempdir(), "all_data.zip")
+   zip(zipfile=zip_file, files = c(df_df, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw))
+   return(zip_file)
 
 }
 ################################################################################
