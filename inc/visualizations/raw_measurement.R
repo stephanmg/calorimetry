@@ -168,20 +168,33 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	}
 
 	gam_model <- NULL
+	grouped_gam <- NULL
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
 				signal <- input$myr
 				group = input$facets_by_data_one
-				print("grouping group:")
+				print("group:")
 				print(group)
-				print("there?")
-				gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cs') + ", group)), data=df_to_plot)
-				pred <- predict(gam_model, se.fit=TRUE)
-				print("Here?")
-				df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + 10 * pred$se.fit, lower = fit -10 * pred$se.fit)
+				# Fit GAM for each group
+				grouped_gam <- df_to_plot %>%
+				group_by(!!sym(group)) %>%
+				group_map(~ {
+					group_value <- .y[[group]][1]
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cs')")), data= .x)
+					pred <- predict(gam_model, se.fit = TRUE)
+					.x %>%
+					mutate(
+						fit = pred$fit,
+						upper = pred$fit + 10 * pred$se.fit,
+						lower = pred$fit - 10 * pred$se.fit,
+						trend = group_value
+					)
+				}) %>%
+				bind_rows()  # Combine predictions for all groups
 			}
 		} else {
+			# TODO: add parameters k bs and 10 - 10 from UI, same above
 			gam_model <- mgcv::gam(df_to_plot[[input$myr]] ~ s(running_total.hrs.halfhour, k=20, bs="cs"), data=df_to_plot)
 			pred <- predict(gam_model, se.fit=TRUE)
 			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + 10 * pred$se.fit, lower = fit -10 * pred$se.fit)
@@ -448,8 +461,14 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	}
 
 	if (input$add_average_with_se) {
-		#	p <- p + geom_smooth(aes_string(x = "running_total.hrs.halfhour", y = input$myr, span=0.1), method = input$averaging_method_with_facets, se = TRUE, inherit.aes = FALSE, multiplier=3)
-		p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=0.2, fill="blue")
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				grouped_gam$trend <- as.factor(grouped_gam$trend)
+				p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha = 0.2) 
+			}
+		} else {
+				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=0.2, fill="blue")
+		}
 	}
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
