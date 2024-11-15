@@ -167,6 +167,26 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
 	}
 
+	gam_model <- NULL
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				signal <- input$myr
+				group = input$facets_by_data_one
+				print("grouping group:")
+				print(group)
+				print("there?")
+				gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cs') + ", group)), data=df_to_plot)
+				pred <- predict(gam_model, se.fit=TRUE)
+				print("Here?")
+				df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + 10 * pred$se.fit, lower = fit -10 * pred$se.fit)
+			}
+		} else {
+			gam_model <- mgcv::gam(df_to_plot[[input$myr]] ~ s(running_total.hrs.halfhour, k=20, bs="cs"), data=df_to_plot)
+			pred <- predict(gam_model, se.fit=TRUE)
+			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + 10 * pred$se.fit, lower = fit -10 * pred$se.fit)
+		}
+	}
 
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
@@ -425,9 +445,11 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
 		}
-		if (input$add_average_with_se) {
-			p <- p + geom_smooth(aes_string(x = "running_total.hrs.halfhour", y = input$myr), method = input$averaging_method_with_facets, se = TRUE, inherit.aes = FALSE, multiplier=3)
-		}
+	}
+
+	if (input$add_average_with_se) {
+		#	p <- p + geom_smooth(aes_string(x = "running_total.hrs.halfhour", y = input$myr, span=0.1), method = input$averaging_method_with_facets, se = TRUE, inherit.aes = FALSE, multiplier=3)
+		p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=0.2, fill="blue")
 	}
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
