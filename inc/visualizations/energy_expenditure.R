@@ -18,11 +18,6 @@
 #' @export
 ################################################################################
 energy_expenditure <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
-	# if plot already created from data set, do not re-do plot
-	if (!is.null(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])) {
-		return(getSession(session$token, global_data)[["plot_for_ee"]])
-	}
-
 	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 

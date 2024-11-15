@@ -101,10 +101,7 @@ end_date <- Sys.Date()
 ################################################################################
 global_data <- new.env()
 
-################################################################################
-# Create plotly plot
-################################################################################
-do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
+configure_default_plot_look_and_feel <- function() {
    #############################################################################
    # Configure base plot look and feel with ggpubr
    #############################################################################
@@ -114,7 +111,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    theme(strip.text = element_text(hjust = 0)) +
    theme(axis.text.x = element_text(angle = 45, hjust = 1))
    theme_set(theme_pubr_update)
+}
 
+load_data <- function(file, input, exclusion, output, session) {
    #############################################################################
    # Detect file type
    #############################################################################
@@ -463,7 +462,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
 
-
    # remove z-score outliers
    if (input$z_score_removal_of_outliers) {
      finalC1 <- remove_z_score_outliers(finalC1, input$sds)
@@ -509,13 +507,36 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
-
-   #####################################################################################################################
-   # Plotting and data output for downstream debugging
-   #####################################################################################################################
-   plotType <- input$plot_type
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
+
+   storeSession(session$token, "finalC1", finalC1, global_data)
+   storeSession(session$token, "C1meta", C1meta, global_data)
+}
+
+
+################################################################################
+# Create plotly plot
+################################################################################
+do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
+   # if data is not loaded, load the data
+   if (is.null(getSession(session$token, global_data)[["data_loaded"]])) {
+      print("Loading data")
+      load_data(file, input, exclusion, output, session)
+      storeSession(session$token, "data_loaded", TRUE, global_data)
+   } else {
+      print("not loading data!")
+      # load_data(file, input, exclusion, output, session)
+   }
+
+   # load default plotting style
+   if (input$use_default_plot_style) {
+      configure_default_plot_look_and_feel()
+   }
+
+   # get stored data so far
+   finalC1 = getSession(session$token, global_data)[["finalC1"]]
+   C1meta = getSession(session$token, global_data)[["C1meta"]]
 
    # filter out whole days with given threshold
    # TODO: These are calendrical dates, used for RMR, TEE, and DayNightAcvitiy
@@ -524,6 +545,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # see util.R for this, this needs first to be adapted, then we can support filtering on two methods: zeitgeber time and also on calendrical days
    # thats why we use && ! input$use_zeitgeber_time to exclude this for now. this is data preprocessing step!
    if (input$only_full_days && !input$use_zeitgeber_time) {
+      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       print("int val length list:")
       print(interval_length_list)
@@ -531,6 +553,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       write.csv2(finalC1, "after_fitlering.csv")
    }
 
+   #####################################################################################################################
+   # Plotting and data output for downstream debugging
+   #####################################################################################################################
+   plotType <- input$plot_type
+  
    switch(plotType,
    #####################################################################################################################
    # CompareHeatProductionFormulas
@@ -576,7 +603,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       finalC1 <- df_returned$finalC1
       p <- df_returned$plot
-      p
    },
    #####################################################################################################################
    ### Day Night Activity
@@ -589,8 +615,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### Locomotion
@@ -603,7 +627,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          p <- plot_locomotion(file$datapath)
       }
       p <- p + ggtitle("Probability density map of locomotion")
-      p
    },
    #####################################################################################################################
    ### Locomotion Budget
@@ -612,7 +635,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion_budget(file$datapath)
       p <- p + ggtitle("Locomotional budget")
-      p
    },
    #####################################################################################################################
    ### Estimate RMR for COSMED
@@ -625,8 +647,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### Raw
@@ -639,9 +659,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-     
-      # return (potentially restyled) plot
-      p
    },
    #####################################################################################################################
    ### Total Energy Expenditure
@@ -654,9 +671,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
+   #####################################################################################################################
+   ### BodyComposition
+   #####################################################################################################################
    BodyComposition = {
       p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
@@ -665,8 +683,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### Other options
@@ -774,7 +790,6 @@ server <- function(input, output, session) {
             file.copy(zip_file, file)
          }
     )
-
 
    # Dynamically create fileInput fields by the number of requested files of the user
    observeEvent(input$nFiles, {
@@ -1672,7 +1687,15 @@ server <- function(input, output, session) {
    # Refresh
    #############################################################################
    observeEvent(input$refresh, {
-      storeSession(session$token, paste0("is_", input$plot_type, "calculated"), NULL, global_data)
+      storeSession(session$token, "data_loaded", NULL, global_data)
       click("plotting")
+   })
+
+   #############################################################################
+   # Load data
+   #############################################################################
+   observeEvent(input$load_data, {
+      load_data(file$File1$datapath, input, input$sick, output, session)
+      storeSession(session$token, "data_loaded", TRUE, global_data)
    })
 }

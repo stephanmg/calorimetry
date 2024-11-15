@@ -217,15 +217,25 @@ sidebar_content <- sidebarPanel(
         #refresh {
          background-color: #8DBBD0;
          border-color: #8DBBD0;
-      }
+        }
         #refresh:hover {
          background-color: #6E98AA;
          border-color: #6E98AA
-         }
+        }
+        #load_data {
+         background-color: #FF6961;
+         border-color: #FF6961;
+        }
+        #load_data:hover {
+        background-color: #FFB3AB;
+        border-color: #FFB3AB;
+        }
    ")),
+   actionButton("load_data", "Load data"),
    actionButton("plotting", "Show",),
    actionButton("refresh", "Refresh"),
-   actionButton("reset", "Reset")
+   actionButton("reset", "Reset"),
+   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE)
    ))),
    hr(),
    fluidPage(

@@ -14,10 +14,6 @@
 #' @export
 ################################################################################
 goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
-	# if plot already created from data set, do not re-do plot
-	if (!is.null(getSession(session$token, global_data)[["is_GoxLox_calculated"]])) {
-		return(getSession(session$token, global_data)[["plot_for_goxlox"]])
-	}
 	# colors for plotting as factor
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 
@@ -282,7 +278,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
 	# legends
 	p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Zeitgeber time [h]") + ggtitle(input$goxlox)
-
 	storeSession(session$token, "plot_for_goxlox", p, global_data)
 	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)
 	# return plot p

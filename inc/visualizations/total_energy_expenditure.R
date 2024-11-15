@@ -16,10 +16,6 @@
 #' @export
 ################################################################################
 total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor) {
-	# if plot already created from data set, do not re-do plot
-	if (!is.null(getSession(session$token, global_data)[["is_TotalEnergyExpenditure_calculated"]])) {
-		return(getSession(session$token, global_data)[["plot_for_tee"]])
-	}
 	# assign colors based on animals
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
 	finalC1$Animals <- colors
@@ -253,7 +249,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
 		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE")
 	}
-
 	storeSession(session$token, "plot_for_ee", p, global_data)
 	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
 
