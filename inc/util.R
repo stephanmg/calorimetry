@@ -55,7 +55,7 @@ get_metadata_datapath <- function(input, session, global_data) {
          } 
 
          if (name_of_example_data == "DAKO") {
-            datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data/UCP1KO/example_metadata_1.xlsx", sep="")
+            datapath <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), "example_data/DAKO/example_metadata_2.xlsx", sep="")
          } 
 
       }
