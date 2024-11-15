@@ -512,6 +512,7 @@ load_data <- function(file, input, exclusion, output, session) {
 
    storeSession(session$token, "finalC1", finalC1, global_data)
    storeSession(session$token, "C1meta", C1meta, global_data)
+   storeSession(session$token, "scaleFactor", scaleFactor, global_data)
 }
 
 
@@ -537,6 +538,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # get stored data so far
    finalC1 = getSession(session$token, global_data)[["finalC1"]]
    C1meta = getSession(session$token, global_data)[["C1meta"]]
+   scaleFactor = getSession(session$token, global_data)[["scaleFactor"]]
 
    # filter out whole days with given threshold
    # TODO: These are calendrical dates, used for RMR, TEE, and DayNightAcvitiy
@@ -1688,6 +1690,7 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$refresh, {
       storeSession(session$token, "data_loaded", NULL, global_data)
+      storeSession(session$token, "is_GoxLox_calculated", NULL, global_data)
       click("plotting")
    })
 

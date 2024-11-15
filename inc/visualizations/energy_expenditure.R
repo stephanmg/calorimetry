@@ -18,15 +18,21 @@
 #' @export
 ################################################################################
 energy_expenditure <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
-	# colors for plotting as factor
-	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-
-	# join either metadata from sheet or tse supported header columns (see above) to measurement data
-	# enrich with metadata from TSE header (C1meta) or from metadata sheet (metadatafile)
+	# get metadata
 	metadatafile <- get_metadata_datapath(input, session, global_data)
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
-	finalC1 <- data_and_metadata$data
-	true_metadata <- data_and_metadata$metadata
+
+	# only join data frame if not already joined 
+	if (!is.null(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])) {
+		data_and_metadata <- getSession(session$token, global_data)[["EE_df"]]
+		finalC1 <- data_and_metadata$data
+		true_metadata <- data_and_metadata$metadata
+	} else {
+		finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+		data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
+		finalC1 <- data_and_metadata$data
+		true_metadata <- data_and_metadata$metadata
+		storeSession(session$token, "EE_df", data_and_metadata, global_data)
+	}
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
@@ -330,10 +336,9 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		EE_for_model <- EE_for_model %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		EE_for_model <- EE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
 		write.csv2(EE_for_model, "ee_before_lme_model.csv")
-		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
 		create_lme_model_ui(input, output, true_metadata, EE_for_model, "EE")
 	}
-
+	# store plot and indicate EnergyExpenditure has been calculated
 	storeSession(session$token, "plot_for_ee", p, global_data)
 	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
 	return(p)
