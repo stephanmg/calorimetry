@@ -154,131 +154,18 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
 		p <- p + geom_line()
 	}
-		output$test <- renderUI({
-		tagList(
-			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "1-way ANOVA")),
-			selectInput("dep_var", "Dependent variable", choice = c("EE")),
-			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-			selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-			hr(style = "width: 50%"),
-			h4("Advanced"),
-			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
-			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-			hr(style = "width: 75%"),
-			renderPlotly({
-				if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
-					shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
-					return()
-				}
 
-				EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-				EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-
-				p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary 
-				p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable("EE", metadatafile)) + ggtitle(input$study_description)
-				ggplotly(p)
-			}),
-			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", 
-				renderPlotly({
-					EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-					EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-					p <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-					p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_variable("EE", metadatafile)) + ggtitle(input$study_description)
-					ggplotly(p)
-				})),
-			hr(style = "width: 50%"),
-			h4("Plotting control"),
-			fluidRow(
-				column(6,
-				h5("x-axis limits"),
-				checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
-				numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
-				numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
-				),
-				column(6,
-				h5("y-axis limits"),
-				checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
-				numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
-				numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
-				)
-			)
-		)
-		})
-
-		output$details <- renderUI({
+	# add statistics panel if relevant data (RMR) has been calculated before
+	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
+		shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
+		return()
+	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE)
-		results <- do_ancova_alternative(EE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "EE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-		tagList(
-			h3("Post-hoc analysis"),
-			renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-			hr(style = "width: 75%"),
-			h4("Results of statistical testing"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("p-value", style="width: 100px"),
-					tags$th("p-value (adjusted)", style="width: 100px"),
-					tags$th("significance level", style="width: 100px"),
-					tags$th("degrees of freedom", style="width: 100px" ),
-					tags$th("test statistic", style="width: 100px")
-					)
-				),
-				tags$tbody(
-					generate_statistical_table(results)
-				)
-			),
-			h4("Test assumptions"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("Description", style="width:200px"),
-					tags$th("Name of significance test", style="width:200px"),
-					tags$th("Null hypothesis", style="width:400px"),
-					tags$th("p-value", style="width:200px"),
-					tags$th("Status", style="width:200px")
-					)
-				),
-				tags$tbody(
-					tags$tr(
-					tags$td("Homogeneity of variances", style="width:200px"),
-					tags$td("Levene's test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$levene$p) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					),
-					tags$tr(
-					tags$td("Normality of residuals", style="width:200px"),
-					tags$td("Shapiro-Wilk test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$shapiro$p.value) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					)
-				)
-			),
-		)
-		})
+		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
+		print(EE)
+		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, "Energy expenditure", "EE")
+	}
 
 	# add means
 	if (input$wmeans) {
@@ -337,7 +224,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	# re-center at 0
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(lights$x), max(lights$x)))
-	print(max(lights$x))
 	#p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(lights$y), max(lights$y)))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 
@@ -346,7 +232,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (!is.null(EE_for_model)) {
 		EE_for_model <- EE_for_model %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		EE_for_model <- EE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
-		#create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
 		create_lme_model_ui(input, output, true_metadata, EE_for_model, "EE", session, global_data)
 	}
 
