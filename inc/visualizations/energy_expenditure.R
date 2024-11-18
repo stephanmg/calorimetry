@@ -108,11 +108,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 	
-	# TODO: v0.4.0 - add possibility to not use zeitgeber zeit if (input$use_zeitgeber_zeit) { ... }
-	# basically look at TEE, GoxLox, or DayNightActivity panel for an example
-	# for days and animals selection use get_days_and_animals_for_select(finalC1) not alternative,
-	# code above must be wrapped into if statements accordingly of course
-
 	# select days
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]
 	if (is.null(selected_days)) {
@@ -190,7 +185,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-		print(EE)
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, "Energy expenditure", "EE")
 	}
@@ -229,13 +223,13 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# group with group from metadata
 	if (input$with_facets) {
-	if (!is.null(input$facets_by_data_one)) {
-		if (input$orientation == "Horizontal") {
-			p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
-		} else {
-			p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+		if (!is.null(input$facets_by_data_one)) {
+			if (input$orientation == "Horizontal") {
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+			} else {
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+			}
 		}
-	}
 	}
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day

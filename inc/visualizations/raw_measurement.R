@@ -210,8 +210,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			if (!is.null(input$facets_by_data_one)) {
 				signal <- input$myr
 				group = input$facets_by_data_one
-				print("group:")
-				print(group)
 				# Fit GAM for each group
 				grouped_gam <- df_to_plot %>%
 				group_by(!!sym(group)) %>%

@@ -65,7 +65,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			))
 		})
 
-	# TODO: v0.4.0 - example how to get plot download for selected plot only, add everywhere else too?
+	# TODO: v0.5.0 - example how to get plot download for selected plot only, add everywhere else too?
 	# get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
 
 	output$plot_statistics_details <- renderPlotly({
