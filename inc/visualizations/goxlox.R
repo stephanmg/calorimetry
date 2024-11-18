@@ -14,14 +14,21 @@
 #' @export
 ################################################################################
 goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
-	# colors for plotting as factor
-	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
-
-	# get metadata from tse header only
+	# get metadata
 	metadatafile <- get_metadata_datapath(input, session, global_data)
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
-	finalC1 <- data_and_metadata$data
-	true_metadata <- data_and_metadata$metadata
+
+	# only join data frame if not already joined 
+	if (!is.null(getSession(session$token, global_data)[["is_GoxLox_calculated"]])) {
+		data_and_metadata <- getSession(session$token, global_data)[["GoxLox_df"]]
+		finalC1 <- data_and_metadata$data
+		true_metadata <- data_and_metadata$metadata
+	} else {
+		finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+		data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
+		finalC1 <- data_and_metadata$data
+		true_metadata <- data_and_metadata$metadata
+		storeSession(session$token, "GoxLox_df", data_and_metadata, global_data)
+	}
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
@@ -210,6 +217,9 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
 	# legends
 	p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Zeitgeber time [h]") + ggtitle(input$goxlox)
+	# store plot and indicate GoxLox has been calculated
+	storeSession(session$token, "plot_for_goxlox", p, global_data)
+	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)
 	# return plot p
 	return(p)
 }

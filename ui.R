@@ -116,8 +116,9 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Configuration"),
+      h1("Data set loading"),
       br(),
+      h3("Application examples"),
       actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
       actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
@@ -185,13 +186,18 @@ sidebar_content <- sidebarPanel(
       checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
       checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
       conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-   ),
-   h3("Plotting controls"),
+   )
+   ))),
+h3("Plotting controls"),
    tags$style(HTML("
         #reset {
-          background-color: #B3E5FC; /* Pastel Blue */
+          background-color: #637DFF; /* Pastel Blue */
           color: white;
-          border-color: #B3E5FC; 
+          border-color: #637DFF;
+        }
+        #reset:hover {
+          background-color: #A3B8FF;
+          border-color: #A3B8FF;
         }
         #plotting {
           background-color: #77DD77; /* Pastel Green */
@@ -199,18 +205,32 @@ sidebar_content <- sidebarPanel(
           border-color: #77DD77;
         }
         #plotting:hover {
-          background-color: #5CB85C; /* Darker shade for hover */
+          background-color: #5CB85C; 
           border-color: #5CB85C;
         }
-        #reset:hover {
-          background-color: #81D4FA; /* Darker shade for hover */
-          border-color: #81D4FA;
+        #refresh {
+         background-color: #8DBBD0; /* Pastel Light Blue */
+         border-color: #8DBBD0;
+        }
+        #refresh:hover {
+         background-color: #6E98AA;
+         border-color: #6E98AA
+        }
+        #load_data { /* Pastel Red */
+         background-color: #FF6961;
+         border-color: #FF6961;
+        }
+        #load_data:hover {
+        background-color: #FFB3AB;
+        border-color: #FFB3AB;
         }
    ")),
-   actionButton("plotting", "Show",),
+   actionButton("load_data", "Load data"),
+   actionButton("plotting", "Show plot",),
+   actionButton("refresh", "Refresh"),
    actionButton("reset", "Reset"),
-   ))),
-   hr(),
+   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
+
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",

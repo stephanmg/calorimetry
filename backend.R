@@ -102,10 +102,7 @@ end_date <- Sys.Date()
 ################################################################################
 global_data <- new.env()
 
-################################################################################
-# Create plotly plot
-################################################################################
-do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
+configure_default_plot_look_and_feel <- function() {
    #############################################################################
    # Configure base plot look and feel with ggpubr
    #############################################################################
@@ -115,7 +112,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    theme(strip.text = element_text(hjust = 0)) +
    theme(axis.text.x = element_text(angle = 45, hjust = 1))
    theme_set(theme_pubr_update)
+}
 
+load_data <- function(file, input, exclusion, output, session) {
    #############################################################################
    # Detect file type
    #############################################################################
@@ -273,7 +272,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-      print(C1meta)
+   print(C1meta)
 
    #############################################################################
    # Curate data frame
@@ -471,7 +470,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
 
-
    # remove z-score outliers
    if (input$z_score_removal_of_outliers) {
      finalC1 <- remove_z_score_outliers(finalC1, input$sds)
@@ -517,13 +515,38 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
-
-   #####################################################################################################################
-   # Plotting and data output for downstream debugging
-   #####################################################################################################################
-   plotType <- input$plot_type
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
+
+    storeSession(session$token, "finalC1", finalC1, global_data)
+   storeSession(session$token, "C1meta", C1meta, global_data)
+   storeSession(session$token, "scaleFactor", scaleFactor, global_data)
+}
+
+
+################################################################################
+# Create plotly plot
+################################################################################
+do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
+   # if data is not loaded, load the data
+   if (is.null(getSession(session$token, global_data)[["data_loaded"]])) {
+      print("Loading data")
+      load_data(file, input, exclusion, output, session)
+      storeSession(session$token, "data_loaded", TRUE, global_data)
+   } else {
+      print("not loading data!")
+      # load_data(file, input, exclusion, output, session)
+   }
+
+   # load default plotting style
+   if (input$use_default_plot_style) {
+      configure_default_plot_look_and_feel()
+   }
+
+   # get stored data so far
+   finalC1 = getSession(session$token, global_data)[["finalC1"]]
+   C1meta = getSession(session$token, global_data)[["C1meta"]]
+   scaleFactor = getSession(session$token, global_data)[["scaleFactor"]]
 
    # Filter out additionally whole calendrical days with given percentage threshold
    # However this is currently imcompatible with zeitgeber time utility, which shifts
@@ -536,7 +559,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # do not offer the selection of calendrical days if zeitgeber time is used.
    # TODO: Remove the if statement once zeitgeber_time function in util.R has been adapted
    if (input$only_full_days && !input$use_zeitgeber_time) {
-      print("there?")
+      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       print("int val length list:")
       print(interval_length_list)
@@ -544,6 +567,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       write.csv2(finalC1, "after_fitlering.csv")
    }
 
+   #####################################################################################################################
+   # Plotting and data output for downstream debugging
+   #####################################################################################################################
+   plotType <- input$plot_type
+  
    switch(plotType,
    #####################################################################################################################
    # CompareHeatProductionFormulas
@@ -589,7 +617,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       finalC1 <- df_returned$finalC1
       p <- df_returned$plot
-      p
    },
    #####################################################################################################################
    ### Day Night Activity
@@ -602,8 +629,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### Locomotion
@@ -616,7 +641,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          p <- plot_locomotion(file$datapath)
       }
       p <- p + ggtitle("Probability density map of locomotion")
-      p
    },
    #####################################################################################################################
    ### Locomotion Budget
@@ -625,7 +649,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion_budget(file$datapath)
       p <- p + ggtitle("Locomotional budget")
-      p
    },
    #####################################################################################################################
    ### Estimate RMR for COSMED
@@ -638,8 +661,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### Raw
@@ -652,9 +673,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-     
-      # return (potentially restyled) plot
-      p
    },
    #####################################################################################################################
    ### Total Energy Expenditure
@@ -667,9 +685,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
+   #####################################################################################################################
+   ### BodyComposition
+   #####################################################################################################################
    BodyComposition = {
       p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
@@ -678,8 +697,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # increase plot size
       p %>% layout(height=1000)
-
-      p
    },
    #####################################################################################################################
    ### Other options
@@ -788,7 +805,6 @@ server <- function(input, output, session) {
             file.copy(zip_file, file)
          }
     )
-
 
    # Dynamically create fileInput fields by the number of requested files of the user
    observeEvent(input$nFiles, {
@@ -1598,7 +1614,7 @@ server <- function(input, output, session) {
    # Hide certain components on startup
    #############################################################################
    lapply(
-      X = c("DE", "PC", "DC"),
+      X = c("DE", "PC", "DC", "HP"),
       FUN = function(i) {
          hideTab(inputId = paste0("tabs", i), target = i)
       }
@@ -1617,7 +1633,7 @@ server <- function(input, output, session) {
    observeEvent(input$guide, {
       # for guide, we need to see all components
       lapply(
-         X = c("DC", "DE", "PC"),
+         X = c("DC", "DE", "PC", "HP"),
          FUN = function(i) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
@@ -1656,5 +1672,22 @@ server <- function(input, output, session) {
       click("plotting")
       selected_animals <<- input$select_animal
       storeSession(session$token, "selected_animals", input$select_animal, global_data)
+   })
+
+   #############################################################################
+   # Refresh
+   #############################################################################
+   observeEvent(input$refresh, {
+      storeSession(session$token, "data_loaded", NULL, global_data)
+      storeSession(session$token, "is_GoxLox_calculated", NULL, global_data)
+      click("plotting")
+   })
+
+   #############################################################################
+   # Load data
+   #############################################################################
+   observeEvent(input$load_data, {
+      load_data(file$File1$datapath, input, input$sick, output, session)
+      storeSession(session$token, "data_loaded", TRUE, global_data)
    })
 }

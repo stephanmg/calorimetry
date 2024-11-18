@@ -253,6 +253,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		write.csv2(TEE_for_model, "tee_before_lme_model.csv")
 		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE", session, global_data)
 	}
+	storeSession(session$token, "plot_for_ee", p, global_data)
+	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
 
 	return(p)
 }
