@@ -135,9 +135,7 @@ sidebar_content <- sidebarPanel(
    withMathJax(),
    h3("Energy expenditure equation"),
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
-   #conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("HP2", "HP", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
-   # leads to bug: two time conditional on same variable inputId variable1:
-   #conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable1", "Select first equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
+   # Note: Lead previously to a bug: two time conditional on same variable inputId variable1:
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
    withMathJax(),
@@ -168,13 +166,7 @@ sidebar_content <- sidebarPanel(
    span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
    h3("Preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
-   #checkboxInput(inputId="select_calendrical_days", "Select calendrical days"), # TODO: yet to be implemented as preprocessing step, amend therefore util.R's zeitgeber_time function
-   # TODO: Raw, EE, GoxLox uses zeitgeber time as default (calendrical time not yet implemented here, but selection of animals and days)
-   conditionalPanel(condition = "input.plot_type == 'Raw' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'GoxLox'",
-      checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE)),
-   # TODO: RMR, TEE and DayNightActivity use calendrical time as default (selection of animals and days not yet implemented here, but also zeitgeber time implemented)
-   conditionalPanel(condition = "input.plot_type != 'Raw' && input.plot_type != 'EnergyExpenditure' && input.plot_type != 'GoxLox'",
-      checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = FALSE)),
+   checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_raw_data_curation", "Raw data curation", value = FALSE),
    conditionalPanel(condition  ="input.use_raw_data_curation == true", 
@@ -250,9 +242,6 @@ sidebar_content <- sidebarPanel(
    uiOutput("checkboxgroup_gender"),
      h2("Experimental times"),
    checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
-   #conditionalPanel(condition = "input.plot_type == 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle", value=TRUE)),
-   #conditionalPanel(condition = "input.plot_type != 'Raw'", checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle")),
-   #conditionalPanel(condition = "input.only_full_days == false && (input.plot_type != 'RestingMetabolicRate' && input.plot_type != 'TotalEnergyExpenditure' && input.plot_type != 'DayNightActivity')",
    conditionalPanel(condition = "input.use_zeitgeber_time != false",
    checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
    conditionalPanel(condition = "input.use_zeitgeber_time == false",
@@ -335,9 +324,9 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
-   #checkboxInput(inputId = "outliers", label = "Remove sample(s) from data set(s)"),
-   #conditionalPanel(condition = "input.outliers == true", uiOutput("sick")),
-   checkboxInput("do_select_date_range", label = "Select dates"),
+   # TODO: Calendrical day selection not yet implemented, needs changes to utility function for zeitgeber time, thus the do_select_date_range checkbox is disabled now
+   conditionalPanel(condition = "input.use_zeitgeber_time == false", checkboxInput("do_select_date_range", label = "Select dates", value=FALSE)),
+   tags$script(HTML("$('#do_select_date_range').prop('disabled', true);"))
    )),
    hr(),
   fluidPage(

@@ -91,7 +91,7 @@ source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR es
 source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
-# TODO: Global variables - not safe in multi-user context
+# Selection of calendrical dates, currently not implemented
 ################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -525,13 +525,18 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    write.csv2(C1, file = "all_data.csv")
    write.csv2(finalC1, file = "finalC1.csv")
 
-   # filter out whole days with given threshold
-   # TODO: These are calendrical dates, used for RMR, TEE, and DayNightAcvitiy
-   # Note: This can be made a preprocessing step to select for specific days (also half days),
-   # this is incompatible currently with panels EE, Raw and GoxLox since zeitgeber time shifts based on running_total.secs == 0 to find  the offset
-   # see util.R for this, this needs first to be adapted, then we can support filtering on two methods: zeitgeber time and also on calendrical days
-   # thats why we use && ! input$use_zeitgeber_time to exclude this for now. this is data preprocessing step!
+   # Filter out additionally whole calendrical days with given percentage threshold
+   # However this is currently imcompatible with zeitgeber time utility, which shifts
+   # based on the assumption that running_total.secs == 0 exists in the data frame to 
+   # find the shift offset with respect to the start of the light cycle (this also means
+   # that running_total.secs might be negative). If we filter out non-full calendricald
+   # dates, we might not have running_total.secs == 0 true in our data frame, so the
+   # zeitgeber_time function in util.R fails accordingly.
+   # We use && ! input$use_zeitgeber_time to exclude this for now - also in ui.R we 
+   # do not offer the selection of calendrical days if zeitgeber time is used.
+   # TODO: Remove the if statement once zeitgeber_time function in util.R has been adapted
    if (input$only_full_days && !input$use_zeitgeber_time) {
+      print("there?")
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
       print("int val length list:")
       print(interval_length_list)
@@ -824,8 +829,8 @@ server <- function(input, output, session) {
       selected_data <- event_data("plotly_selected")
       if (!is.null(selected_data)) {
          data <- getSession(session$token, global_data)[["reactive_data"]]()
-         # Animal grouping is added last, thus we have an offset of number of traces already in plot - number of unique levels in factor
-         # TODO: Generalize this that it is useable in other plots as well. currently used only in Raw for outlier removal.
+         # Animal grouping is added last, thus we have an offset of number of traces already in the plot object - number of unique levels in factor
+         # TODO: Generalize this that it is re-useable in other plots as well. Currently only used in panel Raw for outlier removal.
          all_curves_plotly <- getSession(session$token, global_data)[["all_curves_plotly"]] - length(levels(data$Animals))
          curve_to_sampleid_mapping <- levels(data$Animals)
          selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
@@ -951,8 +956,8 @@ server <- function(input, output, session) {
    #####################################################################################################################
    # Observe plot type
    #####################################################################################################################
-   # TODO: check that this is in fact the problematic code which leads to the HP / HP2 issue in RMR
-   # on server side, but it appears it is already fixed by now.
+   # FIXME: Check that this is in fact the problematic code which leads to the HP / HP2 issue in RMR
+   # on server side, but it appears it is already fixed by now - see note about old bug in ui.R too.
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
