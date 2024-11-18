@@ -6,7 +6,7 @@ library("shinyFiles")
 # Include UI and server/backend components
 ################################################################################
 source("ui.R")
-source("server.R")
+source("backend.R")
 
 ################################################################################
 # Create Shiny application
