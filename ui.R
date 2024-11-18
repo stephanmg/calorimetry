@@ -346,7 +346,8 @@ h3("Plotting controls"),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
    # TODO: Calendrical day selection not yet implemented, needs changes to utility function for zeitgeber time, thus the do_select_date_range checkbox is disabled now
    conditionalPanel(condition = "input.use_zeitgeber_time == false", checkboxInput("do_select_date_range", label = "Select dates", value=FALSE)),
-   tags$script(HTML("$('#do_select_date_range').prop('disabled', true);"))
+   tags$script(HTML("$('#do_select_date_range').prop('disabled', true);")),
+   tags$script(HTML("$('#use_default_plot_style').prop('disabled', true);"))
    )),
    hr(),
   fluidPage(
