@@ -32,7 +32,8 @@ prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
 ################################################################################
 do_export_all_data <- function(input, output, session, file_output, do_plotting, global_data) {
    # Individual files for zip archive
-   df_df <- file.path(tempdir(), "df_df.csv")
+   df_df_input <- file.path(tempdir(), "df_input.csv")
+   df_df_output <- file.path(tempdir(), "df_output.csv")
    df_tee_and_rmr <- file.path(tempdir(), "df_tee_and_rmr.csv")
    df_day_night <- file.path(tempdir(), "df_day_night.csv")
    df_gox_lox <- file.path(tempdir(), "df_gox_lox.csv")
@@ -46,19 +47,39 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    df <- getSession(session$token, global_data)[["finalC1"]]
 
    # Day and Night Activity
-   if (!is.null(day_night)) { write.csv2(day_night, file = df_day_night) }
+   if (!is.null(day_night)) { 
+      write.csv2(day_night, file = df_day_night)
+   }
    # TEE and RMR 
-   if (!is.null(TEE_and_RMR)) { write.csv2(TEE_and_RMR, file = df_tee_and_rmr) }
+   if (!is.null(TEE_and_RMR)) { 
+      TEE_and_RMR <- TEE_and_RMR %>% rename(TEE=Type)
+      write.csv2(TEE_and_RMR, file = df_tee_and_rmr)
+   }
    # GoxLox 
-   if (!is.null(goxlox)) { write.csv2(goxlox, file = df_gox_lox) }
+   if (!is.null(goxlox)) {
+      write.csv2(goxlox, file = df_gox_lox)
+   }
    # Raw
-   if (!is.null(raw)) { write.csv2(raw, file = df_raw) }
-   # Total data frame
-   if (!is.null(df)) { write.csv2(df, file = df_df) }
+   if (!is.null(raw)) { 
+      raw <- raw %>% rename(Raw=TEE)
+      write.csv2(raw, file = df_raw) 
+   }
+   # Total output data frame
+   if (!is.null(df)) { 
+      df_calc <- df %>% select(c(HP, HP2)) %>% rename("Energy Expenditure #1"=HP, "Energy Expenditure #2"=HP2)
+      df_calc <- df_calc %>% rename(Animals=`Animal No._NA`)
+      write.csv2(df_calc, file = df_df_output) 
+   }
+   # Total input data frame
+   if (!is.null(df)) {
+      print(head(df))
+      df <- df %>% select(-c(HP, HP2))
+      write.csv2(df, file=df_df_input)
+   }
 
    # Create zip file of all files
    zip_file <- file.path(tempdir(), "all_data.zip")
-   zip(zipfile=zip_file, files = c(df_df, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw))
+   zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw))
    return(zip_file)
 
 }

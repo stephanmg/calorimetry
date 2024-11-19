@@ -171,8 +171,11 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
-	GoxLox <- GoxLox %>% rename(GoxLox = x)
+	GoxLox <- df_to_plot %>% group_by(Animals, DayCount) %>% summarize(GoxLox = (max(GoxLox, na.rm=TRUE)+min(GoxLox, na.rm=TRUE))/2, .groups = "drop") %>% rename(Days=DayCount)
+
+	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+	GoxLox$Cohort <- sapply(GoxLox$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
+	#GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
 	storeSession(session$token, "df_gox_lox", GoxLox, global_data)
 	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 

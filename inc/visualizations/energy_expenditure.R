@@ -181,7 +181,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# add statistics panel if relevant data (RMR) has been calculated before
 	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
 		shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
-		return()
+		# TODO: Temporary... this should be corrected, as it leads to dim(x) error when switching from RMR/TEE to the EE panel
+		#return()
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 

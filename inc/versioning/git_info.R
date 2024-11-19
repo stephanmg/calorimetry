@@ -24,14 +24,17 @@ get_git_information_from_repository <- function() {
          }
       }
 
-      current_tag <- tag_name
-      current_commit_id <- substring(git2r::commits(repo)[[1]]$sha, 1, 16)
+     current_tag <- tag_name
+     current_commit_id <- substring(git2r::commits(repo)[[1]]$sha, 1, 16)
 
 	  version_info <- NULL
+
+     print(git2r::repository("."))
 
       if (is.null(current_branch)) {
          if (is.null(current_tag)) {
             version_info <- paste("Current commit ID:", current_commit_id)
+
          } else {
             version_info <- paste("Current version: ", current_tag)
          }

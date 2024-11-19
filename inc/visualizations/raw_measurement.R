@@ -259,12 +259,13 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 	df_to_plot$raw_df = df_to_plot[input$myr]
-	raw_df <- aggregate(df_to_plot$raw_df, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$DayCount), FUN = sum) %>% rename("Raw" = input$myr)
+
+	raw_df <- df_to_plot %>% group_by(Animals, DayCount) %>% summarize(raw_df = (max(raw_df, na.rm=TRUE)+min(raw_df, na.rm=TRUE))/2, .groups = "drop") %>% rename("Days"=DayCount) %>% rename(TEE=raw_df)
 
 	# add cohort information
 	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 	raw_df$Cohort <- sapply(raw_df$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
-	
+
 	# store calculated results
 	storeSession(session$token, "df_raw", raw_df, global_data)
 	storeSession(session$token, "selected_indep_var", "Genotype", global_data)

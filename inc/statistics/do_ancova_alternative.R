@@ -257,12 +257,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
-    p2 <- ggboxplot(df, x = "group", y = "TEE", color = "group") + stat_compare_means()
+    p2 <- ggboxplot(df, x = "group", y = "TEE", color = "group", add = "jitter") + stat_compare_means()
   }
 
   if (test_type == "2-way ANOVA") {
     df$Days <- as.factor(df$Days)
-    p2 <- ggboxplot(df, "group", "TEE", color = "Days") + stat_compare_means()
+    p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means()
   }
 
   return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene))

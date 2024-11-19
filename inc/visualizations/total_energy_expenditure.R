@@ -147,7 +147,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
+			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way ANOVA")),
 			selectInput("dep_var", "Dependent variable", choice = c("TEE")),
 			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
 			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
