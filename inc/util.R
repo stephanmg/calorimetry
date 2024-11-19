@@ -191,9 +191,25 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 						}
 					,style="width: 200px"
 					)
+					),
+	            tags$tbody(
+					tags$tr(
+					tags$td("Homogeneity of regression slopes", style="width:200px"),
+					tags$td("ANOVA on interaction terms", style="width:200px"),
+					tags$td("Tests the null hypothesis that the regression slopes are homogeneous"),
+					tags$td(round(as.numeric(results$regression_slopes), digits=6), style="width:200px"),
+					tags$td(
+						if (as.numeric(results$regression_slopes) < input$alpha_level) {
+							icon("times")
+						} else {
+							icon("check")
+						}
+					,style="width: 200px"
+					)
 					)
 				)
-			),
+            )
+			)
 		)
 	})
 
