@@ -216,22 +216,23 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				group_map(~ {
 					group_value <- .y[[group]][1]
 					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cs')")), data= .x)
+					# TODO: the string below seems wrong, correct it.
+					#gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k =", input$averaging_method_with_facets_basis_functions, ", bs = '", input$averaging_method_with_facets_basis_function,"')")), data = .x)
 					pred <- predict(gam_model, se.fit = TRUE)
 					.x %>%
 					mutate(
 						fit = pred$fit,
-						upper = pred$fit + 10 * pred$se.fit,
-						lower = pred$fit - 10 * pred$se.fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						trend = group_value
 					)
 				}) %>%
 				bind_rows()  # Combine predictions for all groups
 			}
 		} else {
-			# TODO: add parameters k bs and 10 - 10 from UI, same above
-			gam_model <- mgcv::gam(df_to_plot[[input$myr]] ~ s(running_total.hrs.halfhour, k=20, bs="cs"), data=df_to_plot)
+			gam_model <- mgcv::gam(df_to_plot[[input$myr]] ~ s(running_total.hrs.halfhour, k=input$averaging_method_with_facets_basis_functions, bs=input$averaging_method_with_facets_basis_function), data=df_to_plot)
 			pred <- predict(gam_model, se.fit=TRUE)
-			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + 10 * pred$se.fit, lower = fit -10 * pred$se.fit)
+			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
 		}
 	}
 
@@ -288,10 +289,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
 				grouped_gam$trend <- as.factor(grouped_gam$trend)
-				p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha = 0.2) 
+				p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
 			}
 		} else {
-				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=0.2, fill="blue")
+				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
 		}
 	}
 
