@@ -138,15 +138,11 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			p <- p + ylim(c(input$y_min_rmr_plot2, input$y_max_rmr_plot2))
 		}
 
-
- 	   # TODO: v0.5.0 - example how to get plot download for selected plot only, add everywhere else too?
-	   # get_new_download_buttons("...") will allow to specify an output plot rendered by ID to download
 		p <- p + ggtitle(input$study_description) 
 		ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details2")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
-
 	})
 
 	output$details <- renderUI({
@@ -232,7 +228,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 		)
 	})
 
-	# TODO: results is calculated multiple times, in fact only once should be necessary... optimize this.
+	# FIXME: Optimization - results is calculated multiple times, in fact only once should be necessary... optimize this.
 	output$post_hoc_plot <- renderPlotly({
 		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
 		p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
