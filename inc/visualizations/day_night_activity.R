@@ -157,7 +157,6 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- p + geom_boxplot(alpha=0.3) 
 	}
 	p <- p + scale_fill_manual(values = c("Night" = input$light_cycle_night_color, "Day" = input$light_cycle_day_color))
-	# p <- add_visualization_type(p, input$box_violin_or_other, TRUE)
 	p <- p + ggtitle(paste0("Day Night Activity using equation ", pretty_print_equation(input$variable1)))
 	p <- p + ylab(paste0("Energy expenditure [", input$kj_or_kcal, "/ h]"))
 

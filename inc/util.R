@@ -163,7 +163,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					tags$th("p-value (adjusted)", style="width: 100px"),
 					tags$th("significance level", style="width: 100px"),
 					tags$th("degrees of freedom", style="width: 100px" ),
-					tags$th("test statistic", style="width: 100px")
+					tags$th("test statistic", style="width: 100px"),
+					tags$th("group comparison", style="width: 100px")
 					)
 				),
 				tags$tbody(
@@ -344,13 +345,16 @@ indicate_plot_rendered <- function(p, output) {
 #' This function generate statistical table in case we have multiple comparisons
 ################################################################################
 generate_statistical_table <- function(results) {
+   group_info <- results$statistics
+   group_info <- group_info %>% mutate(comparison = paste0("(", group1, ", ", group2, ")"))
    if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
       return(tags$tr(
       tags$td(process_return_value_for_statistic(results$statistics$p, FALSE), style="width: 100px"),
       tags$td(process_return_value_for_statistic(results$statistics$p.adj, FALSE), style="width: 100px"),
       tags$td(process_return_value_for_statistic(results$statistics$p.adj.signif, FALSE), style="width: 100px"),
       tags$td(process_return_value_for_statistic(results$statistics$df, FALSE), style="width: 100px"),
-      tags$td(process_return_value_for_statistic(results$statistics$statistic, FALSE), style="width: 100px")
+      tags$td(process_return_value_for_statistic(results$statistics$statistic, FALSE), style="width: 100px"),
+      tags$td(group_info$comparison)
       ))
    } else { # for multiple testing with ANCOVA, we need all (n over p) groups to be summarized in a table with multiple rows
       num_rows <- length(results$statistics$p)
@@ -360,7 +364,8 @@ generate_statistical_table <- function(results) {
          tags$td(process_return_value_for_statistic(results$statistics$p.adj[i], FALSE)),
          tags$td(process_return_value_for_statistic(results$statistics$p.adj.signif[i], FALSE)),
          tags$td(process_return_value_for_statistic(results$statistics$df[i], FALSE)),
-         tags$td(process_return_value_for_statistic(results$statistics$statistic[i], FALSE))
+         tags$td(process_return_value_for_statistic(results$statistics$statistic[i], FALSE)),
+         tags$td(group_info$combined[i])
          )
       })
       return(rows_p_value)
