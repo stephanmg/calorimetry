@@ -187,7 +187,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
 	# plot basic plot
-	print("there?")
 	#write.csv2(df_to_plot, "df_to_plot_failing.csv")
 
 	# TODO: v0.6 - factor this out as utility or method, can be re-used in other panels after discussion
@@ -215,7 +214,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 				group_by(!!sym(group)) %>%
 				group_map(~ {
 					group_value <- .y[[group]][1]
-					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cr')")), data= .x)
+					#gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cr')")), data= .x)
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = ", as.numeric(input$averaging_method_with_facets_basis_functions), ", bs = 'cr')")), data= .x)
 					# TODO: the string below seems wrong, correct it.
 					#gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k =", input$averaging_method_with_facets_basis_functions, ", bs = '", input$averaging_method_with_facets_basis_function,"')")), data = .x)
 					pred <- predict(gam_model, se.fit = TRUE)

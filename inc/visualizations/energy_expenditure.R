@@ -173,7 +173,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 				group_by(!!sym(group)) %>%
 				group_map(~ {
 					group_value <- .y[[group]][1]
-					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cr')")), data= .x)
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = ", as.numeric(input$averaging_method_with_facets_basis_functions), ", bs = 'cr')")), data= .x)
 					pred <- predict(gam_model, se.fit = TRUE)
 					.x %>%
 					mutate(
@@ -191,7 +191,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
 		}
 	}
-	print(gam_model)
 	finalC1 <- df_to_plot
 
 
@@ -220,7 +219,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# add statistics panel if relevant data (RMR) has been calculated before
 	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
 		shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
-		# TODO: Temporary... this should be corrected, as it leads to dim(x) error when switching from RMR/TEE to the EE panel
+		# FIXME: Temporary... this should be corrected, as it leads to dim(x) error when switching from RMR/TEE to the EE panel
 		#return()
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]

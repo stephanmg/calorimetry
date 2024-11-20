@@ -194,7 +194,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 				group_by(!!sym(group)) %>%
 				group_map(~ {
 					group_value <- .y[[group]][1]
-					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cr')")), data= .x)
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = ", as.numeric(input$averaging_method_with_facets_basis_functions), ", bs = 'cr')")), data= .x)
 					pred <- predict(gam_model, se.fit = TRUE)
 					.x %>%
 					mutate(

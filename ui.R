@@ -412,7 +412,7 @@ main_content <- mainPanel(
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_basis_functions", "Number of Basis functions", min = 10, max=40, value=20)),
             conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets_basis_function", "Basis function", choices=c("cs", "tp", "cr", "ps", "gp", "ts"), selected="cr")),
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_alpha_level", "Transparency level", min=0.0, max=1.0, value=0.2, step=0.05)),
-            conditionalPanel("input.add_average_with_se == true", colourInput("averaging_method_with_facets_color", "Color", "blue"))
+            conditionalPanel("input.add_average_with_se == true && input.with_facets != true", colourInput("averaging_method_with_facets_color", "Color", "blue"))
 
          )
       ),
