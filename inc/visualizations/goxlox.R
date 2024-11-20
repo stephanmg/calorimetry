@@ -175,12 +175,44 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 	GoxLox$Cohort <- sapply(GoxLox$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
-	#GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
 	storeSession(session$token, "df_gox_lox", GoxLox, global_data)
 	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 
 	# add anova/ancova panel
 	add_anova_ancova_panel(input, output, session, global_data, true_metadata, GoxLox, metadatafile, "GoxLox", "GoxLox")
+
+	# add smoothing
+	gam_model <- NULL
+	grouped_gam <- NULL
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				signal <- GoxLox
+				group = input$facets_by_data_one
+				# Fit GAM for each group
+				grouped_gam <- df_to_plot %>%
+				group_by(!!sym(group)) %>%
+				group_map(~ {
+					group_value <- .y[[group]][1]
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cr')")), data= .x)
+					pred <- predict(gam_model, se.fit = TRUE)
+					.x %>%
+					mutate(
+						fit = pred$fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
+						trend = group_value
+					)
+				}) %>%
+				bind_rows()  # Combine predictions for all groups
+			}
+		} else {
+			gam_model <- mgcv::gam(df_to_plot[["GoxLox"]] ~ s(running_total.hrs.halfhour, k=input$averaging_method_with_facets_basis_functions, bs=input$averaging_method_with_facets_basis_function), data=df_to_plot)
+			pred <- predict(gam_model, se.fit=TRUE)
+			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
+		}
+	}
+
 	
 	p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
@@ -200,6 +232,18 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 			} else {
 				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
+		}
+	}
+
+	# add trend lines
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				grouped_gam$trend <- as.factor(grouped_gam$trend)
+				p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+			}
+		} else {
+				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
 		}
 	}
 

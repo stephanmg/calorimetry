@@ -39,6 +39,19 @@ visualize_model_effects <- function(df, dep_var, input, output, session, global_
 	formula_string <- paste(dep_var, "~", fixed_effects_formula, "+", random_effects_formula) 
 	lmm <- lmer(as.formula(formula_string), data = df)
 
+	formula_latex <- paste0(
+	"$$",
+	gsub("~", " = ", gsub("_(\\w+)", "_{\\1}", deparse(as.formula(formula_string)))),
+	"$$"
+	)
+
+	output$formula_display <- renderUI(
+		tagList(
+			withMathJax(),
+			div(formula_latex)
+		)
+	)
+
 	# calculation of metrics
 	df$Fitted <- fitted(lmm)
 	storeSession(session$token, "fitted_values", df$Fitted, global_data)
@@ -72,6 +85,7 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 	output$modelling <- renderUI({
 		tagList(
 			h4("Modelling dependent variable with an LME model"),
+			uiOutput("formula_display"),
 			sliderInput("how_many_fixed_effects", "How many fixed effect variables", min=1, max=length(names(true_metadata)), value=1, step=1),
 			sliderInput("how_many_random_effects", "How many random effect variables", min=1, max=length(names(true_metadata)), value=1, step=1),
 			uiOutput("selection_sliders_fixed"),

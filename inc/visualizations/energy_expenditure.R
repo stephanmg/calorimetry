@@ -159,6 +159,43 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# if we do not have metadata, this comes from some non-clean TSE headers
 	if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
+	# add smoothing
+	gam_model <- NULL
+	grouped_gam <- NULL
+	df_to_plot <- finalC1
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				signal <- "HP2"
+				group = input$facets_by_data_one
+				# Fit GAM for each group
+				grouped_gam <- df_to_plot %>%
+				group_by(!!sym(group)) %>%
+				group_map(~ {
+					group_value <- .y[[group]][1]
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = 20, bs = 'cr')")), data= .x)
+					pred <- predict(gam_model, se.fit = TRUE)
+					.x %>%
+					mutate(
+						fit = pred$fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
+						trend = group_value
+					)
+				}) %>%
+				bind_rows()  # Combine predictions for all groups
+			}
+		} else {
+			gam_model <- mgcv::gam(df_to_plot[["HP2"]] ~ s(running_total.hrs.halfhour, k=input$averaging_method_with_facets_basis_functions, bs=input$averaging_method_with_facets_basis_function), data=df_to_plot)
+			pred <- predict(gam_model, se.fit=TRUE)
+			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
+		}
+	}
+	print(gam_model)
+	finalC1 <- df_to_plot
+
+
+
 	# calculate running averages
 	if (input$running_average > 0) {
 		p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
@@ -177,6 +214,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
 		p <- p + geom_line()
 	}
+
+
 
 	# add statistics panel if relevant data (RMR) has been calculated before
 	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
@@ -230,6 +269,17 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 			} else {
 				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
+		}
+	}
+
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				grouped_gam$trend <- as.factor(grouped_gam$trend)
+				p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+			}
+		} else {
+				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
 		}
 	}
 

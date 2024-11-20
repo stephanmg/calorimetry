@@ -141,108 +141,19 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			}
 		}
 	}
-	
-	# Statistics section
-	# TODO: Replace with utility function
-	output$test <- renderUI({
-		tagList(
-			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way ANOVA")),
-			selectInput("dep_var", "Dependent variable", choice = c("TEE")),
-			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-			selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-			hr(style = "width: 50%"),
-			h4("Advanced"),
-			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
-			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-			hr(style = "width: 75%"),
-			renderPlotly(
-				ggplotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description))
-			),
-			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, metadatafile)) + ylab(pretty_print_label(input$dep_var, metadatafile)) + ggtitle(input$study_description)))
-		)
-		})
 
-		output$details <- renderUI({
-		results <- do_ancova_alternative(TEE, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "TEE", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)
-		tagList(
-			h3("Post-hoc analysis"),
-			renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-			hr(style = "width: 75%"),
-			h4("Results of statistical testing"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("p-value", style="width: 100px"),
-					tags$th("p-value (adjusted)", style="width: 100px"),
-					tags$th("significance level", style="width: 100px"),
-					tags$th("degrees of freedom", style="width: 100px" ),
-					tags$th("test statistic", style="width: 100px")
-					)
-				),
-				tags$tbody(
-					generate_statistical_table(results)
-					)
-			),
-			h4("Test assumptions"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("Description", style="width:200px"),
-					tags$th("Name of significance test", style="width:200px"),
-					tags$th("Null hypothesis", style="width:400px"),
-					tags$th("p-value", style="width:200px"),
-					tags$th("Status", style="width:200px")
-					)
-				),
-				tags$tbody(
-					tags$tr(
-					tags$td("Homogeneity of variances", style="width:200px"),
-					tags$td("Levene's test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$levene$p) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					),
-					tags$tr(
-					tags$td("Normality of residuals", style="width:200px"),
-					tags$td("Shapiro-Wilk test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$shapiro$p.value) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					)
-				)
-			),
-		)
-		})
+	# add anova/ancova panel
+	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+	add_anova_ancova_panel(input, output, session, global_data, true_metadata, TEE, metadatafile, "TEE", "TEE")
 
-		output$explanation <- renderText(results$statistics$p)
-		output$explanation <- renderUI({
+	output$explanation <- renderText(results$statistics$p)
+	output$explanation <- renderUI({
 		str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
 		str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
 		str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
 		str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
 		HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
-		})
+	})
 
 	p <- p + ggtitle(paste0("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", pretty_print_equation(input$variable1), sep = ""))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
