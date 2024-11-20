@@ -265,8 +265,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means()
   }
 
-    regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
-    regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
+  regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
+  regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
 
   return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene, "regression_slopes" = regression_slopes))
 }
