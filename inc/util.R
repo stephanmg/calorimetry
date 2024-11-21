@@ -13,7 +13,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			selectInput("dep_var", "Dependent variable", choice = c(dep_var)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
 			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(input_df)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
-         conditionalPanel("input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'Raw'", checkboxInput("average_days", "Average over days", value=FALSE)),
+         conditionalPanel("input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'Raw' || input.plot_type == 'GoxLox'", checkboxInput("average_days", "Average over days", value=FALSE)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
@@ -21,7 +21,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
 			hr(style = "width: 50%"),
 			h4("Advanced"),
-			checkboxInput("add_points_to_anova_or_ancova", "Add points"),
+			#checkboxInput("add_points_to_anova_or_ancova", "Add points"),
 			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE)),
@@ -71,10 +71,16 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
       if (!is.null(input$average_days)) {
             if (input$average_days) {
-               if (mylabel == "TEE") {
-                  mylabel = paste0("average TEE [", input$kj_or_kcal, " / day]")
+               if (mylabel == "TEE" || mylabel == "Energy Expenditure") {
+                 mylabel = paste0("average TEE [", input$kj_or_kcal, " / day]")
+                 input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                } 
-               input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
+               if (mylabel == "GoxLox") {
+                 input_df <- input_df %>% group_by(Animals) %>% summarize(GoxLox=sum(GoxLox) / n_distinct(Days), Days=n_distinct(Days))
+               }
+               if (dep_var == "Raw") {
+                 input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
+               }
             } else {
                if (mylabel == "TEE") {
                   mylabel = paste0("TEE [", input$kj_or_kcal, " / day]")
@@ -88,11 +94,15 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
             hideTab(inputId = "additional_content", target = "Details")
 			p <- p + xlab(pretty_print_label(input$depvar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
-			p <- p + labs(color = input$indep_var)
+         if (input$test_statistic == '2-way ANOVA') {
+			   p <- p + labs(color = input$indep_var2)
+         } else {
+			   p <- p + labs(color = input$indep_var)
+         }
 			if (input$test_statistic == '1-way ANOVA') {
-				if (input$add_points_to_anova_or_ancova) {
-					p <- p + geom_jitter(width = 0.2, aes(color = group)) + labs(input$indep_var)
-				}
+				#if (input$add_points_to_anova_or_ancova) {
+					# p <- p + geom_jitter(width = 0.2, aes(color = group)) + labs(input$indep_var)
+				#}
 			} else {
 				p <- p + facet_wrap(as.formula(paste("~", input$indep_var2)))
 			}
@@ -171,19 +181,19 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			tags$table(
 				tags$thead(
 					tags$tr(
-					tags$th("Description", style="width:200px"),
+					tags$th("Description", style="width:250px"),
 					tags$th("Name of significance test", style="width:200px"),
-					tags$th("Null hypothesis", style="width:400px"),
-					tags$th("p-value", style="width:200px"),
+					#tags$th("Null hypothesis", style="width:400px"),
+					tags$th("p-value", style="width:100px"),
 					tags$th("Status", style="width:200px")
 					)
 				),
 				tags$tbody(
 					tags$tr(
-					tags$td("Homogeneity of variances", style="width:200px"),
+					tags$td("Homogeneity of variances", style="width:250px"),
 					tags$td("Levene's test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
+					#tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
+					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:100px"),
 					tags$td(
 						if (as.numeric(results$levene$p) < input$alpha_level) {
 							icon("times")
@@ -194,10 +204,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					)
 					),
 					tags$tr(
-					tags$td("Normality of residuals", style="width:200px"),
+					tags$td("Normality of residuals", style="width:250px"),
 					tags$td("Shapiro-Wilk test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
+					#tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
+					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:100px"),
 					tags$td(
 						if (as.numeric(results$shapiro$p.value) < input$alpha_level) {
 							icon("times")
@@ -209,10 +219,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					),
 	            tags$tbody(
 					tags$tr(
-					tags$td("Homogeneity of regression slopes", style="width:200px"),
+					tags$td("Homogeneity of regression slopes", style="width:250px"),
 					tags$td("ANOVA on interaction terms", style="width:200px"),
-					tags$td("Tests the null hypothesis that the regression slopes are homogeneous"),
-					tags$td(round(as.numeric(results$regression_slopes), digits=6), style="width:200px"),
+					#tags$td("Tests the null hypothesis that the regression slopes are homogeneous"),
+					tags$td(round(as.numeric(results$regression_slopes), digits=6), style="width:100px"),
 					tags$td(
 						if (as.numeric(results$regression_slopes) < input$alpha_level) {
 							icon("times")
@@ -792,7 +802,7 @@ get_new_download_buttons <- function(plot_div='') {
          function(gd) {{
             var plotDiv;
             if ('' === '{plot_div}') {{
-               // Basic plot should always be visible, that is the first plot for each panel, if not specified a desired
+               // Main plot should always be visible, that is the first plot for each panel, if not specified a desired
                // plot, we will as a default pick the basic plot with plotlyOutput identifier 'plot'
                plotDiv = document.getElementById('plot');
             }} else {{

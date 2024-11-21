@@ -83,25 +83,6 @@ guide <- Cicerone$
         "Provide information of current version during a bug report"
     )$
     step("plot",
-        "Basic plot",
+        "Main plot",
         "The basic plot is the starting point of analyses. A scatter plot over time with the measured or calculated quantity or a boxplot of measurements or calculated quantity per Day is plotted."
     )
-
-# FIXME: Not visible, thus not displayed correctly during guide. 
-#    step("test",
-#        "Statistical testing",
-#        "The panel allows to do ANOVA or ANCOVA after the Basic plot has been inspected"
-#    )$
-#    step("details",
-#        "Details",
-#        "Details panel summaries the statistics (post-hoc test) and effect sizes"
-#    )$
-#    step("summary",
-#        "Summary",
-#        "Summary panel provides summary statistics of quantities of interest of a dependent variable"
-#    )$
-#    step("modelling",
-#        "Modelling",
-#        "Modelling panel provides means to construct a linear mixed effect model with a variable number of fixed and random effects"
-#    )
-#

@@ -151,7 +151,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
 		str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
 		str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
-		str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Basic plot panel."
+		str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Main plot panel."
 		HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
 	})
 

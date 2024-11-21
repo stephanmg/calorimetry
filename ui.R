@@ -400,7 +400,7 @@ main_content <- mainPanel(
    )),
    tabsetPanel(
       id = "additional_content",
-      tabPanel("Basic plot", 
+      tabPanel("Main plot", 
          tagList(
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'BodyComposition'", checkboxInput("stylize_plot", "Stylize plot")),
@@ -419,7 +419,7 @@ main_content <- mainPanel(
       tabPanel("Statistical testing", uiOutput("test")),
       tabPanel("Summary statistics", plotlyOutput("summary")),
       tabPanel("Details", uiOutput("details")),
-      tabPanel("Modelling", uiOutput("modelling")),
+      tabPanel("Statistical model", uiOutput("modelling")),
       tabPanel("Explanation", htmlOutput("explanation"))
    )
 )

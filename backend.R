@@ -1160,8 +1160,8 @@ server <- function(input, output, session) {
             }
             })
 
-            # Basic plot needs to be always visible
-            showTab(inputId = "additional_content", target = "Basic plot")
+            # Main plot needs to be always visible
+            showTab(inputId = "additional_content", target = "Main plot")
 
             if (input$plot_type == "RestingMetabolicRate") {
                 if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
@@ -1171,7 +1171,7 @@ server <- function(input, output, session) {
 
 
                showTab(inputId = "additional_content", target = "Summary statistics")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
 
                write.csv2(real_data$data, "before_rmr_written.csv")
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
@@ -1468,7 +1468,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical testing")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
             output$explanation <- renderUI({
                str1 <- "<h3> Glucose, lipid and protein oxidation </h3>"
                   str2 <- "Displays the glucose, lipid and protein oxidation by means of respiratory gas exchange measurements during indirect calorimetry"
@@ -1538,7 +1538,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
                str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1550,7 +1550,7 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
-               hideTab(inputId = "additional_content", target = "Modelling")
+               hideTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "Raw") {
             output$explanation <- renderUI({
                str1 <- "<h3> Raw measurements and derived quantities </h3>"
@@ -1566,20 +1566,20 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "BodyComposition") {
-               #hideTab(inputId = "additional_content", target = "Basic plot")
+               #hideTab(inputId = "additional_content", target = "Main plot")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Explanation")
-               hideTab(inputId = "additional_content", target = "Modelling")
+               hideTab(inputId = "additional_content", target = "Statistical model")
            } else {
             output$summary <- renderPlotly(NULL)
             hideTab(inputId = "additional_content", target = "Explanation")
            }
 
-           # Basic plot needs to be always visible
-           showTab(inputId = "additional_content", target = "Basic plot")
+           # Main plot needs to be always visible
+           showTab(inputId = "additional_content", target = "Main plot")
 
            # plot
            real_data$plot
