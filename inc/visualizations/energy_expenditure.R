@@ -233,8 +233,14 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- p + stat_cor(method = input$wmethod)
 	}
 
-	# axis labels
-	p <- p + xlab("Zeitgeber time [h]")
+	# set x-axis label
+	if (input$use_zeitgeber_time) {
+		p <- p + xlab("Zeitgeber time [h]")
+	} else {
+		p <- p + xlab("Time [h]")
+	}
+
+	# display unit correctly on y-axis label
 	if (input$kj_or_kcal == "mW") {
 		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " "))
 	} else {

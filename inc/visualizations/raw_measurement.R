@@ -239,9 +239,15 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		p <- p + my_lights
 	}
 
-	# set axis labels 
+	# set y-axis labels 
 	p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
-	p <- p + xlab("Zeitgeber time [h]")
+
+	# set x-axis label
+	if (input$use_zeitgeber_time) {
+		p <- p + xlab("Zeitgeber time [h]")
+	} else {
+		p <- p + xlab("Time [h]")
+	}
 
 	# helper to convert datetime format
 	convert <- function(x) {

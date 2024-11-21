@@ -258,7 +258,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# re-center at 0
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
 	# legends
-	p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Zeitgeber time [h]") + ggtitle(input$goxlox)
+	p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + ggtitle(input$goxlox)
+	# set x-axis label
+	if (input$use_zeitgeber_time) {
+		p <- p + xlab("Zeitgeber time [h]")
+	} else {
+		p <- p + xlab("Time [h]")
+	}
 	# store plot and indicate GoxLox has been calculated
 	storeSession(session$token, "plot_for_goxlox", p, global_data)
 	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)

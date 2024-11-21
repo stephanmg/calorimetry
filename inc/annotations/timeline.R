@@ -12,6 +12,7 @@ library(ggplot2)
 #' @param day_color color for light phase (day)
 #' @param night_color color for dark phase (night)
 #' @param light_cycle choose Day or Night 
+#' @param only_full_days_zeitgeber full days or not
 ################################################################################
 draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night"), only_full_days_zeitgeber=TRUE) {
    # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
