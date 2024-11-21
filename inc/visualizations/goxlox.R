@@ -83,11 +83,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
-	num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-	if (input$only_full_days_zeitgeber) {
-		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-	}
-	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
 	# selected calendrical days
