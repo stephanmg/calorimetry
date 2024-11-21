@@ -13,7 +13,7 @@ library(ggplot2)
 #' @param night_color color for dark phase (night)
 #' @param light_cycle choose Day or Night 
 ################################################################################
-draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night")) {
+draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night"), only_full_days_zeitgeber=TRUE) {
    # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
    intervals <- seq(0, max(df$x, na.rm=T), 12)
 
@@ -64,4 +64,9 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    p <- p + ylim(min(df$y), max(df$y))
    p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df$x), max(df$x)))
    p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(df$y), max(df$y)))
+
+   # first segment in full days for zeitgeber is light phase
+   if (only_full_days_zeitgeber) {
+     p <- p + annotate("rect", xmin=min(df$x), xmax=12, ymin=min(df$y), ymax=max(df$y), fill=day_color, alpha=0.1)
+   }
 }
