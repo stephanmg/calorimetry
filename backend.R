@@ -546,6 +546,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # get stored data so far
    finalC1 = getSession(session$token, global_data)[["finalC1"]]
+   print("finalC1:")
+   print(finalC1)
    finalC1meta = getSession(session$token, global_data)[["finalC1meta"]]
    C1meta = getSession(session$token, global_data)[["C1meta"]]
    scaleFactor = getSession(session$token, global_data)[["scaleFactor"]]

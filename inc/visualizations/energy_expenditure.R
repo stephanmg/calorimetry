@@ -21,23 +21,32 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# get metadata
 	metadatafile <- get_metadata_datapath(input, session, global_data)
 
+	print("finalC in EE:")
+	print(finalC1)
+
 	# only join data frame if not already joined 
 	if (!is.null(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])) {
+		print("calculated?")
+		print(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])
 		data_and_metadata <- getSession(session$token, global_data)[["EE_df"]]
 		finalC1 <- data_and_metadata$data
+		print("hereaaaaaa?")
+		print(finalC1)
+
 		true_metadata <- data_and_metadata$metadata
 	} else {
 		finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
 		data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
 		finalC1 <- data_and_metadata$data
 		true_metadata <- data_and_metadata$metadata
+		print("saving EE_df")
 		storeSession(session$token, "EE_df", data_and_metadata, global_data)
 	}
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
-		finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
+			finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}
 	}
 
@@ -45,7 +54,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (input$with_grouping) {
 		my_var <- input$condition_type
 		if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-		finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
+			finalC1 <- finalC1 %>% filter((!!sym(my_var)) == input$select_data_by)
 		}
 	}
 
@@ -69,7 +78,11 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
+		print("Here?")
+		print(head(finalC1))
 		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		print("there?")
+
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
@@ -215,7 +228,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
 		shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
 		# FIXME: Temporary... this should be corrected, as it leads to dim(x) error when switching from RMR/TEE to the EE panel
-		#return()
+		return()
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
