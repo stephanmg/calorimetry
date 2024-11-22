@@ -29,7 +29,6 @@ get_git_information_from_repository <- function() {
 
 	  version_info <- NULL
 
-     print(git2r::repository("."))
 
       if (is.null(current_branch)) {
          if (is.null(current_tag)) {

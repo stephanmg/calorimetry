@@ -1222,240 +1222,88 @@ server <- function(input, output, session) {
                storeSession(session$token, "time_diff", time_diff, global_data)
             }
 
-         df1 <- getSession(session$token, global_data)[["RMR"]]
-         df2 <- getSession(session$token, global_data)[["TEE"]]
+            df1 <- getSession(session$token, global_data)[["RMR"]]
+            df2 <- getSession(session$token, global_data)[["TEE"]]
 
-         df1 <- rename(df1, Animals = Animal)
-         how_many_days <- length(levels(as.factor(df2$Days)))
-         df1$Animals <- as.factor(df1$Animals)
-         df2$Animals <- as.factor(df2$Animals)
+            df1 <- rename(df1, Animals = Animal)
+            how_many_days <- length(levels(as.factor(df2$Days)))
+            df1$Animals <- as.factor(df1$Animals)
+            df2$Animals <- as.factor(df2$Animals)
 
-         # unique days
-         unique_days_tee <- df2 %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days)) %>% as.data.frame()
+            # unique days
+            unique_days_tee <- df2 %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days)) %>% as.data.frame()
 
-         # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
-         interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-         df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
-         df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
+            # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
+            interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+            df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
+            df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
 
-         # TODO: Here RMR and EE get averaged per day already... need to change this.
-         # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-         # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
-         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
-         df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
+            # TODO: Here RMR and EE get averaged per day already... need to change this if required.
+            # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
+            # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
+            df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
+            df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
-         df1 <- left_join(df1, unique_days_tee, by = "Animals")
-         df2 <- left_join(df2, unique_days_tee, by = "Animals")
+            df1 <- left_join(df1, unique_days_tee, by = "Animals")
+            df2 <- left_join(df2, unique_days_tee, by = "Animals")
 
-         # calculate averages of RMR over number of given days
-         df1 <- df1 %>% mutate(EE = EE / unique_days)
-         df2 <- df2 %>% mutate(EE = EE / unique_days)
+            # calculate averages of RMR over number of given days
+            df1 <- df1 %>% mutate(EE = EE / unique_days)
+            df2 <- df2 %>% mutate(EE = EE / unique_days)
 
-         df1$TEE <- as.factor(rep("RMR", nrow(df1)))
-         df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
-         df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
-         df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
+            df1$TEE <- as.factor(rep("RMR", nrow(df1)))
+            df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
+            df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
+            df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
 
-         # Verify whether correct or not, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
-         # thus we need  to check for negative values in difference as well ... can happen because the one data sets has very large measurement intervals: 30 minutes! 
-         # so the rmr is severely overestimates, and larger than TEE, we need to visually correct for this...
-         df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
-         df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
+            # Verify whether correct or not, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
+            # thus we need  to check for negative values in difference as well ... can happen because the one data sets has very large measurement intervals: 30 minutes! 
+            # so the rmr is severely overestimates, and larger than TEE, we need to visually correct for this...
+            df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
+            df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
 
-         combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
-         combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
-         combined_df$EE <- pmax(combined_df$EE, 0) # zeros instead for RMR (might be due to RMR method not estimating as good, thus overestimating...)
-         write.csv2(combined_df, "combined_fine_df.csv")
+            combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
+            combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
+            combined_df$EE <- pmax(combined_df$EE, 0) # zeros instead for RMR (might be due to RMR method not estimating as good, thus overestimating...)
+            write.csv2(combined_df, "combined_fine_df.csv")
 
-         df_total <- rbind(df1, df2)
-         df_total$Animals <- as.factor(df_total$Animals)
-         df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
+            df_total <- rbind(df1, df2)
+            df_total$Animals <- as.factor(df_total$Animals)
+            df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
 
-         combined_df <- combined_df %>% select(Animals, EE_a, EE, unique_days_a) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR", "unique_days_a"="Days"))
-         write.csv2(df_total, "df_total_verify_plot.csv")
-         df_total <- combined_df
-         p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
-         p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-         p2 <- p2 + scale_fill_manual(values=c("non-RMR" = "#B2DF8A", "RMR" = "#CAB2D6"))
-         p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
-         output$summary <- renderPlotly(
-            ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian"))) 
-         )
-         
-         # write.csv2(df_total, "tee_and_rmr.csv")
-         storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
-         write.csv2(df_total, "test_for_rmr.csv")
-         df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
+            combined_df <- combined_df %>% select(Animals, EE_a, EE, unique_days_a) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR", "unique_days_a"="Days"))
+            write.csv2(df_total, "df_total_verify_plot.csv")
+            df_total <- combined_df
+            p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
+            p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
+            p2 <- p2 + scale_fill_manual(values=c("non-RMR" = "#B2DF8A", "RMR" = "#CAB2D6"))
+            p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
+            output$summary <- renderPlotly(
+               ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian"))) 
+            )
+            
+            # write.csv2(df_total, "tee_and_rmr.csv")
+            storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
+            write.csv2(df_total, "test_for_rmr.csv")
+            df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
-      data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
-      #df_total <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
+            data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
+            true_metadata <- data_and_metadata$metadata
+            print("true_metadata")
+            print(true_metadata)
 
+            # add statistica panel here
+            add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
 
-
-         if (input$havemetadata || !input$havemetadata) {
-               output$test <- renderUI({
-                  tagList(
-                     h4("Configuration"),
-                     selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
-                     selectInput("dep_var", "Dependent variable", choice = c("RMR")),
-                     selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-                     selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-                     selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-                     conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Diet", get_factor_columns(true_metadata)), selected = "Days")),
-                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-                     hr(style = "width: 50%"),
-                     h4("Advanced"),
-                     selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
-                     sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-                     checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-                     hr(style = "width: 75%"),
-                     renderPlotly({
-                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
-                        p <- p + xlab(pretty_print_label(input$covar, metadatafile)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var, metadatafile)) 
-                        if (!input$auto_scale_rmr_plot_limits_x) {
-                           p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
-                        }
-
-                        if (!input$auto_scale_rmr_plot_limits_y) {
-                           p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
-                        }
-
-                        ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-                     }),
-                        hr(style = "width: 50%"),
-                        h4("Plotting control"),
-                        fluidRow(
-                           column(6,
-                           h5("x-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
-                           numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
-                           numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
-                           ),
-                           column(6,
-                           h5("y-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
-                           numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
-                           numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
-                           )
-                        ),
-
-                     hr(style = "width: 75%"),
-                     conditionalPanel("input.num_covariates == '2'", renderPlotly({
-                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-                        p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var, metadatafile)) 
-                        if (!input$auto_scale_rmr_plot_limits_x2) {
-                           p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
-                        }
-
-                        if (!input$auto_scale_rmr_plot_limits_y2) {
-                           p <- p + ylim(c(input$y_min_rmr_plot2, input$y_max_rmr_plot2))
-                        }
-                        ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-                     })),
-                     conditionalPanel("input.num_covariates == '2'", 
-                        hr(style = "width: 50%"),
-                        h4("Plotting control"),
-                        fluidRow(
-                           column(6,
-                           h5("x-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
-                           numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
-                           numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
-                           ),
-                           column(6,
-                           h5("y-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
-                           numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
-                           numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
-                           )
-                        )
-                     )
-                  )
-                  })
-
-
-               output$details <- renderUI({
-                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-                  tagList(
-                     h3("Post-hoc analysis"),
-                     renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-                     hr(style = "width: 75%"),
-                     h4("Results of statistical testing"),
-                     tags$table(
-                        tags$thead(
-                           tags$tr(
-                              tags$th("p-value", style="width: 100px"),
-                              tags$th("p-value (adjusted)", style="width: 100px"),
-                              tags$th("significance level", style="width: 100px"),
-                              tags$th("degrees of freedom", style="width: 100px" ),
-                              tags$th("test statistic", style="width: 100px")
-                           )
-                        ),
-                        tags$tbody(
-					            generate_statistical_table(results)
-                           )
-                     ),
-
-                     h4("Test assumptions"),
-                     tags$table(
-                              tags$thead(
-                                 tags$tr(
-                                    tags$th("Description", style="width:200px"),
-                                    tags$th("Name of significance test", style="width:200px"),
-                                    tags$th("Null hypothesis", style="width:400px"),
-                                    tags$th("p-value", style="width:200px"),
-                                    tags$th("Status", style="width:200px")
-                                 )
-                              ),
-                              tags$tbody(
-                                 tags$tr(
-                                    tags$td("Homogeneity of variances", style="width:200px"),
-                                    tags$td("Levene's test", style="width:200px"),
-                                    tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                                    tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                                    tags$td(
-                                       if (as.numeric(results$levene$p) < as.numeric(input$alpha_level)) {
-                                          icon("times")
-                                       } else {
-                                          icon("check")
-                                       }
-                                    ,style="width: 200px"
-                                    )
-                                 ),
-                                 tags$tr(
-                                    tags$td("Normality of residuals", style="width:200px"),
-                                    tags$td("Shapiro-Wilk test", style="width:200px"),
-                                    tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                                    tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                                    tags$td(
-                                    if (as.numeric(results$shapiro$p.value) < 0.05) {
-                                          icon("times")
-                                       } else {
-                                          icon("check")
-                                       }
-                                    ,style="width: 200px"
-                                    )
-                                 )
-                              )
-                     )
-                  )
-               })
-               # create LME model UI
-               RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-               RMR_for_model <- RMR_for_model %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(RMR=EE)
-               if (!is.null(RMR_for_model)) {
-                  RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
-                  write.csv2(RMR_for_model, "tee_before_lme_model.csv")
-                  create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR", session, global_data)
-               }
-              }
-           } else if (input$plot_type == "CompareHeatProductionFormulas") {
+            # create LME model UI
+            RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+            RMR_for_model <- RMR_for_model %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(RMR=EE)
+            if (!is.null(RMR_for_model)) {
+               RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
+               write.csv2(RMR_for_model, "tee_before_lme_model.csv")
+               create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR", session, global_data)
+            }
+          } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
             str2 <- "Two heat production formulas can be compared via a simple scatter plot and plotting into the plot a regression line (Pearson-Product-Moment correlation coefficient r)" #nolint
@@ -1571,7 +1419,6 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "BodyComposition") {
-               #hideTab(inputId = "additional_content", target = "Main plot")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Explanation")

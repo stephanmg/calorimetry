@@ -13,7 +13,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			selectInput("dep_var", "Dependent variable", choice = c(dep_var)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
 			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(input_df)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
-         conditionalPanel("input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'Raw' || input.plot_type == 'GoxLox' || input.plot_type == 'EnergyExpenditure'", checkboxInput("average_days", "Average over days", value=FALSE)),
+         conditionalPanel("input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'Raw' || input.plot_type == 'GoxLox' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'RestingMetabolicRate'", checkboxInput("average_days", "Average over days", value=FALSE)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
@@ -71,6 +71,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
       if (!is.null(input$average_days)) {
             if (input$average_days) {
+               if (dep_var == "RMR") {
+                 mylabel = paste0("average RMR [", input$kj_or_kcal, " / day]")
+                 input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
+               }
                if (dep_var == "TEE") {
                  mylabel = paste0("average TEE [", input$kj_or_kcal, " / day]")
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
