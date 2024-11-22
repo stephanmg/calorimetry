@@ -615,6 +615,12 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    ### RestingMetabolicRate
    #####################################################################################################################
    RestingMetabolicRate = {
+      # Check first if RMR can be calculated
+      if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
+        shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
+        return()
+      }
+
       df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       finalC1 <- df_returned$finalC1
       p <- df_returned$plot
@@ -1073,6 +1079,7 @@ server <- function(input, output, session) {
          })
    })
 
+   # TODO: real data should be in a session variable
    real_data <- NULL
    #############################################################################
    # Show plot (action button's action)
@@ -1165,12 +1172,7 @@ server <- function(input, output, session) {
             ## should be move to inc/visualizations/resting_metabolic_rate.R
 
             if (input$plot_type == "RestingMetabolicRate") {
-                if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
-                     shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
-                     return()
-                  }
-
-
+               
                showTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical model")
 
