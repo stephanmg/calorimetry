@@ -435,7 +435,7 @@ load_data <- function(file, input, exclusion, output, session) {
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                        VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
                                        VCO2 = C1$`VCO2(3)_[ml/h]`, # calculate mean of VCO2
-                                       RER = C1$RER_NA), # calculate mean of RER
+                                       RER = C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`), # calculate mean of RER
                      by = list(
                               Animal = C1$`Animal No._NA`, # groups by Animal ID
                               Time = C1$running_total.hrs.round), # groups by total rounded running hour

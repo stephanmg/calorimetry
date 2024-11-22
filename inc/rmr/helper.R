@@ -142,6 +142,8 @@ get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    # interval length due to e.g. experimental handling of samples / maintenance
    time_diff_all <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% pull(diff.sec) %>% unique()
 
+   print(time_diff_all)
+
    # start of measurement always diff.sec 0, but there should never be different diff.sec in the measurement per animal ID
    if (length(time_diff_all[-1]) > 1) {
       print(time_diff_all)

@@ -540,7 +540,10 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       # need to remove all nan columns because individual cohorts might not have the same columns
       df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals")) 
    } else {
+      print("here?")
+      print(C1meta[,-1])
       empty_row_index <-which(apply(C1meta[,-1], 1, function(row) all(row == "")))
+      print("there?")
       rows_to_remove <- unique(c(empty_row_index, empty_row_index+1))
       C1meta <- C1meta[-rows_to_remove[rows_to_remove <= nrow(C1meta)], ]
       df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
