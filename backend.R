@@ -261,8 +261,6 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
    }
 
-
-
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -272,6 +270,7 @@ load_data <- function(file, input, exclusion, output, session) {
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
+   # Debug C1meta (TSE metadata)
    print(C1meta)
 
    #############################################################################
@@ -611,8 +610,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### RestingMetabolicRate
@@ -840,7 +837,6 @@ server <- function(input, output, session) {
          })
       }
    })
-
 
    #####################################################################################################################
    # Observer plotly_selected (lasso or rectangle)
@@ -1164,6 +1160,9 @@ server <- function(input, output, session) {
 
             # Main plot needs to be always visible
             showTab(inputId = "additional_content", target = "Main plot")
+
+            ## TODO Resting Metabolic Rate is still handled differently, i.e. in backend.R,
+            ## should be move to inc/visualizations/resting_metabolic_rate.R
 
             if (input$plot_type == "RestingMetabolicRate") {
                 if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
