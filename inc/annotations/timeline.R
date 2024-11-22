@@ -16,7 +16,7 @@ library(ggplot2)
 ################################################################################
 draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night"), only_full_days_zeitgeber=TRUE) {
    # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
-   intervals <- seq(0, max(df$x, na.rm=T), 12)
+   intervals <- seq(0, max(df$x, na.rm=T), (light_end - light_start))
 
    # zeitgeber zeit assumes to start with night  not day
    light_on <- TRUE
@@ -29,7 +29,7 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    color <- night_color
 
    # first interval is night, color this accordingly
-   lapply(intervals, function(item) { p <<- p + annotate("rect", xmin = item - 12 + light_offset, xmax = item + light_offset, ymin = min(df$y), ymax = max(df$y), fill = color, alpha = 0.1); if (light_on) { color <<- day_color; light_on <<- FALSE }  else {  color <<- night_color; light_on <<- TRUE}; }) # nolint: semicolon_linter, brace_linter.
+   lapply(intervals, function(item) { p <<- p + annotate("rect", xmin = item - (light_end - light_start) + light_offset, xmax = item + light_offset, ymin = min(df$y), ymax = max(df$y), fill = color, alpha = 0.1); if (light_on) { color <<- day_color; light_on <<- FALSE }  else {  color <<- night_color; light_on <<- TRUE}; }) # nolint: semicolon_linter, brace_linter.
 
    # start offset assumed before daylight start (light_start): night
    p <- p + annotate("rect", xmin=0, xmax=light_offset, ymin = min(df$y), ymax = max(df$y), fill=night_color, alpha=0.1)
@@ -52,7 +52,7 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    xmax_first_rect <- min(df$x, na.rm=T)
    xmin_first_rect <- xmax_first_rect
    if (xmax_first_rect > 0) {
-      xmax_first_rect = 12 - xmax_first_rect
+      xmax_first_rect = (light_end - light_start) - xmax_first_rect
       xmin_first_rect <- 0
    } else {
       xmax_first_rect <- 0
@@ -68,6 +68,6 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
 
    # first segment in full days for zeitgeber is light phase
    if (only_full_days_zeitgeber) {
-     p <- p + annotate("rect", xmin=min(df$x), xmax=12, ymin=min(df$y), ymax=max(df$y), fill=day_color, alpha=0.1)
+     p <- p + annotate("rect", xmin=min(df$x), xmax=(light_start-light_end), ymin=min(df$y), ymax=max(df$y), fill=day_color, alpha=0.1)
    }
 }
