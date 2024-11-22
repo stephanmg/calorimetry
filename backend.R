@@ -1238,6 +1238,7 @@ server <- function(input, output, session) {
          df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
          df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
 
+         # TODO: Here RMR and EE get averaged per day already... need to change this.
          # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
          # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
          df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
@@ -1270,7 +1271,7 @@ server <- function(input, output, session) {
          df_total$Animals <- as.factor(df_total$Animals)
          df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
 
-         combined_df <- combined_df %>% select(Animals, EE_a, EE) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR"))
+         combined_df <- combined_df %>% select(Animals, EE_a, EE, unique_days_a) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR", "unique_days_a"="Days"))
          write.csv2(df_total, "df_total_verify_plot.csv")
          df_total <- combined_df
          p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
@@ -1282,7 +1283,7 @@ server <- function(input, output, session) {
          )
          
          # write.csv2(df_total, "tee_and_rmr.csv")
-         storeSession(session$token, "TEE_and_RMR", df_total, global_data)
+         storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
          write.csv2(df_total, "test_for_rmr.csv")
          df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 

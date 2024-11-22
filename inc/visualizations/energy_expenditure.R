@@ -21,18 +21,11 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# get metadata
 	metadatafile <- get_metadata_datapath(input, session, global_data)
 
-	print("finalC in EE:")
-	print(finalC1)
 
 	# only join data frame if not already joined 
 	if (!is.null(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])) {
-		print("calculated?")
-		print(getSession(session$token, global_data)[["is_EnergyExpenditure_calculated"]])
 		data_and_metadata <- getSession(session$token, global_data)[["EE_df"]]
 		finalC1 <- data_and_metadata$data
-		print("hereaaaaaa?")
-		print(finalC1)
-
 		true_metadata <- data_and_metadata$metadata
 	} else {
 		finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
@@ -232,8 +225,10 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
+		print("EE head:")
+		print(head(EE))
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
-		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, "Energy expenditure", "EE")
+		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, paste0("Energy expenditure [", input$kj_or_kcal, "/day]"), "EE")
 	}
 
 	# add means
