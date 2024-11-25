@@ -1173,6 +1173,7 @@ server <- function(input, output, session) {
 
             if (input$plot_type == "RestingMetabolicRate") {
                
+	            metadatafile <- get_metadata_datapath(input, session, global_data)
                showTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical model")
 

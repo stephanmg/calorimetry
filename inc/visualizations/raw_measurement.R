@@ -33,12 +33,17 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "Raw_df", data_and_metadata, global_data)
 	}
 
+	print("finalC1 before sex")
+	print(finalC1)
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
 			finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}
 	}
+
+	print("finalC1 after sex")
+	print(finalC1)
 
 	# Filter conditions based on factor level
 	if (input$with_grouping) {

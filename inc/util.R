@@ -144,8 +144,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 	output$plot_statistics_details2 <- renderPlotly({
 		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-		p <- p + xlab(pretty_print_label(input$covar2, metadatafile)) 
-		p <- p + ylab(pretty_print_variable(mylabel, metadatafile)) 
+      p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile)) 
+      p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile)) 
 		p <- p + ggtitle(input$study_description)
 
 		if (!input$auto_scale_rmr_plot_limits_x2) {
@@ -574,6 +574,8 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       # switching between panels occassionally? Data needs to be filtered because sometimes we
       # double merge the finalC1, creating duplicates?
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
+      print("df in the end:")
+      print(df)
    }
    return(list("data"=df, "metadata"=metadata))
 }
@@ -715,6 +717,12 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
    day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() %>% na.omit()
 
    print("minimum?")
+   print("input_var:")
+   print(input_var)
+   print("colnames:")
+   print(colnames(df))
+   print("head df:")
+   print(head(df))
    print(df[[input_var]])
    print(input_var)
    print(min(df[[input_var]]))
