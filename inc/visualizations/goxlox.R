@@ -215,8 +215,15 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot$GoxLox)
 	colnames(lights) <- c("x", "y")
 	if (input$timeline) {
-		my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-		p <- p + my_lights
+		if (!is.null(input$only_full_days_zeitgeber)) {
+			if (input$only_full_days_zeitgeber == TRUE) {
+				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+				p <- p + my_lights
+			} else {
+				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+				p <- p + my_lights
+			}
+		}
 	}
 
 	# group with group from metadata

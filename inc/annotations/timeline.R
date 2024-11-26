@@ -68,13 +68,10 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
 
    # first segment in full days for zeitgeber is light phase
    if (only_full_days_zeitgeber == TRUE) {
-      print("Here?")
-      print(min(df$x))
       if (min(df$x) < 0) {
-     p <- p + annotate("rect", xmin=min(df$x), xmax=(light_end-light_start), ymin=min(df$y), ymax=max(df$y), fill=night_color, alpha=0.1)
+         p <- p + annotate("rect", xmin=min(df$x), xmax=(light_end-light_start), ymin=min(df$y), ymax=max(df$y), fill=night_color, alpha=0.1)
       } else {
-     p <- p + annotate("rect", xmin=min(df$x), xmax=(light_end-light_start), ymin=min(df$y), ymax=max(df$y), fill=day_color, alpha=0.1)
-
+         p <- p + annotate("rect", xmin=min(df$x), xmax=(light_end-light_start), ymin=min(df$y), ymax=max(df$y), fill=day_color, alpha=0.1)
       }
    }
 }

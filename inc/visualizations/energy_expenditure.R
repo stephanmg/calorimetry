@@ -259,12 +259,17 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# add light cycle annotation
 	lights <- data.frame(x = finalC1["running_total.hrs.halfhour"], y = finalC1["HP2"])
 	colnames(lights) <- c("x", "y")
-	
+
 	if (input$timeline) {
-		light_offset <- 0
-		# this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
-		my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
-		p <- p + my_lights
+		if (!is.null(input$only_full_days_zeitgeber)) {
+			if (input$only_full_days_zeitgeber == TRUE) {
+				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+				p <- p + my_lights
+			} else {
+				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+				p <- p + my_lights
+			}
+		}
 	}
 
 	# add title
