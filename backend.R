@@ -91,21 +91,21 @@ source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR es
 source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
-# Selection of calendrical dates, currently not implemented
+# Selection of calendrical dates, currently not implemented/thus obsolete
 ################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
 end_date <- Sys.Date()
 
 ################################################################################
-# Session global environement to hold user data
+# Session global environment to hold user data
 ################################################################################
 global_data <- new.env()
 
+################################################################################
+# Configure base plot look and feel with ggpubr
+################################################################################
 configure_default_plot_look_and_feel <- function() {
-   #############################################################################
-   # Configure base plot look and feel with ggpubr
-   #############################################################################
    theme_pubr_update <- theme_pubr(base_size = 8.5) +
    theme(legend.key.size = unit(0.3, "cm")) +
    theme(strip.background = element_blank()) +
@@ -114,6 +114,9 @@ configure_default_plot_look_and_feel <- function() {
    theme_set(theme_pubr_update)
 }
 
+################################################################################
+# Load data
+################################################################################
 load_data <- function(file, input, exclusion, output, session) {
    #############################################################################
    # Detect file type
@@ -1062,10 +1065,11 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(c(input$replotting, input$daterange), {
            output$plot <- renderPlotly({
-            file <- input$File1
-            real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
-            time_start_end <<- get_date_range(real_data$data)
-            real_data$plot
+             file <- input$File1
+             real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
+             storeSession(session$token, "real_data", real_data, global_data)
+             time_start_end <<- get_date_range(real_data$data)
+             real_data$plot
            })
    })
 
@@ -1089,8 +1093,6 @@ server <- function(input, output, session) {
          })
    })
 
-   # TODO: real data should be in a session variable
-   real_data <- NULL
    #############################################################################
    # Show plot (action button's action)
    #############################################################################
@@ -1103,9 +1105,9 @@ server <- function(input, output, session) {
          if (is.null(input$File1) && !use_example_data) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
          } else {
-
            file <- input$File1
            real_data <- do_plotting(file$datapath, input, input$sick, output, session)
+           storeSession(session$token, "real_data", real_data, global_data)
 
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
@@ -1178,7 +1180,7 @@ server <- function(input, output, session) {
             # Main plot needs to be always visible
             showTab(inputId = "additional_content", target = "Main plot")
 
-            ## TODO Resting Metabolic Rate is still handled differently, i.e. in backend.R,
+            ## TODO: Resting Metabolic Rate is still handled differently, i.e. in backend.R,
             ## should be move to inc/visualizations/resting_metabolic_rate.R
 
             if (input$plot_type == "RestingMetabolicRate") {

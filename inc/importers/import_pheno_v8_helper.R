@@ -11,7 +11,6 @@ library(dplyr)
 #' import_pheno_v8(input_file, output_file)
 ################################################################################
 import_pheno_v8 <- function(file, file_out) {
-   # TODO: v0.5.0 - support not only row-wise format but column-wise format
    toskip <- 0
    con <- file(file, "r")
    filetype <- ""
