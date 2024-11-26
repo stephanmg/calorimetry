@@ -262,7 +262,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   if (test_type == "2-way ANOVA") {
     df$Days <- as.factor(df$Days)
-    p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means()
+    if (connected_or_independent_ancova) {
+       p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means(
+        aes(group = Days), method="anova", group.by="Days", label="p.format")
+    } else {
+       p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means()
+    }
   }
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))

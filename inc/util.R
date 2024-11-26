@@ -9,6 +9,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	output$test <- renderUI({
 		tagList(
 			h4("Configuration"),
+         uiOutput("formula_for_ancova_anova"),
 			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way ANOVA"), selected = "1-way ANOVA"),
 			selectInput("dep_var", "Dependent variable", choice = c(dep_var)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
@@ -16,7 +17,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
          conditionalPanel("input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'Raw' || input.plot_type == 'GoxLox' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'RestingMetabolicRate'", checkboxInput("average_days", "Average over days", value=FALSE)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
+			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
 			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
 			hr(style = "width: 50%"),
