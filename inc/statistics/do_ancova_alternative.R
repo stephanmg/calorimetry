@@ -4,6 +4,9 @@ library(rstatix)
 library(broom)
 library(emmeans)
 
+brunner_munzel <- function(df) {
+  return(lawsat::brunner.munzel.test(as.numeric(df$TEE) ~ data$group)$p.value)
+}
 ################################################################################
 #' get_r_squared_clean
 #' 
@@ -157,25 +160,29 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   p2 <- NULL
   p3 <- NULL
   if (dep_var == "TEE") {
-    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line") 
+    p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line", alpha=0) 
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
-    p2 <- p2 + geom_point(aes(text=paste0("Animals:", Animals)), label = "", color = "transparent", alpha=0)
+    p2 <- p2 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
 
     if (num_covariates > 1) {
      p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+     p3 <- p3 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
     }
 
   } else {
     label_y <- c(max(df$TEE)+2, max(df$TEE)+8)
     df <- df %>% rename(!!dep_var := TEE)
-    p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line")
+    p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line", alpha=0)
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, geom="text", output.type = "text", parse=FALSE)
-    p2 <- p2 + geom_point(aes(text=paste0("Animals:", Animals)), label = "", color = "transparent", alpha=0)
+    p2 <- p2 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
     df <- df %>% rename(TEE := !!dep_var)
     if (num_covariates > 1) {
+      df <- df %>% rename(!!dep_var := TEE)
       p3 <- ggscatter(df, x = "Weight2", y = dep_var, color = "group", add = "reg.line")
       p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+      p3 <- p3 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
+      df <- df %>% rename(TEE := !!dep_var)
     }
   }
 
@@ -241,7 +248,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    #pwc <- pwc %>% first()
   }
 
   # Fit the model, the covariate goes first
@@ -257,28 +263,33 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
-    p2 <- ggboxplot(df, x = "group", y = "TEE", color = "group", add = "jitter") + stat_compare_means()
+    p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=NA)  
+    p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group)), size=3, width=0.2, alpha=0.6)
+    p2 <- p2 + stat_compare_means()
   }
 
   if (test_type == "2-way ANOVA") {
     df$Days <- as.factor(df$Days)
     if (connected_or_independent_ancova) {
-       p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter")
+       p2 <- ggboxplot(df, "group", "TEE", color = "Days")
+       p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group), color=Days), size=3, width=0.2, alpha=0.6)
        p2_old <- p2
        result <- try({
         p2 <<- p2 + stat_compare_means(
-        aes(group = Days), method="anova", group.by="Days", label="p.format")
+        aes(group = Days), method="anova", label="p.format")
        }, silent=TRUE)
        if (inherits(result, "try-error")) {
         p2 <<- p2_old + stat_compare_means()
        } 
     } else {
-       p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means()
+       p2 <- ggboxplot(df, "group", "TEE", color = "Days")
+       p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group), color=Days), size=3, width=0.2, alpha=0.6)
+       p2 <- p2 + stat_compare_means()
     }
   }
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
   regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
 
-  return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene, "regression_slopes" = regression_slopes))
+  return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene, "regression_slopes" = regression_slopes, "df"=df))
 }

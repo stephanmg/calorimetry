@@ -10,7 +10,7 @@ guide <- Cicerone$
     new(id = "guide")$
     step(
         "example_data_single",
-        "Example data set UCKP1 KO",
+        "Example data set UCP1 KO",
         "Choose example data set I to explore app features"
     )$
     step(

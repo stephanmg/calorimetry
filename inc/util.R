@@ -100,7 +100,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 
 
-		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)$plot_summary
+		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)
+      p <- ret$plot_summary
+      df <- ret$df
+
 		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
             hideTab(inputId = "additional_content", target = "Details")
 			p <- p + xlab(pretty_print_label(input$depvar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
@@ -110,9 +113,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			   p <- p + labs(color = input$indep_var)
          }
 			if (input$test_statistic == '1-way ANOVA') {
-				#if (input$add_points_to_anova_or_ancova) {
-					# p <- p + geom_jitter(width = 0.2, aes(color = group)) + labs(input$indep_var)
-				#}
 			} else {
 				p <- p + facet_wrap(as.formula(paste("~", input$indep_var2)))
 			}
@@ -132,10 +132,27 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 		}
 
 		p <- p + ggtitle(input$study_description) 
-		ggplotly(p) %>% config(displaylogo = FALSE, 
+		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
+
+      # Note: Data frame contains as dep var always TEE, so we need to modify this. 
+      # TODO: Better: Construct data frame always with the correct dependent variable
+      for (i in seq_along(p$x$data)) {
+         if (!is.null(p$x$data[[i]]$text)) {
+            p$x$data[[i]]$text <- gsub("TEE", pretty_print_label(mylabel, metadatafile), p$x$data[[i]]$text)
+            p$x$data[[i]]$text <- gsub("Days", input$indep_var2, p$x$data[[i]]$text)
+            p$x$data[[i]]$text <- gsub("Raw", pretty_print_label(mylabel, metadatafile), p$x$data[[i]]$text)
+            if (!is.null(input$covar2)) {
+              p$x$data[[i]]$text <- gsub("Weight2", input$covar2, p$x$data[[i]]$text)
+            }
+            if (!is.null(input$covar)) {
+               p$x$data[[i]]$text <- gsub("Weight", input$covar, p$x$data[[i]]$text)
+            }
+         }
+      }
+      p
 	})
 
 	# required to keep the currently selected indep_var
@@ -159,10 +176,27 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 		}
 
 		p <- p + ggtitle(input$study_description) 
-		ggplotly(p) %>% config(displaylogo = FALSE, 
+		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details2")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
+
+      # Note: Data frame contains as dep var always TEE, so we need to modify this. 
+      # TODO: Better: Construct data frame always with the correct dependent variable
+      for (i in seq_along(p$x$data)) {
+         if (!is.null(p$x$data[[i]]$text)) {
+            p$x$data[[i]]$text <- gsub("TEE", pretty_print_label(mylabel, metadatafile), p$x$data[[i]]$text)
+            p$x$data[[i]]$text <- gsub("Days", input$indep_var2, p$x$data[[i]]$text)
+            p$x$data[[i]]$text <- gsub("Raw", pretty_print_label(mylabel, metadatafile), p$x$data[[i]]$text)
+            if (!is.null(input$covar2)) {
+              p$x$data[[i]]$text <- gsub("Weight2", input$covar2, p$x$data[[i]]$text)
+            }
+            if (!is.null(input$covar)) {
+               p$x$data[[i]]$text <- gsub("Weight", input$covar, p$x$data[[i]]$text)
+            }
+         }
+      }
+      p
 	})
 
 	output$details <- renderUI({
@@ -546,10 +580,7 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       # need to remove all nan columns because individual cohorts might not have the same columns
       df <- finalC1 %>% select(where(~ !all(is.na(.)))) %>% full_join(y = metadata, by = c("Animals")) 
    } else {
-      print("here?")
-      print(C1meta[,-1])
       empty_row_index <-which(apply(C1meta[,-1], 1, function(row) all(row == "")))
-      print("there?")
       rows_to_remove <- unique(c(empty_row_index, empty_row_index+1))
       C1meta <- C1meta[-rows_to_remove[rows_to_remove <= nrow(C1meta)], ]
       df_filtered <- C1meta[, colSums(is.na(C1meta)) == 0]
