@@ -592,9 +592,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- p + ggtitle("Pearson-correlation between energy expenditures as computed by two different formulas")
    },
    #####################################################################################################################
-   # GoxLox
+   # FuelOxidation
    #####################################################################################################################
-   GoxLox = {
+   FuelOxidation = {
       p <- goxlox(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
       # indicate if plot available
@@ -608,7 +608,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    ### Energy Expenditure
    #####################################################################################################################
-   EnergyExpenditure = {
+   HeatProduction = {
       p <- energy_expenditure(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
       # indicate if plot available
@@ -676,9 +676,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- style_plot(p, input)
    },
    #####################################################################################################################
-   ### Raw
+   ### RawMeasurement
    #####################################################################################################################
-   Raw = {
+   RawMeasurement = {
       p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
       # indicate if plot available
@@ -690,7 +690,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    ### Total Energy Expenditure
    #####################################################################################################################
-   TotalEnergyExpenditure = {
+   TotalHeatProduction = {
       p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
       p_time <- p$time_trace
       p <- p$plot
@@ -707,9 +707,9 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       }
    },
    #####################################################################################################################
-   ### BodyComposition
+   ### Metadata
    #####################################################################################################################
-   BodyComposition = {
+   Metadata = {
       p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
       # indicate if plot available
@@ -865,7 +865,7 @@ server <- function(input, output, session) {
       if (!is.null(selected_data)) {
          data <- getSession(session$token, global_data)[["reactive_data"]]()
          # Animal grouping is added last, thus we have an offset of number of traces already in the plot object - number of unique levels in factor
-         # TODO: Generalize this that it is re-useable in other plots as well. Currently only used in panel Raw for outlier removal.
+         # TODO: Generalize this that it is re-useable in other plots as well. Currently only used in panel RawMeasurement for outlier removal.
          all_curves_plotly <- getSession(session$token, global_data)[["all_curves_plotly"]] - length(levels(data$Animals))
          curve_to_sampleid_mapping <- levels(data$Animals)
          selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
@@ -906,7 +906,7 @@ server <- function(input, output, session) {
 
          updated_data <- data[-selected_indices, ]
          getSession(session$token, global_data)[["reactive_data"]](updated_data)
-         # trigger re-plotting, but will take the modified data in the Raw panel now (reactive_data)
+         # trigger re-plotting, but will take the modified data in the RawMeasurement panel now (reactive_data)
          click("plotting")
       }
    })
@@ -1330,7 +1330,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Statistical testing")
-           } else if (input$plot_type == "GoxLox") {
+           } else if (input$plot_type == "FuelOxidation") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical testing")
@@ -1340,7 +1340,7 @@ server <- function(input, output, session) {
                   str2 <- "Displays the glucose, lipid and protein oxidation by means of respiratory gas exchange measurements during indirect calorimetry"
                HTML(paste(str1, str2, sep = "<br/>"))
             })
-           } else if (input$plot_type == "EnergyExpenditure") {
+           } else if (input$plot_type == "HeatProduction") {
        highlight_style <- "background-color: #FFB3BA;"
          # Function to create a table row with optional highlighting
          create_row <- function(name, equation, unit, reference, highlight = FALSE) {
@@ -1417,9 +1417,9 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Statistical model")
-           } else if (input$plot_type == "Raw") {
+           } else if (input$plot_type == "RawMeasurement") {
             output$explanation <- renderUI({
-               str1 <- "<h3> Raw measurements and derived quantities </h3>"
+               str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
                str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
                str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
             HTML(paste(str1, str2, str3, sep = "<br/>"))
@@ -1428,12 +1428,12 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Explanation")
-           } else if (input$plot_type == "TotalEnergyExpenditure") {
+           } else if (input$plot_type == "TotalHeatProduction") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical model")
-           } else if (input$plot_type == "BodyComposition") {
+           } else if (input$plot_type == "Metadata") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Explanation")
@@ -1546,7 +1546,7 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(input$refresh, {
       storeSession(session$token, "data_loaded", NULL, global_data)
-      storeSession(session$token, "is_GoxLox_calculated", NULL, global_data)
+      storeSession(session$token, "is_FuelOxidation_calculated", NULL, global_data)
       click("plotting")
    })
 
