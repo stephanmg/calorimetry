@@ -168,6 +168,7 @@ sidebar_content <- sidebarPanel(
    h3("Preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
+   checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_raw_data_curation", "Raw data curation", value = FALSE),
    conditionalPanel(condition  ="input.use_raw_data_curation == true", 
@@ -412,8 +413,10 @@ main_content <- mainPanel(
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_basis_functions", "Number of Basis functions", min = 10, max=40, value=20)),
             conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets_basis_function", "Basis function", choices=c("cs", "tp", "cr", "ps", "gp", "ts"), selected="cr")),
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_alpha_level", "Transparency level", min=0.0, max=1.0, value=0.2, step=0.05)),
-            conditionalPanel("input.add_average_with_se == true && input.with_facets != true", colourInput("averaging_method_with_facets_color", "Color", "blue"))
-
+            conditionalPanel("input.add_average_with_se == true && input.with_facets != true", colourInput("averaging_method_with_facets_color", "Color", "blue")),
+            # TotalEnergyExpenditure get's some extra configurations
+            conditionalPanel("output.plotRendered && input.plot_type == 'TotalEnergyExpenditure'", checkboxInput("add_time_trace_below", "Add time trace(s)")),
+            conditionalPanel("output.plotRendered && input.plot_type == 'TotalEnergyExpenditure' && input.add_time_trace_below == true", plotlyOutput("timeTrace"))
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),

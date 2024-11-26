@@ -215,6 +215,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- p + geom_line()
 	}
 
+	write.csv2(finalC1, "data_to_compare_for_rmr.csv")
 
 
 	# add statistics panel if relevant data (RMR) has been calculated before

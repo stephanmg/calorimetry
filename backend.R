@@ -348,7 +348,10 @@ load_data <- function(file, input, exclusion, output, session) {
    C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
-
+   # Step #9 - recalculate RER
+   if (input$recalculate_RER) {
+     C1$RER_NA = C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`
+   }
 
    #############################################################################
    # Consistency check: Negative values
@@ -686,12 +689,19 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    TotalEnergyExpenditure = {
       p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_time <- p$time_trace
+      p <- p$plot
 
-      # indicate if plot available
+      # indicate if main plot available
       indicate_plot_rendered(p, output)
 
-      # style plot
+      # style main plot
       p <- style_plot(p, input)
+      
+      # add time plot as well
+      if (!is.null(p_time)) {
+         output$timeTrace <- renderPlotly(p_time)
+      }
    },
    #####################################################################################################################
    ### BodyComposition
@@ -1052,10 +1062,10 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(c(input$replotting, input$daterange), {
            output$plot <- renderPlotly({
-           file <- input$File1
-           real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
-           time_start_end <<- get_date_range(real_data$data)
-           real_data$plot
+            file <- input$File1
+            real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
+            time_start_end <<- get_date_range(real_data$data)
+            real_data$plot
            })
    })
 
@@ -1178,6 +1188,7 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical model")
 
                write.csv2(real_data$data, "before_rmr_written.csv")
+               storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
                   select(-which(is.na(names(real_data$data)))) %>%

@@ -93,6 +93,8 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	pretty_print_interval_length_list(interval_length_list)
 	finalC1$CohortTimeDiff <- sapply(finalC1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
 
+	df_to_plot <- finalC1
+
 	write.csv2(apply(finalC1, 2, as.character), "before_scaling_finalC1.csv")
 	finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
 	finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
@@ -166,5 +168,29 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		write.csv2(TEE_for_model, "tee_before_lme_model.csv")
 		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE", session, global_data)
 	}
-	return(p)
+
+	# add time trace for EE (as difference between TEE and RMR) if RMR was available
+	p2 <- NULL
+	rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
+	if (!is.null(rmr_time_trace)) {
+		rmr_time_trace$Time <- rmr_time_trace$Time / 60
+		rmr_time_trace <- rmr_time_trace %>% filter(Component == "CO2")
+		df_to_plot$Time <- df_to_plot$running_total.hrs.halfhour
+		df_to_plot$Time <- df_to_plot$Time - (min(df_to_plot$Time))
+		result <- rmr_time_trace %>%
+		rename(Time1 = Time, Meas1 = HP) %>%
+		inner_join(df_to_plot %>% rename(Time2 = Time, Meas2 = HP), by = "Animals") %>%
+		mutate(TimeDiff = abs(Time1 - Time2)) %>%  # Compute time differences
+		group_by(Animals, Time1) %>%
+		filter(TimeDiff == min(TimeDiff)) %>%     # Keep only the smallest time difference
+		ungroup() %>%
+		mutate(MeasDiff = abs(Meas2 - Meas1)) %>%      # Compute measurement difference
+		select(Animals, Time1, Time2, MeasDiff, TimeDiff, Meas1, Meas2)
+		p2 <- ggplot(data = result, aes_string(y = "MeasDiff", x = "Time1", color = "Animals", group = "Animals")) + geom_line()
+		p2 <- p2 + ylab(paste0("Total Energy Expenditure [", input$kj,"/ h]"))
+		p2 <- p2 + xlab("Zeitgeber time [h]")
+		p2 <- p2 + ggtitle("Time trace")
+		p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+	}
+	return(list("time_trace"=p2, "plot"=p))
 }
