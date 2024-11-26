@@ -17,7 +17,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
          conditionalPanel("input.plot_type == 'TotalEnergyExpenditure' || input.plot_type == 'Raw' || input.plot_type == 'GoxLox' || input.plot_type == 'EnergyExpenditure' || input.plot_type == 'RestingMetabolicRate'", checkboxInput("average_days", "Average over days", value=FALSE)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
+			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
+			conditionalPanel("input.test_statistic == '2-way ANOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
 			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
 			hr(style = "width: 50%"),
@@ -361,6 +362,10 @@ indicate_plot_rendered <- function(p, output) {
 ################################################################################
 generate_statistical_table <- function(results) {
    group_info <- results$statistics
+   print("group_info")
+   print(group_info)
+   print("p:")
+   print(results$statistics$p)
    group_info <- group_info %>% mutate(comparison = paste0("(", group1, ", ", group2, ")"))
    if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
       return(tags$tr(
@@ -375,12 +380,12 @@ generate_statistical_table <- function(results) {
       num_rows <- length(results$statistics$p)
       rows_p_value <- lapply(seq_along(results$statistics$p), function(i) {
          tags$tr(
-         tags$td(process_return_value_for_statistic(results$statistics$p[i], FALSE)),
-         tags$td(process_return_value_for_statistic(results$statistics$p.adj[i], FALSE)),
-         tags$td(process_return_value_for_statistic(results$statistics$p.adj.signif[i], FALSE)),
-         tags$td(process_return_value_for_statistic(results$statistics$df[i], FALSE)),
-         tags$td(process_return_value_for_statistic(results$statistics$statistic[i], FALSE)),
-         tags$td(group_info$combined[i])
+            tags$td(process_return_value_for_statistic(results$statistics$p[i], FALSE)),
+            tags$td(process_return_value_for_statistic(results$statistics$p.adj[i], FALSE)),
+            tags$td(process_return_value_for_statistic(results$statistics$p.adj.signif[i], FALSE)),
+            tags$td(process_return_value_for_statistic(results$statistics$df[i], FALSE)),
+            tags$td(process_return_value_for_statistic(results$statistics$statistic[i], FALSE)),
+            tags$td(paste0("(", results$statistics$group1[i], ", ", results$statistics$group2[i], ")"))
          )
       })
       return(rows_p_value)

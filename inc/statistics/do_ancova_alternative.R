@@ -241,7 +241,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    pwc <- pwc %>% first()
+    #pwc <- pwc %>% first()
   }
 
   # Fit the model, the covariate goes first
@@ -263,8 +263,15 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (test_type == "2-way ANOVA") {
     df$Days <- as.factor(df$Days)
     if (connected_or_independent_ancova) {
-       p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means(
+       p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter")
+       p2_old <- p2
+       result <- try({
+        p2 <<- p2 + stat_compare_means(
         aes(group = Days), method="anova", group.by="Days", label="p.format")
+       }, silent=TRUE)
+       if (inherits(result, "try-error")) {
+        p2 <<- p2_old + stat_compare_means()
+       } 
     } else {
        p2 <- ggboxplot(df, "group", "TEE", color = "Days", add = "jitter") + stat_compare_means()
     }
