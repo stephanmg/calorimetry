@@ -182,7 +182,9 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
-				signal <- GoxLox
+				signal <- "GoxLox"
+				write.csv2(GoxLox, "debug_facets.csv")
+				write.csv2(df_to_plot, "debug_df_to_plot.csv")
 				group = input$facets_by_data_one
 				# Fit GAM for each group
 				grouped_gam <- df_to_plot %>%
@@ -194,12 +196,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 					.x %>%
 					mutate(
 						fit = pred$fit,
-						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						trend = group_value
 					)
 				}) %>%
 				bind_rows()  # Combine predictions for all groups
+				write.csv2(grouped_gam, "grouped_gam.csv")
 			}
 		} else {
 			gam_model <- mgcv::gam(df_to_plot[["GoxLox"]] ~ s(running_total.hrs.halfhour, k=input$averaging_method_with_facets_basis_functions, bs=input$averaging_method_with_facets_basis_function), data=df_to_plot)
