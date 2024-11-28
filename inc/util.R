@@ -14,7 +14,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			selectInput("dep_var", "Dependent variable", choice = c(dep_var)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
 			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(input_df)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
-         conditionalPanel("input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RawMeasurement' || input.plot_type == 'FuelOxidation' || input.plot_type == 'HeatProduction' || input.plot_type == 'RestingMetabolicRate'", checkboxInput("average_days", "Average over days", value=FALSE)),
+         conditionalPanel("(input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RawMeasurement' || input.plot_type == 'FuelOxidation' || input.plot_type == 'HeatProduction' || input.plot_type == 'RestingMetabolicRate') && (input.test_statistic != '2-way ANCOVA' && input.test_statistic != '2-way ANOVA')", checkboxInput("average_days", "Average over days", value=FALSE)),
+         conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", checkboxInput("connected_or_unconnected", "Repeated measurements", value=FALSE)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
@@ -100,12 +101,16 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 
 
-		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test,input$connected_or_independent_ancova)
+		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
       p <- ret$plot_summary
       df <- ret$df
 
 		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
+         if (input$test_statistic == '2-way ANOVA') {
+            showTab(inputId = "additional_content", target = "Details")
+         } else {
             hideTab(inputId = "additional_content", target = "Details")
+         }
 			p <- p + xlab(pretty_print_label(input$depvar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
          if (input$test_statistic == '2-way ANOVA') {
 			   p <- p + labs(color = input$indep_var2)
@@ -122,6 +127,12 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 		}
 
 		if (input$test_statistic == '1-way ANCOVA' || input$test_statistic == '2-way ANCOVA') {
+         if (input$test_statistic == '2-way ANCOVA') {
+            showTab(inputId = "additional_content", target = "Details")
+         } else {
+            hideTab(inputId = "additional_content", target = "Details")
+         }
+
 			if (!input$auto_scale_rmr_plot_limits_x) {
 				p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
 			}
@@ -162,7 +173,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	})
 
 	output$plot_statistics_details2 <- renderPlotly({
-		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
+		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)$plot_summary2 
       p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile)) 
       p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile)) 
 		p <- p + ggtitle(input$study_description)
@@ -284,7 +295,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 	# FIXME: Optimization - results is calculated multiple times, in fact only once should be necessary... optimize this.
 	output$post_hoc_plot <- renderPlotly({
-		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
 		p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
 		ggplotly(p) %>% config(displaylogo = FALSE, 
 			modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
@@ -395,6 +406,8 @@ indicate_plot_rendered <- function(p, output) {
 #' This function generate statistical table in case we have multiple comparisons
 ################################################################################
 generate_statistical_table <- function(results) {
+   print("all stats:")
+   print(results$statistics)
    group_info <- results$statistics
    print("group_info")
    print(group_info)

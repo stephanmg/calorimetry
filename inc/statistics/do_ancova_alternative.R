@@ -4,9 +4,14 @@ library(rstatix)
 library(broom)
 library(emmeans)
 
+################################################################################
+#' brunner_munzel
+#' 
+#' This function get's the p-value for the Brunner Munzel test (statistic)
 brunner_munzel <- function(df) {
   return(lawsat::brunner.munzel.test(as.numeric(df$TEE) ~ data$group)$p.value)
 }
+
 ################################################################################
 #' get_r_squared_clean
 #' 
@@ -34,7 +39,7 @@ calculate_statistic <- function(data, method) {
 #' 
 #' This function performs multi-way ANCOVA or ANOVA analysis
 ################################################################################
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1) {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
@@ -252,8 +257,17 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
+  # TODO: adjust to use both covariates first, and then also both covariates for repeated measurement anova
   if (test_type == "2-way ANCOVA") {
-    model <- lm(TEE ~ Weight + group * Days, data = df)
+     model <- lm(TEE ~ Weight + group * Days, data = df)
+  }
+
+ # TODO: use this to report in the statistics panel (Details)
+  if (test_type == "2-way ANOVA") {
+    if (repeated_measurements) {
+    } else {
+      model <- lm(TEE ~ group * Days, data = df)
+    }
   }
 
   # Check test assumptions met in general
@@ -261,10 +275,42 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
+  if (test_type == "2-way ANOVA") {
+   # if (repeated_measurements) {
+      df$Days <- as.factor(df$Days)
+      model = nlme::lme(TEE ~ group * Days, random=~1|Animals, data=df)
+      print("data df:")
+      print(df)
+      emm = emmeans(model, ~Days | group)
+      emm_df <- as.data.frame(emm)
+      print("emm_df:")
+      print(emm_df)
+      p <- ggplot(emm_df, aes(x=Days, y=emmean, group=group, color=group)) + geom_line() + geom_point()
+      p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
+
+      pairwise_raw <- contrast(emm, method="pairwise", by="group") %>% as.data.frame()
+      pairwise <- contrast(emm, method="pairwise", by="group", adjust="tukey") %>% as.data.frame() %>% mutate(
+        significance=case_when(
+          p.value < 0.001 ~ "***",
+          p.value < 0.01 ~ "**",
+          p.value < 0.05 ~ "*",
+          TRUE ~ "ns"
+        )
+      ) %>% rename(group1=contrast) %>% rename(group2=group) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
+      pairwise <- pairwise %>% mutate(p.adj = pairwise_raw$p.value)
+
+      print("pairwise")
+      print(colnames(pairwise))
+      #print("summary:")
+      #print(summary(pairwise))
+      pwc <- pairwise 
+#    }
+  } 
+
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=NA)  
-    p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group)), size=3, width=0.2, alpha=0.6)
+    p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group, "<br>Day:", Days)), size=3, width=0.2, alpha=0.6)
     p2 <- p2 + stat_compare_means()
   }
 
@@ -288,8 +334,17 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
   regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
 
-  return(list("plot_details" = p, "plot_summary" = p2, "plot_summary2" = p3, "statistics" = pwc, "shapiro" = shapiro, "levene" = levene, "regression_slopes" = regression_slopes, "df"=df))
+  return(list(
+    "plot_details" = p, # Details plot
+    "plot_summary" = p2, # first covariate in Statistical Testing panel
+    "plot_summary2" = p3,  # second covariate Statistical Testing panel
+    "statistics" = pwc, # Statistics table below Details plot
+    "shapiro" = shapiro, # ...
+    "levene" = levene, # ...
+    "regression_slopes" = regression_slopes, ### Statistics table below Details plot
+    "df"=df))
 }
