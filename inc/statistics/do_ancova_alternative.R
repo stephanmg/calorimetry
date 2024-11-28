@@ -146,7 +146,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     } else if (dep_var == "Raw") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     } else if (dep_var == "RMR") {
-      df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+      df = df %>% group_by(Animal)  %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     } else if (dep_var == "EE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     }
@@ -167,12 +167,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (dep_var == "TEE") {
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line", alpha=0) 
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
-    p2 <- p2 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
+    p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
 
     if (num_covariates > 1) {
      p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
-     p3 <- p3 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
+     p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
     }
 
   } else {
@@ -180,13 +180,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df <- df %>% rename(!!dep_var := TEE)
     p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line", alpha=0)
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, geom="text", output.type = "text", parse=FALSE)
-    p2 <- p2 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
+    p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
     df <- df %>% rename(TEE := !!dep_var)
     if (num_covariates > 1) {
       df <- df %>% rename(!!dep_var := TEE)
       p3 <- ggscatter(df, x = "Weight2", y = dep_var, color = "group", add = "reg.line")
       p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
-      p3 <- p3 + geom_point(aes(text=paste0("ID:", Animals), color=group), label = "", alpha=1)
+      p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
       df <- df %>% rename(TEE := !!dep_var)
     }
   }
@@ -275,10 +275,26 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   shapiro <- shapiro_test(model.metrics$.resid)
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
-  if (test_type == "2-way ANOVA") {
-   # if (repeated_measurements) {
+  if (test_type == "2-way ANOVA" || test_type == "2-way ANCOVA") {
       df$Days <- as.factor(df$Days)
-      model = nlme::lme(TEE ~ group * Days, random=~1|Animals, data=df)
+      model = lm(TEE ~ group * Days, data=df)
+      if (repeated_measurements) {
+        model = nlme::lme(TEE ~ group * Days, random=~1|Animals, data=df)
+      }
+
+      if (test_type == "2-way ANCOVA") {
+        model = lm(TEE ~ group * Days + Weight, data=df)
+        if (repeated_measurements) {
+          model = nlme::lme(TEE ~ group * Days + Weight, random=~1|Animals, data=df)
+        }
+        if (num_covariates > 1) {
+          model = lm(TEE ~ group * Days + Weight + Weight2, data=df)
+          if (repeated_measurements) {
+            model = nlme::lme(TEE ~ group * Days + Weight + Weight2, random=~1|Animals, data=df)
+          }
+        }
+      } 
+
       print("data df:")
       print(df)
       emm = emmeans(model, ~Days | group)
@@ -310,7 +326,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=NA)  
-    p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group, "<br>Day:", Days)), size=3, width=0.2, alpha=0.6)
+    p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days)), size=3, width=0.2, alpha=0.6)
     p2 <- p2 + stat_compare_means()
   }
 
@@ -318,7 +334,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     df$Days <- as.factor(df$Days)
     if (connected_or_independent_ancova) {
        p2 <- ggboxplot(df, "group", "TEE", color = "Days")
-       p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group), color=Days), size=3, width=0.2, alpha=0.6)
+       p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days), color=Days), size=3, width=0.2, alpha=0.6)
        p2_old <- p2
        result <- try({
         p2 <<- p2 + stat_compare_means(
@@ -329,7 +345,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
        } 
     } else {
        p2 <- ggboxplot(df, "group", "TEE", color = "Days")
-       p2 <- p2 + geom_jitter(aes(text=paste("ID:", Animals, "<br>Group:", group), color=Days), size=3, width=0.2, alpha=0.6)
+       p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days), color=Days), size=3, width=0.2, alpha=0.6)
        p2 <- p2 + stat_compare_means()
     }
   }

@@ -14,7 +14,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			selectInput("dep_var", "Dependent variable", choice = c(dep_var)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
 			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(input_df)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
-         conditionalPanel("(input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RawMeasurement' || input.plot_type == 'FuelOxidation' || input.plot_type == 'HeatProduction' || input.plot_type == 'RestingMetabolicRate') && (input.test_statistic != '2-way ANCOVA' && input.test_statistic != '2-way ANOVA')", checkboxInput("average_days", "Average over days", value=FALSE)),
+         conditionalPanel("(input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RawMeasurement' || input.plot_type == 'FuelOxidation' || input.plot_type == 'HeatProduction' || input.plot_type == 'RestingMetabolicRate') && (input.test_statistic == '1-way ANOVA')", checkboxInput("average_days", "Average over days", value=FALSE)),
          conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", checkboxInput("connected_or_unconnected", "Repeated measurements", value=FALSE)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight")),
 			conditionalPanel("input.test_statistic == '2-way ANCOVA' || input.test_statistic == '2-way ANOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", setdiff(get_columns_with_at_least_two_levels(true_metadata), input$indep_var)), selected = "Days")),
@@ -30,6 +30,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE)),
 			hr(style = "width: 75%"),
 			# here we fill the plot below with data
+         h4("Raw data inspection"),
 			plotlyOutput("plot_statistics_details"),
 			hr(style = "width: 50%"),
 			h4("Plotting control"),
@@ -86,10 +87,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                  mylabel = paste0("average EE [", input$kj_or_kcal, " / day]")
                  input_df <- input_df %>% group_by(Animals) %>% summarize(EE=sum(EE) / n_distinct(Days), Days=n_distinct(Days))
                }
-               if (mylabel == "FuelOxidation") {
-                 input_df <- input_df %>% group_by(Animals) %>% summarize(FuelOxidation=sum(FuelOxidation) / n_distinct(Days), Days=n_distinct(Days))
+               if (mylabel == "GoxLox") {
+                 input_df <- input_df %>% group_by(Animals) %>% summarize(GoxLox=sum(GoxLox) / n_distinct(Days), Days=n_distinct(Days))
                }
-               if (dep_var == "RawMeasurement") {
+               if (dep_var == "Raw") {
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                }
             } else {
@@ -296,7 +297,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	# FIXME: Optimization - results is calculated multiple times, in fact only once should be necessary... optimize this.
 	output$post_hoc_plot <- renderPlotly({
 		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
-		p <- results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")
+		p <- results$plot_details + xlab(input$indep_var2) + ylab("estimated marginal mean") + labs(colour=input$indep_var)
 		ggplotly(p) %>% config(displaylogo = FALSE, 
 			modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
 			list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
