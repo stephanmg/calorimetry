@@ -272,7 +272,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # Check test assumptions met in general
   model.metrics <- augment(model)
-  shapiro <- shapiro_test(model.metrics$.resid)
+  shapiro <- shapiro_test(model.metrics$.resid[0:5000]) # TODO: shapiro can only handle 5000 samples max
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
   if (test_type == "2-way ANOVA" || test_type == "2-way ANCOVA") {
@@ -314,6 +314,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         )
       ) %>% rename(group1=contrast) %>% rename(group2=group) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
       pairwise <- pairwise %>% mutate(p.adj = pairwise_raw$p.value)
+      mean_p_value <- mean(pairwise$p.adj)
+
+      p <- p + geom_text(aes(x = levels(emm_df$Days)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))
 
       print("pairwise")
       print(colnames(pairwise))

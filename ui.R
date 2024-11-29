@@ -403,6 +403,7 @@ main_content <- mainPanel(
       id = "additional_content",
       tabPanel("Main plot", 
          tagList(
+            checkboxInput("windowed_plot", "Windowed plot", value=FALSE),
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
@@ -416,7 +417,12 @@ main_content <- mainPanel(
             conditionalPanel("input.add_average_with_se == true && input.with_facets != true", colourInput("averaging_method_with_facets_color", "Color", "blue")),
             # TotalHeatProduction get's some extra configurations
             conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction'", checkboxInput("add_time_trace_below", "Add time trace(s)")),
-            conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction' && input.add_time_trace_below == true", plotlyOutput("timeTrace"))
+            conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction' && input.add_time_trace_below == true", plotlyOutput("timeTrace")),
+            conditionalPanel("output.plotRendered && input.plot_type == 'RawMeasurement' && input.windowed_plot == true", plotlyOutput("windowPlot")),
+            conditionalPanel("input.windowed_plot == true", sliderInput("interval_length_for_window", "Interval length", min=5, max=240, value=30)),
+            conditionalPanel("input.windowed_plot == true", sliderInput("interval_steps_for_window", "Steps", min=1, max=10, value=2)),
+            conditionalPanel("input.windowed_plot == true", checkboxInput("boxplots_or_sem_plots", "Time boxplot", value=FALSE)),
+            conditionalPanel("input.windowed_plot == true && input.boxplots_or_sem_plots == true", checkboxInput("connect_medians_of_boxplots", "Connect medians", value=FALSE))
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),
