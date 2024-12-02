@@ -2,7 +2,7 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
-add_windowed_plot <- function(input, output, session, global_data, true_metadata, df_to_plot) {
+add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel) {
 		data <- df_to_plot
 		data <- data %>% mutate(minutes=running_total.sec / 60)
 		# User inputs
@@ -153,7 +153,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	output$plot_statistics_details <- renderPlotly({
 
       if (!is.null(input$average_days)) {
-            if (input$average_days) {
+            if (input$average_days == TRUE) {
                if (dep_var == "RMR") {
                  mylabel = paste0("average RMR [", input$kj_or_kcal, " / day]")
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
@@ -179,11 +179,16 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
 
+      print("input df:")
+      print(input_df)
+      print(input_df$Days)
 
 
 		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
       p <- ret$plot_summary
       df <- ret$df
+
+      print("after ret?")
 
 		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
          if (input$test_statistic == '2-way ANOVA') {
@@ -206,6 +211,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
 		}
 
+      print("after this ?")
+
 		if (input$test_statistic == '1-way ANCOVA' || input$test_statistic == '2-way ANCOVA') {
          if (input$test_statistic == '2-way ANCOVA') {
             showTab(inputId = "additional_content", target = "Details")
@@ -222,11 +229,13 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			}
 		}
 
+      print("before rendering?")
 		p <- p + ggtitle(input$study_description) 
 		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
+      print("after error?")
 
       # Note: Data frame contains as dep var always TEE, so we need to modify this. 
       # TODO: Better: Construct data frame always with the correct dependent variable
@@ -243,6 +252,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
       }
+
 
       # plotly does not respect outlier aesthetics from geom_boxplot
       # outliers assumed on layer 1

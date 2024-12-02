@@ -275,6 +275,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   shapiro <- shapiro_test(model.metrics$.resid[0:5000]) # TODO: shapiro can only handle 5000 samples max
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
+  print("after shapiro...")
+
   if (test_type == "2-way ANOVA" || test_type == "2-way ANCOVA") {
       df$Days <- as.factor(df$Days)
       model = lm(TEE ~ group * Days, data=df)
@@ -328,7 +330,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
-    p2 <- NULL
+    print("before 1way anova with days...")
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=15, outlier.size=0, outlier.color="red") # outlier.shape=NA)  
     p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days)), size=3, width=0.2, alpha=0.6)
     p2 <- p2 + stat_compare_means()
@@ -353,6 +355,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
        p2 <- p2 + stat_compare_means()
     }
   }
+
+  print("before regression slopes?")
 
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
