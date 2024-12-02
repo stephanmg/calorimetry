@@ -179,7 +179,11 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                  input_df <- input_df %>% group_by(Animals) %>% summarize(GoxLox=sum(GoxLox) / n_distinct(Days), Days=n_distinct(Days))
                }
                if (dep_var == "Raw") {
-                 input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
+                  if (input$windowed_plot == TRUE) {
+                     input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days) / n_distinct(interval), Days=n_distinct(Days))
+                  } else {
+                     input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
+                  }
                }
             } else {
                if (mylabel == "TEE") {
