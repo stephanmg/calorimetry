@@ -270,6 +270,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	p2 <- NULL
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
+
+	# regular time trace plot
 	if (input$windowed_plot == FALSE) {
 		df_to_plot$raw_df = df_to_plot[input$myr]
 		raw_df <- df_to_plot %>% group_by(Animals, DayCount) %>% summarize(raw_df = (max(raw_df, na.rm=TRUE)+min(raw_df, na.rm=TRUE))/2, .groups = "drop") %>% rename("Days"=DayCount) %>% rename(TEE=raw_df)
@@ -284,9 +286,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		
 		# add anova/ancova panel
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, raw_df, metadatafile, mylabel, "Raw")
+	# windowed time trace plot
 	} else {
+		# TODO: Factor this out as a utility to add to EE, TEE, GoxLox as well
 		data <- df_to_plot
-		write.csv(data, "before_time_plotty.csv")
 		data <- data %>% mutate(minutes=running_total.sec / 60)
 		# User inputs
 		total_length <- input$interval_length_for_window  # Total length (e.g., 30 minutes)
@@ -300,7 +303,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		)
 
 		#  TODO: need to left join the averages plot to get Genotype for facets
-		# TODO: mean(O2) needs to be changed, because could be CO2 etc.
 
 		# Group by Animals, Days, interval, and sub_interval, then calculate mean(Meas)
 		averages <- data %>%
@@ -308,68 +310,59 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		dplyr::summarise(TEE = mean(!!sym(input$myr), na.rm = TRUE), .groups = "drop") 
 
 		averages <- averages %>% rename(Days=DayCount)
-		print(head(averages))
-		print(averages)
 
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, averages, metadatafile, mylabel, "Raw")
 
-# Calculate averages and SEM by interval
-plot_data <- averages %>%
-  group_by(Days, Animals, interval) %>%
-  summarise(
-    avg_meas = mean(TEE, na.rm = TRUE),
-    sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
-    .groups = "drop"
-  ) %>%
-  mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
+		# Calculate averages and SEM by interval
+		plot_data <- averages %>%
+		group_by(Days, Animals, interval) %>%
+		summarise(
+			avg_meas = mean(TEE, na.rm = TRUE),
+			sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
+			.groups = "drop"
+		) %>%
+		mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
 
+		if (input$boxplots_or_sem_plots == FALSE) {
+			# Create the plot
+			p2 <- ggplot(plot_data, aes(x = time, y = avg_meas, color = Animals, group = Animals)) +
+			geom_line(size = 1) +  # Line plot for averages
+			#geom_point(size = 3) +  # Points at each interval
+			geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) +  # Error bars
+			labs(
+				title = "Average Measurement with SEM Over Intervals",
+				x = "Time [h]",
+				y = "Average Measurement (Meas)",
+				color = "Animal ID"
+			) +
+			theme_minimal() +
+			theme(
+				legend.position = "right",
+				plot.title = element_text(hjust = 0.5, size = 16)
+			)
+		} else {
+			medians <- plot_data %>%
+			group_by(Animals, time) %>%
+			summarise(median_meas = median(avg_meas, na.rm = TRUE), .groups = "drop")
 
-if (input$boxplots_or_sem_plots == FALSE) {
-
-
-# Create the plot
-p2 <- ggplot(plot_data, aes(x = time, y = avg_meas, color = Animals, group = Animals)) +
-  geom_line(size = 1) +  # Line plot for averages
-  #geom_point(size = 3) +  # Points at each interval
-  geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) +  # Error bars
-  labs(
-    title = "Average Measurement with SEM Over Intervals",
-    x = "Time [h]",
-    y = "Average Measurement (Meas)",
-    color = "Animal ID"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(hjust = 0.5, size = 16)
-  )
-} else {
-medians <- plot_data %>%
-  group_by(Animals, time) %>%
-  summarise(median_meas = median(avg_meas, na.rm = TRUE), .groups = "drop")
-
-	p2 <- ggplot(plot_data, aes(x = factor(time), y = avg_meas, fill = Animals)) +
-  geom_boxplot(position=position_dodge(width=0.75)) + 
-  labs(
-    title = "Measurement Distribution by Time and Animal",
-    x = "Time (minutes)",
-    y = "Measurement (Meas)",
-    fill = "Animal ID"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(hjust = 0.5, size = 16)
-  )
-  if (input$connect_medians_of_boxplots == TRUE) {
-  	p2 <- p2 + geom_line(data=medians, aes(x=factor(time), y=median_meas, group=Animals, color=Animals), inherit.aes=FALSE, size=1)
-  }
-
-}
-
-
-
+				p2 <- ggplot(plot_data, aes(x = factor(time), y = avg_meas, fill = Animals)) +
+			geom_boxplot(position=position_dodge(width=0.75)) + 
+			labs(
+				title = "Measurement Distribution by Time and Animal",
+				x = "Time (minutes)",
+				y = "Measurement (Meas)",
+				fill = "Animal ID"
+			) +
+			theme_minimal() +
+			theme(
+				legend.position = "right",
+				plot.title = element_text(hjust = 0.5, size = 16)
+			)
+			if (input$connect_medians_of_boxplots == TRUE) {
+				p2 <- p2 + geom_line(data=medians, aes(x=factor(time), y=median_meas, group=Animals, color=Animals), inherit.aes=FALSE, size=1)
+			}
+		}
 	}
 	
 	# add facetting
@@ -385,6 +378,7 @@ medians <- plot_data %>%
 		}
 	}
 
+	# average for original time trace plot
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
