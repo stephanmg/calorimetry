@@ -109,6 +109,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			hr(style = "width: 75%"),
 			# here we fill the plot below with data
          h4("Raw data inspection"),
+         checkboxInput("show_outliers_from_plot", "Show outliers", value = FALSE),
 			plotlyOutput("plot_statistics_details"),
 			hr(style = "width: 50%"),
 			h4("Plotting control"),
@@ -242,6 +243,21 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
       }
+
+      # plotly does not respect outlier aesthetics from geom_boxplot
+      # outliers assumed on layer 1
+      if (input$show_outliers_from_plot == TRUE) {
+         p$x$data[1] <- lapply(p$x$data[1], function(x) {
+            x$marker = list(opacity = 0)
+            return(x)
+         })
+      } else {
+          p$x$data[1] <- lapply(p$x$data[1], function(x) {
+            x$marker = list(opacity = 1)
+            return(x)
+         })
+      }
+
       p
 	})
 
@@ -286,6 +302,22 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
       }
+
+      # plotly does not respect outlier aesthetics from geom_boxplot
+      # outliers assumed on layer 1
+      if (input$show_outliers_from_plot == TRUE) {
+         p$x$data[1] <- lapply(p$x$data[1], function(x) {
+            x$marker = list(opacity = 0)
+            return(x)
+         })
+      } else {
+          p$x$data[1] <- lapply(p$x$data[1], function(x) {
+            x$marker = list(opacity = 1)
+            return(x)
+         })
+      }
+
+
       p
 	})
 
