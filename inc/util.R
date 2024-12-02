@@ -2,6 +2,10 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
+################################################################################
+#' add_windowed_plot
+#' 
+################################################################################
 add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel) {
 		data <- df_to_plot
 		data <- data %>% mutate(minutes=running_total.sec / 60)
@@ -80,6 +84,11 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
    return(list("plot"=p2, "windowed_data"=plot_data))
 }
 
+
+################################################################################
+#' add_anova_ancova_panel
+#' 
+################################################################################
 add_anova_ancova_panel <- function(input, output, session, global_data, true_metadata, input_df, metadatafile, mylabel, dep_var) {
    # cohort information
 	choices = c(get_columns_with_at_least_two_levels(true_metadata), has_cohorts(input_df))
