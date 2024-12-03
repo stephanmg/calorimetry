@@ -6,8 +6,10 @@ library(glue)
 #' add_windowed_plot
 #' 
 ################################################################################
-add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel) {
+add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset) {
 		data <- df_to_plot
+      print("min to shift?")
+      print(min(data$running_total.hrs))
 		data <- data %>% mutate(minutes=running_total.sec / 60)
 		# User inputs
 		total_length <- input$interval_length_for_window  # Total length (e.g., 30 minutes)
@@ -41,6 +43,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		) %>%
 		mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
 
+      plot_data <- plot_data %>% mutate(time = time + offset)
 		if (input$boxplots_or_sem_plots == FALSE) {
 			# Create the plot
 			p2 <- ggplot(plot_data, aes(x = time, y = avg_meas, color = Animals, group = Animals)) +

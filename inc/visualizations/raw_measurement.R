@@ -288,7 +288,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, raw_df, metadatafile, mylabel, "Raw")
 	} else {
 		# windowed time trace plot
-		p2 <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel)$plot
+		offset <- min(finalC1$running_total.hrs.halfhour)
+		p2 <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset)$plot
 	}
 	
 	# add facetting
@@ -336,6 +337,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$toggle_outliers) { p <- p + geom_point() }
 	# center x axis
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
+	if (input$boxplots_or_sem_plots == FALSE) {
+		p2 <- p2 + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
+	}
 	# toggle outliers
 	if (input$toggle_outliers) {
 		exceed_indices <- which(df_to_plot[[input$myr]] > input$threshold_toggle_outliers)
