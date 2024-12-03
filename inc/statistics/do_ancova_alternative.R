@@ -283,7 +283,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # Check test assumptions met in general
   model.metrics <- augment(model)
-  shapiro <- shapiro_test(model.metrics$.resid[0:5000]) # TODO: shapiro can only handle 5000 samples max
+  shapiro <- shapiro_test(model.metrics$.resid[0:5000]) # FIXME: shapiro can only handle 5000 samples max
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
   print("after shapiro...")

@@ -48,10 +48,10 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			#geom_point(size = 3) +  # Points at each interval
 			geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) +  # Error bars
 			labs(
-				title = "Average Measurement with SEM Over Intervals",
-				x = "Time [h]",
-				y = "Average Measurement (Meas)",
-				color = "Animal ID"
+				title = "Average measurement with SEM over intervals",
+				x = "Zeitgeber time [h]",
+				y = mylabel,
+				color = "Animals"
 			) +
 			theme_minimal() +
 			theme(
@@ -66,10 +66,10 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 				p2 <- ggplot(plot_data, aes(x = factor(time), y = avg_meas, fill = Animals)) +
 			geom_boxplot(position=position_dodge(width=0.75)) + 
 			labs(
-				title = "Measurement Distribution by Time and Animal",
-				x = "Time (minutes)",
-				y = "Measurement (Meas)",
-				fill = "Animal ID"
+				title = "Measurement distribution by time and Animal",
+				x = "Zeitgeber time [h]",
+				y = mylabel,
+				fill = "Animals"
 			) +
 			theme_minimal() +
 			theme(
