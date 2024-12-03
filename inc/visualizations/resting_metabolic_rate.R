@@ -173,6 +173,8 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- NULL 
 	print(colnames(df_plot_total))
 
+
+
 	# group with group from metadata
 	if (input$with_facets) {
 		p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
@@ -188,14 +190,16 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		p <- p + facet_wrap(~Animal)
 	}
 
-
+	# add light cycle annotation
+	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
+	colnames(lights) <- c("x", "y")
 
 	write.csv2(df_plot_total, "before_anno_rmr.csv")
 	df_annos <- annotate_rmr_days(df_plot_total) %>% na.omit()
 	write.csv2(df_annos, "before_annos.csv")
 	print("annos:")
 	print(df_annos)
-	p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
+	p <- p + geom_text(data = df_annos, aes(x=Time, y = min(df_plot_total$HP, na.rm=TRUE), label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
 	day_length <- 24
 	# if selected either Day or Night, the day length is assumed to be 12 hours
@@ -212,9 +216,32 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="black")
 	p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
 
-	# add light cycle annotation
-	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
-	colnames(lights) <- c("x", "y")
+	if (input$timeline) {
+		lights <- seq(min(df_plot_total$Time), max(df_plot_total$Time), by = 60 * (input$light_cycle_stop - input$light_cycle_start))
+		lights <- data.frame(Start=head(lights, -1), End=tail(lights, -1))
+		days <- 0
+		nights <- 0
+		last_day_or_night <- NULL
+		lapply(1:nrow(lights), function(i) {
+			pair <- lights[i,]
+			if (i %% 2 == 0) {
+				days <<- days + 1
+				p <<- p + annotate("rect", xmin=pair$Start, xmax=pair$End, ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_night_color, alpha=0.1)
+			} else {
+				nights <<- nights + 1
+				p <<- p + annotate("rect", xmin=pair$Start, xmax=pair$End, ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_day_color, alpha=0.1)
+			}
+			last_day_or_night <<- pair$End
+		})
+
+		# if not aligns, say 2 days is 48 hours, but we have 40 hours, we have 1 light phase, 1 dark phase, 1 light phase (36 hours)
+		# so 2 light phases 1 dark phase, so the remainder must be dark phase
+		if (days > nights) {
+			p <- p + annotate("rect", xmin=last_day_or_night, xmax=max(df_plot_total$Time, na.rm=TRUE),  ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_day_color, alpha=0.1)
+		} else {
+			p <- p + annotate("rect", xmin=last_day_or_night, xmax=max(df_plot_total$Time, na.rm=TRUE),  ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_night_color, alpha=0.1)
+		}
+	}
 	
 	p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
 	p <- p + xlab("Zeitgeber time [h]")

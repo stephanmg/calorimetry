@@ -18,6 +18,9 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
    intervals <- seq(0, max(df$x, na.rm=T), (light_end - light_start))
 
+   print("intervals:")
+   print(intervals)
+
    # zeitgeber zeit assumes to start with night  not day
    light_on <- TRUE
    # if only Night select, we need to start with night color (assuming light_on is FALSE)
