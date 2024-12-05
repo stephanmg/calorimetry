@@ -8,8 +8,6 @@ library(glue)
 ################################################################################
 add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset) {
 		data <- df_to_plot
-      print("min to shift?")
-      print(min(data$running_total.hrs))
 		data <- data %>% mutate(minutes=running_total.sec / 60)
 		# User inputs
 		total_length <- input$interval_length_for_window  # Total length (e.g., 30 minutes)
@@ -66,7 +64,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			group_by(Animals, time) %>%
 			summarise(median_meas = median(avg_meas, na.rm = TRUE), .groups = "drop")
 
-				p2 <- ggplot(plot_data, aes(x = factor(time), y = avg_meas, fill = Animals)) +
+			p2 <- ggplot(plot_data, aes(x = factor(time), y = avg_meas, fill = Animals)) +
 			geom_boxplot(position=position_dodge(width=0.75)) + 
 			labs(
 				title = "Measurement distribution by time and Animal",
@@ -227,8 +225,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
 		}
 
-      print("after this ?")
-
 		if (input$test_statistic == '1-way ANCOVA' || input$test_statistic == '2-way ANCOVA') {
          if (input$test_statistic == '2-way ANCOVA') {
             showTab(inputId = "additional_content", target = "Details")
@@ -245,13 +241,11 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			}
 		}
 
-      print("before rendering?")
 		p <- p + ggtitle(input$study_description) 
 		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
-      print("after error?")
 
       # Note: Data frame contains as dep var always TEE, so we need to modify this. 
       # TODO: Better: Construct data frame always with the correct dependent variable

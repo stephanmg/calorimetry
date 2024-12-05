@@ -33,17 +33,12 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "Raw_df", data_and_metadata, global_data)
 	}
 
-	print("finalC1 before sex")
-	print(finalC1)
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
 			finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}
 	}
-
-	print("finalC1 after sex")
-	print(finalC1)
 
 	# Filter conditions based on factor level
 	if (input$with_grouping) {
@@ -68,7 +63,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# display zeitgeber zeit
 	write.csv2(finalC1, "before_to_zeitgeber.csv")
-	#finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
 
 	convert <- function(x) {
 		splitted <- strsplit(as.character(x), " ")
@@ -94,10 +88,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
 	finalC1$Animals <- colors
-
-
-	print("here?")
-	#write.csv2(finalC1, "to_zeitgeber.csv")
 
 	# format variable from UI to compatible TSE format
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
@@ -186,9 +176,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
-	# plot basic plot
-	#write.csv2(df_to_plot, "df_to_plot_failing.csv")
-
 	# TODO: v0.6 - factor this out as utility or method, can be re-used in other panels after discussion
 	# replot outlier removed data, only if toggled: outlier removal by selection
 	if (input$toggle_outliers) {
@@ -271,6 +258,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
 
+
+	# show either time trace or a windows time trace, and feed respective data frames into ANOVA/ANCOVA panel
 	if (input$windowed_plot == FALSE) {
 		# regular time trace plot
 		df_to_plot$raw_df = df_to_plot[input$myr]
@@ -287,8 +276,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		# add anova/ancova panel
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, raw_df, metadatafile, mylabel, "Raw")
 	} else {
-		# windowed time trace plot
+		# offset is minimum value for time (on x-axis)
 		offset <- min(finalC1$running_total.hrs.halfhour)
+		# windowed time trace plot
 		p2 <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset)$plot
 	}
 	
