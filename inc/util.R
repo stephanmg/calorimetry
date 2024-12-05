@@ -237,6 +237,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
       p <- ret$plot_summary
+
+      ggsave("plot5.png", plot=p)
       df <- ret$df
 
       print("after ret?")
@@ -278,12 +280,17 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			}
 		}
 
+      ggsave("plot6.png", plot=p)
+
 		p <- p + ggtitle(input$study_description) 
 		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
 				list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
 
+
+      # TODO:  this works only for ANOVA and the outliers in the boxplot, think about how to improve this
+		if (input$test_statistic != '1-way ANCOVA' && input$test_statistic != '2-way ANCOVA') {
       # Note: Data frame contains as dep var always TEE, so we need to modify this. 
       # TODO: Better: Construct data frame always with the correct dependent variable
       for (i in seq_along(p$x$data)) {
@@ -297,9 +304,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             if (!is.null(input$covar)) {
                p$x$data[[i]]$text <- gsub("Weight", input$covar, p$x$data[[i]]$text)
             }
-         }
+        }
       }
-
 
       # plotly does not respect outlier aesthetics from geom_boxplot
       # outliers assumed on layer 1
@@ -314,6 +320,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             return(x)
          })
       }
+      }
+
 
       p
 	})

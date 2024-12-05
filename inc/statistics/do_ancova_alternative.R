@@ -163,6 +163,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+
   p2 <- NULL
   p3 <- NULL
   if (dep_var == "TEE") {
@@ -202,10 +203,16 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+
+  ggsave("plot1.png", plot=p2)
+
   p2 <- p2 + labs(colour=group)
   if (num_covariates > 1) {
     p3 <- p3 + labs(colour=group)
   }
+
+
+  ggsave("plot2.png", plot=p2)
 
   # 1-way ANCOVA based on user input grouping variable
   res.aov <- NULL
@@ -233,6 +240,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       }
     }
   }
+
+
+  ggsave("plot3.png", plot=p2)
 
   p <- NULL
   pwc <- NULL
@@ -374,6 +384,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   print("before regression slopes?")
 
+  ggsave("plot4.png", plot=p2)
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
   regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
