@@ -64,14 +64,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
       }
       plot_data <- plot_data %>% left_join(true_metadata, by="Animals")
 
-      print("plot_data2:")
-      print(colnames(plot_data2))
-      print(plot_data2)
-		
-
       plot_data2 <- averages
-
-
 
 		if (input$boxplots_or_sem_plots == FALSE) {
 			# Create the plot
@@ -124,8 +117,6 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			   p3 <- p3 + geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) 
             p2 <- p2 + p3
          }
-
-
 		}
 
    return(list("plot"=p2, "windowed_data"=plot_data))

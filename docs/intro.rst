@@ -159,43 +159,6 @@ You can then download the metadata sheet by the download button **Download metad
 
 Use the larger **+** (plus symbol) right to the **Plotting** section to expand options and see which quantities are available.
 
-4.1 Inspect recorded metadata for your experiment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: First steps involve to display the metadata about the body composition and other metadata by chosing **Metadata**
-from the **Select quantity to plot** selection field. 
-
-4.2. Raw measurements
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: Next steps are to inspect **Raw** quantities, **EnergyExpenditure**, **TotalEnergyExpenditure** and **RestingMetabolicRate**
-through the same selection field **Select quantity to plot**.
-
-4.3. Total heat production
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: Next steps are to inspect **Raw** quantities, **EnergyExpenditure**, **TotalEnergyExpenditure** and **RestingMetabolicRate**
-through the same selection field **Select quantity to plot**.
-
-4.4. Heat production
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: Next steps are to inspect **Raw** quantities, **EnergyExpenditure**, **TotalEnergyExpenditure** and **RestingMetabolicRate**
-through the same selection field **Select quantity to plot**.
-
-4.5. Resting Metabolic Rate
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-TODO: Next steps are to inspect **Raw** quantities, **EnergyExpenditure**, **TotalEnergyExpenditure** and **RestingMetabolicRate**
-through the same selection field **Select quantity to plot**.
-
-4.6. Fuel oxidation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Next steps are to inspect **Raw** quantities, **EnergyExpenditure**, **TotalEnergyExpenditure** and **RestingMetabolicRate**
-through the same selection field **Select quantity to plot**.
-
-
 Note that on the right hand side a plot of the quantity of interest will be displayed, additional panels for **Statistical Analysis**,
 **Modelling** and additional information about group comparisons are displayed.
 
@@ -204,6 +167,51 @@ panel analogue to the previous **Plotting** section to visualize and analyze res
 
 Note that all plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area,
 a menu with options will appear at the top border of the plotting area then.
+
+The next subsections will provide an overview of the individual analysis panels.
+
+4.1 Inspect recorded metadata for your experiment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
+recorded alongside the indirect calorimetry experiment. Covariates like body weight, lean mass, fat mass can be compared.
+
+Inspection of metadata should be always the starting point before conducting any analysis to assess the quality and quantity
+of data recorded. For instance if there is a significant difference between two genotype groups', say KO and WT, body
+composition, i.e. fat mass, further analysis should take the information into account before drawing conclusions.
+
+4.2. Raw measurements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
+in percentage or volume changes over time intervals (typically recording intervals in indirect calorimetry experiments are
+5 or 10 minutes). Derived quantities, as for instance the RER (respiratory exchange ratio) can be calculated. If desired,
+users can pre-smooth or coarsen the raw traces (Typically not required).
+
+4.3. Total heat production
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The total heat production (THP) is the sum of :math:`THP = RMR+HP`, i.e. of resting metabolic rate and heat production (HP).
+Alternatively one can interpret the THP as total energy expenditure (TEE) such that we have the sum :math:`TEE=RMR+EE`, which is 
+defined by resting metabolic rate and energy expenditure (including physical activity).
+
+Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
+panel is available.
+
+4.4. Heat production
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Heat production (HP) is the non-RMR contribution to the THP. Same analysis methods as for THP apply for the HP panel.
+
+4.5. Resting Metabolic Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same analysis methods as for THP apply for the RMR panel as well.
+
+4.6. Fuel oxidation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Same analyiss methods as for THP ally for the fuel oxidation panel too.
 
 
 5. Conducting analyses with CALOR
@@ -218,7 +226,152 @@ Dann ANCOVAs
 5.1. Example data set I: UCP1 KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO: Add
+.. container:: highlight-box
+
+   :math:`H_0`:
+   There is no genotype-specific effect (WT vs UCP1 KO) on the resting metabolic rate.
+
+To either reject or accept the null hypothesis :math:`H_0` we can make use of CALOR's features.
+
+First, we do inspect the metadata recorded with this 4 cohort study, to identify outliers or idiosyncrasies associated with the data set.
+
+.. _ucp1_ko_metadata:
+
+.. figure:: img/metadata.png
+   :align: center
+   :alt: Metadata for 4 cohort UCP1 KO data set
+   :scale: 50%
+
+   Figure 5: Metadata for 4 cohort UCP1 KO data set
+
+According to Fig. :ref:`ucp1_ko_metadata` distribution numbers (n) for Genotype and Diet are balanced, there is no 
+irregularities for body composition (fat and lean mass) and also no problematic changes of body composition over the
+time course of the experiment. The study entails only male samples (male) on a high fat diet (HFD). Since there are no
+obvious issues with the metadata, we can proceed by inspecting the raw measurements as recordede from the metabolic phenotyping system (TSE).
+
+Plotting the raw quantities can be a valid and important first diagnostic of consistency of the experiment. 
+See Fig. :ref:`ucp1_ko_rer_with_outlier` in particular for the RER stratified by Genotype (WT vs KO).
+
+.. _ucp1_ko_rer_with_outlier:
+
+.. figure:: img/rer_with_outlier.png
+   :align: center
+   :alt: RER for UCP1 KO with outlier
+   :scale: 50%
+
+   Figure 6: RER for UCP1 KO with outlier
+
+We identify an outlier which has an erratic RER time plot, and thus also an erratic oxygen and carbon dioxide curve,
+since RER is defined as: :math:`RER=\frac{\dot{V}_{CO_{2}}}{\dot{V}_{O_{2}}} \in [0,1]`.
+
+Therefore we proceed with the *Data Curation* panel in the bottom left of the application, we remove outlier **2547**,
+resulting in the stratified plots of RER as depicted in Fig. :ref:`ucp1_ko_rer_without_outlier`.
+
+.. _ucp1_ko_rer_without_outlier:
+
+.. figure:: img/rer_without_outlier.png
+   :align: center
+   :alt: RER for UCP1 KO without outlier 2547
+   :scale: 50%
+
+   Figure 7: RER for UCP1 KO without outlier 2547
+
+Notice that there is no qualitative (significant) difference between the mean traces of RER for the two genotypes.
+(Displayed are mean and standard deviation ribbons as can be configure directly below the plot in the application).
+
+We can confirm this by navigating to the *Statistical Testing* panel to conduct a 1-way ANOVA on day averaged values of RER,
+revealing no statistical significant difference for genotypes, see Fig. :ref:`rer_anova` and employ for this the *Wilcoxon-test*
+as a non-parametric test since we are operating in the low *n* regime. Other tests for post-hoc analysis can be selected in the
+application directly above the plot panel. Multiple-testing corrections can be selected when conducting higher-order ANOVAs,
+which we do not require here since our only factor is the genotype with two levels (minimum for ANOVAs or a unpaired t-test).
+
+.. _rer_anova:
+
+.. figure:: img/1_way_anova_rer.png
+   :align: center
+   :alt: 1-way ANOVA on genotype stratification for RER
+   :scale: 50%
+
+   Figure 8: 1-way ANOVA on genotype stratifiction for RER
+
+
+Since outliers are now removed, we can inspect the total heat production, in order to answer our null hypothesis.
+
+TODO: Write paragraph on THP -> show also statistics again ANOVA
+
+TODO: Write paragraph on RMR -> show also statistics again ANOVA
+
+.. container:: highlight-box
+
+   :math:`Conclusion`:
+   There is no genotype-specific effect (WT vs UCP1 KO) on neither THP or RMR.
+
+Since there are no changes in THP or RMR when considering only the genotype, we
+want now to consider also the during the experiment recorded covariates, i.e.
+lean mass and fat mass (or changes therefore, in the following we use the terms
+delta lm and delta fm) or the whole body weight (or delta bw) and their influence
+on the THP and RMR in the KO and WT genotype. To factor this into our statistical
+model, we will make use of 1-way ANOVAs during our further analysis.
+
+In layman's terms the 1-way ANOVA model is formulated as follows, where 
+the dependent variable :math:`\text{DependentVar}`, the covariate :math:`\text{Covariate}`, 
+and the grouping variable :math:`\text{Group}` appear in the model as:
+
+.. math::
+
+   \text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Foo}_{ij} - \bar{\text{Foo}}) + \epsilon_{ij}
+
+Where:
+
+- :math:`\mu` is the overall mean.
+- :math:`\tau_i` is the effect of the :math:`i`-th group (:math:`\text{Group}`).
+- :math:`\beta` is the regression coefficient for the covariate :math:`\text{Covariate}`.
+- :math:`\text{Covariate}_{ij}` is the value of the covariate :math:`\text{Covariate}` for observation :math:`j` in group :math:`i`.
+- :math:`\bar{\text{Covariate}}` is the mean of the covariate :math:`\text{Covariate}` across all observations.
+- :math:`\epsilon_{ij}` is the random error term.
+
+In this model:
+
+- The covariate :math:`\text{Covariate}` is adjusted by subtracting its mean (:math:`\bar{\text{Covariate}}`), centering it to reduce multicollinearity.
+- The :math:`\beta` term measures the relationship between the covariate :math:`\text{Covariate}` and the dependent variable :math:`\text{DependentVariable}`.
+
+The ANCOVA tests whether the group effects :math:`\tau_i` are significant while controlling for the covariate :math:`\text{Covariate}`.
+Do not worry, test assumptions are reported in *Details Panel*, and most importantly if the statistical test is valid to be applied for our data set.
+
+
+Thus our first null hypothesis for the RM can be stated as:
+
+.. container:: highlight-box
+
+   :math:`H_0`:
+   There is a genotype-specific effect (WT vs UCP1 KO) on RMR corrected for one 
+   of the covariates (lm, fm or bw)
+
+Likewise an anlog null hypothesis for the THP can be stated as:
+
+.. container:: highlight-box
+
+   :math:`H_0`:
+   There is a genotype-specific effect (WT vs UCP1 KO) on THP corrected for one 
+   of the covariates (lm, fm or bw)
+
+
+
+Now, we will proceed as before, but make use of 1-way ANOVAs for THP 
+(inluding either lm, fm or bw) and RMR (including either lm, fm or bw)
+grouped by genotype KO and WT.
+
+For RMR see Fig. ... and THP see Fig. ... .
+
+--> then show ANCOVA for fat and lean mass getrennt, no differences either
+
+--> then show ANCOVA for fat and lean mass getrennt, no differences either
+
+.. container:: highlight-box
+
+   :math:`Final conclusion`.
+   TODO: no effect...
+
 
 5.2. Example data set II: DAKO KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -227,6 +380,7 @@ TODO: Add
 
 5.3. Own data set
 ~~~~~~~~~~~~~~~~~~~~~~
+
 
 TODO: Add
 
