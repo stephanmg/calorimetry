@@ -41,7 +41,38 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		) %>%
 		mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
 
+      plot_data2 <- NULL   
+      if (!is.null(input$facets_by_data_one)) {
+         if (input$facets_by_data_one != "Animals") {
+            plot_data2 <- averages %>% left_join(true_metadata, by="Animals")
+            plot_data2 <- plot_data2 %>%
+            group_by(Days, !!sym(input$facets_by_data_one), interval) %>%
+            summarise(
+               avg_meas = mean(TEE, na.rm = TRUE),
+               sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
+               .groups = "drop"
+            ) %>%
+            mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
+         } else {
+            plot_data2 <- plot_data
+         }
+      }
+
       plot_data <- plot_data %>% mutate(time = time + offset)
+      if (!is.null(input$facets_by_data_one)) {
+         plot_data2 <- plot_data2 %>% mutate(time = time + offset)
+      }
+      plot_data <- plot_data %>% left_join(true_metadata, by="Animals")
+
+      print("plot_data2:")
+      print(colnames(plot_data2))
+      print(plot_data2)
+		
+
+      plot_data2 <- averages
+
+
+
 		if (input$boxplots_or_sem_plots == FALSE) {
 			# Create the plot
 			p2 <- ggplot(plot_data, aes(x = time, y = avg_meas, color = Animals, group = Animals)) +
@@ -59,6 +90,12 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 				legend.position = "right",
 				plot.title = element_text(hjust = 0.5, size = 16)
 			)
+         if (input$facet_medians) {
+            p3 <- ggplot(plot_data, aes(x=time, y=avg_meas, color = !!sym(input$facets_by_data_one), group=!!sym(input$facets_by_data_one))) + 
+            geom_line(size=1) 
+			   p3 <- p3 + geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) 
+            p2 <- p2 + p3
+         }
 		} else {
 			medians <- plot_data %>%
 			group_by(Animals, time) %>%
@@ -80,6 +117,15 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			if (input$connect_medians_of_boxplots == TRUE) {
 				p2 <- p2 + geom_line(data=medians, aes(x=factor(time), y=median_meas, group=Animals, color=Animals), inherit.aes=FALSE, size=1)
 			}
+
+         if (input$facet_medians) {
+            p3 <- ggplot(plot_data, aes(x=time, y=avg_meas, color = !!sym(input$facets_by_data_one), group=!!sym(input$facets_by_data_one)))  
+            p3 <- p3 + geom_boxplot(position=position_dodge(width=0.75)) + geom_line(size=1) 
+			   p3 <- p3 + geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) 
+            p2 <- p2 + p3
+         }
+
+
 		}
 
    return(list("plot"=p2, "windowed_data"=plot_data))

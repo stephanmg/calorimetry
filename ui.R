@@ -403,7 +403,8 @@ main_content <- mainPanel(
       id = "additional_content",
       tabPanel("Main plot", 
          tagList(
-            checkboxInput("windowed_plot", "Windowed plot", value=FALSE),
+            checkboxInput("windowed_plot", "Add windowed time-trace plot", value=FALSE),
+            h3("Time-trace"),
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
@@ -418,11 +419,14 @@ main_content <- mainPanel(
             # TotalHeatProduction get's some extra configurations
             conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction'", checkboxInput("add_time_trace_below", "Add time trace(s)")),
             conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction' && input.add_time_trace_below == true", plotlyOutput("timeTrace")),
+            conditionalPanel("input.windowed_plot == true", hr()),
+            conditionalPanel("input.windowed_plot == true", h3("Windowed time-trace plot")),
             conditionalPanel("output.plotRendered && input.plot_type == 'RawMeasurement' && input.windowed_plot == true", plotlyOutput("windowPlot")),
             conditionalPanel("input.windowed_plot == true", sliderInput("interval_length_for_window", "Interval length", min=5, max=240, value=30)),
             conditionalPanel("input.windowed_plot == true", sliderInput("interval_steps_for_window", "Steps", min=1, max=10, value=2)),
             conditionalPanel("input.windowed_plot == true", checkboxInput("boxplots_or_sem_plots", "Time boxplot", value=FALSE)),
-            conditionalPanel("input.windowed_plot == true && input.boxplots_or_sem_plots == true", checkboxInput("connect_medians_of_boxplots", "Connect medians", value=FALSE))
+            conditionalPanel("input.windowed_plot == true && input.connect_medians_of_boxplots != true && input.with_facets == true", checkboxInput("facet_medians", "Display only facet medians", value=FALSE)),
+            conditionalPanel("input.windowed_plot == true && input.boxplots_or_sem_plots == true", checkboxInput("connect_medians_of_boxplots", "Connect individual medians", value=FALSE))
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),
