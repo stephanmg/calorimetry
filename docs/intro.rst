@@ -297,9 +297,9 @@ which we do not require here since our only factor is the genotype with two leve
 
 Since outliers are now removed, we can inspect the total heat production, in order to answer our null hypothesis.
 
-TODO: Write paragraph on THP -> show also statistics again ANOVA
+TODO: Write paragraph on THP -> show also statistics again 1-ANOVA and repeated measurements ANOVA
 
-TODO: Write paragraph on RMR -> show also statistics again ANOVA
+TODO: Write paragraph on RMR -> show also statistics again 1-ANOVA and repeated measurements ANOVA
 
 .. container:: highlight-box
 
@@ -319,7 +319,7 @@ and the grouping variable :math:`\text{Group}` appear in the model as:
 
 .. math::
 
-   \text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Foo}_{ij} - \bar{\text{Foo}}) + \epsilon_{ij}
+   \text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Covariate}_{ij} - \bar{\text{Covariate}}) + \epsilon_{ij}
 
 Where:
 
@@ -359,18 +359,55 @@ Likewise an anlog null hypothesis for the THP can be stated as:
 
 Now, we will proceed as before, but make use of 1-way ANOVAs for THP 
 (inluding either lm, fm or bw) and RMR (including either lm, fm or bw)
-grouped by genotype KO and WT.
+grouped by genotype KO and WT to investigate if body weight composition
+might be a confounding factor in observing the true genotype effect.
 
-For RMR see Fig. ... and THP see Fig. ... .
+For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs. :ref:`thp_ancova`, :ref:`thp_ancova_details`.
 
---> then show ANCOVA for fat and lean mass getrennt, no differences either
+.. _thp_ancova:
 
---> then show ANCOVA for fat and lean mass getrennt, no differences either
+.. figure:: img/ancova_thp.png
+   :align: center
+   :alt: 1-way ANOVA on genotype stratification for THP with lean mass as covariate
+   :scale: 50%
+
+   Figure 9: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate
+
+
+.. _thp_ancova_details:
+
+.. figure:: img/ancova_thp_details.png
+   :align: center
+   :alt: 1-way ANOVA on genotype stratification for THP with lean mass as covariate with statistical details
+   :scale: 50%
+
+   Figure 10: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate with statistical details
+
+
+.. _rmr_ancova:
+
+.. figure:: img/ancova_thp.png
+   :align: center
+   :alt: 1-way ANOVA on genotype stratification for RMR with lean mass as covariate
+   :scale: 50%
+
+   Figure 9: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate
+
+
+.. _rmr_ancova_details:
+
+.. figure:: img/ancova_thp_details.png
+   :align: center
+   :alt: 1-way ANOVA on genotype stratification for RMR with lean mass as covariate with statistical details
+   :scale: 50%
+
+   Figure 10: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate with statistical details
+
 
 .. container:: highlight-box
 
-   :math:`Final conclusion`.
-   TODO: no effect...
+   **Final conclusion**:
+   Based on our analysis we can reject all of our posed null hypotheses for the UCP1 KO cohort study.
 
 
 5.2. Example data set II: DAKO KO

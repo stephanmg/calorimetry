@@ -260,7 +260,7 @@ load_data <- function(file, input, exclusion, output, session) {
 
    # PhenoMaster V8
    if (grepl("V8", fileFormatTSE)) {
-      # V8 seems to export sloppy, i.e. non-consistent CSV files, check for this before import
+      # V8 seems to export sloppy, i.e. non-consistent CSV files, check for this before importing data sets
       is_consistent <- check_column_consistency(file, sep=sep)
       if (!is_consistent) {
          shinyalert("Error", paste("Input data file has different number of columns for rows. Inconsistent format."), showCancelButton=TRUE)
