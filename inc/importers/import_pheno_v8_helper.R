@@ -11,6 +11,8 @@ library(dplyr)
 #' import_pheno_v8(input_file, output_file)
 ################################################################################
 import_pheno_v8 <- function(file, file_out) {
+   # TODO: PhenoMaster v8 typically uses ; as separator, but sometimes there is "," too.
+   # We need to accomodate for this.
    toskip <- 0
    con <- file(file, "r")
    filetype <- ""

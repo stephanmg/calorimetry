@@ -35,6 +35,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
+		# select male or female
 		if ("Sex" %in% names(finalC1)) {
 			finalC1 <- finalC1 %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}

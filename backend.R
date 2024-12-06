@@ -39,6 +39,7 @@ source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
+source("inc/importers/util.R") # for consistency checks of columns
 
 ################################################################################
 # Locomotion helpers
@@ -196,6 +197,8 @@ load_data <- function(file, input, exclusion, output, session) {
       }
    }
 
+   print("what?")
+
    # Skip metadata before data
    toSkip <- detectData(file)
 
@@ -257,17 +260,23 @@ load_data <- function(file, input, exclusion, output, session) {
 
    # PhenoMaster V8
    if (grepl("V8", fileFormatTSE)) {
+      # V8 seems to export sloppy, i.e. non-consistent CSV files, check for this before import
+      is_consistent <- check_column_consistency(file, sep=sep)
+      if (!is_consistent) {
+         shinyalert("Error", paste("Input data file has different number of columns for rows. Inconsistent format."), showCancelButton=TRUE)
+         return()
+      }
+
       storeSession(session$token, "input_file_type", "PhenoMaster/V8", global_data)
       tmp_file <- tempfile()
       import_pheno_v8(file, tmp_file)
       file <- tmp_file
       toSkip <- detectData(file)
    }
-
+ 
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
-
 
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
