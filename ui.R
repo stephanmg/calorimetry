@@ -410,6 +410,7 @@ main_content <- mainPanel(
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
             #conditionalPanel("input.with_facets == true", checkboxInput("add_average_with_se", "Smooth facets")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_average_with_se", "Smooth facets")),
+            conditionalPanel("output.plotRendered && input.plot_type != 'Metadata' && input.add_average_with_se == true", checkboxInput("add_average_with_se_one_plot", "One plot", value=FALSE)),
             conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets", "Method for smoothing", choices=c("gam", "sawitzky-golay"), selected="gam")),
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_confidence_levels", "SE", min=1, max=10, value=2)),
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_basis_functions", "Number of Basis functions", min = 10, max=40, value=20)),

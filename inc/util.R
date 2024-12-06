@@ -280,8 +280,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			}
 		}
 
-      ggsave("plot6.png", plot=p)
-
 		p <- p + ggtitle(input$study_description) 
 		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
@@ -309,14 +307,15 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
       # plotly does not respect outlier aesthetics from geom_boxplot
       # outliers assumed on layer 1
+      # TODO: should this be even choseable for the user?
       if (input$show_outliers_from_plot == TRUE) {
          p$x$data[1] <- lapply(p$x$data[1], function(x) {
-            x$marker = list(opacity = 0)
+            x$marker = list(opacity = 1)
             return(x)
          })
       } else {
           p$x$data[1] <- lapply(p$x$data[1], function(x) {
-            x$marker = list(opacity = 1)
+            x$marker = list(opacity = 0)
             return(x)
          })
       }

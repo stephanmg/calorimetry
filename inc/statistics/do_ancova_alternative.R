@@ -351,7 +351,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
-    p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=15, outlier.size=0, outlier.color="red") # outlier.shape=NA)  
+    p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=NA, outlier.size=0, outlier.color="red") # outlier.shape=NA)  
     if (dep_var == "RMR" || dep_var == "EE") {
       # TODO: RMR and EE come averaged over Days already, so no Days object present in df
       p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group)), size=3, width=0.2, alpha=0.6)
