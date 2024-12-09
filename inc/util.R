@@ -114,7 +114,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 				p2 <- p2 + geom_line(data=medians, aes(x=factor(time), y=median_meas, group=Animals, color=Animals), inherit.aes=FALSE, size=1)
 			}
 
-         # no boxplot here anymore for animals, just the median of facet and +- SEM lines
+         # no boxplot here anymore for facets as for animals, just the median of facet and +- SEM lines
          if (input$facet_medians) {
             medians <- plot_data %>%
             group_by(!!sym(input$facets_by_data_one), time) %>%

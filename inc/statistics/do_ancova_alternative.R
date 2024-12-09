@@ -41,6 +41,8 @@ calculate_statistic <- function(data, method) {
 ################################################################################
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
+  print("after joining with metadata...")
+  print(df)
   # Might be necessary, check carefully, if not, remove later
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
@@ -204,8 +206,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
 
-  ggsave("plot1.png", plot=p2)
-
   p2 <- p2 + labs(colour=group)
   if (num_covariates > 1) {
     p3 <- p3 + labs(colour=group)
@@ -240,6 +240,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+  print("there?")
+
 
 
   p <- NULL
@@ -263,16 +265,29 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
   if (test_type == "2-way ANCOVA") {
+    print("inside 2-way ANCOVA?")
+    print("df")
+    print(df)
+    df$Days = as.factor(df$Days)
     pwc <- df %>% group_by(group) %>% emmeans_test(TEE ~ Days, covariate=Weight)
+    write.csv2(pwc, "pwc.csv")
+    print("pwc:")
+    print(pwc)
+    print("after group?")
     pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
+    print("add xy position?")
     p <- ggline(get_emmeans(pwc), x = "group", y="emmean", color="Days") 
+    print("ggline after")
     p <- p + geom_errorbar(aes(ymin=conf.low, ymax=conf.high, color=Days), width=0.1)
     p <- p + stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
     labs(
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
+    print("setting labs?")
   }
+
+  print("done?")
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
@@ -318,6 +333,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
           }
         }
       } 
+
+      print("here2?")
 
       emm = emmeans(model, ~Days | group)
       emm_df <- as.data.frame(emm)

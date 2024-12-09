@@ -275,6 +275,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 		
 		# add anova/ancova panel
+		print("Head raw df:")
+		print(head(raw_df))
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, raw_df, metadatafile, mylabel, "Raw")
 	} else {
 		# offset is minimum value for time (on x-axis)

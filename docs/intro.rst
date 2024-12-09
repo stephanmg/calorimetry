@@ -229,7 +229,7 @@ Dann ANCOVAs
 .. container:: highlight-box
 
    :math:`H_0`:
-   There is no genotype-specific effect (WT vs UCP1 KO) on the resting metabolic rate.
+   There is no genotype-specific effect (WT vs UCP1 KO) on the total heat production or resting metabolic rate.
 
 To either reject or accept the null hypothesis :math:`H_0` we can make use of CALOR's features.
 
@@ -413,13 +413,180 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
 5.2. Example data set II: DAKO KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TODO: Add
+.. container:: highlight-box
+
+   :math:`H_0`:
+   There is a genotype-specific effect on the total heat production or resting metabolic rate.
+
+We will proceed as before with the analysis of this data set. The DAKO KO data set is a two cohort study in
+a double knockout experiment.
+As before we get an overview of the metadata recorded with the experiment, see Fig. :ref:`dako_metadata` and
+enspect the raw measurement, e.g. the RER, see Fig. :ref:`dako_rer` and detect not obvious outlier, so we
+can use all samples from this data set.
+
+.. _dako_metadata:
+
+.. figure:: img/dako_metadata.png
+   :align: center
+   :alt: Metadata for 2 cohort DAKO data set
+   :scale: 50%
+
+   Figure 11: Metadata for 2 cohort DAKO data set
+
+
+.. _dako_rer:
+
+.. figure:: img/dako_rer.png
+   :align: center
+   :alt: RER for DAKO data set
+   :scale: 50%
+
+   Figure 12: RER for DAKO data set
+
+
+We proceed by calculating the total heat production, see Fig. :ref:`dako_thp` stratified by genotype.
+After inspecting of the data, no outlier seems to be present. Next, we use in the *Statistical testing* 
+panel a 1-way ANOVA which detects significant changes as indicated by the Wilcoxon test p-value smaller than 0.05
+in the plot, see Fig. :ref:`dako_anova`.
+
+.. _dako_thp:
+
+.. figure:: img/dako_thp.png
+   :align: center
+   :scale: 50%
+   :alt: Total heat production for DAKO data set
+
+   Figure 12: Total heat production for DAKO data set
+
+
+.. _dako_anova:
+ 
+.. figure:: img/dako_anova.png
+   :align: center
+   :scale: 50%
+   :alt: 1-way ANOVA for DAKO and total heat production
+
+   Figure 13: 1-way ANOVA for DAKO and total heat production
+
+
+Next we ask, where these effects could possibly be stemming from, and conduct thus multiple 1-way ANCOVA where we
+adjust for the body weight, lean mass and fat mass respectively, see Fig. :ref:`dako_ancova_lean`, :ref:`dako_ancova_fat`, :ref:`dako_ancova_bw`.
+
+
+.. _dako_ancova_bw:
+
+.. figure:: img/dako_ancova_bw.png
+   :align: center
+   :scale: 50%
+
+   Figure 14: 1-way ANCOVA for DAKO and total heat production adjusted for body weight
+
+
+.. _dako_ancova_lean:
+
+.. figure:: img/dako_ancova_lean.png
+   :align: center
+   :scale: 50%
+
+   Figure 15: 1-way ANCOVA for DAKO and total heat production adjusted for lean mass
+
+
+.. _dako_ancova_fat:
+
+.. figure:: img/dako_ancova_fat.png
+   :align: center
+   :scale: 50%
+
+   Figure 16: 1-way ANCOVA for DAKO and total heat production adjusted for fat mass
+
+
+We do confirm with the *Statistical testing* and *Details* panel, that in fact the
+effect seems to stem from the body composition in fat mass, see. Fig. :ref:`dako_thp_details`,
+and not from the lean mass or total body weight.
+
+.. _dako_thp_details:
+
+.. figure:: img/ancova_thp_details.png
+   :align: center
+   :scale: 50%
+   :alt: Statistics for 1-way ANCOVA of total heat production adjusted for fat mass
+
+   Figure 17: Statistics for 1-way ANCOVA of total heat production adjusted for fat mass
+
+
+Thus we are able to conclude the following:
+
+.. container:: highlight-box
+
+   :math:`Conclusion`:
+   There is a genotype-specific effect (WT vs DAKO) on the total heat production
+   mediated by the body composition's covariate fat mass.
+
+
+Next, we will investigate the same hypothesis but now for the resting metabolic rate.
+
+We start by a 1-way ANOVA for the two genotypes, which gives us a non-significant
+difference between RMR, see Fig. :ref:`dako_rmr_anova`.
+
+.. _dako_rmr_anova:
+
+.. figure:: img/anova_rmr_dako.png
+   :align: center
+   :scale: 50%
+   :alt: Statistics for 1-way ANOVA of resting metabolic rate
+
+   Figure 18: Statistics for 1-way ANOVA of resting metabolic rate
+
+Also we do not see significant differences, we are prompted to investigate
+if lean, fat or body weight are confounding the analysis on RMR. As before
+we perform multiple 1-way ANCOVAs with lean, fat and body weight each as
+a covariate. 
+
+We find that, genotype can be separated when chosing fat mass as a covariate,
+see Fig. :ref:`dako_rmr_ancova`.
+
+.. _dako_rmr_ancova:
+
+.. figure:: img/ancova_rmr_dako.png
+   :align: center
+   :scale: 50%
+   :alt: Statistics for 1-way ANCOVA of resting metabolic rate
+
+   Figure 19: Statistics for 1-way ANCOVA of resting metabolic rate
+
+Despite the visual separability, statistical testing reveals no significant
+difference in mean resting metabolic rates, see Fig. :ref:`dako_rmr_ancova_details`.
+
+.. _dako_rmr_ancova_details:
+
+.. figure:: img/ancova_rmr_dako_details.png
+   :align: center
+   :scale: 50%
+   :alt: Statistics for 1-way ANCOVA of resting metabolic rate
+
+   Figure 20: Statistics for 1-way ANCOVA of resting metabolic rate
+
+Thus we are able to conclude the following:
+
+.. container:: highlight-box
+
+   :math:`Conclusion`:
+   There is no genotype-specific effect (WT vs DAKO) on the resting metabolic rate.
+
 
 5.3. Own data set
 ~~~~~~~~~~~~~~~~~~~~~~
 
+For own data set or studies, users can make of the workflows as detailed in the
+two example data set use-cases from above for UCP1-KO and DAKO. First hypotheses
+should be posed, then consistency checks (metadata and raw data should be inspected,
+and outliers be removed) should be applied, then quantities should be visualized
+and analyzed, in the suggested order: TotalHeatProduction, RestingMetabolicRate,
+HeatProduction and FuelOxidation.
 
-TODO: Add
+All data sets calculated in the app can be downloaded as a **.zip** file in the
+*Export Data* section. Plots can be downloaded directly from the top right corner
+in the corresponding plot, and saved as **.svg**, **.pdf** or **.png**.
 
 6. Data export
 --------------
