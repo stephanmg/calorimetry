@@ -30,7 +30,6 @@ import_promethion <- function(file, file_out) {
    data <- data %>% separate(DateTime, c("Date", "Time"), " ")
    data["Box"] <- data["Animal"]
 
-
    header <- data.frame(matrix(ncol = length(colnames(data)), nrow = 0))
 
    data <- data %>% rename("Animal No." = "Animal")

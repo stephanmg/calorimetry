@@ -142,8 +142,6 @@ get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    # interval length due to e.g. experimental handling of samples / maintenance
    time_diff_all <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% pull(diff.sec) %>% unique()
 
-   print(time_diff_all)
-
    # start of measurement always diff.sec 0, but there should never be different diff.sec in the measurement per animal ID
    if (length(time_diff_all[-1]) > 1) {
       print(time_diff_all)
@@ -251,6 +249,9 @@ filter_full_days_alternative <- function(df, threshold, cohort_list) {
    return(df_filtered)
 }
 
+################################################################################
+# filter_full_days
+################################################################################
 filter_full_days <- function(df, time_diff, threshold) {
    df$DaysCount <- lapply(df$Datetime, convert_to_days)
    df$`Animal No._NA` <- as.factor(df$`Animal No._NA`)
@@ -272,15 +273,17 @@ filter_full_days <- function(df, time_diff, threshold) {
    return(df_final)
 }
 
-
 ################################################################################
-# trim_front_end
+# convert_to_day_only
 ################################################################################
 convert_to_day_only <- function(x) {
    splitted <- strsplit(as.character(x), "/")
    paste(splitted[[1]][1], splitted[[1]][2], splitted[[1]][3], sep = "-")
 }
 
+################################################################################
+# trim_front_end
+################################################################################
 trim_front_end <- function(df, end_trim, front_trim) {
    df$Date <- lapply(df$Datetime, convert_to_days)
    df$Date <- lapply(df$Date, convert_to_day_only)

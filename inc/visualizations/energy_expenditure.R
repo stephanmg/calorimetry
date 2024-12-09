@@ -215,9 +215,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- p + geom_line()
 	}
 
-	write.csv2(finalC1, "data_to_compare_for_rmr.csv")
-
-
 	# add statistics panel if relevant data (RMR) has been calculated before
 	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
 		shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
@@ -226,10 +223,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
-		print("EE head:")
-		print(head(EE))
-		print("EE full:")
-		print(EE)
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, paste0("Energy expenditure [", input$kj_or_kcal, "/day]"), "EE")
 	}

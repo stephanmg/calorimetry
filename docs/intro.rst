@@ -274,7 +274,24 @@ resulting in the stratified plots of RER as depicted in Fig. :ref:`ucp1_ko_rer_w
    :alt: RER for UCP1 KO without outlier 2547
    :scale: 50%
 
-   Figure 7: RER for UCP1 KO without outlier 2547
+   Figure 7a: RER for UCP1 KO without outlier 2547
+
+Note that instead of removing the outlier completely, we could trim the data set. From experience we know that 
+at the beginning and end of an experiment we might have erratic gas exchange values recorded (as for instance samples
+are handled at the beginning and end of an experiment, metabolic cage is opened and closed, sample acclimatisation to
+the temperature-controlled environment), thus we can use **Data curation** to trim these experimental times, see Fig. :ref:`trimming`.
+
+.. _trimming:
+
+.. figure:: img/trimming.png
+   :align: center
+   :alt: Trimming of experimental times
+   :scale: 50%
+
+   Figure 7b: Trimming of experimental times
+
+
+
 
 Notice that there is no qualitative (significant) difference between the mean traces of RER for the two genotypes.
 (Displayed are mean and standard deviation ribbons as can be configure directly below the plot in the application).
@@ -297,9 +314,6 @@ which we do not require here since our only factor is the genotype with two leve
 
 Since outliers are now removed, we can inspect the total heat production, in order to answer our null hypothesis.
 
-TODO: Write paragraph on THP -> show also statistics again 1-ANOVA and repeated measurements ANOVA
-
-TODO: Write paragraph on RMR -> show also statistics again 1-ANOVA and repeated measurements ANOVA
 
 .. container:: highlight-box
 

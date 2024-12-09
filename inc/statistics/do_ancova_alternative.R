@@ -130,15 +130,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   # covariates need to be always numeric, tse header must be prepared better, see util methods to allow only numerical non-factor columns?
   df$Weight <- as.numeric(df$Weight)
   if (num_covariates > 1) {
-    print(df)
-    print(colnames(df))
     df$Weight2 <- as.numeric(df$Weight2)
   }
   df$TEE <- as.numeric(df$TEE)
 
-  print("before grouping")
-  print(levels(df$group))
-  print(levels(df$Animals))
   if (test_type == "1-way ANCOVA") {
     if (dep_var == "TEE") {
       df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
@@ -240,10 +235,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  print("there?")
-
-
-
   p <- NULL
   pwc <- NULL
   if (test_type == "1-way ANCOVA") {
@@ -265,29 +256,17 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
   if (test_type == "2-way ANCOVA") {
-    print("inside 2-way ANCOVA?")
-    print("df")
-    print(df)
     df$Days = as.factor(df$Days)
     pwc <- df %>% group_by(group) %>% emmeans_test(TEE ~ Days, covariate=Weight)
-    write.csv2(pwc, "pwc.csv")
-    print("pwc:")
-    print(pwc)
-    print("after group?")
     pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
-    print("add xy position?")
     p <- ggline(get_emmeans(pwc), x = "group", y="emmean", color="Days") 
-    print("ggline after")
     p <- p + geom_errorbar(aes(ymin=conf.low, ymax=conf.high, color=Days), width=0.1)
     p <- p + stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
     labs(
       subtitle = get_test_label(res.aov, detailed = TRUE),
       caption = get_pwc_label(pwc)
     )
-    print("setting labs?")
   }
-
-  print("done?")
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
@@ -334,8 +313,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         }
       } 
 
-      print("here2?")
-
       emm = emmeans(model, ~Days | group)
       emm_df <- as.data.frame(emm)
       p <- ggplot(emm_df, aes(x=Days, y=emmean, group=group, color=group)) + geom_line() + geom_point()
@@ -352,15 +329,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       ) %>% rename(group1=contrast) %>% rename(group2=group) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
       pairwise <- pairwise %>% mutate(p.adj = pairwise_raw$p.value)
       mean_p_value <- mean(pairwise$p.adj)
-
       p <- p + geom_text(aes(x = levels(emm_df$Days)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))
-
-      print("pairwise")
-      print(colnames(pairwise))
-      #print("summary:")
-      #print(summary(pairwise))
       pwc <- pairwise 
-#    }
   } 
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
@@ -421,14 +391,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       p <- ggplot(emm_df, aes(x=group, y=emmean, group=group, color=group)) + geom_line() + geom_point()
       p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
       p <- p + geom_text(aes(x = levels(emm_df$group)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))
-
-      #print("summary:")
-      #print(summary(pairwise))
       pwc <- pairwise 
   }
-
-
-  print("before regression slopes?")
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
   regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
