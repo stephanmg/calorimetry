@@ -212,7 +212,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
 
-  ggsave("plot2.png", plot=p2)
 
   # 1-way ANCOVA based on user input grouping variable
   res.aov <- NULL
@@ -242,7 +241,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   }
 
 
-  ggsave("plot3.png", plot=p2)
 
   p <- NULL
   pwc <- NULL
@@ -255,12 +253,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # Visualization of estimated marginal means for 1-way ancova
   pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
-  p <- ggline(get_emmeans(pwc), x = "group", y = "emmean") +
+  p <- ggline(get_emmeans(pwc), x = "group", y = "emmean", color="group", group="group") +
     geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
     stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
     labs(
       subtitle = get_test_label(res.aov, detailed = TRUE),
-      caption = get_pwc_label(pwc)
+     caption = get_pwc_label(pwc)
     )
   }
 
@@ -296,8 +294,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   shapiro <- shapiro_test(model.metrics$.resid[0:5000]) # FIXME: shapiro can only handle 5000 samples max
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
-  print("after shapiro...")
-
   if (test_type == "2-way ANOVA" || test_type == "2-way ANCOVA") {
       df$Days <- as.factor(df$Days)
       model = lm(TEE ~ group * Days, data=df)
@@ -318,12 +314,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         }
       } 
 
-      print("data df:")
-      print(df)
       emm = emmeans(model, ~Days | group)
       emm_df <- as.data.frame(emm)
-      print("emm_df:")
-      print(emm_df)
       p <- ggplot(emm_df, aes(x=Days, y=emmean, group=group, color=group)) + geom_line() + geom_point()
       p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
 
@@ -351,6 +343,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
+    # TODO: plotly does not support comparisons=pairs in stat_compare_means()
+    #df$group <- as.character(df$group)
+    #pairs <- combn(unique(df$group), 2, simplify=FALSE)
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=NA, outlier.size=0, outlier.color="red") # outlier.shape=NA)  
     if (dep_var == "RMR" || dep_var == "EE") {
       # TODO: RMR and EE come averaged over Days already, so no Days object present in df
@@ -382,9 +377,36 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  print("before regression slopes?")
+  if (test_type == '1-way ANOVA') {
+    model = lm(TEE ~ group, data=df)
+    emm = emmeans(model, ~ group)
+    emm_df <- as.data.frame(emm)
 
-  ggsave("plot4.png", plot=p2)
+     pairwise_raw <- contrast(emm, method="pairwise") %>% as.data.frame()
+      pairwise <- contrast(emm, method="pairwise", adjust="tukey") %>% as.data.frame() %>% mutate(
+        significance=case_when(
+          p.value < 0.001 ~ "***",
+          p.value < 0.01 ~ "**",
+          p.value < 0.05 ~ "*",
+          TRUE ~ "ns"
+        )
+      ) 
+      pairwise <- pairwise %>% rename(group1=contrast) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
+      pairwise <- pairwise %>% mutate(p.adj = pairwise_raw$p.value)
+      pairwise$group2 <- length(unique(df$Days))
+      mean_p_value <- mean(pairwise$p.adj)
+
+      p <- ggplot(emm_df, aes(x=group, y=emmean, group=group, color=group)) + geom_line() + geom_point()
+      p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
+      p <- p + geom_text(aes(x = levels(emm_df$group)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))
+
+      #print("summary:")
+      #print(summary(pairwise))
+      pwc <- pairwise 
+  }
+
+
+  print("before regression slopes?")
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
   regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
