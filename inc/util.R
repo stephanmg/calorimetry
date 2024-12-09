@@ -24,7 +24,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		# Group by Animals, Days, interval, and sub_interval, then calculate mean(Meas)
 		averages <- data %>%
 		dplyr::group_by(DayCount, Animals, interval, sub_interval) %>%
-		dplyr::summarise(TEE = mean(!!sym(input$myr), na.rm = TRUE), .groups = "drop") 
+		dplyr::summarise(TEE = median(!!sym(input$myr), na.rm = TRUE), .groups = "drop") 
 
 		averages <- averages %>% rename(Days=DayCount)
 
@@ -35,7 +35,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		plot_data <- averages %>%
 		group_by(Days, Animals, interval) %>%
 		summarise(
-			avg_meas = mean(TEE, na.rm = TRUE),
+			avg_meas = median(TEE, na.rm = TRUE),
 			sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
 			.groups = "drop"
 		) %>%
@@ -48,7 +48,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
             plot_data2 <- plot_data2 %>%
             group_by(Days, !!sym(input$facets_by_data_one), interval) %>%
             summarise(
-               avg_meas = mean(TEE, na.rm = TRUE),
+               avg_meas = median(TEE, na.rm = TRUE),
                sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
                .groups = "drop"
             ) %>%
@@ -90,12 +90,13 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
             p2 <- p2 + p3
          }
 		} else {
+         # individual medians for animals
 			medians <- plot_data %>%
 			group_by(Animals, time) %>%
 			summarise(median_meas = median(avg_meas, na.rm = TRUE), .groups = "drop")
 
 			p2 <- ggplot(plot_data, aes(x = factor(time), y = avg_meas, fill = Animals)) +
-			geom_boxplot(position=position_dodge(width=0.75)) + 
+			geom_boxplot()#position=position_dodge(width=0.75)) + 
 			labs(
 				title = "Measurement distribution by time and Animal",
 				x = "Zeitgeber time [h]",
@@ -107,14 +108,21 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 				legend.position = "right",
 				plot.title = element_text(hjust = 0.5, size = 16)
 			)
+
+         # connect the invidiual medians for the animals
 			if (input$connect_medians_of_boxplots == TRUE) {
 				p2 <- p2 + geom_line(data=medians, aes(x=factor(time), y=median_meas, group=Animals, color=Animals), inherit.aes=FALSE, size=1)
 			}
 
+         # no boxplot here anymore for animals, just the median of facet and +- SEM lines
          if (input$facet_medians) {
-            p3 <- ggplot(plot_data, aes(x=time, y=avg_meas, color = !!sym(input$facets_by_data_one), group=!!sym(input$facets_by_data_one)))  
-            p3 <- p3 + geom_boxplot(position=position_dodge(width=0.75)) + geom_line(size=1) 
-			   p3 <- p3 + geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) 
+            medians <- plot_data %>%
+            group_by(!!sym(input$facets_by_data_one), time) %>%
+            summarise(median_meas = median(avg_meas, na.rm = TRUE), sem=sd(avg_meas, na.rm=TRUE), .groups = "drop")
+            p3 <- ggplot(medians, aes(x=time, y=median_meas, color = !!sym(input$facets_by_data_one), group=!!sym(input$facets_by_data_one)))  
+            p3 <- p3 + geom_boxplot()#position=position_dodge(width=0.75)) 
+            p3 <- p3 + geom_line(size=1) 
+			   p3 <- p3 + geom_errorbar(aes(ymin = median_meas - sem, ymax = median_meas + sem), width = 0.2) 
             p2 <- p2 + p3
          }
 		}
