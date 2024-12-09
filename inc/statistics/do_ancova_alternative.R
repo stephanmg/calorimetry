@@ -276,18 +276,23 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # Fit the model, the covariate goes first
   model <- lm(TEE ~ Weight + group, data = df)
-  # TODO: adjust to use both covariates first, and then also both covariates for repeated measurement anova
+
+  ##############################################################################
+  ### TODO: Code below is obsolete
+  # TODO: adjust to use both covariates if using ANCOVA,
+  # and then also both covariates for repeated measurement anova
   if (test_type == "2-way ANCOVA") {
      model <- lm(TEE ~ Weight + group * Days, data = df)
   }
 
- # TODO: use this to report in the statistics panel (Details)
   if (test_type == "2-way ANOVA") {
     if (repeated_measurements) {
     } else {
       model <- lm(TEE ~ group * Days, data = df)
     }
   }
+  ### TODO: Code above is obsolete
+  ##############################################################################
 
   # Check test assumptions met in general
   model.metrics <- augment(model)
