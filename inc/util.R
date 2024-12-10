@@ -2,6 +2,63 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
+add_windowed_plot_statistics <- function(data, input, total_length) {
+   # Function to test differences per interval
+   facet = "Genotype"
+   if (!is.null(input$facets_by_data_one)) {
+      if (facet != "Animals") {
+         facet = input$facets_by_data_one
+      } else {
+         facet = "Genotype"
+      }
+   }
+test_interval <- function(df) {
+  groups <- unique(df[[facet]])
+  meas = sym(input$myr)
+  if (length(groups) == 2) {
+    # Perform t-test for two groups
+    formula = reformulate(facet, response=as.character(meas))
+    test_result <- t.test(formula, data=df)
+    test_result <- wilcox.test(formula, data=df)
+    return(data.frame(
+      p_value = test_result$p.value
+    ))
+      #test = "t-test"
+      #mean_diff = diff(tapply(df$HP, df$Genotype, mean))
+  } else if (length(groups) > 2) {
+    # Perform ANOVA for three or more groups
+    formula = as.formula(paste0(meas, " ~ ", facet))
+    test_result <- aov(formula, data = df)
+    # test_result <- kruskal.test(TEE ~ Group, data=df)
+    p_value <- summary(test_result)[[1]][["Pr(>F)"]][1]
+    return(data.frame(
+      p_value = p_value,
+      test = "ANOVA",
+      mean_diff = NA
+    ))
+  } else {
+    return(data.frame(p_value = NA, test = "Insufficient groups", mean_diff = NA))
+  }
+}
+results <- data %>%
+  group_by(interval) %>%
+  group_split() %>%
+  purrr::map_df(~ test_interval(.x) %>% mutate(interval = .x$interval[1]))
+  print(results)
+
+results <- results %>%
+	mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
+
+   print("new results:")
+   print(results)
+
+   results <- results %>% mutate(adjusted_p = p.adjust(p_value, method="BH"), significant = ifelse(adjusted_p < 0.001, "*", NA))
+
+   print("adjusted results:")
+   print(results)
+   return(results)
+}
+
 ################################################################################
 #' add_windowed_plot
 #' 
@@ -19,6 +76,11 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			interval = ceiling(minutes / total_length), # Define each 30-minute interval
 			sub_interval = (minutes %% total_length) %/% step_size + 1 # Subintervals
 		)
+
+      write.csv2(data, "data_for_testing.csv")
+      print("myr:")
+      print(input$myr)
+      p_statistic_details <- add_windowed_plot_statistics(data, input, total_length)
 
 		#  TODO: need to left join the averages plot to get Genotype for facets
 		# Group by Animals, Days, interval, and sub_interval, then calculate mean(Meas)
@@ -84,11 +146,12 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 				plot.title = element_text(hjust = 0.5, size = 16)
 			)
          if (input$facet_medians) {
-            p3 <- ggplot(plot_data, aes(x=time, y=avg_meas, color = !!sym(input$facets_by_data_one), group=!!sym(input$facets_by_data_one))) + 
-            geom_line(size=1) 
+            p3 <- ggplot(plot_data, aes(x=time, y=avg_meas, color = !!sym(input$facets_by_data_one), group=!!sym(input$facets_by_data_one))) + geom_line(size=1) 
 			   p3 <- p3 + geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) 
             p2 <- p2 + p3
          }
+
+
 		} else {
          # individual medians for animals
 			medians <- plot_data %>%
@@ -127,7 +190,15 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
          }
 		}
 
-   return(list("plot"=p2, "windowed_data"=plot_data))
+
+
+   annotations <- NULL
+   if (input$facet_medians_statistics) {
+      p_statistic_details$y = max(plot_data$avg_meas, na.rm=TRUE) 
+      annotations <- geom_text(data=p_statistic_details, mapping=aes(x=time+offset, y=y, label=significant), inherit.aes = FALSE, linewidth=6, color="#39E639")
+      p2 <- p2 + annotations
+   }
+   return(list("plot"=p2, "windowed_data"=plot_data, "annotations"=annotations))
 }
 
 
