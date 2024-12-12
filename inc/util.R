@@ -460,6 +460,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			plotlyOutput("post_hoc_plot"),
 			hr(style = "width: 75%"),
 			h4("Results of statistical testing"),
+         checkboxInput("first_or_second_factor_for_2_way_analysis", "Use second factor", value=TRUE),
+         tags$script(HTML("$('#first_or_second_factor_for_2_way_analysis').prop('disabled', true);")),
 			tags$table(
 				tags$thead(
 					tags$tr(

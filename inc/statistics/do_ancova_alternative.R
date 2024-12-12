@@ -318,15 +318,20 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       p <- ggplot(emm_df, aes(x=Days, y=emmean, group=group, color=group)) + geom_line() + geom_point()
       p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
 
-      pairwise_raw <- contrast(emm, method="pairwise", by="group") %>% as.data.frame()
-      pairwise <- contrast(emm, method="pairwise", by="group", adjust="tukey") %>% as.data.frame() %>% mutate(
+      # TODO:
+      # if (input$first_or_second_factor_for_2_way_analysis) {
+      # by="group" and rename(group2=group) instead of
+      # by="Days" and rename(group2=Days) below
+      # }
+      pairwise_raw <- contrast(emm, method="pairwise", by="Days") %>% as.data.frame()
+      pairwise <- contrast(emm, method="pairwise", by="Days", adjust="tukey") %>% as.data.frame() %>% mutate(
         significance=case_when(
           p.value < 0.001 ~ "***",
           p.value < 0.01 ~ "**",
           p.value < 0.05 ~ "*",
           TRUE ~ "ns"
         )
-      ) %>% rename(group1=contrast) %>% rename(group2=group) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
+      ) %>% rename(group1=contrast) %>% rename(group2=Days) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
       pairwise <- pairwise %>% mutate(p.adj = pairwise_raw$p.value)
       mean_p_value <- mean(pairwise$p.adj)
       p <- p + geom_text(aes(x = levels(emm_df$Days)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))

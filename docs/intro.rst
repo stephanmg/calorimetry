@@ -380,7 +380,7 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
 
 .. _thp_ancova:
 
-.. figure:: img/ancova_thp.png
+.. figure:: img/ancova_ucp1ko_thp_details.png
    :align: center
    :alt: 1-way ANOVA on genotype stratification for THP with lean mass as covariate
    :scale: 50%
@@ -390,7 +390,7 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
 
 .. _thp_ancova_details:
 
-.. figure:: img/ancova_thp_details.png
+.. figure:: img/ancova_ucp1ko_thp.png
    :align: center
    :alt: 1-way ANOVA on genotype stratification for THP with lean mass as covariate with statistical details
    :scale: 50%
@@ -400,7 +400,7 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
 
 .. _rmr_ancova:
 
-.. figure:: img/ancova_thp.png
+.. figure:: img/ancova_ucp1ko_rmr.png
    :align: center
    :alt: 1-way ANOVA on genotype stratification for RMR with lean mass as covariate
    :scale: 50%
@@ -410,7 +410,7 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
 
 .. _rmr_ancova_details:
 
-.. figure:: img/ancova_thp_details.png
+.. figure:: img/ancova_ucp1ko_rmr_details.png
    :align: center
    :alt: 1-way ANOVA on genotype stratification for RMR with lean mass as covariate with statistical details
    :scale: 50%
@@ -602,6 +602,7 @@ All data sets calculated in the app can be downloaded as a **.zip** file in the
 *Export Data* section. Plots can be downloaded directly from the top right corner
 in the corresponding plot, and saved as **.svg**, **.pdf** or **.png**.
 
+
 6. Data export
 --------------
 To export combined data sets for all cohorts, data frames for plotting of results, and calculated quantities,
@@ -624,10 +625,14 @@ Flow charts
 Statistical analysis
 --------------------
 
-TODO: Add Entscheidungshilfe, welche Statistik muss berechnet oder genutzt werden. Eine Abbildung erzeugen hier.
+For a flow chart on how to select the appropriate statistical test, refer to 
+Fig. :ref:`flowchart_statistics` below.
 
+.. _flowchart_statistics:
 
-Analysis of indirect calorimetry data
--------------------------------------
+.. figure:: img/statistics_flowchart.png
+   :align: center
+   :scale: 50%
+   :alt: Flow chart for selecting appropriate statistical test
 
-TODO: Add Entscheidungshilfe, was will ich analysieren, und muss dementsprechend in CALOR auswählen. Eine Abbildung erzeugen hier.
+   Figure 20: Flow chart for selecting appropriate statistical test
