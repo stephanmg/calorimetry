@@ -542,6 +542,9 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	output$post_hoc_plot <- renderPlotly({
 		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
 		p <- results$plot_details + xlab(input$indep_var2) + ylab("estimated marginal mean") + labs(colour=input$indep_var)
+      if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '1-way ANCOVA') {
+         p <- p + xlab(input$indep_var)
+      }
 		ggplotly(p) %>% config(displaylogo = FALSE, 
 			modeBarButtons = list(c("toImage", get_new_download_buttons("post_hoc_plot")), 
 			list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), 
