@@ -77,9 +77,6 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			sub_interval = (minutes %% total_length) %/% step_size + 1 # Subintervals
 		)
 
-      write.csv2(data, "data_for_testing.csv")
-      print("myr:")
-      print(input$myr)
       myvar <- input$myr
       if (!is.null(variable)) {
          myvar = variable
@@ -95,6 +92,8 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		averages <- averages %>% rename(Days=DayCount)
 
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+      # TODO: this adds always the "Raw" panel which works currently, but legends are wrong then, need to fix this.
+      # use the same way to add anova_Ancova_panel as in inc/visualization/*.R files.
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, averages, metadatafile, mylabel, "Raw")
 
 		# Calculate averages and SEM by interval

@@ -172,7 +172,10 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	# add time trace for EE (as difference between TEE and RMR) if RMR was available
 	p2 <- NULL
 	rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
+	p3 <- NULL
 	if (!is.null(rmr_time_trace)) {
+		# TODO: has no grouping by facet genotype rmr_time_trace needs to be joined with metadata first,
+		# this will allow to have facets for the rmr time trace plot
 		rmr_time_trace$Time <- rmr_time_trace$Time / 60
 		rmr_time_trace <- rmr_time_trace %>% filter(Component == "CO2")
 		df_to_plot$Time <- df_to_plot$running_total.hrs.halfhour
@@ -187,10 +190,55 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		mutate(MeasDiff = abs(Meas2 - Meas1)) %>%      # Compute measurement difference
 		select(Animals, Time1, Time2, MeasDiff, TimeDiff, Meas1, Meas2)
 		p2 <- ggplot(data = result, aes_string(y = "MeasDiff", x = "Time1", color = "Animals", group = "Animals")) + geom_line()
-		p2 <- p2 + ylab(paste0("Total Energy Expenditure [", input$kj,"/ h]"))
+		p2 <- p2 + ylab(paste0("Energy Expenditure [", input$kj,"/ h]"))
 		p2 <- p2 + xlab("Zeitgeber time [h]")
 		p2 <- p2 + ggtitle("Time trace")
 		p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		if (input$windowed_plot == TRUE) {
+			# offset is minimum value for time (on x-axis)
+			offset <- min(finalC1$running_total.hrs.halfhour)
+			# windowed time trace plot
+			window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "EE", offset, "HP")
+			p3 <- window_plot$plot
+			p3 <- p3 + xlab("Zeitgeber time [h]") 
+			p3 <- p3 + ylab(paste0("Total Energy Expenditure [", input$kj,"/ h]"))
+			annotations_window_plot <<- window_plot$annotations
+
+			# group with group from metadata
+			if (input$with_facets) {
+				if (!is.null(input$facets_by_data_one)) {
+					if (input$orientation == "Horizontal") {
+						#p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+						if (!is.null(input$facet_medians)) {
+							if (!input$facet_medians) {
+								p3 <- p3 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+							} else {
+								if (!is.null(input$facet_medians_in_one_plot)) {
+									if (!input$facet_medians_in_one_plot) {
+										p3 <- p3 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+									}
+								}
+							}
+						}
+					} else {
+						#p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+						if (!is.null(input$facet_medians)) {
+							if (!input$facet_medians) {
+								p3 <- p3 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+							} else {
+								if (!is.null(input$facet_medians_in_one_plot)) {
+									if (!input$facet_medians_in_one_plot) {
+										p3 <- p3 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
-	return(list("time_trace"=p2, "plot"=p))
+
+
+	return(list("time_trace"=p2, "plot"=p, "window_plot"=p3))
 }
