@@ -1,11 +1,11 @@
 What is CALOR?
 ==============
 
-CALOR is a web application based on Shiny R to allow streamlined visualization and statistical analysis of
+CALOR is a web application based on Shiny R to allow for streamlined visualization and statistical analysis of
 indirect calorimetry data set making use of structured metadata to faciliate downstream analysis tasks.
 
-For a very brief tour use the **User guide** button in the **Visualization and statistical analysis** tab
-Short written examples are accessible through the **Getting help** button on the landing page.
+For a very brief tour use the **User guide** button in the **Visualization and statistical analysis** tab.
+Short written examples are accessible through the **Getting help** button on the landing page of the app.
 
 
 Getting started
@@ -16,8 +16,8 @@ Getting started
 
 Navigate to `CALOR <https://shiny.iaas.uni-bonn.de/Calo>`_ access the Shiny web application.
 The landing page displays some information about supported file formats and the app's main features, see
-:ref:`calor_landing`. Click the **Visualization and statistical analysis** in the nagivation bar at the top
-to get started. To get help or access a helper app use the **Getting help** or **Metadata converter** button.
+:ref:`calor_landing`. Click the **Visualization and statistical analysis** tab in the nagivation bar at the top
+to get started. To get help or access a helper app for metadata sheets use the **Getting help** or **Metadata converter** button.
 
 .. _calor_landing:
 
@@ -55,7 +55,7 @@ Metadata is automatically loaded and attached to the corresponding data set, see
 
 Note that providing metadata is optional. Metadata can be added through the upload of a standardized and hierarchical
 Excel Metadata Sheet (Seep et al., 2024, Scientific Data). Since the amount of metadata encoded in raw data file headers (short and non-standardized section
-in the beginning of each data file exported from e.g. TSE Systems) is limited, some of the CALOR's functionality might not
+in the beginning of each data file exported from e.g. TSE Systems) is limited, some of CALOR's functionality might not
 be available for users providing only raw data sets. See :ref:`generate_metadata_sheet` below on how to generate 
 standardized metadata for your data set(s).
 
