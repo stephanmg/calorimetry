@@ -2,7 +2,7 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
-add_windowed_plot_statistics <- function(data, input, total_length) {
+add_windowed_plot_statistics <- function(data, input, total_length, variable) {
    # Function to test differences per interval
    facet = "Genotype"
    if (!is.null(input$facets_by_data_one)) {
@@ -14,7 +14,7 @@ add_windowed_plot_statistics <- function(data, input, total_length) {
    }
 test_interval <- function(df) {
   groups <- unique(df[[facet]])
-  meas = sym(input$myr)
+  meas = sym(variable)
   if (length(groups) == 2) {
     # Perform t-test for two groups
     formula = reformulate(facet, response=as.character(meas))
@@ -63,7 +63,7 @@ results <- results %>%
 #' add_windowed_plot
 #' 
 ################################################################################
-add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset) {
+add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset, variable=NULL) {
 		data <- df_to_plot
 		data <- data %>% mutate(minutes=running_total.sec / 60)
 		# User inputs
@@ -80,13 +80,17 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
       write.csv2(data, "data_for_testing.csv")
       print("myr:")
       print(input$myr)
-      p_statistic_details <- add_windowed_plot_statistics(data, input, total_length)
+      myvar <- input$myr
+      if (!is.null(variable)) {
+         myvar = variable
+      }
+      p_statistic_details <- add_windowed_plot_statistics(data, input, total_length, variable)
 
 		#  TODO: need to left join the averages plot to get Genotype for facets
 		# Group by Animals, Days, interval, and sub_interval, then calculate mean(Meas)
 		averages <- data %>%
 		dplyr::group_by(DayCount, Animals, interval, sub_interval) %>%
-		dplyr::summarise(TEE = median(!!sym(input$myr), na.rm = TRUE), .groups = "drop") 
+		dplyr::summarise(TEE = median(!!sym(myvar), na.rm = TRUE), .groups = "drop") 
 
 		averages <- averages %>% rename(Days=DayCount)
 
@@ -199,7 +203,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
    annotations <- NULL
    if (input$facet_medians_statistics) {
       p_statistic_details$y = max(plot_data$avg_meas, na.rm=TRUE) 
-      annotations <- geom_text(data=p_statistic_details, mapping=aes(x=time+offset, y=y, label=significant), inherit.aes = FALSE, linewidth=6, color="#39E639")
+      annotations <- geom_text(data=p_statistic_details, mapping=aes(x=time+offset, y=y, label=significant), inherit.aes = FALSE, linewidth=6, color = "black") # color="#39E639")
       p2 <- p2 + annotations
    }
    return(list("plot"=p2, "windowed_data"=plot_data, "annotations"=annotations))

@@ -281,7 +281,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		# offset is minimum value for time (on x-axis)
 		offset <- min(finalC1$running_total.hrs.halfhour)
 		# windowed time trace plot
-		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset)
+		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset, input$myr)
 		p2 <- window_plot$plot
 		annotations_window_plot <<- window_plot$annotations
 	}

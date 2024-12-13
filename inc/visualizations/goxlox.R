@@ -175,6 +175,18 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# add anova/ancova panel
 	add_anova_ancova_panel(input, output, session, global_data, true_metadata, GoxLox, metadatafile, "GoxLox", "GoxLox")
+	
+	p2 <- NULL
+	# add windowed plot
+	if (input$windowed_plot == TRUE) {
+		# offset is minimum value for time (on x-axis)
+		offset <- min(finalC1$running_total.hrs.halfhour)
+		# windowed time trace plot
+		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "FuelOxidation", offset, "GoxLox")
+		p2 <- window_plot$plot
+		annotations_window_plot <<- window_plot$annotations
+	}
+
 
 	# add smoothing
 	gam_model <- NULL
@@ -231,11 +243,35 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
 				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+				if (!is.null(input$facet_medians)) {
+					if (!input$facet_medians) {
+						p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+					} else {
+						if (!is.null(input$facet_medians_in_one_plot)) {
+							if (!input$facet_medians_in_one_plot) {
+								p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+							}
+						}
+					}
+				}
 			} else {
 				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+				if (!is.null(input$facet_medians)) {
+					if (!input$facet_medians) {
+						p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+					} else {
+						if (!is.null(input$facet_medians_in_one_plot)) {
+							if (!input$facet_medians_in_one_plot) {
+								p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+							}
+						}
+					}
+				}
 			}
 		}
 	}
+
+
 
 	# add trend lines
 	if (input$add_average_with_se) {
@@ -276,5 +312,5 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	storeSession(session$token, "plot_for_goxlox", p, global_data)
 	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)
 	# return plot p
-	return(p)
+	return(list("window_plot"=p2, "plot"=p))
 }

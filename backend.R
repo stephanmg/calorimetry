@@ -605,6 +605,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    #####################################################################################################################
    FuelOxidation = {
       p <- goxlox(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_window = p$window_plot
+      p <- p$plot
 
       # indicate if plot available
       indicate_plot_rendered(p, output)
@@ -612,19 +614,28 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # style plot
       p <- style_plot(p, input)
 
-      p
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
+
    },
    #####################################################################################################################
    ### Energy Expenditure
    #####################################################################################################################
    HeatProduction = {
       p <- energy_expenditure(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_window <- p$window_plot
+      p <- p$plot
 
       # indicate if plot available
       indicate_plot_rendered(p, output)
 
       # style plot
       p <- style_plot(p, input)
+
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
    },
    #####################################################################################################################
    ### RestingMetabolicRate

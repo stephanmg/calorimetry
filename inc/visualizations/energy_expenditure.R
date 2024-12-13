@@ -215,6 +215,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- p + geom_line()
 	}
 
+	p2 <- NULL
 	# add statistics panel if relevant data (RMR) has been calculated before
 	if (!getSession(session$token, global_data)[["is_RMR_calculated"]]) {
 		shinyalert("Error:", "Resting metabolic rate needs to be calculated before!")
@@ -225,6 +226,15 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, paste0("Energy expenditure [", input$kj_or_kcal, "/day]"), "EE")
+
+		if (input$windowed_plot == TRUE) {
+			# offset is minimum value for time (on x-axis)
+			offset <- min(finalC1$running_total.hrs.halfhour)
+			# windowed time trace plot
+			window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "EE", offset, "HP")
+			p2 <- window_plot$plot
+			annotations_window_plot <<- window_plot$annotations
+		}
 	}
 
 	# add means
@@ -275,8 +285,30 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
 				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+				if (!is.null(input$facet_medians)) {
+					if (!input$facet_medians) {
+						p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+					} else {
+						if (!is.null(input$facet_medians_in_one_plot)) {
+							if (!input$facet_medians_in_one_plot) {
+								p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+							}
+						}
+					}
+				}
 			} else {
 				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+				if (!is.null(input$facet_medians)) {
+					if (!input$facet_medians) {
+						p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+					} else {
+						if (!is.null(input$facet_medians_in_one_plot)) {
+							if (!input$facet_medians_in_one_plot) {
+								p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+							}
+						}
+					}
+				}
 			}
 		}
 	}
@@ -319,5 +351,5 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# store plot and indicate EnergyExpenditure has been calculated
 	storeSession(session$token, "plot_for_ee", p, global_data)
 	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
-	return(p)
+	return(list("window_plot"=p2, "plot"=p))
 }
