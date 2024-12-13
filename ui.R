@@ -422,7 +422,7 @@ main_content <- mainPanel(
             conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction' && input.add_time_trace_below == true", plotlyOutput("timeTrace")),
             conditionalPanel("input.windowed_plot == true", hr()),
             conditionalPanel("input.windowed_plot == true && input.plot_type != 'Metadata'", h3("Windowed time-trace plot")),
-            conditionalPanel("(output.plotRendered && (input.plot_type == 'RawMeasurement' || input.plot_type == 'HeatProduction' || input.plot_type == 'FuelOxidation')) && input.windowed_plot == true", plotlyOutput("windowPlot")),
+            conditionalPanel("(output.plotRendered && (input.plot_type == 'RawMeasurement' || input.plot_type == 'HeatProduction' || input.plot_type == 'FuelOxidation' || input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RestingMetabolicRate')) && input.windowed_plot == true", plotlyOutput("windowPlot")),
             conditionalPanel("input.windowed_plot == true", sliderInput("interval_length_for_window", "Interval length", min=5, max=240, value=30)),
             conditionalPanel("input.windowed_plot == true", sliderInput("interval_steps_for_window", "Steps", min=1, max=10, value=2)),
             conditionalPanel("input.windowed_plot == true", checkboxInput("boxplots_or_sem_plots", "Time boxplot", value=FALSE)),

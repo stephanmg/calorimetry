@@ -649,6 +649,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       finalC1 <- df_returned$finalC1
+
       p <- df_returned$plot
    },
    #####################################################################################################################
@@ -719,6 +720,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    TotalHeatProduction = {
       p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
       p_time <- p$time_trace
+      p_window <- p$window_plot
       p <- p$plot
 
       # indicate if main plot available
@@ -730,6 +732,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # add time plot as well
       if (!is.null(p_time)) {
          output$timeTrace <- renderPlotly(p_time)
+      }
+
+      # and windowed plot
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
       }
    },
    #####################################################################################################################
@@ -1217,6 +1224,21 @@ server <- function(input, output, session) {
 
                write.csv2(real_data$data, "before_rmr_written.csv")
                storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
+
+                # add time trace for EE (as difference between TEE and RMR) if RMR was available
+               # TODO: add windowed plot here, more difficult to add then expected
+               rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
+               if (!is.null(rmr_time_trace)) {
+                  # TODO: Add correct daycount
+                  rmr_time_trace <- rmr_time_trace %>% mutate(running_total.sec=Time)
+                  rmr_time_trace$DayCount = 1
+                  print("here?")
+		            window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, rmr_time_trace, "RMR", 0, "HP")
+                  if (!is.null(window_plot)) {
+                     output$windowPlot <- renderPlotly(window_plot)
+                    }
+               }
+
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
                   select(-which(is.na(names(real_data$data)))) %>%

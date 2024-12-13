@@ -253,6 +253,8 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
 
+
+
 	finalC1 <- df_plot_total
 	return(list("finalC1"=finalC1, "plot"=p))
 }
