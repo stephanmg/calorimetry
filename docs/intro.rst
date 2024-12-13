@@ -247,7 +247,7 @@ First, we do inspect the metadata recorded with this 4 cohort study, to identify
 According to Fig. :ref:`ucp1_ko_metadata` distribution numbers (n) for Genotype and Diet are balanced, there is no 
 irregularities for body composition (fat and lean mass) and also no problematic changes of body composition over the
 time course of the experiment. The study entails only male samples (male) on a high fat diet (HFD). Since there are no
-obvious issues with the metadata, we can proceed by inspecting the raw measurements as recordede from the metabolic phenotyping system (TSE).
+obvious issues with the metadata, we can proceed by inspecting the raw measurements as recorded from the metabolic phenotyping system (TSE).
 
 Plotting the raw quantities can be a valid and important first diagnostic of consistency of the experiment. 
 See Fig. :ref:`ucp1_ko_rer_with_outlier` in particular for the RER stratified by Genotype (WT vs KO).
@@ -415,7 +415,7 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
    :alt: 1-way ANOVA on genotype stratification for RMR with lean mass as covariate with statistical details
    :scale: 50%
 
-   Figure 10: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate with statistical details
+   Figure 10: 1-way ANCOVA on genotype stratification for RMR lean mass as covariate with statistical details
 
 
 .. container:: highlight-box
