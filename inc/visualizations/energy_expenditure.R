@@ -280,6 +280,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# add title
 	p <- p + ggtitle(paste0("Energy expenditure [", input$kj_or_kcal, "/h]", " using equation ", pretty_print_equation(input$myp)))
 
+	# TODO: this can be factored out -> refactor to method
 	# group with group from metadata
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
