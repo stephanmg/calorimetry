@@ -1135,8 +1135,22 @@ server <- function(input, output, session) {
       # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
       output$plot <- renderPlotly({
          use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+         print("use_example_data")
+         print(use_example_data)
+         if (is.null(use_example_data)) {
+            print("is null:")
+            use_example_data = FALSE
+         } else {
+            use_example_data = TRUE
+         }
+
+         print("use_example_data")
+         print(use_example_data)
          if (is.null(input$File1) && !use_example_data) {
+            print("Here?")
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
+            shinyalert("Not any data given", "Did you forget to click on an example data set or upload own data sets?")
+            return()
          } else {
            file <- input$File1
            real_data <- do_plotting(file$datapath, input, input$sick, output, session)
@@ -1593,6 +1607,14 @@ server <- function(input, output, session) {
    # Refresh
    #############################################################################
    observeEvent(input$refresh, {
+     if (is.null(input$file)) {
+         use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+         if (is.null(use_example_data)) {
+            shinyalert("Nothing to refresh", "Did you forgot to upload data or use an example data set and press load?")
+            return()
+         }
+      }
+
       storeSession(session$token, "data_loaded", NULL, global_data)
       storeSession(session$token, "is_FuelOxidation_calculated", NULL, global_data)
       click("plotting")
@@ -1602,6 +1624,13 @@ server <- function(input, output, session) {
    # Load data
    #############################################################################
    observeEvent(input$load_data, {
+      if (is.null(input$file)) {
+         use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+         if (is.null(use_example_data)) {
+            shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
+            return()
+         }
+      }
       load_data(file$File1$datapath, input, input$sick, output, session)
       storeSession(session$token, "data_loaded", TRUE, global_data)
    })
