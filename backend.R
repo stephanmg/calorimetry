@@ -536,6 +536,7 @@ load_data <- function(file, input, exclusion, output, session) {
    storeSession(session$token, "finalC1meta", finalC1meta, global_data)
    storeSession(session$token, "C1meta", C1meta, global_data)
    storeSession(session$token, "scaleFactor", scaleFactor, global_data)
+   storeSession(session$token, "finalC1cols", colnames(finalC1), global_data)
 }
 
 
@@ -1039,9 +1040,14 @@ server <- function(input, output, session) {
                choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
+   # TODO: here we need to then filter choices based on actual data we have read in with one of the importers,
+   # update this myr plot once when data has been loaded by load_data with column names of finalC1 data frame,
+   # use colnames(finalC1) for this and take intersection with choices reported here...
    observeEvent(input$plot_type, {
+      raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp", "WeightBody")
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
+         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = intersect(unlist(choices), unlist(choices))))
     })
 
    observeEvent(input$plot_type, {
@@ -1624,14 +1630,12 @@ server <- function(input, output, session) {
    # Load data
    #############################################################################
    observeEvent(input$load_data, {
-      if (is.null(input$file)) {
-         use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
-         if (is.null(use_example_data)) {
-            shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
-            return()
-         }
+      if (!is.null(input$File1)) {
+           load_data(file$File1$datapath, input, input$sick, output, session)
+           storeSession(session$token, "data_loaded", TRUE, global_data)
+      } else {
+           shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
+           return()
       }
-      load_data(file$File1$datapath, input, input$sick, output, session)
-      storeSession(session$token, "data_loaded", TRUE, global_data)
    })
 }

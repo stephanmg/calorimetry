@@ -106,6 +106,15 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
 
+	colnames(finalC1)[colnames(finalC1) == "WeightBody_[g]"] <- "WeightBody"
+	if (startsWith(input$myr, "WeightBody")) {
+		mylabel <- "WeightBody"
+	}
+	print("myr:")
+	print(input$myr)
+	print(colnames(finalC1))
+
+
 	# annotations for days
 	finalC1 <- day_annotations$df_annotated
 
@@ -172,6 +181,12 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	if (startsWith(input$myr, "RER")) {
 		mylabel <- "RER"
+	}
+
+	colnames(df_to_plot)[colnames(df_to_plot) == "WeightBody_[g]"] <- "WeightBody"
+
+	if (startsWith(input$myr, "WeightBody")) {
+		mylabel <- "WeightBody"
 	}
 
 	names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
