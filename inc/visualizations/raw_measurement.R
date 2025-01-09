@@ -41,6 +41,21 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			print("Here?")
+			print(input$temperature_mean)
+			print(colnames(finalC1))
+			print(class(finalC1$`Temp_[°C]`))
+			#finalC1 < finalC1 %>% dplyr::filter(`Temp_[°C]` == as.numeric(input$temperature_mean))
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+			print(finalC1)
+
+			print("there?")
+		}
+	}
+
 	# Filter conditions based on factor level
 	if (input$with_grouping) {
 		my_var <- input$condition_type
@@ -95,7 +110,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (startsWith(input$myr, "V")) { mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") }
 
 	# rename Temp
-	if (startsWith(input$myr, "Temp")) { mylabel <- paste0(input$myr, sep = "", "_C") }
+	if (startsWith(input$myr, "Temp")) { mylabel <- paste0(input$myr, sep = "", "_[°C]") }
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER_NA" }
@@ -175,7 +190,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	}
 
 	if (startsWith(input$myr, "Temp")) {
-		mylabel <- paste0(input$myr, sep = "", "_C")
+		mylabel <- paste0(input$myr, sep = "", "_[°C]")
 		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	}
 
