@@ -39,7 +39,8 @@ calculate_statistic <- function(data, method) {
 #' 
 #' This function performs multi-way ANCOVA or ANOVA analysis
 ################################################################################
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE) {
+# TODO: Add glm family and link function (input$glm_family and input$link_function)
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   print("after joining with metadata...")
   print(df)
@@ -296,17 +297,28 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (test_type == "2-way ANOVA" || test_type == "2-way ANCOVA") {
       df$Days <- as.factor(df$Days)
       model = lm(TEE ~ group * Days, data=df)
+      if (lm_or_glm == TRUE) {
+        model = glm(TEE ~ group * Days, data=df)
+      }
+
       if (repeated_measurements) {
         model = nlme::lme(TEE ~ group * Days, random=~1|Animals, data=df)
       }
 
       if (test_type == "2-way ANCOVA") {
         model = lm(TEE ~ group * Days + Weight, data=df)
+        if (lm_or_glm == TRUE) {
+          model = glm(TEE ~ group * Days + Weight, data=df)
+        }
         if (repeated_measurements) {
           model = nlme::lme(TEE ~ group * Days + Weight, random=~1|Animals, data=df)
         }
         if (num_covariates > 1) {
           model = lm(TEE ~ group * Days + Weight + Weight2, data=df)
+          if (lm_or_glm == TRUE) {
+            model = glm(TEE ~ group * Days + Weight + Weight2, data=df)
+          }
+
           if (repeated_measurements) {
             model = nlme::lme(TEE ~ group * Days + Weight + Weight2, random=~1|Animals, data=df)
           }
@@ -374,8 +386,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-  if (test_type == '1-way ANOVA') {
+  if (test_type == '1-way ANOVA' || test_type == '1-way GLM') {
     model = lm(TEE ~ group, data=df)
+    if (lm_or_glm == TRUE) { # use GLM
+      model = glm(TEE ~ group, data=df)
+    }
     emm = emmeans(model, ~ group)
     emm_df <- as.data.frame(emm)
 

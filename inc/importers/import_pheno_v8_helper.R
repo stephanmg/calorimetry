@@ -48,7 +48,6 @@ import_pheno_v8 <- function(file, file_out) {
    header[nrow(header) + 1, ] <- c(file, rep("", 10))
    header[nrow(header) + 1, ] <- c("", filetype, rep("", 9))
 
-
    metadata <- read.csv2(file, skip = 2, nrows = toskip - 4)
    cc <- colnames(metadata)
    cc <- cc[!grepl("^X", cc)]

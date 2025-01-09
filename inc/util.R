@@ -222,6 +222,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			h4("Configuration"),
          uiOutput("formula_for_ancova_anova"),
 			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA", "1-way ANOVA", "2-way ANOVA"), selected = "1-way ANOVA"),
+         checkboxInput("lm_or_glm", "Use generalized linear model", value=FALSE),
+         conditionalPanel("input.lm_or_glm == true", selectInput("glm_family", "GLM Family", choices=c("Gaussian", "Binomial", "Poisson", "Gamma"), selected="Gaussian")),
+         conditionalPanel("input.lm_or_glm == true", selectInput("glm_link_function", "Link function", choices=c("default"),  selected="default")),
+         conditionalPanel("input.lm_or_glm == true", hr(style="width:30%")),
 			selectInput("dep_var", "Dependent variable", choice = c(dep_var)),
 			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '2-way ANCOVA'", selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1')),
 			selectInput("indep_var", "Independent grouping variable #1", choices = c(get_columns_with_at_least_two_levels(true_metadata), "Animals", has_cohorts(input_df)), selected = getSession(session$token, global_data)[["selected_indep_var"]]),
@@ -316,7 +320,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
 
-		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
+		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm)
       p <- ret$plot_summary
       df <- ret$df
 
@@ -412,7 +416,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	})
 
 	output$plot_statistics_details2 <- renderPlotly({
-		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)$plot_summary2 
+		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm)$plot_summary2 
       p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile)) 
       p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile)) 
 		p <- p + ggtitle(input$study_description)
