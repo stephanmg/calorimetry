@@ -190,7 +190,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		mutate(MeasDiff = abs(Meas2 - Meas1)) %>%      # Compute measurement difference
 		select(Animals, Time1, Time2, MeasDiff, TimeDiff, Meas1, Meas2)
 		p2 <- ggplot(data = result, aes_string(y = "MeasDiff", x = "Time1", color = "Animals", group = "Animals")) + geom_line()
-		p2 <- p2 + ylab(paste0("Energy Expenditure [", input$kj,"/ h]"))
+		p2 <- p2 + ylab(paste0("Heat Production [", input$kj,"/ h]"))
 		p2 <- p2 + xlab("Zeitgeber time [h]")
 		p2 <- p2 + ggtitle("Time trace")
 		p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
@@ -201,7 +201,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "EE", offset, "HP")
 			p3 <- window_plot$plot
 			p3 <- p3 + xlab("Zeitgeber time [h]") 
-			p3 <- p3 + ylab(paste0("Total Energy Expenditure [", input$kj,"/ h]"))
+			p3 <- p3 + ylab(paste0("Total Heat Production [", input$kj_or_kcal,"/ h]")) + ggtitle("Total Heat Production in window")
 			annotations_window_plot <<- window_plot$annotations
 
 			# group with group from metadata

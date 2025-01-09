@@ -1245,7 +1245,7 @@ server <- function(input, output, session) {
                write.csv2(real_data$data, "before_rmr_written.csv")
                storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
 
-                # add time trace for EE (as difference between TEE and RMR) if RMR was available
+               # add time trace for EE (as difference between TEE and RMR) if RMR was available
                # TODO: add windowed plot here, more difficult to add then expected
                rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
                if (!is.null(rmr_time_trace)) {
