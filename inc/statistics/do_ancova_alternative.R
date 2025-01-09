@@ -166,20 +166,21 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   p3 <- NULL
   if (dep_var == "TEE") {
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line", alpha=0) 
-    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE), max(df$TEE)), label.x=c(min(df$Weight), min(df$Weight)+1), geom="text", output.type = "text", parse=FALSE)
     p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
 
     if (num_covariates > 1) {
      p3 <- ggscatter(df, x = "Weight2", y = "TEE", color = "group", add = "reg.line")
-     p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+     p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE), max(df$TEE)), label.x=c(min(df$Weight2), min(df$Weight2)+1), geom="text", output.type = "text", parse=FALSE)
      p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
     }
 
   } else {
-    label_y <- c(max(df$TEE)+2, max(df$TEE)+8)
+    label_y <- c(max(df$TEE), max(df$TEE))
+    label_x <- c(min(df$Weight, min(df$Weight)+1.0))
     df <- df %>% rename(!!dep_var := TEE)
     p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line", alpha=0)
-    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, geom="text", output.type = "text", parse=FALSE)
+    p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, label.x=label_x, geom="text", output.type = "text", parse=FALSE)
     if (dep_var == "RMR" || dep_var == "EE") {
       # TODO: RMR and EE comes already averaged per Days
       p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals), color=group), label = "", alpha=1)
@@ -190,7 +191,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     if (num_covariates > 1) {
       df <- df %>% rename(!!dep_var := TEE)
       p3 <- ggscatter(df, x = "Weight2", y = dep_var, color = "group", add = "reg.line")
-      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE)+2, max(df$TEE)+8), geom="text", output.type = "text", parse=FALSE)
+      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE), max(df$TEE)), label.x=c(min(df$Weight2), min(df$Weight2)+1.0), geom="text", output.type = "text", parse=FALSE)
      if (dep_var == "RMR" || dep_var == "EE") {
         # TODO: RMR and EE comes already averaged per Days
       p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals), color=group), label = "", alpha=1)
