@@ -255,11 +255,14 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		p <- p + xlab("Time [h]")
 	}
 
+	mylabel <- NULL
 	# display unit correctly on y-axis label
 	if (input$kj_or_kcal == "mW") {
 		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " "))
+		mylabel <- paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " ")
 	} else {
 		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/h]", sep = " "))
+		mylabel <- paste("Energy expenditure [", input$kj_or_kcal, "/h]", sep = " ")
 	}
 
 	# add light cycle annotation
@@ -315,11 +318,40 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		}
 	}
 
+	# add trend lines
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
 				grouped_gam$trend <- as.factor(grouped_gam$trend)
-				p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+				if (!is.null(input$add_average_with_se_one_plot)) {
+					if (input$add_average_with_se_one_plot) {
+						p <- ggplot(data = df_to_plot, aes_string(y = "HP2", x = "running_total.hrs.halfhour"))
+						p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+						p <- p + labs(colour=input$facets_by_data_one, fill=input$facets_by_data_one)
+						# set y-axis label
+						p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
+						# set x-axis label
+						if (input$use_zeitgeber_time) {
+							p <- p + xlab("Zeitgeber time [h]")
+						} else {
+							p <- p + xlab("Time [h]")
+						}
+						# add back timeline
+						if (input$timeline) {
+							if (!is.null(input$only_full_days_zeitgeber)) {
+								if (input$only_full_days_zeitgeber == TRUE) {
+									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+									p <- p + my_lights
+								} else {
+									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+									p <- p + my_lights
+								}
+							}
+						}
+					} else {
+						p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+					}
+				}
 			}
 		} else {
 				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
