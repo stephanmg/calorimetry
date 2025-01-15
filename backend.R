@@ -661,9 +661,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- style_plot(p, input)
 
       if (!is.null(p_window)) {
-         print("before rednering windowed plot?")
          output$windowPlot <- renderPlotly(p_window)
-         print("after rendering windows plot")
       }
 
    },
@@ -1256,34 +1254,19 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical model")
 
-               write.csv2(real_data$data, "before_rmr_written.csv")
+               # RMR time trace required in TotalEnergyExpenditure
                storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
 
-               # add time trace for EE (as difference between TEE and RMR) if RMR was available
-               # TODO: add windowed plot here, more difficult to add then expected
-               rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
-               #if (!is.null(rmr_time_trace)) {
-                  # TODO: Add correct daycount
-               #   rmr_time_trace <- rmr_time_trace %>% mutate(running_total.sec=Time)
-               #   rmr_time_trace$DayCount = 1
-               #   print("here?")
-		            #window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, rmr_time_trace, "RMR", 0, "HP")
-              #    if (!is.null(window_plot)) {
-              #       output$windowPlot <- renderPlotly(window_plot)
-              #      }
-              # }
-               print("cols:")
-               print(colnames(real_data$data))
-               real_data$data$Days <- 1
-               write.csv2(real_data$data, "real_data_debug.csv")
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
+               print("col names from real_data$data")
+               print(colnames(real_data$data))
                df_filtered <- real_data$data %>%
                   select(-which(is.na(names(real_data$data)))) %>%
                   filter(Component != input$cvs) %>%
                   select(!Component) %>%
                   group_by(Animal) %>%
                   na.omit() %>%
-                  summarize(Value = HP, cgroups = c(Animal))
+                  summarize(Value = HP, cgroups = c(Animal), Days=floor(running_total.sec / (3600*24))+1)
                   # summarize(Value = min(HP), cgroups = c(Animal))
                write.csv2(df_filtered, "rmr.csv")
                storeSession(session$token, "RMR", df_filtered, global_data)
@@ -1345,6 +1328,8 @@ server <- function(input, output, session) {
             # TODO: Here RMR and EE get averaged per day already... need to change this if required.
             # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
             # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
+            ## This also creates the bar plots, we need to create grouped by day bar plots here instead? or we need to add the option
+            ## TODO: use uiOutput for summary bar plot and add checkbox grouped by individual days or average per  day...
             df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
             df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
