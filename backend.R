@@ -1234,7 +1234,7 @@ server <- function(input, output, session) {
             showTab(inputId = "additional_content", target = "Main plot")
 
             ## TODO: Resting Metabolic Rate is still handled differently, i.e. in backend.R,
-            ## should be move to inc/visualizations/resting_metabolic_rate.R
+            ## should be moved in principle fully to inc/visualizations/resting_metabolic_rate.R
 
             if (input$plot_type == "RestingMetabolicRate") {
                

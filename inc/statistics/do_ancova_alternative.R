@@ -323,7 +323,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       p <- ggplot(emm_df, aes(x=Days, y=emmean, group=group, color=group)) + geom_line() + geom_point()
       p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
 
-      # TODO:
+      # TODO: add selection of first or second grouping variable
       # if (input$first_or_second_factor_for_2_way_analysis) {
       # by="group" and rename(group2=group) instead of
       # by="Days" and rename(group2=Days) below
