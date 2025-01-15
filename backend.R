@@ -1397,7 +1397,7 @@ server <- function(input, output, session) {
             print("true_metadata")
             print(true_metadata)
 
-            # add statistica panel here
+            # add statistics panel here
             add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
 
             # create LME model UI

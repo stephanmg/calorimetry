@@ -176,6 +176,8 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- NULL 
 	print(colnames(df_plot_total))
 
+	
+
 	# group with group from metadata
 	if (input$with_facets) {
 		p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
@@ -210,7 +212,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		p2 <- p2 + ggtitle(paste0("Average measurement of ", mylabel, " in window")) + ylab(mylabel)
 		annotations_window_plot <<- window_plot$annotations
 		print("Here after plot created...")
-
 	}
 
 	# add light cycle annotation
