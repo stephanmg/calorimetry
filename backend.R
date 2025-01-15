@@ -1329,10 +1329,8 @@ server <- function(input, output, session) {
             # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
             # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
             ## This also creates the bar plots, we need to create grouped by day bar plots here instead? or we need to add the option
-            ## TODO: use uiOutput for summary bar plot and add checkbox grouped by individual days or average per  day...
             df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
             df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
-
 
             df1 <- left_join(df1, unique_days_tee, by = "Animals")
             df2 <- left_join(df2, unique_days_tee, by = "Animals")
@@ -1384,15 +1382,18 @@ server <- function(input, output, session) {
                df1 <- read.csv2("only_df1.csv")
                df2 <- read.csv2("only_df2.csv")
                df1 <- df1 %>% group_by(Days, Animals) %>% summarize(EE=sum(Value, na.rm=TRUE))
-               df1$TEE="non-RMR"
+               df1$TEE="RMR"
                df2 <- df2 %>% filter(Equation=="Heldmaier2") %>% group_by(Days, Animals) %>% summarize(EE=sum(TEE, na.rm=TRUE))
-               df2$TEE="RMR"
-               df_total <- rbind(df1, df2)
+               df2$TEE="non-RMR"
+               df_merged = merge(df1, df2, by=c("Days", "Animals"), suffixes=c("_df1", "_df2"))
+               df_merged$EE = df_merged$EE_df2 - df_merged$EE_df1
+               df_merged <- df_merged %>% select(Days, Animals, EE=EE_df1, TEE=TEE_df1) %>% bind_rows(df_merged %>% select(Days, Animals, EE=EE_df2, TEE=TEE_df2))
+               #df_total <- rbind(df1, df2)
+               df_total = df_merged
+               df_total <- df_total %>% group_by(Days, Animals)
                df_total$Animals <- as.factor(df_total$Animals)
                storeSession(session$token, "TEE_and_RMR", df_total, global_data)
                df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
-               # TODO: need to take the difference of df1 and df2 since df2 is TOTAL and not only energy expenditure...
-               # see code  above...
                write.csv2(df_total, "new_rmr_and_tee_df.csv")
             }
 

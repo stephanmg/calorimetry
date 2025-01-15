@@ -433,7 +433,7 @@ main_content <- mainPanel(
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),
-      tabPanel("Summary statistics", plotlyOutput("summary")), # TODO: we need an uiOutput here and add a individual day checkbox 
+      tabPanel("Summary statistics", plotlyOutput("summary")),
       tabPanel("Details", uiOutput("details")),
       tabPanel("Statistical model", uiOutput("modelling")),
       tabPanel("Explanation", htmlOutput("explanation"))
