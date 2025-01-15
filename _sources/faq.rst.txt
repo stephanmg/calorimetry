@@ -1,8 +1,6 @@
 Frequently Asked Questions
 ==========================
 
-.. faq::
-
 Q: I receive the error `Error: wrong sign in 'by' argument` when using my metadata sheet
 
 A: Make sure to select all cohorts in the input file dialog, e.g. when two cohorts are recorded in your accompanying metadata sheet, you will need to provide all two cohorts in the app.
@@ -18,3 +16,15 @@ A: Use the provided template for the metadata sheet in .xlsx format. Otherwise, 
 Q: Why does my PhenoMaster column format throw an error?
 
 A: Currently PhenoMaster is only supported in row format.
+
+Q: Why do I receive an error `Error: [object Object]` in statistical testing panel without a metadata file?
+
+A: Most likely the statistical method is not appropriate for the provided data sets. A metadata file will fix this error.
+
+Q: I receive an error `Error: [object Object]` in statistical testing panel for energy expenditure?
+
+A: Make sure, that you calculated first, TotalEnergyExpenditure and then RestingMetabolicRate. Omiting one of these calculations will lead to the received error.
+
+Q: Data file can't be read at all when metadata is provided with an error: `Error [object Object]` or `Argument is of length 0`?
+
+A: The TSE header must be valid, e.g. Weight with `.` instead of `.`, and if metadata `Genotype` etc. is used in metadata sheet as well, data have to be match the TSE header (e.g. no other groups like mis-spelled `cntrl` in TSE header if in metadata sheet is cntl and wt for instance allowed). Either fix in app or otherwise do not export TSE header from phenomaster at all and only fill metadata sheet. Also, when providing TSE files, the header must be valid.
