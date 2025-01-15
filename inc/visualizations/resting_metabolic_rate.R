@@ -13,7 +13,7 @@
 #' resting_metabolic_rate(values, full_metadata, input, output, session, global_data, 1)
 #' @export
 ################################################################################
-resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor, true_metadata) {
 	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
 	metadatafile <- get_metadata_datapath(input, session, global_data)
 	component2 <- ""
@@ -150,7 +150,10 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	df_plot_total$Animals = df_plot_total$Animal
 	# since NAs might be introduced due to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
 	# this is from multiple cohorts case, for a single cohrot we should never have the nas introduced in the first place
-	df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)$data %>% na.omit()
+	#with_metadata <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)$data %>% na.omit()
+	with_metadata <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)
+	df_plot_total <- with_metadata$data %>% na.omit()
+	true_metadata <- with_metadata$metadata
 	write.csv2(df_plot_total, "after_enriching_again.csv")
 
 	# Select sexes
@@ -173,8 +176,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- NULL 
 	print(colnames(df_plot_total))
 
-
-
 	# group with group from metadata
 	if (input$with_facets) {
 		p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
@@ -188,6 +189,28 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	} else {
 		p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Cohort)) + geom_line()
 		p <- p + facet_wrap(~Animal)
+	}
+
+
+	p2 <- NULL
+	if (input$windowed_plot == TRUE) {
+		# offset is minimum value for time (on x-axis)
+		offset <- min(df_plot_total$Time)
+		df_plot_total$running_total.hrs.halfhour = df_plot_total$Time
+		df_plot_total$running_total.sec = df_plot_total$Time * 60
+		df_plot_total$DayCount = ceiling(df_plot_total$running_total.sec / (3600*24))
+
+		print(colnames(df_plot_total))
+		write.csv2(df_plot_total, "for_windowed_RMR_plot.csv")
+		# windowed time trace plot
+		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_plot_total, "HP", offset, "HP")
+
+		p2 <- window_plot$plot
+		mylabel <- "RMR"
+		p2 <- p2 + ggtitle(paste0("Average measurement of ", mylabel, " in window")) + ylab(mylabel)
+		annotations_window_plot <<- window_plot$annotations
+		print("Here after plot created...")
+
 	}
 
 	# add light cycle annotation
@@ -254,7 +277,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
 
 
-
 	finalC1 <- df_plot_total
-	return(list("finalC1"=finalC1, "plot"=p))
+	return(list("finalC1"=finalC1, "plot"=p, "window_plot"=p2))
 }

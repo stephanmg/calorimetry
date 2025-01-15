@@ -318,7 +318,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		}
 	}
 
-	# add trend lines
+	# add trend lines: 
+	# TODO can also be factored out to remove code duplication
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
