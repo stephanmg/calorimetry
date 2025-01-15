@@ -3,8 +3,7 @@ name: Docs
 on:
    push:
       branches:
-         - main
-         - with_metadata_sheet
+         - develop
 
 jobs:
    build-docs:

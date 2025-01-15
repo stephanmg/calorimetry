@@ -946,7 +946,7 @@ get_global_offset_for_day_night <- function(df) {
 #' @export
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
-   # TODO: v0.5.0 - this needs to be revised, if one want to select indvidual calendrical days,
+   # TODO: v0.6.0 - this needs to be revised, if one want to select indvidual calendrical days,
    # because running_total.sec == 0 will not be foun, also for RMR the following df
    # is grouped and needs to be converted before writing. Why?
    write.csv2(apply(df, 2, as.character), "directly_before_offsets.csv")
