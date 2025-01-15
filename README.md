@@ -7,7 +7,6 @@ CALOR is a holistic web application for data integration, visualization and stat
 <br clear="left"/>
 <hr/>
 
-[![Shiny app deployment](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/deploy-shiny.yml)
 [![Docker.io](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml)
 [![Docs](https://github.com/stephanmg/calorimetry/actions/workflows/docs.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/docs.yml)
 [![Tests](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml)
