@@ -1321,7 +1321,6 @@ server <- function(input, output, session) {
             df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
             df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
 
-
             write.csv2(df1, "only_df1.csv")
             write.csv2(df2, "only_df2.csv")
 
