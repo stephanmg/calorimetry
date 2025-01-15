@@ -39,23 +39,22 @@ calculate_statistic <- function(data, method) {
 #' 
 #' This function performs multi-way ANCOVA or ANOVA analysis
 ################################################################################
-# TODO: Add glm family and link function (input$glm_family and input$link_function)
+# TODO: Add possibility to let the user choose the glm family and link function 
+# via the inputs (input$glm_family and input$link_function) - not only defaults
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
-  print("after joining with metadata...")
-  print(df)
-  # Might be necessary, check carefully, if not, remove later
+  # Might not be necessary, does no harm, can be removed if no adverse effects revealed during testing
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {
       df <- df %>% rename(Genotype = `Genotype.x`)
     }
   }
 
-
   if (is.null(indep_var)) {
     indep_var <- "body_weight"
   }
-  # TODO: Rename covariates ANCOVA
+
+  # TODO: Rename covariates for ANCOVA
   # First covariate, rename Weight -> Covariate1
   # Second covariate, rename Weight2 -> Covariate2
   names(df)[names(df) == indep_var] <- "Weight"
@@ -80,8 +79,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
-
-  # for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed, see TODOs below
+  # TODO: for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed to a generic name, e.g. group2
   if (dep_var == "HP") {
     df <- df %>% select(-Days)
     names(df)[names(df) == group2] <- "Days"
@@ -91,7 +89,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   if (num_covariates > 1) {
     to_select_columns = c("Animals", "group", "Weight", "Weight2", "TEE", "Days")
   }
-
 
   # TODO: Rename TEE for ANCOVA 
   # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
@@ -161,7 +158,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-
   p2 <- NULL
   p3 <- NULL
   if (dep_var == "TEE") {
@@ -201,13 +197,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
-
   p2 <- p2 + labs(colour=group)
   if (num_covariates > 1) {
     p3 <- p3 + labs(colour=group)
   }
-
-
 
   # 1-way ANCOVA based on user input grouping variable
   res.aov <- NULL
@@ -352,7 +345,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
-    # TODO: plotly does not support comparisons=pairs in stat_compare_means()
+    # FIXME: plotly does not support comparisons=pairs in stat_compare_means()
     #df$group <- as.character(df$group)
     #pairs <- combn(unique(df$group), 2, simplify=FALSE)
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=15, outlier.size=0, outlier.color="red") # outlier.shape=NA)  

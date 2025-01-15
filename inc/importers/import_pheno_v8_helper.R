@@ -11,8 +11,8 @@ library(dplyr)
 #' import_pheno_v8(input_file, output_file)
 ################################################################################
 import_pheno_v8 <- function(file, file_out) {
-   # TODO: PhenoMaster v8 typically uses ; as separator, but sometimes there is "," too.
-   # We need to accomodate for this.
+   # TODO: PhenoMaster v8 typically uses ";" as separator, but sometimes also "," 
+   # We need to accomodate for both the occasionally occuring "," separator too
    toskip <- 0
    con <- file(file, "r")
    filetype <- ""
@@ -30,9 +30,9 @@ import_pheno_v8 <- function(file, file_out) {
    close(con)
 
    df <- read.csv2(file, skip = toskip)
-   # TODO: which columns should be displayed additionally? Activity data? Temperature?
    df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "Weight"))
-   df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time) # PhenoMaster v8 is in format HH:MM:SS
+   # PhenoMaster v8 has the following time format HH:MM:SS
+   df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time)
    units <- df_selected[1,]
    units[is.na(units)] <- ''
    df_selected <- df_selected[-1, ]
