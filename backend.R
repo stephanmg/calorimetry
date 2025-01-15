@@ -1378,13 +1378,39 @@ server <- function(input, output, session) {
             write.csv2(df_total, "test_for_rmr.csv")
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
+            # TODO: refactor this, because this is what we usually want (only for the bar plot above we want to average)
+            no_averages_required_for_RMR_and_TEE = TRUE
+            if (no_averages_required_for_RMR_and_TEE == TRUE) {
+               df1 <- read.csv2("only_df1.csv")
+               df2 <- read.csv2("only_df2.csv")
+               df1 <- df1 %>% group_by(Days, Animals) %>% summarize(EE=sum(Value, na.rm=TRUE))
+               df1$TEE="non-RMR"
+               df2 <- df2 %>% filter(Equation=="Heldmaier2") %>% group_by(Days, Animals) %>% summarize(EE=sum(TEE, na.rm=TRUE))
+               df2$TEE="RMR"
+               df_total <- rbind(df1, df2)
+               df_total$Animals <- as.factor(df_total$Animals)
+               storeSession(session$token, "TEE_and_RMR", df_total, global_data)
+               df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
+               # TODO: need to take the difference of df1 and df2 since df2 is TOTAL and not only energy expenditure...
+               # see code  above...
+               write.csv2(df_total, "new_rmr_and_tee_df.csv")
+            }
+
+            print("enriching...")
             data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
             true_metadata <- data_and_metadata$metadata
             print("true_metadata")
             print(true_metadata)
+            print("data:")
+            print(colnames(data_and_metadata$data))
+            print(data_and_metadata$data)
 
             # add statistics panel here
-            add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            if (no_averages_required_for_RMR_and_TEE == TRUE) {
+               add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total, metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            } else {
+               add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            }
 
             # create LME model UI
             RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
