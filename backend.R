@@ -648,10 +648,22 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
         return()
       }
 
-      df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor, true_metadata)
       finalC1 <- df_returned$finalC1
 
       p <- df_returned$plot
+      p_window <- df_returned$window_plot
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
+
    },
    #####################################################################################################################
    ### Day Night Activity
@@ -1242,31 +1254,19 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical model")
 
-               write.csv2(real_data$data, "before_rmr_written.csv")
+               # RMR time trace required in TotalEnergyExpenditure
                storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
 
-               # add time trace for EE (as difference between TEE and RMR) if RMR was available
-               # TODO: add windowed plot here, more difficult to add then expected
-               rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
-               if (!is.null(rmr_time_trace)) {
-                  # TODO: Add correct daycount
-                  rmr_time_trace <- rmr_time_trace %>% mutate(running_total.sec=Time)
-                  rmr_time_trace$DayCount = 1
-                  print("here?")
-		            window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, rmr_time_trace, "RMR", 0, "HP")
-                  if (!is.null(window_plot)) {
-                     output$windowPlot <- renderPlotly(window_plot)
-                    }
-               }
-
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
+               print("col names from real_data$data")
+               print(colnames(real_data$data))
                df_filtered <- real_data$data %>%
                   select(-which(is.na(names(real_data$data)))) %>%
                   filter(Component != input$cvs) %>%
                   select(!Component) %>%
                   group_by(Animal) %>%
                   na.omit() %>%
-                  summarize(Value = HP, cgroups = c(Animal))
+                  summarize(Value = HP, cgroups = c(Animal), Days=floor(running_total.sec / (3600*24))+1)
                   # summarize(Value = min(HP), cgroups = c(Animal))
                write.csv2(df_filtered, "rmr.csv")
                storeSession(session$token, "RMR", df_filtered, global_data)
@@ -1321,9 +1321,13 @@ server <- function(input, output, session) {
             df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
             df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
 
+            write.csv2(df1, "only_df1.csv")
+            write.csv2(df2, "only_df2.csv")
+
             # TODO: Here RMR and EE get averaged per day already... need to change this if required.
             # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
             # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
+            ## This also creates the bar plots, we need to create grouped by day bar plots here instead? or we need to add the option
             df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
             df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
@@ -1366,17 +1370,47 @@ server <- function(input, output, session) {
             )
             
             # write.csv2(df_total, "tee_and_rmr.csv")
+            # TODO: TEE is used in EnergyExpenditure too, so if it condtians Days again, we can also allow 2-way analayis for EE again, see energy_expenditure (before add_anova_ancova panel)
             storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
             write.csv2(df_total, "test_for_rmr.csv")
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
+            # TODO: refactor this, because this is what we usually want (only for the bar plot above we want to average)
+            no_averages_required_for_RMR_and_TEE = TRUE
+            if (no_averages_required_for_RMR_and_TEE == TRUE) {
+               df1 <- read.csv2("only_df1.csv")
+               df2 <- read.csv2("only_df2.csv")
+               df1 <- df1 %>% group_by(Days, Animals) %>% summarize(EE=sum(Value, na.rm=TRUE))
+               df1$TEE="RMR"
+               df2 <- df2 %>% filter(Equation=="Heldmaier2") %>% group_by(Days, Animals) %>% summarize(EE=sum(TEE, na.rm=TRUE))
+               df2$TEE="non-RMR"
+               df_merged = merge(df1, df2, by=c("Days", "Animals"), suffixes=c("_df1", "_df2"))
+               df_merged$EE = df_merged$EE_df2 - df_merged$EE_df1
+               df_merged <- df_merged %>% select(Days, Animals, EE=EE_df1, TEE=TEE_df1) %>% bind_rows(df_merged %>% select(Days, Animals, EE=EE_df2, TEE=TEE_df2))
+               #df_total <- rbind(df1, df2)
+               df_total = df_merged
+               df_total <- df_total %>% group_by(Days, Animals)
+               df_total$Animals <- as.factor(df_total$Animals)
+               storeSession(session$token, "TEE_and_RMR", df_total, global_data)
+               df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
+               write.csv2(df_total, "new_rmr_and_tee_df.csv")
+            }
+
+            print("enriching...")
             data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
             true_metadata <- data_and_metadata$metadata
             print("true_metadata")
             print(true_metadata)
+            print("data:")
+            print(colnames(data_and_metadata$data))
+            print(data_and_metadata$data)
 
-            # add statistica panel here
-            add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            # add statistics panel here
+            if (no_averages_required_for_RMR_and_TEE == TRUE) {
+               add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total, metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            } else {
+               add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            }
 
             # create LME model UI
             RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
