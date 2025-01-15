@@ -1373,6 +1373,7 @@ server <- function(input, output, session) {
             )
             
             # write.csv2(df_total, "tee_and_rmr.csv")
+            # TODO: TEE is used in EnergyExpenditure too, so if it condtians Days again, we can also allow 2-way analayis for EE again, see energy_expenditure (before add_anova_ancova panel)
             storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
             write.csv2(df_total, "test_for_rmr.csv")
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
