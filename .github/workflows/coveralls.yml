@@ -18,8 +18,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages("devtools")
-          install.packages("covr")
+          Rscript -e 'install.packages("devtools")'
+          Rscript -e 'install.packages("covr")'
 
       - name: Run tests and report coverage
         env:
