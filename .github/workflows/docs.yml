@@ -32,7 +32,7 @@ jobs:
            chmod +x scripts/Rd_to_rst.sh
            chmod +x scripts/populate_api_docs.sh
            chmod +x scripts/build_sphinx_docs.sh
-           ./scripts/build_sphinx_docs.sh
+           cd ./scripts/ && ./build_sphinx_docs.sh
       
       - name: Deploy to GH pages
         uses: peaceiris/actions-gh-pages@v4
