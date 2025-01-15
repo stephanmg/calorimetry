@@ -27,8 +27,8 @@ jobs:
 
       - name: Build Sphinx documentation
         run: |
-           mkdir docs/md
-           mkdir docs/rst
+           mkdir -p docs/md
+           mkdir -p docs/rst
            chmod +x scripts/Rd_to_rst.sh
            chmod +x scripts/populate_api_docs.sh
            chmod +x scripts/build_sphinx_docs.sh
