@@ -92,6 +92,13 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# format variable from UI to compatible TSE format
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
+
+	# for activity data
+	if (startsWith(input$myr, "XT")) {
+		mylabel <- paste0(input$myr, sep="", "_[Cnts]")
+		mylabel <- sub("\\+", ".", mylabel)
+	}
+
 	if (startsWith(input$myr, "V")) { mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") }
 
 	# rename Temp
@@ -105,6 +112,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
+
 
 	colnames(finalC1)[colnames(finalC1) == "WeightBody_[g]"] <- "WeightBody"
 	if (startsWith(input$myr, "WeightBody")) {
@@ -168,6 +176,14 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# format labels for plot
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
+
+
+	if (startsWith(input$myr, "XT")) {
+		mylabel <- paste0(input$myr, sep="", "_[Cnts]")
+		mylabel <- sub("\\+", ".", mylabel)
+		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+	}
+
 	myvar <- input$myr
 	if (startsWith(input$myr, "V")) {
 		mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]")
@@ -205,6 +221,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
 	}
 
+
+
 	gam_model <- NULL
 	grouped_gam <- NULL
 	if (input$add_average_with_se) {
@@ -236,6 +254,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
+	print(input$myr)
+	print(colnames(df_to_plot))
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
 

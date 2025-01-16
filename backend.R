@@ -197,8 +197,6 @@ load_data <- function(file, input, exclusion, output, session) {
       }
    }
 
-   print("what?")
-
    # Skip metadata before data
    toSkip <- detectData(file)
 
@@ -537,6 +535,12 @@ load_data <- function(file, input, exclusion, output, session) {
    storeSession(session$token, "C1meta", C1meta, global_data)
    storeSession(session$token, "scaleFactor", scaleFactor, global_data)
    storeSession(session$token, "finalC1cols", colnames(finalC1), global_data)
+
+   raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
+   raw_cols <- sub("_.*$", "", raw_cols)
+   raw_cols <- sub("\\(.*$", "", raw_cols)
+   choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp", "WeightBody", "XT.YT")
+   updateSelectInput(session, "myr", choices = c(intersect(unlist(choices), unlist(raw_cols)), "O2"), selected=input$myr)
 }
 
 
@@ -549,7 +553,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       print("Loading data")
       load_data(file, input, exclusion, output, session)
       storeSession(session$token, "data_loaded", TRUE, global_data)
-   } else {
+
+     } else {
       print("not loading data!")
       # load_data(file, input, exclusion, output, session)
    }
@@ -1057,9 +1062,9 @@ server <- function(input, output, session) {
    # use colnames(finalC1) for this and take intersection with choices reported here...
    observeEvent(input$plot_type, {
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
-      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp", "WeightBody")
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp", "WeightBody", "XT+YT")
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = intersect(unlist(choices), unlist(choices))))
+         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="O2"))
     })
 
    observeEvent(input$plot_type, {
