@@ -55,7 +55,7 @@ import_promethion <- function(file, file_out) {
    }
 
    # units must follow the column order in the compiled data datafame
-   units <- c("", "[ml/h]", "[ml/h]", "", "C", rep("", NUM_METADATA))
+   units <- c("", "[ml/h]", "[ml/h]", "", "[°C]", rep("", NUM_METADATA))
    header[nrow(header) + 1, ] <- rep("", NUM_TOTAL_COLUMNS_EXPECTED)
    header[nrow(header) + 1, ] <- colnames(header)
    header[nrow(header) + 1, ] <- units

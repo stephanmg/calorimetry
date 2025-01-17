@@ -41,6 +41,13 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+		}
+	}
+
 	# Filter conditions based on factor level
 	if (input$with_grouping) {
 		my_var <- input$condition_type
@@ -124,9 +131,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (startsWith(input$myr, "WeightBody")) {
 		mylabel <- "WeightBody"
 	}
-	print("myr:")
-	print(input$myr)
-	print(colnames(finalC1))
 
 
 	# annotations for days

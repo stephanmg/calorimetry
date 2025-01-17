@@ -75,17 +75,11 @@ import_pheno_v8 <- function(file, file_out) {
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "O2")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "CO2")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "Weight")), ]
+   df_selected <- df_selected[!grepl("-", `$`(df_selected, "TempL")), ]
 
-   print("selected head:")
-   print(head(df_selected))
    for (additional_field in additional_fields) {
-      print("selected head loop:")
-      print(head(df_selected))
       df_selected <<- df_selected[!grepl("-", `$`(df_selected, additional_field)), ]
    }
-
-   print("selected:")
-   print(df_selected)
 
    # 9
    header <- data.frame(matrix(ncol = length(colnames(df_selected)), nrow = 0))
