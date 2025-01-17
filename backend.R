@@ -539,7 +539,7 @@ load_data <- function(file, input, exclusion, output, session) {
    raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
    raw_cols <- sub("_.*$", "", raw_cols)
    raw_cols <- sub("\\(.*$", "", raw_cols)
-   choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "TempC", "WeightBody", "XT.YT")
+   choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT.YT", "DistD", "DistK")
    updateSelectInput(session, "myr", choices = c(intersect(unlist(choices), unlist(raw_cols)), "O2"), selected=input$myr)
 }
 
@@ -1062,7 +1062,7 @@ server <- function(input, output, session) {
    # use colnames(finalC1) for this and take intersection with choices reported here...
    observeEvent(input$plot_type, {
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
-      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "TempC", "WeightBody", "XT+YT")
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
       output$myr <- renderUI(
          selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="O2"))
     })

@@ -36,6 +36,10 @@ import_pheno_v8 <- function(file, file_out) {
       additional_fields <- append(additional_fields, "XT.YT")
    }
 
+   if ("Temp" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "Temp")
+   }
+
    if ("TempL" %in% colnames(df)) {
       additional_fields <- append(additional_fields, "TempL")
    }
@@ -44,11 +48,23 @@ import_pheno_v8 <- function(file, file_out) {
       additional_fields <- append(additional_fields, "TempC")
    }
 
-   print(colnames(df))
+   if ("Drink1" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "Drink1")
+   }
+
+   if ("Feed1" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "Feed1")
+   }
+
+   if ("DistD" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "DistD")
+   }
+
+   if ("DistK" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "DistK")
+   }
 
    df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "Weight", additional_fields))
-   print("df selected before")
-   print(df_selected)
    # PhenoMaster v8 has the following time format HH:MM:SS
    df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time)
    units <- df_selected[1,]

@@ -102,8 +102,13 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (startsWith(input$myr, "V")) { mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") }
 
 	# rename Temp
+	if (startsWith(input$myr, "Temp")) { mylabel <- paste0(input$myr, sep = "", "_[°C]") }
 	if (startsWith(input$myr, "TempL")) { mylabel <- paste0(input$myr, sep = "", "_[°C]") }
 	if (startsWith(input$myr, "TempC")) { mylabel <- paste0(input$myr, sep = "", "_[°C]") }
+	if (startsWith(input$myr, "Drink1")) { mylabel <- paste0(input$myr, sep = "", "_[ml]") }
+	if (startsWith(input$myr, "Feed1")) { mylabel <- paste0(input$myr, sep = "", "_[g]") }
+	if (startsWith(input$myr, "DistD")) { mylabel <- paste0(input$myr, sep = "", "_[cm]") }
+	if (startsWith(input$myr, "DistK")) { mylabel <- paste0(input$myr, sep = "", "_[cm]") }
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER_NA" }
@@ -191,6 +196,25 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	}
 
+	if (startsWith(input$myr, "DistD")) {
+		mylabel <- paste0(input$myr, sep = "", "_[cm]")
+		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+	}
+
+	if (startsWith(input$myr, "DistK")) {
+		mylabel <- paste0(input$myr, sep = "", "_[cm]")
+		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+	}
+
+
+
+
+
+	if (startsWith(input$myr, "Temp")) {
+		mylabel <- paste0(input$myr, sep = "", "_[°C]")
+		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+	}
+
 	if (startsWith(input$myr, "TempL")) {
 		mylabel <- paste0(input$myr, sep = "", "_[°C]")
 		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
@@ -198,6 +222,16 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	if (startsWith(input$myr, "TempC")) {
 		mylabel <- paste0(input$myr, sep = "", "_[°C]")
+		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+	}
+
+	if (startsWith(input$myr, "Drink1")) {
+		mylabel <- paste0(input$myr, sep = "", "_[ml]")
+		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
+	}
+
+	if (startsWith(input$myr, "Feed1")) {
+		mylabel <- paste0(input$myr, sep = "", "_[g]")
 		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	}
 
