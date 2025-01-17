@@ -34,7 +34,7 @@ import_promethion <- function(file, file_out) {
    data <- data %>% rename("VO2(3)" = "VO2_M")
    data <- data %>% rename("VCO2(3)" = "VCO2_M")
    data <- data %>% rename("RER" = "RER_M")
-   data <- data %>% rename("Temp" = "EnviroTemp_M")
+   data <- data %>% rename("TempL" = "EnviroTemp_M")
 
    colnames(header) <- colnames(data)
 
