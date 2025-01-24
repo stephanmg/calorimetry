@@ -2,6 +2,9 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
+################################################################################
+#' add_windowed_plot_statistics
+################################################################################
 add_windowed_plot_statistics <- function(data, input, total_length, variable) {
    # Function to test differences per interval
    facet = "Genotype"
@@ -61,7 +64,6 @@ results <- results %>%
 
 ################################################################################
 #' add_windowed_plot
-#' 
 ################################################################################
 add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset, variable=NULL) {
 		data <- df_to_plot

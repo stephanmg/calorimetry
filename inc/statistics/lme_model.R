@@ -27,6 +27,13 @@ model_effects <- function(df, dep_var, input) {
 #' visualize_model_effects
 #' 
 #' This functions visualizes the linear mixed effect modelling results
+#' @param df data frame
+#' @param dep_var dependent variable
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data data stored in global session object
+#' @export
 ################################################################################
 visualize_model_effects <- function(df, dep_var, input, output, session, global_data) {
 	# set up LME model
@@ -79,6 +86,13 @@ visualize_model_effects <- function(df, dep_var, input, output, session, global_
 #' create_lme_model_ui
 #' 
 #' This function creates UI for LME modelling
+#' @param input shiny input
+#' @param output shiny output
+#' @param true_metadata metadata
+#' @param df_to_plot data frame to be plotted
+#' @param my_dep_var dependent variable
+#' @param session shiny session
+#' @param global_data data stored in global session object
 ################################################################################
 create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var, session, global_data) {
 	fittedValues <- getSession(session$token, global_data)[["fitted_values"]]

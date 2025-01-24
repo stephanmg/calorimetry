@@ -70,10 +70,6 @@ create_df <- function(df, component, M, N, percentage = 1, interval_length = 15)
    df_plot
 }
 
-# default settings for test
-filename <- "test_O2.pdf"
-percentage <- 5
-
 ################################################################################
 #' extract_rmr
 #' 

@@ -7,6 +7,7 @@ source("inc/session_management.R")
 #' @param df_to_plot data frame
 #' @param global_data hash table containing variables during session
 #' @param session shiny session
+#' @export
 ################################################################################
 prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]

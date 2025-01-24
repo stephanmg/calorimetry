@@ -272,8 +272,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 		}
 	}
 
-
-
 	# add trend lines
 	if (input$add_average_with_se) {
 		if (input$with_facets) {

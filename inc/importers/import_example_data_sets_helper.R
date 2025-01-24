@@ -7,6 +7,7 @@
 #' @param session
 #' @param output
 #' @param global_data
+#' @export
 #############################################################################
 add_example_data_sets <- function(input, session, output, global_data) {
 	#############################################################################

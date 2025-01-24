@@ -210,10 +210,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	}
 
-
-
-
-
 	if (startsWith(input$myr, "Temp")) {
 		mylabel <- paste0(input$myr, sep = "", "_[°C]")
 		names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr

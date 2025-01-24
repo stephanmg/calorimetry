@@ -31,7 +31,6 @@ import_pheno_v5 <- function(file, file_out) {
   mapping <- setNames(box, animals)
   reverse_mapping <- setNames(animals, box)
 
-
   # Read the main data after skipping metadata rows
   df <- read_delim(file_path, delim = ";", col_names = FALSE, skip = skiprows)
 
@@ -69,21 +68,13 @@ import_pheno_v5 <- function(file, file_out) {
   # Group rows by day and extract relevant data
   for (day in seq_along(rows_grouped)) {
     row_group <- rows_grouped[[day]]
-    
-    for (box_index in box_indices) {
-      # Extract data for each box (to be refined as per additional Python logic)
-      print(paste("Processing day:", day, "Box index:", box_index))
-    }
   }
 
-  # Extract rows for day and box-specific data (continued logic)
+  # Extract rows for day and box-specific data 
   for (day in seq_along(rows_grouped)) {
     row_group <- rows_grouped[[day]]
     
     for (box_index in box_indices) {
-      # Extract measurements per box index (to be detailed further)
-      print(paste("Processing day:", day, "Box index:", box_index))
-      
       # Example processing of the row group and offset logic (to match Python behavior)
       box_data <- row_group[, (box_index):(box_index + offset)]
       meas[[day]] <- rbind(if (exists("meas[[day]]")) meas[[day]] else NULL, box_data)
@@ -102,8 +93,6 @@ import_pheno_v5 <- function(file, file_out) {
   )
 
   # Perform additional data restructuring and cleanup as needed
-  # (Example only; actual logic depends on Python script behavior)
   processed_data <- do.call(rbind, lapply(combined_data$measurements, as.data.frame))
   write.table(processed_data, file_out, col.names = FALSE, row.names = FALSE, sep = ";", quote = FALSE)
-
 }
