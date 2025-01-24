@@ -33,6 +33,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "Raw_df", data_and_metadata, global_data)
 	}
 
+	# account for inconsistenly formatted data frames from TSE export
+	colnames(finalC1) <- gsub("Â°C", "°C", colnames(finalC1))	
+
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		# select male or female
