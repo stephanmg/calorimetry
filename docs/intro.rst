@@ -217,12 +217,6 @@ Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation.
 5. Conducting analyses with CALOR
 ---------------------------------
 
-TODO: Add: Hypothesen aufstellen für die beiden Beispieldatensätze:
-Gibt es Genotyp Effekte?
-Dann TotalHeatProduction, HeatProduction, RestingMetabolicRate zeigen,
-Dann ANOVAs
-Dann ANCOVAs
-
 5.1. Example data set I: UCP1 KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -615,8 +609,6 @@ Tutorial videos
 
 Workflow and use-cases are documented in a series of short instructional YouTube videos demonstrating the features of the
 web application: `@CALOR-APP <https://www.youtube.com/@CALOR-APP>`_.
-
-TODO: Add short videos for all of the subsections above.
 
 
 Flow charts
