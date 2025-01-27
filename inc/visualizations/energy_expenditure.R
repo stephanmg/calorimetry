@@ -380,6 +380,12 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	#p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(lights$y), max(lights$y)))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 
+	if (input$windowed_plot == TRUE) {
+		if (!is.null(p2)) {
+			p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		}
+	}
+
 	# create LME model UI
 	EE_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 	if (!is.null(EE_for_model)) {

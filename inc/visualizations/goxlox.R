@@ -336,6 +336,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	} else {
 		p <- p + xlab("Time [h]")
 	}
+
+	if (input$windowed_plot == TRUE) {
+		if (!is.null(p2)) {
+			p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		}
+	}
+
 	# store plot and indicate GoxLox has been calculated
 	storeSession(session$token, "plot_for_goxlox", p, global_data)
 	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)

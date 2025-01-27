@@ -239,6 +239,11 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		}
 	}
 
+	if (input$windowed_plot == TRUE) {
+		if (!is.null(p3)) {
+			p3 <- ggplotly(p3) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		}
+	}
 
 	return(list("time_trace"=p2, "plot"=p, "window_plot"=p3))
 }
