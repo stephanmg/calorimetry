@@ -475,6 +475,12 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# store number of total curves already present in plotly
 	storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+	if (input$windowed_plot == TRUE) {
+		if (!is.null(p2)) {
+			p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		}
+	}
+
 
 	# create LME model UI
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr, session, global_data)

@@ -306,5 +306,6 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 
 	combined_plot <- subplot(plots, nrows = as.integer(ncol(true_metadata)/3)+1, margin = 0.05, shareX = FALSE, shareY=FALSE, titleX = TRUE, titleY=TRUE) 
 	combined_plot <- combined_plot %>% layout(height=1000)
+	combined_plot <- ggplotly(combined_plot) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	return(combined_plot)
 }
