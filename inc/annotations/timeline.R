@@ -43,7 +43,7 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
       xmax_last_rect <- max(df$x, na.rm=T)
    }
 
-   # if we have overhanging days (incomplete days) color it either as day or night
+   # if we have overhanging days (incomplete days) color it either as day or night accordingly
    fill_color_last <- day_color
    if ((length(intervals) %% 2 == 0)) {
       fill_color_last <- night_color
@@ -63,12 +63,12 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    # stitch together all rects for overlay onto plot
    p <- p + annotate("rect", xmin=xmin_first_rect, xmax=xmax_first_rect, ymin=min(df$y), ymax=max(df$y), fill=night_color, alpha=0.1)
 
-   # regular intervals, and set limits.
+   # regular intervals, set set limits for these
    p <- p + ylim(min(df$y), max(df$y))
    p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df$x), max(df$x)))
    p <- p + scale_y_continuous(expand = c(0, 0), limits = c(min(df$y), max(df$y)))
 
-   # first segment in full days for zeitgeber is light phase
+   # first segment in full days for zeitgeber time is light phase
    if (only_full_days_zeitgeber == TRUE) {
       if (min(df$x) < 0) {
          p <- p + annotate("rect", xmin=min(df$x), xmax=(light_end-light_start), ymin=min(df$y), ymax=max(df$y), fill=night_color, alpha=0.1)

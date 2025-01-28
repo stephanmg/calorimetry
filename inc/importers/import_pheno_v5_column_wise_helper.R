@@ -1,8 +1,17 @@
-	# Load required libraries
+# Load required libraries
 library(readr)
 library(dplyr)
 library(stringr)
 
+#############################################################################
+#' import_pheno_v5
+#' 
+#' This function adds PhenoMaster loader v5 for column-based datasets
+#' 
+#' @param file input file
+#' @param file output file
+#' @export
+#############################################################################
 import_pheno_v5 <- function(file, file_out) {
   # Define header
   header <- "TSE study converted by CALOR v0.4.0;;;;;;;;;;;;;;;;\nTSE PhenoMaster V5.3.3 (2015-4474);;;;;;;;;;;;;;;"

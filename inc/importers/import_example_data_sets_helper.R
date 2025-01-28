@@ -1,12 +1,12 @@
 #############################################################################
 #' add_example_data sets
 #' 
-#' Adds two loadable example data sets 
+#' This function adds two loadable example data sets 
 #' 
-#' @param input
-#' @param session
-#' @param output
-#' @param global_data
+#' @param input shiny input
+#' @param session shiny session
+#' @param output shiny output
+#' @param global_data global data
 #' @export
 #############################################################################
 add_example_data_sets <- function(input, session, output, global_data) {

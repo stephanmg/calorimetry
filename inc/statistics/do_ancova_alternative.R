@@ -8,6 +8,7 @@ library(emmeans)
 #' brunner_munzel
 #' 
 #' This function get's the p-value for the Brunner Munzel test (statistic)
+#' @param df
 brunner_munzel <- function(df) {
   return(lawsat::brunner.munzel.test(as.numeric(df$TEE) ~ data$group)$p.value)
 }
@@ -16,6 +17,7 @@ brunner_munzel <- function(df) {
 #' get_r_squared_clean
 #' 
 #' This function get's the R-squared value in a clean way for plotly
+#' @param rvalue
 ################################################################################
 get_r_squared_clean <- function(rvalue) {
   r_squared_value <- sub(".*italic\\(R\\)\\^2\\s=\\s(-?[0-9.]+).*", "\\1", rvalue)
@@ -26,6 +28,8 @@ get_r_squared_clean <- function(rvalue) {
 #' calculate_statistic
 #' 
 #' This function calculate statistic based on provided method: mean or median
+#' @param data
+#' @param method
 ################################################################################
 calculate_statistic <- function(data, method) {
   switch(method,
@@ -38,6 +42,19 @@ calculate_statistic <- function(data, method) {
 #' do_ancova_alternative
 #' 
 #' This function performs multi-way ANCOVA or ANOVA analysis
+#' @param df_data
+#' @param df_metadata
+#' @param indep_var
+#' @param indep_var2
+#' @param group
+#' @param group2
+#' @param dep_var
+#' @param test_type
+#' @param adjust_method
+#' @param connected_or_independent_anova
+#' @param num_covariates
+#' @param repeated_measurements
+#' @param lm_or_glm
 ################################################################################
 # TODO: Add possibility to let the user choose the glm family and link function 
 # via the inputs (input$glm_family and input$link_function) - not only defaults

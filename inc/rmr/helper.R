@@ -6,6 +6,7 @@ library(shinyalert)
 #' annotate_rmr_days
 #' 
 #' Helper function to annotate RMR days
+#' @param df
 ################################################################################
 annotate_rmr_days <- function(df) {
    df_anno <- df %>% group_by(Animal) %>% mutate(Day = ceiling(Time / (24*60))) %>% ungroup()
@@ -18,6 +19,7 @@ annotate_rmr_days <- function(df) {
 #' padding_helper
 #' 
 #' This function used to pad data to same length in RMR calculations
+#' @param df
 ################################################################################
 padding_helper <- function(df) {
    # Find the last row for each group
@@ -50,8 +52,9 @@ padding_helper <- function(df) {
 #' partition
 #' 
 #' Helper function to partition data 
+#' @param mydf
 ################################################################################
-partition <- function(mydf) {
+partition <- function(df) {
    df <- mydf
    data <- df %>% group_split(Group)
    df_new <- data.frame()
@@ -112,6 +115,7 @@ cv <- function(mydf, window = 2) {
 #' reformat
 #' 
 #' This function reformats the calculates RMR accordingly for post processing
+#' @param df_new
 ################################################################################
 # df_new, data
 reformat <- function(df_new) {
@@ -128,6 +132,10 @@ reformat <- function(df_new) {
 #' get_time_diff
 #' 
 #' This function get's the time difference (measurement interval length) in minutes
+#' @param df
+#' @param from
+#' @param to
+#' @param do_warn
 ################################################################################
 get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
@@ -168,6 +176,7 @@ get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
 #' get_date_range
 #' 
 #' This function get's all available dates in the data sets
+#' @param df
 ################################################################################
 get_date_range <- function(df) {
  date_first <- df %>% select(Datetime) %>% first() %>% pull()
@@ -182,6 +191,7 @@ get_date_range <- function(df) {
 #' check_for_cosmed
 #' 
 #' Helper function to check for COSMED (.xlsx) data sets
+#' @param file
 ################################################################################
 check_for_cosmed <- function(file) {
    if (length(excel_sheets(file)) == 2) {
@@ -194,7 +204,13 @@ check_for_cosmed <- function(file) {
 }
 
 ################################################################################
-# calc_heat_production
+#' calc_heat_production
+#' 
+#' This function calculates the heat production
+#' @param choice
+#' @param C1
+#' @param variable
+#' @param scaleFactor
 ################################################################################
 calc_heat_production <- function(choice, C1, variable, scaleFactor) {
    df <- C1
@@ -228,7 +244,7 @@ calc_heat_production <- function(choice, C1, variable, scaleFactor) {
 }
 
 ################################################################################
-# filter_full_days
+#' convert_to_days
 ################################################################################
 convert_to_days <- function(x) {
    splitted <- strsplit(as.character(x), " ")
@@ -237,7 +253,12 @@ convert_to_days <- function(x) {
 
 
 ################################################################################
-# filter_full_days_alternative
+#' filter_full_days_alternative
+#' 
+#' This function filters for full days
+#' @param
+#' @param threshold
+#' @param cohort_list
 ################################################################################
 filter_full_days_alternative <- function(df, threshold, cohort_list) {
    df_filtered <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(Datetime4) %>% filter(n_distinct(hour) >= (24 * ((100-threshold)/100))) %>% ungroup()
@@ -250,7 +271,12 @@ filter_full_days_alternative <- function(df, threshold, cohort_list) {
 }
 
 ################################################################################
-# filter_full_days
+#' filter_full_days
+#' 
+#' This function filters for full days
+#' @param df
+#' @param time_diff
+#' @param threshold
 ################################################################################
 filter_full_days <- function(df, time_diff, threshold) {
    df$DaysCount <- lapply(df$Datetime, convert_to_days)
@@ -274,7 +300,7 @@ filter_full_days <- function(df, time_diff, threshold) {
 }
 
 ################################################################################
-# convert_to_day_only
+#' convert_to_day_only
 ################################################################################
 convert_to_day_only <- function(x) {
    splitted <- strsplit(as.character(x), "/")
@@ -282,7 +308,12 @@ convert_to_day_only <- function(x) {
 }
 
 ################################################################################
-# trim_front_end
+#' trim_front_end
+#' 
+#' This function trims time series data at front and end
+#' @param df
+#' @param end_trim
+#' @param front_trim
 ################################################################################
 trim_front_end <- function(df, end_trim, front_trim) {
    df$Date <- lapply(df$Datetime, convert_to_days)

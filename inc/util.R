@@ -4,6 +4,12 @@ library(glue)
 
 ################################################################################
 #' add_windowed_plot_statistics
+#' 
+#' This function adds statistics to the windowed time trace plot
+#' @param data
+#' @param input
+#' @param total_length
+#' @param variable
 ################################################################################
 add_windowed_plot_statistics <- function(data, input, total_length, variable) {
    # Function to test differences per interval
@@ -47,23 +53,29 @@ results <- data %>%
   group_by(interval) %>%
   group_split() %>%
   purrr::map_df(~ test_interval(.x) %>% mutate(interval = .x$interval[1]))
-  print(results)
 
 results <- results %>%
 	mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
 
-   print("new results:")
-   print(results)
-
    results <- results %>% mutate(adjusted_p = p.adjust(p_value, method="BH"), significant = ifelse(adjusted_p < 0.001, "*", NA))
 
-   print("adjusted results:")
-   print(results)
    return(results)
 }
 
 ################################################################################
 #' add_windowed_plot
+#' 
+#' This function adds a windowed time plot
+#' @param input 
+#' @param output
+#' @param session
+#' @param global_data
+#' @param true_metadata
+#' @param metadatafile
+#' @param df_to_plot
+#' @param mylabel
+#' @param offset
+#' @param variable
 ################################################################################
 add_windowed_plot <- function(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, mylabel, offset, variable=NULL) {
 		data <- df_to_plot
@@ -214,6 +226,15 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 ################################################################################
 #' add_anova_ancova_panel
 #' 
+#' This function adds the ANOVA/ANCOVA statistical panel
+#' @param input
+#' @param output
+#' @param global_data
+#' @param true_metadata
+#' @param input_df
+#' @param metadatafile
+#' @param mylabel
+#' @param dep_var
 ################################################################################
 add_anova_ancova_panel <- function(input, output, session, global_data, true_metadata, input_df, metadatafile, mylabel, dep_var) {
    # cohort information
@@ -575,6 +596,11 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 #' filter_for_days_and_animals
 #' 
 #' This methods adds UI elements for filtering for days and animals
+#' @param input
+#' @param session
+#' @param output
+#' @param df
+#' @param global_data
 ################################################################################
 add_filtering_for_days_and_animals <- function(input, session, output, df, global_data) {
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
@@ -658,6 +684,8 @@ style_plot <- function(p, input) {
 #' indicate_plot_rendered
 #' 
 #' Indicate if plot has been rendered already or not
+#' @param p
+#' @param output
 ################################################################################
 indicate_plot_rendered <- function(p, output) {
       output$plotRendered <- reactive({
@@ -670,15 +698,10 @@ indicate_plot_rendered <- function(p, output) {
 #' generate_statistical_table
 #' 
 #' This function generate statistical table in case we have multiple comparisons
+#' @param results
 ################################################################################
 generate_statistical_table <- function(results) {
-   print("all stats:")
-   print(results$statistics)
    group_info <- results$statistics
-   print("group_info")
-   print(group_info)
-   print("p:")
-   print(results$statistics$p)
    group_info <- group_info %>% mutate(comparison = paste0("(", group1, ", ", group2, ")"))
    if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
       return(tags$tr(
@@ -710,6 +733,8 @@ generate_statistical_table <- function(results) {
 #' 
 #' Helper method to return value for statistic after calculation, e.g. pretty
 #' print the digits and round
+#' @param value
+#' @param as_ui
 ################################################################################
 process_return_value_for_statistic <- function(value, as_ui=TRUE) {
    if (is.numeric(value) && length(value) == 1) {
@@ -890,15 +915,17 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       # switching between panels occassionally? Data needs to be filtered because sometimes we
       # double merge the finalC1, creating duplicates?
       df <- df %>% select(-ends_with(".y")) %>% rename_with(~ sub("\\.x$", "", .), ends_with(".x"))
-      print("df in the end:")
-      print(df)
    }
    return(list("data"=df, "metadata"=metadata))
 }
 
 
 ################################################################################
-# detect day night alternative, as the other method seems not to be correct
+#' detect day night alternative
+#' 
+#' This method detects Day and Night
+#' @param df
+#' @param offset
 ################################################################################
 detect_day_night <- function(df, offset) {
    df_day_night <- df
@@ -923,7 +950,10 @@ detect_day_night <- function(df, offset) {
 }
 
 ################################################################################
-# get global offset for day/night: when (hour) does the very first experiment start
+#' get global offset for day/night: when (hour) does the very first experiment start
+#'
+#' This function get's glboal day night offset
+#' @param df 
 ################################################################################
 get_global_offset_for_day_night <- function(df) {
    write.csv2(df, "before_getting_global_offset.csv")
@@ -967,7 +997,8 @@ zeitgeber_zeit <- function(df, light_on) {
 }
 
 ################################################################################
-# pretty print variable 
+#' pretty print variable 
+#' @param equation
 ################################################################################
 pretty_print_equation <- function(equation) {
    pretty_equation <- gsub("Heldmaier1", "Heldmaier #1", equation)
@@ -977,7 +1008,9 @@ pretty_print_equation <- function(equation) {
 
 
 ################################################################################
-# pretty print variable 
+# 'pretty print variable 
+#' @param variable
+#' @param metadata
 ################################################################################
 pretty_print_variable <- function(variable, metadata) {
    pretty_variable <- gsub("O2", "O<sub>2</sub>", variable)
@@ -987,7 +1020,10 @@ pretty_print_variable <- function(variable, metadata) {
 }
 
 ################################################################################
-# pretty print label
+#' pretty print label
+#' @param label
+#' @param metadata
+#' @param ee_unit 
 ################################################################################
 pretty_print_label <- function(label, metadata, ee_unit) {
    # remove underscores 
@@ -1027,23 +1063,15 @@ pretty_print_label <- function(label, metadata, ee_unit) {
 
 ################################################################################
 # create annotations for Days on x-axis when using zeitgeber zeit
+#' @param df
+#' @param light_on
+#' @param input_var
+#' @param with_facets
 ################################################################################
 annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) {
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
    day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() %>% na.omit()
 
-   print("minimum?")
-   print("input_var:")
-   print(input_var)
-   print("colnames:")
-   print(colnames(df))
-   print("head df:")
-   print(head(df))
-   print(df[[input_var]])
-   print(input_var)
-   print(min(df[[input_var]]))
-
-   print(day_counts)
    # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
    annotations <- NULL
    # specify if we wish to use facets or not during annotation
@@ -1062,6 +1090,7 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
 
 ################################################################################
 # get number of days and sample ids to select from alternative
+#' @param df
 ################################################################################
 get_days_and_animals_for_select_alternative <- function(df) {
    day_counts <- df %>% pull(DayCount) %>% unique() %>% sort()
@@ -1071,6 +1100,7 @@ get_days_and_animals_for_select_alternative <- function(df) {
 
 ################################################################################
 # get number of days and sample ids to select from in HeatProduction (Data curation)
+#' @param df
 ################################################################################
 get_days_and_animals_for_select <- function(df) {
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
@@ -1081,6 +1111,7 @@ get_days_and_animals_for_select <- function(df) {
 
 ################################################################################
 # get factor columns
+#' @param df
 ################################################################################
 get_factor_columns <- function(df) {
 	return(names(df)[sapply(df, is.factor)])
@@ -1088,6 +1119,7 @@ get_factor_columns <- function(df) {
 
 ################################################################################
 # get non-factor columns
+#' @param df
 ################################################################################
 get_non_factor_columns <- function(df) {
    return(names(df)[sapply(df, Negate(is.factor))])
@@ -1095,6 +1127,7 @@ get_non_factor_columns <- function(df) {
 
 ################################################################################
 # get columns with at least two levels
+#' @param df
 ################################################################################
 get_columns_with_at_least_two_levels <- function(df) {
    #columns_with_two_levels <- sapply(df, function(col) is.factor(col) || is.character(col) || length(unique(col)) >= 2)
@@ -1104,6 +1137,8 @@ get_columns_with_at_least_two_levels <- function(df) {
 
 ################################################################################
 # check if at least two cohorts available
+#' @param df
+#' @param colname
 ################################################################################
 has_cohorts <- function(df, colname="Cohort") {
    if (colname %in% colnames(df)) {
@@ -1118,6 +1153,7 @@ has_cohorts <- function(df, colname="Cohort") {
 #' get_new_download_buttons
 #' 
 #' This function generate new download buttons to get plot as specified by div element
+#' @param plot_div
 ################################################################################
 get_new_download_buttons <- function(plot_div='') {
    new_buttons <- list(

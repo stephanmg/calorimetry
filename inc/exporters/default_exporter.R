@@ -84,8 +84,27 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    return(zip_file)
 
 }
+
 ################################################################################
-# Export plotting data frame as csv
+#' prepare_data_frame_for_export
+#' 
+#' This function prepares the data frame with calculated quantities for export
+#' @param df_to_plot data frame
+#' @param global_data hash table containing variables during session
+#' @param session shiny session
+#' @export
+################################################################################
+
+################################################################################
+#' do_export_plotting_data
+#' 
+#' This function export plotting data frame as csv
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param do_plotting indicate to plot or not
+#' @param global_data global data
+#' @export
 ################################################################################
 do_export_plotting_data <- function(input, output, session, file_output, do_plotting, global_data) {
    file <- input$File1
@@ -101,7 +120,14 @@ do_export_plotting_data <- function(input, output, session, file_output, do_plot
 }
 
 ################################################################################
-# Export to CalR compatible file format and Excel (alternative method)
+#' do_export_alternative
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param file_output file output path
+#' @param do_plotting indicate to plot or not
+#' @export
+#' This function exports to CalR compatible file format and Excel (alternative method)
 ################################################################################
 do_export_alternative <- function(format, input, output, session, file_output, do_plotting) {
       file <- input$File1
@@ -140,7 +166,15 @@ do_export_alternative <- function(format, input, output, session, file_output, d
    }
 
 ################################################################################
-# Export to CalR compatible file format and Excel
+#' do_export
+#' 
+#' This function exports to CalR compatible file format and Excel
+#' @param format chosen format
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param do_plotting indicate to plot or not
+#' @export
 ################################################################################
 do_export <- function(format, input, output, session, do_plotting) {
    if (format == "CalR") {
