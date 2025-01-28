@@ -327,7 +327,7 @@ and the grouping variable :math:`\text{Group}` appear in the model as:
 
 .. math::
 
-   \text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Covariate}_{ij} - \bar{\text{Covariate}}) + \epsilon_{ij}
+   \text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Covariate}_{ij} - \overline{\text{Covariate}}) + \epsilon_{ij}
 
 Where:
 
@@ -335,12 +335,12 @@ Where:
 - :math:`\tau_i` is the effect of the :math:`i`-th group (:math:`\text{Group}`).
 - :math:`\beta` is the regression coefficient for the covariate :math:`\text{Covariate}`.
 - :math:`\text{Covariate}_{ij}` is the value of the covariate :math:`\text{Covariate}` for observation :math:`j` in group :math:`i`.
-- :math:`\bar{\text{Covariate}}` is the mean of the covariate :math:`\text{Covariate}` across all observations.
+- :math:`\overline{\text{Covariate}}` is the mean of the covariate :math:`\text{Covariate}` across all observations.
 - :math:`\epsilon_{ij}` is the random error term.
 
 In this model:
 
-- The covariate :math:`\text{Covariate}` is adjusted by subtracting its mean (:math:`\bar{\text{Covariate}}`), centering it to reduce multicollinearity.
+- The covariate :math:`\text{Covariate}` is adjusted by subtracting its mean (:math:`\overline{\text{Covariate}}`), centering it to reduce multicollinearity.
 - The :math:`\beta` term measures the relationship between the covariate :math:`\text{Covariate}` and the dependent variable :math:`\text{DependentVariable}`.
 
 The ANCOVA tests whether the group effects :math:`\tau_i` are significant while controlling for the covariate :math:`\text{Covariate}`.
