@@ -54,7 +54,7 @@ padding_helper <- function(df) {
 #' Helper function to partition data 
 #' @param mydf
 ################################################################################
-partition <- function(df) {
+partition <- function(mydf) {
    df <- mydf
    data <- df %>% group_split(Group)
    df_new <- data.frame()
