@@ -19,6 +19,8 @@ ENV SHINY_DATA_FOLDER=/home/app/
 
 COPY . /home/app/
 COPY inc/ /home/app/inc/
+COPY www/ /home/app/www/
+Copy helpfiles/ /home/app/helpfiles/
 WORKDIR /home/app
 
 RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles', 'shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker', 'dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate', 'zoo', 'fs', 'hash', 'tools', 'cicerone', 'tidyverse'))"

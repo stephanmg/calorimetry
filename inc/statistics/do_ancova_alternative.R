@@ -120,7 +120,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(all_of(to_select_columns))
-  } else if (dep_var == "RMR") { # RMR makes only sense to have 1-way ANCOVA currently (without Days)
+  } else if (dep_var == "RMR") { # TODO: change this now usable RMR makes only sense to have 1-way ANCOVA currently (without Days)
     names(df)[names(df) == dep_var] <- "TEE" 
     if (num_covariates > 1) {
       df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
