@@ -139,7 +139,6 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
          plot_data2 <- plot_data2 %>% mutate(time = time + offset)
       }
       plot_data <- plot_data %>% left_join(true_metadata, by="Animals")
-
       plot_data2 <- averages
 
 		if (input$boxplots_or_sem_plots == FALSE) {
