@@ -26,9 +26,7 @@ get_git_information_from_repository <- function() {
 
      current_tag <- tag_name
      current_commit_id <- substring(git2r::commits(repo)[[1]]$sha, 1, 16)
-
 	  version_info <- NULL
-
 
       if (is.null(current_branch)) {
          if (is.null(current_tag)) {
