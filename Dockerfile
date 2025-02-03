@@ -28,6 +28,7 @@ RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2'))"
 RUN Rscript -e "install.packages(c('doBy', 'stringr', 'broom', 'rstatix', 'emmeans', 'ggExtra'))"
 RUN Rscript -e "install.packages(c('patchwork'))"
 RUN Rscript -e "install.packages(c('ggpubr'))"
+RUN Rscript -e "install.packages(c('DT'))"
 
 EXPOSE 1338
 CMD ["Rscript", "startapp.R"]
