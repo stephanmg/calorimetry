@@ -86,16 +86,6 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
 }
 
 ################################################################################
-#' prepare_data_frame_for_export
-#' 
-#' This function prepares the data frame with calculated quantities for export
-#' @param df_to_plot data frame
-#' @param global_data hash table containing variables during session
-#' @param session shiny session
-#' @export
-################################################################################
-
-################################################################################
 #' do_export_plotting_data
 #' 
 #' This function export plotting data frame as csv
@@ -129,7 +119,7 @@ do_export_plotting_data <- function(input, output, session, file_output, do_plot
 #' @export
 #' This function exports to CalR compatible file format and Excel (alternative method)
 ################################################################################
-do_export_alternative <- function(format, input, output, session, file_output, do_plotting) {
+do_export_alternative <- function(format, input, output, session, file_output, do_plotting, global_data) {
       file <- input$File1
       if (is.null(input$File1)) {
          output$message <- renderText("Not any cohort data given by the user.")
@@ -159,7 +149,7 @@ do_export_alternative <- function(format, input, output, session, file_output, d
 
          if (format == "Excel") {
             tmp <- cbind(real_data$data[values(h)], real_data$animals)
-            df <- read.csv2("finalC1.csv")
+            df <- getSession(session$token, global_data)[["finalC1"]]
             write_xlsx(df, path = file_output)
          }
       }

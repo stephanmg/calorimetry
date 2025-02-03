@@ -280,9 +280,6 @@ load_data <- function(file, input, exclusion, output, session) {
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
-   # Debug C1meta (TSE metadata)
-   print(C1meta)
-
    #############################################################################
    # Curate data frame
    #############################################################################
@@ -420,9 +417,9 @@ load_data <- function(file, input, exclusion, output, session) {
    # Step #10 - create a running total with half hour intervals by adding
    # the thirty min to the full hours
    C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
+
+   # heat production equations #1 and #2
    f1 <- input$variable1
-   print("f1:")
-   print(f1)
    f2 <- input$variable2
 
    #############################################################################
@@ -453,9 +450,6 @@ load_data <- function(file, input, exclusion, output, session) {
                               Animal = C1$`Animal No._NA`, # groups by Animal ID
                               Time = C1$running_total.hrs.round), # groups by total rounded running hour
                         FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
-
-   # step 12 (debugging: save cohort means)
-   write.csv2(C1.mean.hours, file = paste0(tools::file_path_sans_ext(file), "-cohort_means.csv"))
 
    # exclude animals (outliers) from data sets
    if (! is.null(exclusion)) {
@@ -493,7 +487,6 @@ load_data <- function(file, input, exclusion, output, session) {
    }
 
     # step 13 (debugging: save all cohort means)
-   write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
    C1meta <- finalC1meta
 
    # rescale to kcal from kj
@@ -527,9 +520,6 @@ load_data <- function(file, input, exclusion, output, session) {
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
-   write.csv2(C1, file = "all_data.csv")
-   write.csv2(finalC1, file = "finalC1.csv")
-
    storeSession(session$token, "finalC1", finalC1, global_data)
    storeSession(session$token, "finalC1meta", finalC1meta, global_data)
    storeSession(session$token, "C1meta", C1meta, global_data)
@@ -550,13 +540,10 @@ load_data <- function(file, input, exclusion, output, session) {
 do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
    # if data is not loaded, load the data
    if (is.null(getSession(session$token, global_data)[["data_loaded"]])) {
-      print("Loading data")
       load_data(file, input, exclusion, output, session)
       storeSession(session$token, "data_loaded", TRUE, global_data)
-
      } else {
-      print("not loading data!")
-      # load_data(file, input, exclusion, output, session)
+      # Nothing to load
    }
 
    # load default plotting style
@@ -566,8 +553,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # get stored data so far
    finalC1 = getSession(session$token, global_data)[["finalC1"]]
-   print("finalC1:")
-   print(finalC1)
    finalC1meta = getSession(session$token, global_data)[["finalC1meta"]]
    C1meta = getSession(session$token, global_data)[["C1meta"]]
    scaleFactor = getSession(session$token, global_data)[["scaleFactor"]]
@@ -585,10 +570,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    if (input$only_full_days && !input$use_zeitgeber_time) {
       interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
       storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
-      print("int val length list:")
-      print(interval_length_list)
       finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
-      write.csv2(finalC1, "after_fitlering.csv")
    }
 
    #####################################################################################################################
@@ -843,7 +825,7 @@ server <- function(input, output, session) {
       }
       },
          content = function(file) {
-            status_okay <- do_export_alternative(input$export_format, input, output, session, file, do_plotting)
+            status_okay <- do_export_alternative(input$export_format, input, output, session, file, do_plotting, global_data)
       }
    )
 
@@ -1057,12 +1039,14 @@ server <- function(input, output, session) {
                choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
-   # TODO: here we need to then filter choices based on actual data we have read in with one of the importers,
-   # update this myr plot once when data has been loaded by load_data with column names of finalC1 data frame,
-   # use colnames(finalC1) for this and take intersection with choices reported here...
    observeEvent(input$plot_type, {
+      # if not any data loaded, we have 0 columns to select from
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
       choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
+      choices = intersect(choices, raw_cols)
+      if (length(raw_cols) == 0) {
+         choices = c("O2")
+      }
       output$myr <- renderUI(
          selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="O2"))
     })
@@ -1106,7 +1090,7 @@ server <- function(input, output, session) {
       }
       # Excel
       if (input$export_format == "Excel") {
-           status_okay <- do_export_alternative("Excel", input, output, session, do_plotting)
+           status_okay <- do_export_alternative("Excel", input, output, session, do_plotting, global_data)
           if (!status_okay) {
              output$message <- renderText("Error during data export to Excel, check logs")
            } else {
@@ -1158,19 +1142,13 @@ server <- function(input, output, session) {
       # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
       output$plot <- renderPlotly({
          use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
-         print("use_example_data")
-         print(use_example_data)
          if (is.null(use_example_data)) {
-            print("is null:")
             use_example_data = FALSE
          } else {
             use_example_data = TRUE
          }
 
-         print("use_example_data")
-         print(use_example_data)
          if (is.null(input$File1) && !use_example_data) {
-            print("Here?")
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
             shinyalert("Not any data given", "Did you forget to click on an example data set or upload own data sets?")
             return()
@@ -1263,8 +1241,6 @@ server <- function(input, output, session) {
                storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
 
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
-               print("col names from real_data$data")
-               print(colnames(real_data$data))
                df_filtered <- real_data$data %>%
                   select(-which(is.na(names(real_data$data)))) %>%
                   filter(Component != input$cvs) %>%
@@ -1374,8 +1350,6 @@ server <- function(input, output, session) {
                ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian"))) 
             )
             
-            # write.csv2(df_total, "tee_and_rmr.csv")
-            # TODO: TEE is used in EnergyExpenditure too, so if it condtians Days again, we can also allow 2-way analayis for EE again, see energy_expenditure (before add_anova_ancova panel)
             storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
             write.csv2(df_total, "test_for_rmr.csv")
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
@@ -1392,7 +1366,6 @@ server <- function(input, output, session) {
                df_merged = merge(df1, df2, by=c("Days", "Animals"), suffixes=c("_df1", "_df2"))
                df_merged$EE = df_merged$EE_df2 - df_merged$EE_df1
                df_merged <- df_merged %>% select(Days, Animals, EE=EE_df1, TEE=TEE_df1) %>% bind_rows(df_merged %>% select(Days, Animals, EE=EE_df2, TEE=TEE_df2))
-               #df_total <- rbind(df1, df2)
                df_total = df_merged
                df_total <- df_total %>% group_by(Days, Animals)
                df_total$Animals <- as.factor(df_total$Animals)
@@ -1401,14 +1374,8 @@ server <- function(input, output, session) {
                write.csv2(df_total, "new_rmr_and_tee_df.csv")
             }
 
-            print("enriching...")
             data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
             true_metadata <- data_and_metadata$metadata
-            print("true_metadata")
-            print(true_metadata)
-            print("data:")
-            print(colnames(data_and_metadata$data))
-            print(data_and_metadata$data)
 
             # add statistics panel here
             if (no_averages_required_for_RMR_and_TEE == TRUE) {
