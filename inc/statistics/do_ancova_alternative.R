@@ -59,6 +59,8 @@ calculate_statistic <- function(data, method) {
 # TODO: Add possibility to let the user choose the glm family and link function 
 # via the inputs (input$glm_family and input$link_function) - not only defaults
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE) {
+  print("dataframe:")
+  print(df_data)
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might not be necessary, does no harm, can be removed if no adverse effects revealed during testing
   if (! "Genotype" %in% names(df)) {
@@ -120,19 +122,19 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   } else if (dep_var == "Raw") {
     names(df)[names(df) == dep_var] <- "TEE"
     df <- df %>% select(all_of(to_select_columns))
-  } else if (dep_var == "RMR") { # TODO: change this now usable RMR makes only sense to have 1-way ANCOVA currently (without Days)
+  } else if (dep_var == "RMR") { 
     names(df)[names(df) == dep_var] <- "TEE" 
     if (num_covariates > 1) {
-      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
+      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days"))
     } else {
-      df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+      df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
     }
   } else if (dep_var == "EE") {
     names(df)[names(df) == dep_var] <- "TEE"
-    if (num_covariates > 1) { # EE makes only sense to have 1-way ANCOVA currently (without Days)
-      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE"))
+    if (num_covariates > 1) {
+      df <- df %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days"))
     } else {
-      df <- df %>% select(c("Animals", "group", "Weight", "TEE"))
+      df <- df %>% select(c("Animals", "group", "Weight", "TEE", "Days"))
     }
   } else { # other quantities are supported only by 1-way ANCOVA with either 1 or 2 covariates
     if (num_covariates > 1) {
@@ -161,12 +163,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     } else if (dep_var == "RMR") {
       df = df %>% group_by(Animals)  %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
     } else if (dep_var == "EE") {
-      df = df %>% group_by(Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first))
+      df = df %>% group_by(group, Animals) %>% summarize(TEE=mean(TEE, na.rm=TRUE), across(-TEE, first)) %>% ungroup()
     }
   } 
 
   if (test_type == "2-way ANCOVA" || test_type == "2-way ANOVA") {
-    if (dep_var == "HP") {
+    if (dep_var == "HP" || dep_var == "EE" || dep_var == "RMR") {
       if (num_covariates > 1) {
         df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "Weight2", "TEE", "Days")) %>% distinct()
       } else {
