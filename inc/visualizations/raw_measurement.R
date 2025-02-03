@@ -135,7 +135,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		mylabel <- "WeightBody"
 	}
 
-
 	# annotations for days
 	finalC1 <- day_annotations$df_annotated
 
@@ -189,7 +188,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# format labels for plot
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
-
 
 	if (startsWith(input$myr, "XT")) {
 		mylabel <- paste0(input$myr, sep="", "_[Cnts]")
@@ -264,8 +262,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "reactive_data", reactiveVal(df_to_plot), global_data)
 	}
 
-
-
 	gam_model <- NULL
 	grouped_gam <- NULL
 	if (input$add_average_with_se) {
@@ -297,8 +293,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
-	print(input$myr)
-	print(colnames(df_to_plot))
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
 
@@ -336,8 +330,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	p2 <- NULL
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-
-
 	annotations_window_plot <- NULL
 	# show either time trace or a windows time trace, and feed respective data frames into ANOVA/ANCOVA panel
 	if (input$windowed_plot == FALSE) {
@@ -480,7 +472,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 		}
 	}
-
 
 	# create LME model UI
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr, session, global_data)

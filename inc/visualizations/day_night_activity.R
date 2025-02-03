@@ -1,3 +1,18 @@
+################################################################################
+#' day_night_activity
+#' 
+#' This function generates and overview of day and night activity
+#' @param finalC1 input data
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @examples 
+#' day_night_activity(values, full_metadata, input, output, session, global_data, 1)
+#' @export
+################################################################################
 day_night_activity <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	# colors for plotting
 	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))

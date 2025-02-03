@@ -174,7 +174,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	# we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
 	# p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
 	p <- NULL 
-	print(colnames(df_plot_total))
 
 	df_plot_total$running_total.hrs.halfhour = df_plot_total$Time
 	df_plot_total$running_total.sec = df_plot_total$Time * 60
@@ -209,8 +208,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		}
 	}
 	df_plot_total <- df_to_plot
-
-
 
 	# group with group from metadata
 	if (input$with_facets) {
@@ -280,7 +277,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		df_plot_total$running_total.sec = df_plot_total$Time * 60
 		df_plot_total$DayCount = ceiling(df_plot_total$running_total.sec / (3600*24))
 
-		print(colnames(df_plot_total))
 		write.csv2(df_plot_total, "for_windowed_RMR_plot.csv")
 		# windowed time trace plot
 		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_plot_total, "HP", offset, "HP")
@@ -289,18 +285,14 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		mylabel <- "RMR"
 		p2 <- p2 + ggtitle(paste0("Average measurement of ", mylabel, " in window")) + ylab(mylabel)
 		annotations_window_plot <<- window_plot$annotations
-		print("Here after plot created...")
 	}
 
 	# add light cycle annotation
 	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
 	colnames(lights) <- c("x", "y")
-
 	write.csv2(df_plot_total, "before_anno_rmr.csv")
 	df_annos <- annotate_rmr_days(df_plot_total) %>% na.omit()
 	write.csv2(df_annos, "before_annos.csv")
-	print("annos:")
-	print(df_annos)
 	p <- p + geom_text(data = df_annos, aes(x=Time, y = min(df_plot_total$HP, na.rm=TRUE), label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
 	day_length <- 24

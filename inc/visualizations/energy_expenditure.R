@@ -32,7 +32,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
 		finalC1 <- data_and_metadata$data
 		true_metadata <- data_and_metadata$metadata
-		print("saving EE_df")
 		storeSession(session$token, "EE_df", data_and_metadata, global_data)
 	}
 
@@ -71,11 +70,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		print("Here?")
-		print(head(finalC1))
 		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
-		print("there?")
-
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
@@ -194,8 +189,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	}
 	finalC1 <- df_to_plot
 
-
-
 	# calculate running averages
 	if (input$running_average > 0) {
 		p <- ggplot(data = finalC1, aes_string(x = "running_total.hrs.halfhour", y = "HP2", color = "Animals", group = "Animals"))
@@ -223,10 +216,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		return()
 	} else {
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-		print("EE  cols:")
-		print(colnames(EE))
-		print("EE dataframe")
-		print(EE)
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, paste0("Energy expenditure [", input$kj_or_kcal, "/day]"), "EE")

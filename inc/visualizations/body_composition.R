@@ -173,8 +173,6 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 								anova_result <- kruskal.test(formula, data=body_comp_df)
 							}
 							combinations <- combn(levels(body_comp_df[[input[[paste0("how_many_for_anova_", i)]][j]]]), m = 2, simplify = FALSE)
-							print("2 combinations:")
-							print(combinations)
 							ggplot(body_comp_df, aes_string(input[[paste0("how_many_for_anova_", i)]][j], input[[paste0("select_group_", i)]], fill=input[[paste0("how_many_for_anova_", i)]][j])) + geom_boxplot() + theme_minimal() + ggtitle(input[[paste0("how_many_for_anova_", i)]][j]) + stat_compare_means(comparisons = combinations, method="t.test", label="p.signif", bracket.size = 0.5, step.increase=0.1, tip.length=0.01, aes(label=paste0("p = ", ..p.format.., ", ", ..p.signif..)))
 						})
 						output[[paste0("plot_factor_summary_", i, "_group_", j)]] <- renderDT({
