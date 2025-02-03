@@ -72,5 +72,9 @@ delete this folder and do not add for tracking with Git, nor deploy, as this int
 We need to fake a proper R package structure in order to use the `roxygenise` functions, but do not need the
 structure after docs have been generated.
 
+## References
+
+The CALOR image was created with the assistance of the AI tool DALL-E 2.
+
 ## Latest changes
 
