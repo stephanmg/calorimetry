@@ -32,13 +32,10 @@ test_interval <- function(df) {
     return(data.frame(
       p_value = test_result$p.value
     ))
-      #test = "t-test"
-      #mean_diff = diff(tapply(df$HP, df$Genotype, mean))
   } else if (length(groups) > 2) {
     # Perform ANOVA for three or more groups
     formula = as.formula(paste0(meas, " ~ ", facet))
     test_result <- aov(formula, data = df)
-    # test_result <- kruskal.test(TEE ~ Group, data=df)
     p_value <- summary(test_result)[[1]][["Pr(>F)"]][1]
     return(data.frame(
       p_value = p_value,
@@ -351,7 +348,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
          if (input$test_statistic == '2-way ANOVA') {
             showTab(inputId = "additional_content", target = "Details")
          } else {
-            # hideTab(inputId = "additional_content", target = "Details")
+            # nothing to do
          }
 			p <- p + xlab(pretty_print_label(input$depvar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
          if (input$test_statistic == '2-way ANOVA') {
@@ -372,7 +369,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
          if (input$test_statistic == '2-way ANCOVA') {
             showTab(inputId = "additional_content", target = "Details")
          } else {
-            # hideTab(inputId = "additional_content", target = "Details")
+            # nothing to do
          }
 
 			if (!input$auto_scale_rmr_plot_limits_x) {
@@ -487,8 +484,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             return(x)
          })
       }
-
-
       p
 	})
 
@@ -522,7 +517,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					tags$tr(
 					tags$th("Description", style="width:250px"),
 					tags$th("Name of significance test", style="width:200px"),
-					# tags$th("Null hypothesis", style="width:400px"),
 					tags$th("p-value", style="width:100px"),
 					tags$th("Status", style="width:200px")
 					)
@@ -531,7 +525,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					tags$tr(
 					tags$td("Homogeneity of variances", style="width:250px"),
 					tags$td("Levene's test", style="width:200px"),
-					# tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
 					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:100px"),
 					tags$td(
 						if (as.numeric(results$levene$p) < input$alpha_level) {
@@ -545,7 +538,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					tags$tr(
 					tags$td("Normality of residuals", style="width:250px"),
 					tags$td("Shapiro-Wilk test", style="width:200px"),
-					# tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
 					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:100px"),
 					tags$td(
 						if (as.numeric(results$shapiro$p.value) < input$alpha_level) {
@@ -560,7 +552,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                tags$tr(
                   tags$td("Homogeneity of regression slopes", style="width:250px"),
                   tags$td("ANOVA on interaction terms", style="width:200px"),
-                  # tags$td("Tests the null hypothesis that the regression slopes are homogeneous"),
                   tags$td(round(as.numeric(results$regression_slopes), digits=6), style="width:100px"),
                   tags$td(
                      if (as.numeric(results$regression_slopes) < input$alpha_level) {
