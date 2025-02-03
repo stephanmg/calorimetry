@@ -23,12 +23,12 @@ COPY www/ /home/app/www/
 Copy helpfiles/ /home/app/helpfiles/
 WORKDIR /home/app
 
-RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles', 'shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker', 'dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate', 'zoo', 'fs', 'hash', 'tools', 'cicerone', 'tidyverse'))"
-RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2'))"
-RUN Rscript -e "install.packages(c('doBy', 'stringr', 'broom', 'rstatix', 'emmeans', 'ggExtra'))"
-RUN Rscript -e "install.packages(c('patchwork'))"
-RUN Rscript -e "install.packages(c('ggpubr'))"
-RUN Rscript -e "install.packages(c('DT'))"
+RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles'))"
+RUN Rscript -e "install.packages(c('shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker'))"
+RUN Rscript -e "install.packages(c('dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate'))"
+RUN Rscript -e "install.packages(c('zoo', 'fs', 'hash', 'tools', 'cicerone', 'tidyverse'))"
+RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2', 'doBy', 'stringr', 'broom')"
+RUN Rscript -e "install.packages(c('rstatix', 'emmeans', 'ggExtra', 'patchwork, 'ggpubr', 'DT'))"
 
 EXPOSE 1338
 CMD ["Rscript", "startapp.R"]
