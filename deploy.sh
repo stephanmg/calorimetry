@@ -1,4 +1,5 @@
 #!/bin/bash
+## Deploy natively - alternatively pull from docker.io: stephanmg/caloapp
 
 eval `ssh-agent -s`
 ssh-add ~/.ssh/gh_vm
