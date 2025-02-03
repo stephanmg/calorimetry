@@ -1,15 +1,18 @@
-library("shinyFiles")
-library("plotly")
-library("shinybusy")
-library("shinythemes")
-library("shinyWidgets")
-library("shinyhelper")
+################################################################################
+# Required libraries
+################################################################################
+library(shinyFiles)
+library(plotly)
+library(shinybusy)
+library(shinythemes)
+library(shinyWidgets)
+library(shinyhelper)
 library(shinyjs)
-library("colourpicker")
+library(colourpicker)
 library(cicerone)
 
 ################################################################################
-# First page: Introduction
+# Introduction and Features panel (Landing page of the CALOR web application)
 ################################################################################
 intro_panel <- tabPanel(
   "Introduction and Features",
@@ -95,9 +98,9 @@ intro_panel <- tabPanel(
 )
 
 ################################################################################
-# side bars
+# validation sidebar panel
 ################################################################################
-sidebar_content2 <- sidebarPanel(
+validation_panel <- sidebarPanel(
    fileInput("rerself", "RER self (means)"),
    fileInput("rercalr", "RER CalR (means)"),
    h1("Plotting control"),
@@ -106,12 +109,17 @@ sidebar_content2 <- sidebarPanel(
    actionButton("reset", "Reset session"),
 )
 
-sidebar_content3 <- sidebarPanel(
+################################################################################
+# file loading sidebar panel
+################################################################################
+sidebar_file_panel <- sidebarPanel(
    numericInput("nFiles", "Number of files", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
 )
 
-# Note: Should change to table format for a better visual alignment of components
+################################################################################
+# sidebar content
+################################################################################
 sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
@@ -132,11 +140,10 @@ sidebar_content <- sidebarPanel(
    )),
    tabsetPanel(id = "tabsHP", type = "hidden",
       tabPanelBody("HP",
-   add_busy_bar(color = "#0FFF50"), # #50C878, # #AAFF00
+   add_busy_bar(color = "#0FFF50"),
    withMathJax(),
    h3("Energy expenditure equation"),
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
-   # Note: Lead previously to a bug: two time conditional on same variable inputId variable1:
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
    withMathJax(),
@@ -391,7 +398,7 @@ h3("Plotting controls"),
 )
 
 ################################################################################
-# Main panel
+# main content panel
 ################################################################################
 main_content <- mainPanel(
    tags$head(tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js")),
@@ -411,7 +418,6 @@ main_content <- mainPanel(
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
-            #conditionalPanel("input.with_facets == true", checkboxInput("add_average_with_se", "Smooth facets")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_average_with_se", "Smooth facets")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata' && input.add_average_with_se == true", checkboxInput("add_average_with_se_one_plot", "One plot", value=FALSE)),
             conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets", "Method for smoothing", choices=c("gam", "sawitzky-golay"), selected="gam")),
@@ -420,7 +426,6 @@ main_content <- mainPanel(
             conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets_basis_function", "Basis function", choices=c("cs", "tp", "cr", "ps", "gp", "ts"), selected="cr")),
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_alpha_level", "Transparency level", min=0.0, max=1.0, value=0.2, step=0.05)),
             conditionalPanel("input.add_average_with_se == true && input.with_facets != true", colourInput("averaging_method_with_facets_color", "Color", "blue")),
-            # TotalHeatProduction get's some extra configurations
             conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction'", checkboxInput("add_time_trace_below", "Add time trace(s)")),
             conditionalPanel("output.plotRendered && input.plot_type == 'TotalHeatProduction' && input.add_time_trace_below == true", plotlyOutput("timeTrace")),
             conditionalPanel("input.windowed_plot == true", hr()),
@@ -446,7 +451,7 @@ main_content <- mainPanel(
 ################################################################################
 # Plotting validation
 ################################################################################
-main_content2 <- mainPanel(
+plotting_validation_panel <- mainPanel(
    plotOutput("plotvalidation")
 )
 
@@ -469,12 +474,12 @@ validation <- tabPanel(
    titlePanel("Validation of results by comparing RER values (CalR and our method)"),
    p("Use the file choser dialog below to select files for RER Calr and our method"),
    sidebarLayout(
-      sidebar_content2, main_content2
+      validation_panel, plotting_validation_panel
    )
 )
 
 ################################################################################
-# Validation panel
+# locomotion panel
 ################################################################################
 locomotion_panel <- tabPanel(
    "Analyze locomotion",
@@ -482,7 +487,7 @@ locomotion_panel <- tabPanel(
 )
 
 ################################################################################
-# Documentation
+# documentation panel
 ################################################################################
 documentation <- tabPanel(
       "Getting help",
@@ -501,7 +506,7 @@ documentation <- tabPanel(
 )
 
 ################################################################################
-# Contact
+# contact panel
 ################################################################################
 contact <- tabPanel(
    "Contact",
@@ -535,11 +540,12 @@ contact <- tabPanel(
 
 
 ################################################################################
-# Main navigation bar
+# main navigation bar
 ################################################################################
 ui <- tagList(
   useShinyjs(),
-  # Note that this is inline CSS and HTML code, can also be done as in code.js and style.css in external files
+  # Note that this is inline CSS and HTML code, can also be put in external files,
+  # e.g. code.js for code and style.css for stylesheets
   tags$head(
    tags$style(HTML("
    .logo-container {
