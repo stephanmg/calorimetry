@@ -1,6 +1,9 @@
-library("shiny")
-library("shinyWidgets")
-library("shinyFiles")
+################################################################################
+# Required libraries
+################################################################################
+library(shiny)
+library(shinyWidgets)
+library(shinyFiles)
 
 ################################################################################
 # Include UI and server/backend components
