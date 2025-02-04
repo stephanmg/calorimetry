@@ -30,7 +30,7 @@ import_pheno_v5 <- function(file, file_out) {
     if (length(row) != 16) {
       row <- c(row, rep("", 16 - length(row)))
     }
-    row <- str_replace_all(row, c("genotype" = "Genotype", "diet" = "Diet", "weight_week0\[g\]" = "Weight [g]"))
+    row <- str_replace_all(row, c("genotype" = "Genotype", "diet" = "Diet", "weight_week0[g]" = "Weight [g]"))
     return(row)
   })
 
