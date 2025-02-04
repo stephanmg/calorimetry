@@ -39,7 +39,7 @@ import_promethion <- function(file, file_out) {
    colnames(header) <- colnames(data)
 
    # Convert the Promethion format internally to the basic TSE Systems Labmaster format
-   # TODO: provide proper data classes for different indirect calorimetry systems
+   # TODO: Provide proper data classes for different indirect calorimetry systems
    fileinfo <- c(file, rep("", NUM_TOTAL_COLUMNS_EXPECTED - 1))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", NUM_TOTAL_COLUMNS_EXPECTED - 2))
    boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", NUM_TOTAL_COLUMNS_EXPECTED - 3))

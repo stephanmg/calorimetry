@@ -249,7 +249,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 
-	# TODO: v0.6 - factor this out as utility or method, can be re-used in other panels after discussion
+	# TODO: v0.5.0 - factor this out as utility or method, can be re-used in other panels after discussion
 	# replot outlier removed data, only if toggled: outlier removal by selection
 	if (input$toggle_outliers) {
 		if (!is.null(getSession(session$token, global_data)[["reactive_data"]])) {

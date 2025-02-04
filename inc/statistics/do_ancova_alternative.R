@@ -98,9 +98,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   names(df)[names(df) == group] <- "group"
 
-  # TODO: for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed to a generic name, e.g. group2
   if (dep_var == "HP") {
     df <- df %>% select(-Days)
+    # TODO: for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed to a generic name, e.g. group2
     names(df)[names(df) == group2] <- "Days"
   }
 
@@ -369,14 +369,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     #df$group <- as.character(df$group)
     #pairs <- combn(unique(df$group), 2, simplify=FALSE)
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=15, outlier.size=0, outlier.color="red") # outlier.shape=NA)  
-    if (dep_var == "RMR" || dep_var == "EE") {
-      # TODO: RMR and EE come averaged over Days already, so no Days object present in df
-      p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group)), size=3, width=0.2, alpha=0.6)
-      p2 <- p2 + stat_compare_means()
-    } else {
+    #if (dep_var == "RMR" || dep_var == "EE") {
+    #  p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group)), size=3, width=0.2, alpha=0.6)
+    #  p2 <- p2 + stat_compare_means()
+    #} else {
       p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days)), size=3, width=0.2, alpha=0.6)
       p2 <- p2 + stat_compare_means()
-    }
+    #}
   }
 
   if (test_type == "2-way ANOVA") {
