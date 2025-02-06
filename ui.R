@@ -15,86 +15,36 @@ library(cicerone)
 # Introduction and Features panel (Landing page of the CALOR web application)
 ################################################################################
 intro_panel <- tabPanel(
-  "Introduction and Features",
-  titlePanel("A reactive web-based application for the analysis of indirect calorimetry experiments"),
-  tags$img(src = "splash.jpg", align = "right"),
-  p("A R Shiny web app for the analysis of indirect calorimetric data provided in standardized data formats from the TSE Phenomaster/Phenolab, Sable Promethion and Columbus Instruments CLAMS system."), #nolint
-  p("In this document the analysis of data acquired during indirect calorimetry experiments is explained for: "),
-   tags$ul(
-   tags$li("long term observations over multiple hours"),
-   tags$li("short therm/acute response experiments < 2 hours")
-   ),
-  h3("Supported input file formats"),
-  tags$table(class = "fileformat-types",
-   tags$tr(
-      tags$td(icon("file-excel")),
-      tags$td(icon("minus")),
-      tags$td("Promethion/Sable")
-   ),
-   tags$tr(
-      tags$td(icon("file-excel")),
-      tags$td(icon("minus")),
-      tags$td("COSMED")
-   ),
-   tags$tr(
-      tags$td(icon("file-csv")),
-      tags$td(icon("minus")),
-      tags$td("TSE PhenoMaster v7")
-   ),
-   tags$tr(
-      tags$td(icon("file-csv")),
-      tags$td(icon("minus")),
-      tags$td("TSE PhenoMaster v8")
-   ),
-   tags$tr(
-      tags$td(icon("file-csv")),
-      tags$td(icon("minus")),
-      tags$td("TSE LabMaster v6")
-   ),
-   tags$tr(
-      tags$td(icon("file-csv")),
-      tags$td(icon("minus")),
-      tags$td("TSE LabMaster v5")
+  "Home",
+  #titlePanel("A reactive web-based application for the analysis of indirect calorimetry experiments"),
+  div(class="tile_upper_landing_page",
+  div(img(src = "shiny_logo.png", height="400px"), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
+  br(),
+  p("A Shiny/R web application for general indirect calorimetry analysis", style="text-align: center; display: flex; justify-content: center; align-items: center;"),
+  div(actionButton("btn_to_analysis", "Go to analysis", class="custom-button"), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
+  ),
+  div(class="tile_lower_landing_page",
+  h2("Visualization and statistical data analysis", style="text-align:center;"),
+  div(class="image-container", img(src = "app_landing_page.png", class="zoom-image"), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
+  ),
+  br(),
+  div(class="tile_bottom_landing_page",
+  h2("Metadata analysis", style="text-align:center;"),
+  div(class="image_container", img(src = "app_landing_page_bottom.png", class="zoom-image"), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
+  ),
+  #p("A R Shiny web app for the analysis of indirect calorimetric data provided in standardized data formats from the TSE Phenomaster/Phenolab, Sable Promethion and Columbus Instruments CLAMS system."), #nolint
+  #p("In this document the analysis of data acquired during indirect calorimetry experiments is explained for: "),
+  # tags$ul(
+  # tags$li("long term observations over multiple hours"),
+  # tags$li("short therm/acute response experiments < 2 hours")
+  # ),
+  div(class="footer_landing_right",
+    span("CALOR - A web application for general indirect calorimetry", style = "font-size: 12px; visibility: visible;"),
+    tags$a(id = "contact_me", href = "", icon("fa-solid fa-square-envelope", "fa-1x"), style = "display:inline; "),
+    tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-1x")),
+    tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-twitter", "fa-1x")),
+    tags$a(href = "http://youtube.com/@CALOR-APP", icon("fa-brands fa-square-youtube", "fa-1x"))
    )
-   ),
-   br(),
-   p("For a non-exhaustive list of features, see the section below. Use top navigation bar to get started."),
-   hr(style = "width:75%;"),
-   h1("List of selected app features"),
-   tags$table(class = "feature-table",
-      tags$tr(
-         tags$td(icon("timeline", "fa-3x")),
-         tags$td(h3("Long term observational studies")),
-         tags$td(p("On a single data set. This description deals with an animal experiment investigating mice of two different genotypes (ko & wt) running in two cohorts (C1 & C2) and thus at two different timepoints. The provided commands are compatible with csv-files exported by the LabMaster software. Just export the respective csv-file and save it to a appropriate location.")) #nolint
-      ),
-      tags$tr(
-         tags$td(icon("plus-minus", "fa-3x")),
-         tags$td(h3("Time averaging for robust analysis")),
-         tags$td(p("As calorimetry data is quite unstable, it is usually averaged over a certain time period (e.g. 1h as in CalR). However, one might to adjust this time period to personal preferences e.g. 30 minute intervals. This script offers this possibility. In order to do so, one must again extract some additional information form the data. In a first step, the cumulative running time of the experiment is calculated. The cumulative time (in s) is subsequently transformed in hours.")) #nolint
-
-      ),
-      tags$tr(
-         tags$td(icon("user-xmark", "fa-3x")),
-         tags$td(h3("Outlier detection and removal")),
-         tags$td(p("Although not recommended you might want to exclude animals from the data. Maybe animals got sick, did not eat or technical issues with the cage occurred. One solution to remove whole animals is provided below.")) #nolint
-      ),
-      tags$tr(
-         tags$td(icon("folder-tree", "fa-3x")),
-         tags$td(h3("Combining several data sets")),
-         tags$td(p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)")) #nolint
-      ),
-      tags$tr(
-         tags$td(icon("magnifying-glass-chart", "fa-3x")),
-         tags$td(h3("Visualization and analysis of data")),
-         tags$td(p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis")) #nolint
-      ),
-      tags$tr(
-         tags$td(icon("file-export", "fa-3x")),
-         tags$td(h3("Data export")),
-         tags$td(p("Various export data formats supported, for instance CalR compatible data export"))
-      )
-   ),
-   hr(style = "width:100%;")
 )
 
 ################################################################################
@@ -124,13 +74,9 @@ sidebar_content <- sidebarPanel(
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Data set loading"),
+      h3("Dataset import"),
       br(),
-      h3("Application examples"),
-      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
-      actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
-      actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
-      br(), br()
+      hr(width="150%"),
    ),
    column(2, style = "padding: 20px;",
     actionButton("showTabHP", label = "", icon = icon("square-plus", "fa-3x"))
@@ -196,41 +142,54 @@ sidebar_content <- sidebarPanel(
       conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
    )
    ))),
-h3("Plotting controls"),
+   h4("Example datasets"),
+      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
+      actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
+
+h4("Plotting controls"),
    tags$style(HTML("
         #reset {
           background-color: #637DFF; /* Pastel Blue */
           color: white;
-          border-color: #637DFF;
+          //border-color: #637DFF;
+          border-color: white;
         }
         #reset:hover {
           background-color: #A3B8FF;
-          border-color: #A3B8FF;
+          //border-color: #A3B8FF;
+          border-color: white;
         }
         #plotting {
           background-color: #77DD77; /* Pastel Green */
           color: white;
-          border-color: #77DD77;
+          //border-color: #77DD77;
+          border-color: white;
         }
         #plotting:hover {
           background-color: #5CB85C; 
-          border-color: #5CB85C;
+          //border-color: #5CB85C;
+          border-color: white;
         }
         #refresh {
          background-color: #8DBBD0; /* Pastel Light Blue */
-         border-color: #8DBBD0;
+         //border-color: #8DBBD0;
+          border-color: white;
         }
         #refresh:hover {
          background-color: #6E98AA;
-         border-color: #6E98AA
+          border-color: white;
+         //border-color: #6E98AA
         }
         #load_data { /* Pastel Red */
          background-color: #FF6961;
-         border-color: #FF6961;
+         //border-color: #FF6961;
+          border-color: white;
         }
         #load_data:hover {
         background-color: #FFB3AB;
-        border-color: #FFB3AB;
+        //border-color: #FFB3AB;
+          border-color: white;
         }
    ")),
    actionButton("load_data", "Load data"),
@@ -242,7 +201,7 @@ h3("Plotting controls"),
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
-      h1("Plotting")),
+      h3("Visualization of data")),
    column(2, style = "padding: 20px;",
     actionButton("showTabPC", label = "", icon = icon("square-plus", "fa-3x")),
    ),
@@ -336,7 +295,7 @@ h3("Plotting controls"),
    fluidPage(
       fluidRow(
          column(8, style = "padding: 0px;",
-         h1("Data curation"),
+         h3("Data curation"),
          ),
          column(2, style = "padding: 20px;",
          actionButton("showTabDC", label = "", icon = icon("square-plus", "fa-3x")),
@@ -364,7 +323,7 @@ h3("Plotting controls"),
   fluidPage(
       fluidRow(
          column(8, style = "padding: 0px;",
-         h1("Data export"),
+         h3("Result summary"),
          ),
          column(2, style = "padding: 20px;",
          actionButton("showTabDE", label = "", icon = icon("square-plus", "fa-3x")),
@@ -386,16 +345,13 @@ h3("Plotting controls"),
    textInput("export_file_name2", "File name (Leave empty for auto-generation of a file name)"),
    downloadButton("downloadPlottingData", "Download"),
    )),
-   hr(),
+   #hr(),
     fluidPage(
       fluidRow(
          column(8, style = "padding: 0px;",
          span(textOutput("message"), style = "color:red")
     ))),
-    # hidden session ID to manage global user data (or hidden; if required to hide)
-    span(textOutput("session_id"), style = "color: #77DD77; font-size: 12px; visibility: visible;"),
-    span(textOutput("git_info"), style = "color: #FDFD96; font-size: 12px; visibility: visible;")
-)
+  )
 
 ################################################################################
 # main content panel
@@ -413,8 +369,8 @@ main_content <- mainPanel(
       id = "additional_content",
       tabPanel("Main plot", 
          tagList(
-            conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("windowed_plot", "Add windowed time-trace plot", value=FALSE)),
             conditionalPanel("input.plot_type != 'Metadata'", h3("Overview")),
+            conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("windowed_plot", "Add windowed time-trace plot", value=FALSE)),
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
@@ -459,11 +415,18 @@ plotting_validation_panel <- mainPanel(
 # Visualization panel
 ################################################################################
 visualization <- tabPanel(
-  "Visualization and statistical analysis",
-  titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
+  "Analysis",
+  #titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
   sidebarLayout(
     sidebar_content, main_content
-  )
+  ),
+# hidden session ID to manage global user data (or hidden; if required to hide)
+   div(class="footer_session", 
+    span(textOutput("session_id"), style = "font-size: 12px; visibility: visible;"),
+   ),
+   div(class="footer_version",
+    span(textOutput("git_info"), style = "font-size: 12px; visibility: visible;")
+   )
 )
 
 ################################################################################
@@ -490,7 +453,7 @@ locomotion_panel <- tabPanel(
 # documentation panel
 ################################################################################
 documentation <- tabPanel(
-      "Getting help",
+      "Help",
       style = "text-align: center",
       titlePanel("Getting general help for CALOR:"),
       div(style = "width: 50%",
@@ -501,8 +464,81 @@ documentation <- tabPanel(
          size = "l",
          colour = "red",
          style = "zoom: 300%; text-align: right"
-      )
+      )),
+  br(),
+  br(),
+  h3("Supported input file formats"),
+  div(style="display: flex; justify-content: center",
+  tags$table(class = "fileformat-types",
+   tags$tr(
+      tags$td(icon("file-excel")),
+      tags$td(icon("minus")),
+      tags$td("Promethion/Sable")
    ),
+   tags$tr(
+      tags$td(icon("file-excel")),
+      tags$td(icon("minus")),
+      tags$td("COSMED")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE PhenoMaster v7")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE PhenoMaster v8")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE LabMaster v6")
+   ),
+   tags$tr(
+      tags$td(icon("file-csv")),
+      tags$td(icon("minus")),
+      tags$td("TSE LabMaster v5")
+   )
+   )),
+   br(),
+   p("For an exhaustive list of features, see the documentation from the navigation bar on the top."),
+ #  hr(style = "width:75%;"),
+#   h1("List of selected app features"),
+#   tags$table(class = "feature-table",
+#      tags$tr(
+#         tags$td(icon("timeline", "fa-3x")),
+#         tags$td(h3("Long term observational studies")),
+#         #tags$td(p("On a single data set. This description deals with an animal experiment investigating mice of two different genotypes (ko & wt) running in two cohorts (C1 & C2) and thus at two different timepoints. The provided commands are compatible with csv-files exported by the LabMaster software. Just export the respective csv-file and save it to a appropriate location.")) #nolint
+#      ),
+#      tags$tr(
+#         tags$td(icon("plus-minus", "fa-3x")),
+#         tags$td(h3("Time averaging for robust analysis")),
+#        # tags$td(p("As calorimetry data is quite unstable, it is usually averaged over a certain time period (e.g. 1h as in CalR). However, one might to adjust this time period to personal preferences e.g. 30 minute intervals. This script offers this possibility. In order to do so, one must again extract some additional information form the data. In a first step, the cumulative running time of the experiment is calculated. The cumulative time (in s) is subsequently transformed in hours.")) #nolint
+#
+#      ),
+#      tags$tr(
+#         tags$td(icon("user-xmark", "fa-3x")),
+#         tags$td(h3("Outlier detection and removal")),
+#         #tags$td(p("Although not recommended you might want to exclude animals from the data. Maybe animals got sick, did not eat or technical issues with the cage occurred. One solution to remove whole animals is provided below.")) #nolint
+#      ),
+#      tags$tr(
+#         tags$td(icon("folder-tree", "fa-3x")),
+#         tags$td(h3("Combining several data sets")),
+#        # tags$td(p("Limited capacity is often an issue for calorimetry, thus mice might be measured at different time points and need to be combined to a single data set. This is a issue since merging by time is not that easy due to slightly different starting time points etc. Be sure to always adjust your time period - the date can/should differ, however your starting period should always be in the same hour (e.g. 12:02:00 for the first data set and 12:00:00 for the second data set)")) #nolint
+#      ),
+#      tags$tr(
+#         tags$td(icon("magnifying-glass-chart", "fa-3x")),
+#         tags$td(h3("Visualization and analysis of data")),
+#        # tags$td(p("Head over to the Visualization tab in the navigation bar at the top of this window - currently single data files are supported for analysis")) #nolint
+#      ),
+#      tags$tr(
+#         tags$td(icon("file-export", "fa-3x")),
+#         tags$td(h3("Data export")),
+#        # tags$td(p("Various export data formats supported, for instance CalR compatible data export"))
+#      )
+#   ),
+   #hr(style = "width:100%;")
 )
 
 ################################################################################
@@ -543,31 +579,37 @@ contact <- tabPanel(
 # main navigation bar
 ################################################################################
 ui <- tagList(
+  tags$head(tags$title("CALOR - A web application for general indirect calorimetry analysis")),
   useShinyjs(),
   # Note that this is inline CSS and HTML code, can also be put in external files,
   # e.g. code.js for code and style.css for stylesheets
-  tags$head(
-   tags$style(HTML("
-   .logo-container {
-   position: absolute; top: 5px; left: 10px; z-index: 2147483647;
-   }
-   .navbar {
-     padding-left: 30px;
-   }
-   "
-   ))
-  ),
-  div(class="logo-container", img(src="shiny_logo.png", height="30px")),
+  #tags$head(
+  # tags$style(HTML("
+  # .logo-container {
+  # position: absolute; top: 5px; left: 10px; z-index: 2147483647;
+  # }
+  # .navbar {
+  #   padding-left: 0px;
+  # }
+  # "
+  # ))
+  #),
+  #div(class="logo-container", img(src="shiny_logo.png", height="30px")),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
   navbarPage(
+    id="navbar",
     header = list(use_cicerone()),
     theme = shinytheme("superhero"),
-    "CALOR - A reactive web-based application for the analysis of indirect calorimetry experiments",
+    title=NULL,
+    #"CALOR - A reactive web-based application for the analysis of indirect calorimetry experiments",
     intro_panel,
     visualization,
-    tabPanel("Metadata converter", tags$a(href = "https://shiny.iaas.uni-bonn.de/CaloHelper", "Go to Metadata converter", target = "_blank")),
+    tabPanel("Metadata converter"),
+    tabPanel("Documentation"),
     documentation,
     contact
-  )
+  ),
+  
+
 )

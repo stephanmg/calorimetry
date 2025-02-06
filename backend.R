@@ -777,11 +777,11 @@ server <- function(input, output, session) {
 
    # git info
    output$git_info <- renderText({
-      get_git_information_from_repository()
+      paste0("Version: ", get_git_information_from_repository())
    })
 
    # save session id
-   output$session_id <- renderText(paste0("Global session ID: ", session$token))
+   output$session_id <- renderText(paste0("Session ID: ", session$token))
 
    # store globally the data per session
    storeSession(session$token, "time_diff", 5, global_data)
@@ -1642,6 +1642,25 @@ server <- function(input, output, session) {
       } else {
            shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
            return()
+      }
+   })
+
+   #############################################################################
+   # Observer event link click
+   #############################################################################
+   observeEvent(input$btn_to_analysis, {
+      updateNavbarPage(session, "navbar", selected="Analysis")
+   })
+
+   observeEvent(input$navbar, {
+      if (input$navbar == "Metadata converter") {
+         runjs("window.open('https://shiny.iaas.uni-bonn.de/CaloHelper', '_blank');")
+         updateNavbarPage(session, "navbar", selected="Home")
+      }
+
+      if (input$navbar == "Documentation") {
+         runjs("window.open('https://calorimetry.readthedocs.io/en/latest', '_blank')")
+         updateNavbarPage(session, "navbar", selected="Home")
       }
    })
 }
