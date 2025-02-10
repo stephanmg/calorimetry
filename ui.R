@@ -25,12 +25,12 @@ intro_panel <- tabPanel(
   ),
   div(class="tile_lower_landing_page",
   h2("Visualization and statistical data analysis", style="text-align:center;"),
-  div(class="image-container", img(src = "app_landing_page.png", class="zoom-image"), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
+  div(class="image-container", tags$a(href="https://calorimetry.readthedocs.io/en/latest/introduction.html", target="_blank", img(src = "app_landing_page.png", class="zoom-image")), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
   ),
   br(),
   div(class="tile_bottom_landing_page",
   h2("Metadata analysis", style="text-align:center;"),
-  div(class="image_container", img(src = "app_landing_page_bottom.png", class="zoom-image"), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
+  div(class="image_container", tags$a(href="https://calorimetry.readthedocs.io/en/latest/metadata.html", target="_blank", tags$img(src = "app_landing_page_bottom.png", class="zoom-image")), style = "text-align: center; display: flex; justify-content: center; align-items: center;"),
   ),
   #p("A R Shiny web app for the analysis of indirect calorimetric data provided in standardized data formats from the TSE Phenomaster/Phenolab, Sable Promethion and Columbus Instruments CLAMS system."), #nolint
   #p("In this document the analysis of data acquired during indirect calorimetry experiments is explained for: "),
@@ -42,7 +42,7 @@ intro_panel <- tabPanel(
     span("CALOR - A web application for general indirect calorimetry", style = "font-size: 12px; visibility: visible;"),
     tags$a(id = "contact_me", href = "", icon("fa-solid fa-square-envelope", "fa-1x"), style = "display:inline; "),
     tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-1x")),
-    tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-twitter", "fa-1x")),
+    tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-x-twitter", "fa-1x")),
     tags$a(href = "http://youtube.com/@CALOR-APP", icon("fa-brands fa-square-youtube", "fa-1x"))
    )
 )
@@ -596,6 +596,15 @@ ui <- tagList(
   #),
   #div(class="logo-container", img(src="shiny_logo.png", height="30px")),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
+  #div(
+  # align="right",
+  # class = ".navbar .container-fluid",
+  # tags$a(
+  #    href="https://google.com",
+  #    target="_blank",
+  #    tags$i(class = "fab fa-github"),
+  #    style="position: relative; top: 30px; left: 5px; z-index: 100000; font-size: 30px;"
+  #)),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
   navbarPage(
     id="navbar",
