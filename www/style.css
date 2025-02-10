@@ -103,12 +103,12 @@ a:active {
 }
 
 .footer_session {
-	bottom: 0 !important;
-	left: 0! important;
+	bottom: 0;
+	left: 0;
 	width: 100%;
 	color: white !important;
 	text-align: left;
-	padding: 0px 0px !important;
+	padding: 0px 0px;
 }
 
 .footer_landing_left {
