@@ -178,7 +178,7 @@ load_data <- function(file, input, exclusion, output, session) {
          output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
       }
       output$file_type_detected <- renderText(paste("Input file type: ", gsub("[;,]", "", line[2]), sep = " "))
-      output$additional_information <- renderText("Additional informations")
+      output$additional_information <- renderText("Additional information")
    }
    #########################################################################################################
    # Detect data type (TSE v6/v7, v5 (Akim/Dominik) or v8 (Jan/Tabea)) or Promethion/Sable (.xlsx) (Jenny))
