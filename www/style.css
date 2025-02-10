@@ -103,7 +103,7 @@ a:active {
 }
 
 .footer_session {
-	bottom: 0;
+	bottom: 0px;
 	left: 0;
 	width: 100%;
 	color: white !important;

@@ -775,12 +775,10 @@ server <- function(input, output, session) {
        }
    })
 
-   # git info
-   output$git_info <- renderText({
-      paste0("Version: ", get_git_information_from_repository())
-   })
+   # get git info from repository
+   output$git_info <- renderText(paste0("Version: ", get_git_information_from_repository()))
 
-   # save session id
+   # get current session id for user
    output$session_id <- renderText(paste0("Session ID: ", session$token))
 
    # store globally the data per session

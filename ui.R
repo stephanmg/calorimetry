@@ -76,6 +76,10 @@ sidebar_content <- sidebarPanel(
       column(8, style = "padding: 0px;",
       h3("Dataset import"),
       br(),
+      h4("Examples"),
+      actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
+      actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
+      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
       hr(width="150%"),
    ),
    column(2, style = "padding: 20px;",
@@ -140,68 +144,15 @@ sidebar_content <- sidebarPanel(
       checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
       checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
       conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-   )
+   ),
+   hr()
    ))),
-   h4("Example datasets"),
-      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
-      actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
-      actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
-
-h4("Plotting controls"),
-   tags$style(HTML("
-        #reset {
-          background-color: #637DFF; /* Pastel Blue */
-          color: white;
-          //border-color: #637DFF;
-          border-color: white;
-        }
-        #reset:hover {
-          background-color: #A3B8FF;
-          //border-color: #A3B8FF;
-          border-color: white;
-        }
-        #plotting {
-          background-color: #77DD77; /* Pastel Green */
-          color: white;
-          //border-color: #77DD77;
-          border-color: white;
-        }
-        #plotting:hover {
-          background-color: #5CB85C; 
-          //border-color: #5CB85C;
-          border-color: white;
-        }
-        #refresh {
-         background-color: #8DBBD0; /* Pastel Light Blue */
-         //border-color: #8DBBD0;
-          border-color: white;
-        }
-        #refresh:hover {
-         background-color: #6E98AA;
-          border-color: white;
-         //border-color: #6E98AA
-        }
-        #load_data { /* Pastel Red */
-         background-color: #FF6961;
-         //border-color: #FF6961;
-          border-color: white;
-        }
-        #load_data:hover {
-        background-color: #FFB3AB;
-        //border-color: #FFB3AB;
-          border-color: white;
-        }
-   ")),
-   actionButton("load_data", "Load data"),
-   actionButton("plotting", "Show plot",),
-   actionButton("refresh", "Refresh"),
-   actionButton("reset", "Reset"),
-   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
 
    fluidPage(
    fluidRow(
       column(8, style = "padding: 0px;",
       h3("Visualization of data")),
+
    column(2, style = "padding: 20px;",
     actionButton("showTabPC", label = "", icon = icon("square-plus", "fa-3x")),
    ),
@@ -291,6 +242,58 @@ h4("Plotting controls"),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
    )),
+   h4("Controls"),
+   tags$style(HTML("
+        #reset {
+          background-color: #637DFF; /* Pastel Blue */
+          color: white;
+          //border-color: #637DFF;
+          border-color: white;
+        }
+        #reset:hover {
+          background-color: #A3B8FF;
+          //border-color: #A3B8FF;
+          border-color: white;
+        }
+        #plotting {
+          background-color: #77DD77; /* Pastel Green */
+          color: white;
+          //border-color: #77DD77;
+          border-color: white;
+        }
+        #plotting:hover {
+          background-color: #5CB85C; 
+          //border-color: #5CB85C;
+          border-color: white;
+        }
+        #refresh {
+         background-color: #8DBBD0; /* Pastel Light Blue */
+         //border-color: #8DBBD0;
+          border-color: white;
+        }
+        #refresh:hover {
+         background-color: #6E98AA;
+          border-color: white;
+         //border-color: #6E98AA
+        }
+        #load_data { /* Pastel Red */
+         background-color: #FF6961;
+         //border-color: #FF6961;
+          border-color: white;
+        }
+        #load_data:hover {
+        background-color: #FFB3AB;
+        //border-color: #FFB3AB;
+          border-color: white;
+        }
+   ")),
+   actionButton("load_data", "Load data"),
+   actionButton("plotting", "Show plot",),
+   actionButton("refresh", "Refresh"),
+   actionButton("reset", "Reset"),
+   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
+
+
    hr(),
    fluidPage(
       fluidRow(
