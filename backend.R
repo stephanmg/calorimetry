@@ -631,7 +631,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    RestingMetabolicRate = {
       # Check first if RMR can be calculated
       if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
-        shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
+        shinyalert("Error:", "Total heat production needs to be calculated before!")
         return()
       }
 
@@ -1041,7 +1041,7 @@ server <- function(input, output, session) {
       # if not any data loaded, we have 0 columns to select from
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
       choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
-      choices = intersect(choices, raw_cols)
+      #choices = intersect(choices, raw_cols)
       if (length(raw_cols) == 0) {
          choices = c("O2")
       }
