@@ -1671,8 +1671,8 @@ server <- function(input, output, session) {
    observeEvent(input$toggleB_experimental_times, { toggle_section("sectionB_experimental_times", "toggleB_experimental_times")})
    observeEvent(input$toggleB_advanced_options, { toggle_section("sectionB_advanced_options", "toggleB_advanced_options")})
 
-    all_sections = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-    all_links = c("toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+    all_sections = c("sectionA_equation", "sectionA_custom",  "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+    all_links = c("toggleA_equation", "toggleA_custom",  "toggleC", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          hide(section)
@@ -1680,8 +1680,13 @@ server <- function(input, output, session) {
 
       for (link in all_links) {
          removeClass(link, "active-button")
-
       }
+
+
+      show("sectionA_example")
+      addClass("toggleA_example", "active-button")
+
+
 
    lapply(
       X = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),

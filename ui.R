@@ -288,10 +288,10 @@ sidebar_content <- sidebarPanel(
           border-color: white;
         }
    ")),
-   actionButton("load_data", "Load data"),
-   actionButton("plotting", "Show plot",),
-   actionButton("refresh", "Refresh"),
-   actionButton("reset", "Reset"),
+   actionButton("load_data", "Load data"), br(),
+   actionButton("plotting", "Show plot",), br(),
+   actionButton("refresh", "Refresh"), br(),
+   actionButton("reset", "Reset"), br(),
    checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
 
 
@@ -636,13 +636,16 @@ page_for_visualization_advanced_options <- fluidPage(
 )
 
 page_for_visualization_control <- fluidPage(
-   h4("Controls"),
+   h4("Actions"),
    tags$style(HTML("
         #reset {
           background-color: #637DFF; /* Pastel Blue */
           color: white;
           //border-color: #637DFF;
           border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
         }
         #reset:hover {
           background-color: #A3B8FF;
@@ -654,6 +657,9 @@ page_for_visualization_control <- fluidPage(
           color: white;
           //border-color: #77DD77;
           border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
         }
         #plotting:hover {
           background-color: #5CB85C; 
@@ -664,6 +670,9 @@ page_for_visualization_control <- fluidPage(
          background-color: #8DBBD0; /* Pastel Light Blue */
          //border-color: #8DBBD0;
           border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
         }
         #refresh:hover {
          background-color: #6E98AA;
@@ -674,6 +683,9 @@ page_for_visualization_control <- fluidPage(
          background-color: #FF6961;
          //border-color: #FF6961;
           border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
         }
         #load_data:hover {
         background-color: #FFB3AB;
@@ -681,11 +693,13 @@ page_for_visualization_control <- fluidPage(
           border-color: white;
         }
    ")),
-   actionButton("load_data", "Load data"),
-   actionButton("plotting", "Show plot",),
-   actionButton("refresh", "Refresh"),
-   actionButton("reset", "Reset"),
+   actionButton("load_data", "Load data"), br(),
+   actionButton("plotting", "Show plot",), br(),
+   actionButton("refresh", "Refresh"), br(),
+   actionButton("reset", "Reset"), br(),
+   h4("Defaults"),
    checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
+   checkboxInput("use_default_plot_style", "Use default color palette", value=TRUE),
 )
 
 
