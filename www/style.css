@@ -94,8 +94,8 @@ a:active {
 }
 
 .footer_version {
-	bottom: 0;
-	right: 0;
+	bottom: 0 !important;
+	right: 0 !important;
 	width: 100%;
 	color: white !important;
 	text-align: right;
@@ -103,8 +103,8 @@ a:active {
 }
 
 .footer_session {
-	bottom: 0px;
-	left: 0;
+	bottom: 0px !important;
+	left: 0px;
 	width: 100%;
 	color: white !important;
 	text-align: left;
@@ -112,23 +112,48 @@ a:active {
 }
 
 .footer_landing_left {
-	bottom: 0;
+	/*bottom: 0;
 	left: 0;
+	*/
 	width: 20%;
 	text-align: left;
 	color: white !important;
 	text-align: center;
-	padding: 2px 2px;
+	padding: 0px 0px;
+	float: left;
 }
 
 .footer_landing_right {
-	bottom: 0;
-	right: 0;
+	/*bottom: 0;
+	right: 0;*/
 	width: 100%;
 	color: white !important;
 	text-align: right;
-	padding: 2px 2px;
+	padding: 0px 0px;
+	float: right;
 }
+
+.flex-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+}
+
+.flex-div-left {
+	color: white !important;
+	padding: 2px 2px;
+	flex: 1;
+	text-align: left;
+}
+.flex-div-right {
+	color: white !important;
+	padding: 2px 2px;
+	flex: 1;
+	text-align: right;
+}
+
+
 
 
 

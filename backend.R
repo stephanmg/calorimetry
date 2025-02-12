@@ -1628,21 +1628,30 @@ server <- function(input, output, session) {
    #############################################################################
    # Observe select_day input
    #############################################################################
-   observeEvent(input$select_day, {
+   #observeEvent(input$select_day, {
+   #   click("plotting")
+   #   selected_days <<- input$select_day
+   #   storeSession(session$token, "selected_days", input$select_day, global_data)
+   #})
+
+   observeEvent(input$apply_selection, {
       click("plotting")
       selected_days <<- input$select_day
+      selected_animals <<- input$select_animal
       storeSession(session$token, "selected_days", input$select_day, global_data)
+      storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
+
 
 
    #############################################################################
    # Observe select_animal input
    #############################################################################
-   observeEvent(input$select_animal, {
-      click("plotting")
-      selected_animals <<- input$select_animal
-      storeSession(session$token, "selected_animals", input$select_animal, global_data)
-   })
+   #observeEvent(input$select_animal, {
+   #   click("plotting")
+   #   selected_animals <<- input$select_animal
+   #   storeSession(session$token, "selected_animals", input$select_animal, global_data)
+   #})
 
    #############################################################################
    # Refresh

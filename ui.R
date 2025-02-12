@@ -38,13 +38,14 @@ intro_panel <- tabPanel(
   # tags$li("long term observations over multiple hours"),
   # tags$li("short therm/acute response experiments < 2 hours")
   # ),
-  div(class="footer_landing_right",
+  div(class="flex-container",
+  div(class="flex-div-right",
     span("CALOR - A web application for general indirect calorimetry", style = "font-size: 12px; visibility: visible;"),
     tags$a(id = "contact_me", href = "", icon("fa-solid fa-square-envelope", "fa-1x"), style = "display:inline; "),
     tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-1x")),
     tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-x-twitter", "fa-1x")),
     tags$a(href = "http://youtube.com/@CALOR-APP", icon("fa-brands fa-square-youtube", "fa-1x"))
-   )
+   ))
 )
 
 ################################################################################
@@ -419,13 +420,13 @@ plotting_validation_panel <- mainPanel(
 page_for_data_export <-  fluidPage(
    tabsetPanel(id = "tabsDE", type = "hidden",
       tabPanelBody("DE",
-   h3("Selected and calculated quantities", title = "This will export the currently selected quantity (see plotting above) and all quantities calculated during calculations"),
+   h4("Selected and calculated quantities", title = "This will export the currently selected quantity (see plotting above) and all quantities calculated during calculations"),
    selectInput("export_format", "Format", choices = c("CalR", "Excel")),
    textInput("export_file_name", "File name (Leave empty for auto-generation of a file name)"),
    downloadButton("downloadData", "Download"),
-   h3("All data (Input and data frames for plotting)", title = "This will export all calculated data, the selected quantity for plotting, as well as all data frames so far for plotting. Note that in order to export TEE or RMR, you need to calculate both TEE and RMR first."),
+   h4("All data (Input and data frames for plotting)", title = "This will export all calculated data, the selected quantity for plotting, as well as all data frames so far for plotting. Note that in order to export TEE or RMR, you need to calculate both TEE and RMR first."),
    downloadButton("downloadAllData", "Download as zip file", icon=icon("file-archive")),
-   h3("Data tables for plotting", title = "This will download only the data tables for plotting"),
+   h4("Data tables for plotting", title = "This will download only the data tables for plotting"),
    textInput("export_file_name2", "File name (Leave empty for auto-generation of a file name)"),
    downloadButton("downloadPlottingData", "Download"),
    )),
@@ -440,10 +441,6 @@ page_for_data_curation <- fluidPage(
    h4("Trimming"),
    tabsetPanel(id = "tabsDC", type = "hidden",
       tabPanelBody("DC",
-   p("Select day(s)"),
-   uiOutput("select_day"),
-   p("Select sample(s)"),
-   uiOutput("select_animal"),
    p("Selection of experimental times"),
    conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
    checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
@@ -459,29 +456,19 @@ page_for_data_curation_selection <- fluidPage(
    h4("Select days and samples"),
    tabsetPanel(id = "tabsDC", type = "hidden",
       tabPanelBody("DC",
-   p("Select day(s)"),
    uiOutput("select_day"),
-   p("Select sample(s)"),
    uiOutput("select_animal"),
-   p("Selection of experimental times"),
-   conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
-   checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
-   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
-   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
-   # TODO: Calendrical day selection not yet implemented, needs changes to utility function for zeitgeber time, thus the do_select_date_range checkbox is disabled now
-   conditionalPanel(condition = "input.use_zeitgeber_time == false", checkboxInput("do_select_date_range", label = "Select dates", value=FALSE)),
-   tags$script(HTML("$('#do_select_date_range').prop('disabled', true);")),
-   tags$script(HTML("$('#use_default_plot_style').prop('disabled', true);"))
+   div(actionButton("apply_selection", "Apply selection"), style="text-align: center; padding: 5px;")
       )))
 
 
 
 page_for_data_import_example_data <- fluidPage(
    h4("Examples"),
-   actionButton("example_data_single", "UCP1 KO", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(42,82,190,0.5)"), br(),
-   actionButton("example_data_single_alternative", "DAKO", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
+   div(actionButton("example_data_single", "UCP1 KO study", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(42,82,190,0.5)"), style="text-align: center"), br(),
+   div(actionButton("example_data_single_alternative", "DAKO study", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(213,173,65,0.5)"), style="text-align: center"),
    h4("User guide"),
-   actionButton("guide", "Getting help", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+   div(actionButton("guide", "Getting help", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(255,69,0,0.5)"), style="text-align: center"),
 )
 
 page_for_data_import_select_equation <- fluidPage(
@@ -592,7 +579,7 @@ page_for_visualization_grouping <- fluidPage(
 )
 
 page_for_visualization_experimental_times <- fluidPage(
-   h2("Experimental times"),
+   h4("Experimental times"),
    checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
    conditionalPanel(condition = "input.use_zeitgeber_time != false",
    checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
@@ -616,6 +603,7 @@ page_for_visualization_experimental_times <- fluidPage(
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_max", label = "Scale (x_max)", min = 0, max = 100, value = 0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_min", label = "Scale (y_min)", min = 0, max = 100, value = 0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_max", label = "Scale (y_max)", min = 0, max = 100, value = 0)),
+   selectInput("light_cycle", "Light phase selection", c("Day", "Night"), multiple = TRUE, selected = c("Day", "Night")),
 )
 
 page_for_visualization_advanced_options <- fluidPage(
@@ -634,15 +622,14 @@ page_for_visualization_advanced_options <- fluidPage(
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmethod")),
-   selectInput("light_cycle", "Lightcycle", c("Day", "Night"), multiple = TRUE, selected = c("Day", "Night")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window size", min = 1, max = 30, value = 5, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("rmr_averaging", "Averaging width", min = 1, max = 30, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = FALSE, selected = "O2")),
-   h3("Time averaging of measurements"),
+   h5("Time averaging of measurements"),
    checkboxInput(inputId = "override_averaging", label = "Override averaging method (mean)"),
    conditionalPanel(condition = "input.override_averaging == true", selectInput("avg_method_for_statistics", "Method", choices = c("mean", "median"))),
-   h3("Light cycle configuration"),
+   h5("Light cycle configuration"),
    checkboxInput(inputId = "override_metadata_light_cycle", label = "Override"),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
    conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
@@ -650,7 +637,7 @@ page_for_visualization_advanced_options <- fluidPage(
    sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 18),
    colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
    colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
-   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h3("Time averaging of raw data")),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h5("Time averaging of raw data")),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum")))
@@ -849,12 +836,11 @@ visualization <- tabPanel(
   #  sidebar_content2, main_content
   #),
 # hidden session ID to manage global user data (or hidden; if required to hide)
-   div(class="footer_session", 
-    span(textOutput("session_id"), style = "font-size: 12px; visibility: visible;"),
-   ),
-   div(class="footer_version",
-    span(textOutput("git_info"), style = "font-size: 12px; visibility: visible;")
+
+   div(class="footer_version", 
+    span(textOutput("session_id"), style = "font-size: 10px; visibility: visible;"),
    )
+  
 )
 
 ################################################################################
@@ -930,7 +916,8 @@ documentation <- tabPanel(
    )
    )),
    br(),
-   p("For an exhaustive list of features, see the documentation from the navigation bar on the top."),
+    span(textOutput("git_info"), style = "font-size: 10px; visibility: visible;")
+   
  #  hr(style = "width:75%;"),
 #   h1("List of selected app features"),
 #   tags$table(class = "feature-table",
