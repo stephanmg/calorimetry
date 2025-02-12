@@ -416,6 +416,26 @@ plotting_validation_panel <- mainPanel(
    plotOutput("plotvalidation")
 )
 
+page_for_data_export <-  fluidPage(
+   tabsetPanel(id = "tabsDE", type = "hidden",
+      tabPanelBody("DE",
+   h3("Selected and calculated quantities", title = "This will export the currently selected quantity (see plotting above) and all quantities calculated during calculations"),
+   selectInput("export_format", "Format", choices = c("CalR", "Excel")),
+   textInput("export_file_name", "File name (Leave empty for auto-generation of a file name)"),
+   downloadButton("downloadData", "Download"),
+   h3("All data (Input and data frames for plotting)", title = "This will export all calculated data, the selected quantity for plotting, as well as all data frames so far for plotting. Note that in order to export TEE or RMR, you need to calculate both TEE and RMR first."),
+   downloadButton("downloadAllData", "Download as zip file", icon=icon("file-archive")),
+   h3("Data tables for plotting", title = "This will download only the data tables for plotting"),
+   textInput("export_file_name2", "File name (Leave empty for auto-generation of a file name)"),
+   downloadButton("downloadPlottingData", "Download"),
+   )),
+   #hr(),
+    fluidPage(
+      fluidRow(
+         column(8, style = "padding: 0px;",
+         span(textOutput("message"), style = "color:red")
+    ))))
+
 page_for_data_curation <- fluidPage(
    fluidRow(
          column(8, style = "padding: 0px;",
@@ -657,6 +677,10 @@ sidebar_content2 <- fluidPage(
       actionLink("toggleA", "Section A"),
       br(),
       actionLink("toggleB", "Section B"),
+      br(),
+      actionLink("toggleC", "Section C"),
+      br(),
+      actionLink("toggleD", "Section D"),
    ),
    column(2, id ="middle_panel", style="border: 1px solid #ddd;",
       div(id = "sectionA", 
@@ -668,7 +692,16 @@ sidebar_content2 <- fluidPage(
          h4("Section B"), 
          p("Content"),
          page_for_visualization,
+      ),
+      div(id = "sectionC",
+         h4("Section C"),
+         p("Content"),
          page_for_data_curation
+      ),
+      div(id = "sectionD",
+         h4("Section D"),
+         p("Content"),
+         page_for_data_export
       )
    ),
       main_content
