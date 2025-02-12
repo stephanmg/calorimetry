@@ -863,7 +863,7 @@ server <- function(input, output, session) {
          html_ui <- " "
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort ", i)))
+               label = paste0("Cohort #", i)))
             }
          HTML(html_ui)
          })
@@ -1577,6 +1577,18 @@ server <- function(input, output, session) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
       )
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         show(section)
+      }
+
+      for (link in all_links) {
+         addClass(link, "active-button")
+      }
+
+
       guide$init()$start()
    })
 
@@ -1591,6 +1603,24 @@ server <- function(input, output, session) {
                hideTab(inputId = paste0("tabs", i), target = i)
             }
          )
+            all_sections = c("sectionA_equation", "sectionA_custom",  "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         hide(section)
+      }
+
+      for (link in all_links) {
+         removeClass(link, "active-button")
+      }
+
+      show("sectionA_example")
+      addClass("toggleA_example", "active-button")
+
+
+
+
+
       }
     })
 
