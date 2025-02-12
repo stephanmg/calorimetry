@@ -1581,13 +1581,12 @@ server <- function(input, output, session) {
       all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
-         show(section)
+         shinyjs::show(section)
       }
 
       for (link in all_links) {
-         addClass(link, "active-button")
+         shinyjs::addClass(link, "active-button")
       }
-
 
       guide$init()$start()
    })
