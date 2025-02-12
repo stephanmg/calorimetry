@@ -554,7 +554,9 @@ page_for_visualization <- fluidPage(
    conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot")),
    conditionalPanel(condition = "input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
-   hr(),
+      ))))
+
+page_for_visualization_grouping <- fluidPage(
    h2("Grouping and filtering"),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("condition_type")),
@@ -565,8 +567,11 @@ page_for_visualization <- fluidPage(
    checkboxInput(inputId = "select_temperature", label = "Select temperature"),
    conditionalPanel(condition = "input.select_temperature == true", sliderInput(inputId = "temperature_mean", label = "Temperature", min=0, max=30, value=4, step=1)),
    conditionalPanel(condition = "input.select_temperature == true", sliderInput(inputId = "temperature_deviation", label = "Deviation from temperature", min=0, max=1, value=0.05, step=0.05)),
-   uiOutput("checkboxgroup_gender"),
-     h2("Experimental times"),
+   uiOutput("checkboxgroup_gender")
+)
+
+page_for_visualization_experimental_times <- fluidPage(
+   h2("Experimental times"),
    checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
    conditionalPanel(condition = "input.use_zeitgeber_time != false",
    checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
@@ -590,7 +595,9 @@ page_for_visualization <- fluidPage(
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_max", label = "Scale (x_max)", min = 0, max = 100, value = 0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_min", label = "Scale (y_min)", min = 0, max = 100, value = 0)),
    conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_max", label = "Scale (y_max)", min = 0, max = 100, value = 0)),
-   hr(),
+)
+
+page_for_visualization_advanced_options <- fluidPage(
    h2("Advanced options"),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", h3("Time Interval or Steady-State method to estimate RMR")),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
@@ -625,8 +632,10 @@ page_for_visualization <- fluidPage(
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h3("Time averaging of raw data")),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
-   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
-   )),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum")))
+)
+
+page_for_visualization_control <- fluidPage(
    h4("Controls"),
    tags$style(HTML("
         #reset {
@@ -677,7 +686,7 @@ page_for_visualization <- fluidPage(
    actionButton("refresh", "Refresh"),
    actionButton("reset", "Reset"),
    checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
-))
+)
 
 
 sidebar_content2 <- fluidPage(
@@ -692,7 +701,8 @@ sidebar_content2 <- fluidPage(
       actionLink("toggleA_equation", "Select equation"),
       hr(),
       h3("Visualization of data"),
-      actionLink("toggleB", "Section B"),
+      actionLink("toggleB_main", "Plotting control"),
+      br(),
       hr(),
       h3("Data curation"),
       actionLink("toggleC", "Section C"),
@@ -711,10 +721,18 @@ sidebar_content2 <- fluidPage(
          page_for_data_import_select_equation
       ),
 
-      div(id = "sectionB", 
-         h4("Section B"), 
-         p("Content"),
-         page_for_visualization,
+      div(id = "sectionB_main", 
+         page_for_visualization_control,
+         page_for_visualization
+      ),
+      div(id = "sectionB_groups",
+         page_for_visualization_grouping
+      ),
+      div(id = "sectionB_experimental_times",
+         page_for_visualization_experimental_times
+      ),
+      div(id = "sectionB_advanced_options",
+         page_for_visualization_advanced_options,
       ),
       div(id = "sectionC",
          h4("Section C"),

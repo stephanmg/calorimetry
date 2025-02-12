@@ -1558,12 +1558,6 @@ server <- function(input, output, session) {
          showTab(inputId = paste0("tabs", i), target = i)
       }
    )
-   lapply(
-      X = c("sectionB", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD"),
-      FUN = function(i) {
-         shinyjs::toggle(i)
-      }
-   )
 
    #############################################################################
    # Reset session
@@ -1671,6 +1665,15 @@ server <- function(input, output, session) {
    observeEvent(input$toggleA_custom, { shinyjs::toggle("sectionA_custom")})
    observeEvent(input$toggleA_example, { shinyjs::toggle("sectionA_example")})
    observeEvent(input$toggleA_equation, { shinyjs::toggle("sectionA_equation")})
-   observeEvent(input$toggleB, { shinyjs::toggle("sectionB")})
+   observeEvent(input$toggleB_main, { shinyjs::toggle("sectionB_main")})
+
+   lapply(
+      X = c("sectionB", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_main", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
+      FUN = function(i) {
+         shinyjs::toggle(i)
+      }
+   )
+
+
 }
 
