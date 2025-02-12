@@ -437,16 +437,14 @@ page_for_data_export <-  fluidPage(
     ))))
 
 page_for_data_curation <- fluidPage(
-   fluidRow(
-         column(8, style = "padding: 0px;",
-         h3("Data curation"),
-      )
-   ),
+   h4("Trimming"),
    tabsetPanel(id = "tabsDC", type = "hidden",
       tabPanelBody("DC",
-   p("Selection of experimental times"),
+   p("Select day(s)"),
    uiOutput("select_day"),
+   p("Select sample(s)"),
    uiOutput("select_animal"),
+   p("Selection of experimental times"),
    conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
    checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
@@ -456,6 +454,27 @@ page_for_data_curation <- fluidPage(
    tags$script(HTML("$('#do_select_date_range').prop('disabled', true);")),
    tags$script(HTML("$('#use_default_plot_style').prop('disabled', true);"))
       )))
+
+page_for_data_curation_selection <- fluidPage(
+   h4("Select days and samples"),
+   tabsetPanel(id = "tabsDC", type = "hidden",
+      tabPanelBody("DC",
+   p("Select day(s)"),
+   uiOutput("select_day"),
+   p("Select sample(s)"),
+   uiOutput("select_animal"),
+   p("Selection of experimental times"),
+   conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
+   checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
+   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
+   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
+   # TODO: Calendrical day selection not yet implemented, needs changes to utility function for zeitgeber time, thus the do_select_date_range checkbox is disabled now
+   conditionalPanel(condition = "input.use_zeitgeber_time == false", checkboxInput("do_select_date_range", label = "Select dates", value=FALSE)),
+   tags$script(HTML("$('#do_select_date_range').prop('disabled', true);")),
+   tags$script(HTML("$('#use_default_plot_style').prop('disabled', true);"))
+      )))
+
+
 
 page_for_data_import_example_data <- fluidPage(
    h4("Examples"),
@@ -765,10 +784,12 @@ sidebar_content2 <- fluidPage(
       actionLink("toggleB_advanced_options", "Advanced options", class = "menu-button"),
       hr(),
       h3("Data curation"),
-      actionLink("toggleC", "Section C"),
+      actionLink("toggleC_data_curation", "Trimming", class = "menu-button"),
+      br(),
+      actionLink("toggleC_data_curation_selection", "Select days and samples", class = "menu-button"),
       hr(),
       h3("Result summary"),
-      actionLink("toggleD", "Section D"),
+      actionLink("toggleD", "Download data", class = "menu-button"),
    ),
    column(2, id ="middle_panel", style="border: 1px solid #ddd;",
       div(id = "sectionA_example", class = "section-content",
@@ -796,14 +817,13 @@ sidebar_content2 <- fluidPage(
       div(id = "sectionB_advanced_options", class = "section-content",
          page_for_visualization_advanced_options,
       ),
-      div(id = "sectionC",
-         h4("Section C"),
-         p("Content"),
+      div(id = "sectionC_data_curation", class = "section-content",
          page_for_data_curation
       ),
-      div(id = "sectionD",
-         h4("Section D"),
-         p("Content"),
+      div(id = "sectionC_data_curation_selection", class = "section-content",
+         page_for_data_curation_selection
+      ),
+      div(id = "sectionD", class = "section-content",
          page_for_data_export
       )
    ),
