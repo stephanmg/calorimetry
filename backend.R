@@ -1665,10 +1665,14 @@ server <- function(input, output, session) {
    observeEvent(input$toggleA_custom, { shinyjs::toggle("sectionA_custom")})
    observeEvent(input$toggleA_example, { shinyjs::toggle("sectionA_example")})
    observeEvent(input$toggleA_equation, { shinyjs::toggle("sectionA_equation")})
-   observeEvent(input$toggleB_main, { shinyjs::toggle("sectionB_main")})
+   observeEvent(input$toggleB_control, { shinyjs::toggle("sectionB_control")})
+   observeEvent(input$toggleB_variable_selection, { shinyjs::toggle("sectionB_variable_selection")})
+   observeEvent(input$toggleB_groups, { shinyjs::toggle("sectionB_groups")})
+   observeEvent(input$toggleB_experimental_times, { shinyjs::toggle("sectionB_experimental_times")})
+   observeEvent(input$toggleB_advanced_options, { shinyjs::toggle("sectionB_advanced_options")})
 
    lapply(
-      X = c("sectionB", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_main", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
+      X = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
       FUN = function(i) {
          shinyjs::toggle(i)
       }

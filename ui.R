@@ -543,7 +543,7 @@ page_for_visualization <- fluidPage(
    useShinyjs(),
    fluidRow(
       column(8, style = "padding: 0px;",
-      h3("Visualization of data")),
+      h4("Variable selection")),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
    selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable"))),
@@ -557,7 +557,7 @@ page_for_visualization <- fluidPage(
       ))))
 
 page_for_visualization_grouping <- fluidPage(
-   h2("Grouping and filtering"),
+   h4("Grouping and filtering"),
    checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("condition_type")),
    conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
@@ -598,7 +598,7 @@ page_for_visualization_experimental_times <- fluidPage(
 )
 
 page_for_visualization_advanced_options <- fluidPage(
-   h2("Advanced options"),
+   h4("Advanced options"),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", h3("Time Interval or Steady-State method to estimate RMR")),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
    conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("rmr_method_frequency", "Frequency", min = 0, max = 30, value = 10)),
@@ -700,9 +700,16 @@ sidebar_content2 <- fluidPage(
       br(),
       actionLink("toggleA_equation", "Select equation"),
       hr(),
-      h3("Visualization of data"),
-      actionLink("toggleB_main", "Plotting control"),
+      h3("Data visualization"),
+      actionLink("toggleB_control", "Plotting control"),
       br(),
+      actionLink("toggleB_variable_selection", "Variable selection"),
+      br(),
+      actionLink("toggleB_groups", "Grouping and filtering"),
+      br(),
+      actionLink("toggleB_experimental_times", "Experimental times"),
+      br(),
+      actionLink("toggleB_advanced_options", "Advanced options"),
       hr(),
       h3("Data curation"),
       actionLink("toggleC", "Section C"),
@@ -721,8 +728,10 @@ sidebar_content2 <- fluidPage(
          page_for_data_import_select_equation
       ),
 
-      div(id = "sectionB_main", 
-         page_for_visualization_control,
+      div(id = "sectionB_control", 
+         page_for_visualization_control
+      ),
+      div(id = "sectionB_variable_selection",
          page_for_visualization
       ),
       div(id = "sectionB_groups",
