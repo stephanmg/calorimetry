@@ -361,7 +361,7 @@ sidebar_content <- sidebarPanel(
 # main content panel
 ################################################################################
 main_content <- mainPanel(
-   width=5,
+   width=8,
    tags$head(tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js")),
    tags$style(HTML("
    .shiny-output-error {
@@ -457,20 +457,15 @@ page_for_data_curation <- fluidPage(
    tags$script(HTML("$('#use_default_plot_style').prop('disabled', true);"))
       )))
 
-page_for_data_import <- fluidPage(
-   fluidRow(
-      column(8, style = "padding: 0px;",
-      h3("Dataset import"),
-      br(),
-      h4("Examples"),
-      actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
-      actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
-      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
-      hr(width="150%"),
-      )),
-   tabsetPanel(id = "tabsHP", type = "hidden",
-      tabPanelBody("HP",
-   add_busy_bar(color = "#0FFF50"),
+page_for_data_import_example_data <- fluidPage(
+   h4("Examples"),
+   actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
+   actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
+   h4("User guide"),
+   actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+)
+
+page_for_data_import_select_equation <- fluidPage(
    withMathJax(),
    h3("Energy expenditure equation"),
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
@@ -490,7 +485,23 @@ page_for_data_import <- fluidPage(
          )
       )
    ),
-   uiOutput("heat_production_equations"),
+   uiOutput("heat_production_equations")
+)
+
+page_for_data_import <- fluidPage(
+  # fluidRow(
+  #    column(8, style = "padding: 0px;",
+  #    h3("Dataset import"),
+  #    br(),
+  #    h4("Examples"),
+  #    actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
+  #    actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
+  #    actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+  #    hr(width="150%"),
+  #    )),
+   tabsetPanel(id = "tabsHP", type = "hidden",
+      tabPanelBody("HP",
+   add_busy_bar(color = "#0FFF50"),
    h3("Metadata"),
    div("Provide by a standardized Metadatasheet (7) in Excel format"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
@@ -672,9 +683,13 @@ page_for_visualization <- fluidPage(
 sidebar_content2 <- fluidPage(
    useShinyjs(),
    sidebarPanel(
-      width=3,
+      width=2,
       h3("Dataset import"),
-      actionLink("toggleA", "Section A"),
+      actionLink("toggleA_example", "Example data"),
+      br(),
+      actionLink("toggleA_custom", "Custom data"),
+      br(),
+      actionLink("toggleA_equation", "Select equation"),
       hr(),
       h3("Visualization of data"),
       actionLink("toggleB", "Section B"),
@@ -686,11 +701,16 @@ sidebar_content2 <- fluidPage(
       actionLink("toggleD", "Section D"),
    ),
    column(2, id ="middle_panel", style="border: 1px solid #ddd;",
-      div(id = "sectionA", 
-         h4("Section A"),
-         p("Content"),
-         page_for_data_import,
+      div(id = "sectionA_example", 
+         page_for_data_import_example_data,
       ),
+      div(id = "sectionA_custom", 
+         page_for_data_import
+      ),
+      div(id = "sectionA_equation", 
+         page_for_data_import_select_equation
+      ),
+
       div(id = "sectionB", 
          h4("Section B"), 
          p("Content"),

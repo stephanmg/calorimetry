@@ -1559,9 +1559,9 @@ server <- function(input, output, session) {
       }
    )
    lapply(
-      X = c("sectionB"),
+      X = c("sectionB", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD"),
       FUN = function(i) {
-         shinyjs::toggle("sectionB")
+         shinyjs::toggle(i)
       }
    )
 
@@ -1668,7 +1668,9 @@ server <- function(input, output, session) {
       }
    })
    # for new sidebar panel
-   observeEvent(input$toggleA, { shinyjs::toggle("sectionA")})
+   observeEvent(input$toggleA_custom, { shinyjs::toggle("sectionA_custom")})
+   observeEvent(input$toggleA_example, { shinyjs::toggle("sectionA_example")})
+   observeEvent(input$toggleA_equation, { shinyjs::toggle("sectionA_equation")})
    observeEvent(input$toggleB, { shinyjs::toggle("sectionB")})
 }
 
