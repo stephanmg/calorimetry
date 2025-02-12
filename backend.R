@@ -1604,8 +1604,8 @@ server <- function(input, output, session) {
             }
          )
 
-      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          shinyjs::hide(section)
