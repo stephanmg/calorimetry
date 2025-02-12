@@ -1577,8 +1577,8 @@ server <- function(input, output, session) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
       )
-      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_equation", "toggleA_custom",  "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          show(section)
@@ -1603,8 +1603,9 @@ server <- function(input, output, session) {
                hideTab(inputId = paste0("tabs", i), target = i)
             }
          )
-            all_sections = c("sectionA_equation", "sectionA_custom",  "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_equation", "toggleA_custom",  "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          hide(section)
@@ -1694,6 +1695,7 @@ server <- function(input, output, session) {
    # for new sidebar panel
    observeEvent(input$toggleA_custom, { toggle_section("sectionA_custom", "toggleA_custom")})
    observeEvent(input$toggleA_example, { toggle_section("sectionA_example", "toggleA_example")})
+   observeEvent(input$toggleA_preprocessing, { toggle_section("sectionA_preprocessing", "toggleA_preprocessing")})
    observeEvent(input$toggleA_equation, { toggle_section("sectionA_equation", "toggleA_equation")})
    observeEvent(input$toggleB_control, { toggle_section("sectionB_control", "toggleB_control")})
    observeEvent(input$toggleB_variable_selection, { toggle_section("sectionB_variable_selection", "toggleB_variable_selection")})
@@ -1704,8 +1706,8 @@ server <- function(input, output, session) {
    observeEvent(input$toggleC_data_curation_selection, {  toggle_section("sectionC_data_curation_selection", "toggleC_data_curation_selection")})
    observeEvent(input$toggleD, {  toggle_section("sectionD", "toggleD")})
 
-    all_sections = c("sectionA_equation", "sectionA_custom",  "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-    all_links = c("toggleA_equation", "toggleA_custom",  "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          hide(section)
@@ -1722,15 +1724,15 @@ server <- function(input, output, session) {
 
 
    lapply(
-      X = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
+      X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
       FUN = function(i) {
         # shinyjs::toggle(i)
       }
    )
 
    toggle_section <- function(active_id, active_link) {
-      all_sections = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          hide(section)

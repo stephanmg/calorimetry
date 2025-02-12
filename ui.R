@@ -531,7 +531,10 @@ page_for_data_import <- fluidPage(
    uiOutput("fileInputs"),
    h4(textOutput("additional_information")),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
-   span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
+   span(textOutput("study_description"), style = "color:orange; font-weight: bold;")
+      )))
+
+page_for_data_import_preprocessing <- fluidPage(
    h3("Preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen datasets"),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
@@ -554,8 +557,7 @@ page_for_data_import <- fluidPage(
       checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
       checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
       conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-   )))
-)
+   ))
 
 
 page_for_visualization <- fluidPage(
@@ -770,6 +772,8 @@ sidebar_content2 <- fluidPage(
       br(),
       actionLink("toggleA_custom", "Custom data", class = "menu-button"),
       br(),
+      actionLink("toggleA_preprocessing", "Preprocessing", class = "menu-button"),
+      br(),
       actionLink("toggleA_equation", "Select equation", class = "menu-button"),
       hr(),
       h3("Data visualization"),
@@ -797,6 +801,9 @@ sidebar_content2 <- fluidPage(
       ),
       div(id = "sectionA_custom", class = "section-content",
          page_for_data_import
+      ),
+      div(id = "sectionA_preprocessing", class = "section-content",
+         page_for_data_import_preprocessing
       ),
       div(id = "sectionA_equation", class = "section-content",
          page_for_data_import_select_equation
