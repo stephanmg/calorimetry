@@ -467,7 +467,7 @@ page_for_data_import_example_data <- fluidPage(
 
 page_for_data_import_select_equation <- fluidPage(
    withMathJax(),
-   h3("Energy expenditure equation"),
+   h4("Select equation"),
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
@@ -691,25 +691,64 @@ page_for_visualization_control <- fluidPage(
 
 sidebar_content2 <- fluidPage(
    useShinyjs(),
+   tags$head(
+    tags$style(HTML("
+     .menu-button {
+        display: block;
+        width: 100%;
+        //padding: 10px;
+        //font-size: 16px;
+        text-align: center;
+        color: white;
+        background-color: #283e4f;
+        border-radius: 2px;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s ease;
+        text-decoration: none;
+      }
+      .menu-button:hover {
+        background-color: #0056b3;
+      }
+      .active-button {
+        background-color: #0056b3 !important;
+        font-weight: bold;
+      }
+      /*#middle_panel {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 5px;
+        background-color: white;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+      }*/
+      .section-content {
+        display: none;  /* Hide all sections initially */
+        //padding: 15px;
+        //background-color: #f8f9fa;
+        //border-radius: 5px;
+        //border: 1px solid #ddd;
+      }
+    "))
+  ),
    sidebarPanel(
       width=2,
       h3("Dataset import"),
-      actionLink("toggleA_example", "Example data"),
+      actionLink("toggleA_example", "Example data", class = "menu-button"),
       br(),
-      actionLink("toggleA_custom", "Custom data"),
+      actionLink("toggleA_custom", "Custom data", class = "menu-button"),
       br(),
-      actionLink("toggleA_equation", "Select equation"),
+      actionLink("toggleA_equation", "Select equation", class = "menu-button"),
       hr(),
       h3("Data visualization"),
-      actionLink("toggleB_control", "Plotting control"),
+      actionLink("toggleB_control", "Plotting control", class = "menu-button"),
       br(),
-      actionLink("toggleB_variable_selection", "Variable selection"),
+      actionLink("toggleB_variable_selection", "Variable selection", class = "menu-button"),
       br(),
-      actionLink("toggleB_groups", "Grouping and filtering"),
+      actionLink("toggleB_groups", "Grouping and filtering", class = "menu-button"),
       br(),
-      actionLink("toggleB_experimental_times", "Experimental times"),
+      actionLink("toggleB_experimental_times", "Experimental times", class = "menu-button"),
       br(),
-      actionLink("toggleB_advanced_options", "Advanced options"),
+      actionLink("toggleB_advanced_options", "Advanced options", class = "menu-button"),
       hr(),
       h3("Data curation"),
       actionLink("toggleC", "Section C"),
@@ -718,29 +757,29 @@ sidebar_content2 <- fluidPage(
       actionLink("toggleD", "Section D"),
    ),
    column(2, id ="middle_panel", style="border: 1px solid #ddd;",
-      div(id = "sectionA_example", 
+      div(id = "sectionA_example", class = "section-content",
          page_for_data_import_example_data,
       ),
-      div(id = "sectionA_custom", 
+      div(id = "sectionA_custom", class = "section-content",
          page_for_data_import
       ),
-      div(id = "sectionA_equation", 
+      div(id = "sectionA_equation", class = "section-content",
          page_for_data_import_select_equation
       ),
 
-      div(id = "sectionB_control", 
+      div(id = "sectionB_control", class = "section-content", 
          page_for_visualization_control
       ),
-      div(id = "sectionB_variable_selection",
+      div(id = "sectionB_variable_selection", class = "section-content",
          page_for_visualization
       ),
-      div(id = "sectionB_groups",
+      div(id = "sectionB_groups", class = "section-content",
          page_for_visualization_grouping
       ),
-      div(id = "sectionB_experimental_times",
+      div(id = "sectionB_experimental_times", class = "section-content",
          page_for_visualization_experimental_times
       ),
-      div(id = "sectionB_advanced_options",
+      div(id = "sectionB_advanced_options", class = "section-content",
          page_for_visualization_advanced_options,
       ),
       div(id = "sectionC",

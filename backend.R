@@ -1014,7 +1014,7 @@ server <- function(input, output, session) {
                tagList(
                withMathJax(),
                div("Chosen equation for calculation of heat production"),
-               div(text1)
+               div(text1, style="font-size: 8px;")
                )
             )
          }
@@ -1662,21 +1662,49 @@ server <- function(input, output, session) {
       }
    })
    # for new sidebar panel
-   observeEvent(input$toggleA_custom, { shinyjs::toggle("sectionA_custom")})
-   observeEvent(input$toggleA_example, { shinyjs::toggle("sectionA_example")})
-   observeEvent(input$toggleA_equation, { shinyjs::toggle("sectionA_equation")})
-   observeEvent(input$toggleB_control, { shinyjs::toggle("sectionB_control")})
-   observeEvent(input$toggleB_variable_selection, { shinyjs::toggle("sectionB_variable_selection")})
-   observeEvent(input$toggleB_groups, { shinyjs::toggle("sectionB_groups")})
-   observeEvent(input$toggleB_experimental_times, { shinyjs::toggle("sectionB_experimental_times")})
-   observeEvent(input$toggleB_advanced_options, { shinyjs::toggle("sectionB_advanced_options")})
+   observeEvent(input$toggleA_custom, { toggle_section("sectionA_custom", "toggleA_custom")})
+   observeEvent(input$toggleA_example, { toggle_section("sectionA_example", "toggleA_example")})
+   observeEvent(input$toggleA_equation, { toggle_section("sectionA_equation", "toggleA_equation")})
+   observeEvent(input$toggleB_control, { toggle_section("sectionB_control", "toggleB_control")})
+   observeEvent(input$toggleB_variable_selection, { toggle_section("sectionB_variable_selection", "toggleB_variable_selection")})
+   observeEvent(input$toggleB_groups, { toggle_section("sectionB_groups", "toggleB_groups")})
+   observeEvent(input$toggleB_experimental_times, { toggle_section("sectionB_experimental_times", "toggleB_experimental_times")})
+   observeEvent(input$toggleB_advanced_options, { toggle_section("sectionB_advanced_options", "toggleB_advanced_options")})
+
+    all_sections = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+    all_links = c("toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         hide(section)
+      }
+
+      for (link in all_links) {
+         removeClass(link, "active-button")
+
+      }
 
    lapply(
       X = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
       FUN = function(i) {
-         shinyjs::toggle(i)
+        # shinyjs::toggle(i)
       }
    )
+
+   toggle_section <- function(active_id, active_link) {
+      all_sections = c("sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         hide(section)
+      }
+
+      for (link in all_links) {
+         removeClass(link, "active-button")
+
+      }
+      show(active_id)
+      addClass(active_link, "active-button")
+   }
 
 
 }
