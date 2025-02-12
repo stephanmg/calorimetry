@@ -1555,7 +1555,13 @@ server <- function(input, output, session) {
    lapply(
       X = c("DE", "PC", "DC", "HP"),
       FUN = function(i) {
-         hideTab(inputId = paste0("tabs", i), target = i)
+         showTab(inputId = paste0("tabs", i), target = i)
+      }
+   )
+   lapply(
+      X = c("sectionB"),
+      FUN = function(i) {
+         shinyjs::toggle("sectionB")
       }
    )
 
@@ -1661,4 +1667,8 @@ server <- function(input, output, session) {
          updateNavbarPage(session, "navbar", selected="Home")
       }
    })
+   # for new sidebar panel
+   observeEvent(input$toggleA, { shinyjs::toggle("sectionA")})
+   observeEvent(input$toggleB, { shinyjs::toggle("sectionB")})
 }
+

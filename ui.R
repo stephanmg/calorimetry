@@ -67,6 +67,7 @@ sidebar_file_panel <- sidebarPanel(
    uiOutput("fileInputs"),
 )
 
+
 ################################################################################
 # sidebar content
 ################################################################################
@@ -360,6 +361,7 @@ sidebar_content <- sidebarPanel(
 # main content panel
 ################################################################################
 main_content <- mainPanel(
+   width=5,
    tags$head(tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.3.1/jspdf.umd.min.js")),
    tags$style(HTML("
    .shiny-output-error {
@@ -414,15 +416,275 @@ plotting_validation_panel <- mainPanel(
    plotOutput("plotvalidation")
 )
 
+page_for_data_curation <- fluidPage(
+   fluidRow(
+         column(8, style = "padding: 0px;",
+         h3("Data curation"),
+      )
+   ),
+   tabsetPanel(id = "tabsDC", type = "hidden",
+      tabPanelBody("DC",
+   p("Selection of experimental times"),
+   uiOutput("select_day"),
+   uiOutput("select_animal"),
+   conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
+   checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
+   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
+   conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
+   # TODO: Calendrical day selection not yet implemented, needs changes to utility function for zeitgeber time, thus the do_select_date_range checkbox is disabled now
+   conditionalPanel(condition = "input.use_zeitgeber_time == false", checkboxInput("do_select_date_range", label = "Select dates", value=FALSE)),
+   tags$script(HTML("$('#do_select_date_range').prop('disabled', true);")),
+   tags$script(HTML("$('#use_default_plot_style').prop('disabled', true);"))
+      )))
+
+page_for_data_import <- fluidPage(
+   fluidRow(
+      column(8, style = "padding: 0px;",
+      h3("Dataset import"),
+      br(),
+      h4("Examples"),
+      actionButton("example_data_single", "UCP1 KO", style = "border: 1px solid white; background-color: rgba(42,82,190,0.5)"),
+      actionButton("example_data_single_alternative", "DAKO", style = "border: 1px solid white; background-color: rgba(213,173,65,0.5)"),
+      actionButton("guide", "User guide", style = "border: 1px solid white; background-color: rgba(255,69,0,0.5)"),
+      hr(width="150%"),
+      )),
+   tabsetPanel(id = "tabsHP", type = "hidden",
+      tabPanelBody("HP",
+   add_busy_bar(color = "#0FFF50"),
+   withMathJax(),
+   h3("Energy expenditure equation"),
+   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
+   conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
+   selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
+   withMathJax(),
+   tags$head(
+      tags$script(type = "text/x-mathjax-config", HTML(
+         'MathJax.Hub.Config({
+         TeX: {
+            equationNumbers: {
+               autoNumber: "AMS",
+               formatNumber: function (n) { return "[" + n + "]"; }
+               }
+            }
+            });'
+         )
+      )
+   ),
+   uiOutput("heat_production_equations"),
+   h3("Metadata"),
+   div("Provide by a standardized Metadatasheet (7) in Excel format"),
+   checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
+   conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
+   h3("Data sets"),
+   p("Use the file choser dialog to select individual file(s) for analysis"),
+   numericInput("nFiles", "Number of data files", value = 1, min = 1, step = 1),
+   uiOutput("fileInputs"),
+   h4(textOutput("additional_information")),
+   span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
+   span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
+   h3("Preprocessing"),
+   checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
+   checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
+   checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
+   conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
+   checkboxInput(inputId="use_raw_data_curation", "RawMeasurement data curation", value = FALSE),
+   conditionalPanel(condition  ="input.use_raw_data_curation == true", 
+      h3("RawMeasurement data curation"),
+      checkboxInput(inputId = "z_score_removal_of_outliers", label = "Remove outliers automatically by z-score"),
+      conditionalPanel(condition = "input.z_score_removal_of_outliers == true", numericInput("sds", "Number of SDs", value = 2, step=1, min = 0, max = 3)),
+      conditionalPanel(condition = "input.z_score_removal_of_outliers == true", selectInput("target_columns", "Measurements", c("VO2", "VCO2"), multiple=TRUE, selected=c("VO2", "VCO2"))),
+      checkboxInput(inputId = "remove_zero_values", label = "Remove zero values automatically"),
+      conditionalPanel(condition = "input.remove_zero_values == true", numericInput("eps", "Epsilon", value=1e-6, min=1e-9, max=1e-3, step=1e-3)),
+      checkboxInput(inputId = "toggle_outliers", "Manually mark outliers above threshold", value = FALSE),
+      conditionalPanel("input.toggle_outliers == true", numericInput(inputId = "threshold_toggle_outliers", "Threshold", value=20.67, min = 0, max = 100, step = 0.01)),
+      checkboxInput(inputId = "toggle_lasso_outliers", "Select and remove outliers by box selection"), 
+      conditionalPanel("input.toggle_lasso_outliers == true", actionButton("remove_lasso_points", "Remove lasso selection")),
+      h3("RawMeasurement data consistency checks"),
+      checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
+      checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
+      checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
+      conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
+   )))
+)
+
+
+page_for_visualization <- fluidPage(
+   useShinyjs(),
+   fluidRow(
+      column(8, style = "padding: 0px;",
+      h3("Visualization of data")),
+   tabsetPanel(id = "tabsPC", type = "hidden",
+      tabPanelBody("PC",
+   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable"))),
+   conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation")))),
+   conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.plot_type == 'RawMeasurement'", uiOutput("myr")),
+   conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
+   conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot")),
+   conditionalPanel(condition = "input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
+   hr(),
+   h2("Grouping and filtering"),
+   checkboxInput(inputId = "with_grouping", label = "Select group and filter by condition"),
+   conditionalPanel(condition = "input.with_grouping == true", uiOutput("condition_type")),
+   conditionalPanel(condition = "input.with_grouping == true", uiOutput("select_data_by")),
+   checkboxInput(inputId = "with_facets", label = "Select a group as facet"),
+   conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
+   conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
+   checkboxInput(inputId = "select_temperature", label = "Select temperature"),
+   conditionalPanel(condition = "input.select_temperature == true", sliderInput(inputId = "temperature_mean", label = "Temperature", min=0, max=30, value=4, step=1)),
+   conditionalPanel(condition = "input.select_temperature == true", sliderInput(inputId = "temperature_deviation", label = "Deviation from temperature", min=0, max=1, value=0.05, step=0.05)),
+   uiOutput("checkboxgroup_gender"),
+     h2("Experimental times"),
+   checkboxInput(inputId = "timeline", label = "Annotate day/night light cycle"),
+   conditionalPanel(condition = "input.use_zeitgeber_time != false",
+   checkboxInput(inputId = "only_full_days_zeitgeber", label = "Select full days based on zeitgeber time", value = FALSE)),
+   conditionalPanel(condition = "input.use_zeitgeber_time == false",
+   checkboxInput(inputId = "only_full_days", label = "Select full consecutive calendrical days", value = FALSE)),
+   conditionalPanel(condition = "input.only_full_days == true", sliderInput(inputId = "full_days_threshold", label = "Fraction of day missing [%]", min = 0, max = 100, value = 0, step = 1)),
+   conditionalPanel(condition = "input.plot_type == 'Locomotion'", checkboxInput(inputId = "have_box_coordinates", label = "Custom cage coordinates", value = FALSE)),
+   conditionalPanel(condition = "input.plot_type == 'Locomotion'", colourInput(inputId = "cage_color", label = "Cage Color", "white")),
+   conditionalPanel(condition = "input.have_box_coordinates == true", h2("Cage configuration")),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_x_min", label = "Food hamper (x_min)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_x_max", label = "Food hamper (x_max)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_y_min", label = "Food hamper (y_min)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "food_y_max", label = "Food hamper (y_max)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", hr()),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_x_min", label = "Water bottle (x_min)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_x_max", label = "Water bottle (x_max)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_y_min", label = "Water bottle (y_min)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "water_y_max", label = "Water bottle (y_max)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", hr()),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_min", label = "Scale (x_min)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_x_max", label = "Scale (x_max)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_min", label = "Scale (y_min)", min = 0, max = 100, value = 0)),
+   conditionalPanel(condition = "input.have_box_coordinates == true", sliderInput(inputId = "scale_y_max", label = "Scale (y_max)", min = 0, max = 100, value = 0)),
+   hr(),
+   h2("Advanced options"),
+   conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", h3("Time Interval or Steady-State method to estimate RMR")),
+   conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", selectInput("rmr_method", "Method", choices = c("SS", "TI"))),
+   conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("rmr_method_frequency", "Frequency", min = 0, max = 30, value = 10)),
+   conditionalPanel(condition = "input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("rmr_method_begin", "Duration", min = 3, max = 10, value = 3)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", h4("CVs")),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_VO2", "VO2", min = 0, max = 100, value = 10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_VCO2", "VCO2", min = 0, max = 100, value = 10)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_RER", "RER", min = 0, max = 100, value = 5)),
+   conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_VE", "VE*", min = 0, max = 100, value = 10)),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("myp")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans_choice")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wstats")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmethod")),
+   selectInput("light_cycle", "Lightcycle", c("Day", "Night"), multiple = TRUE, selected = c("Day", "Night")),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window size", min = 1, max = 30, value = 5, step = 1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("rmr_averaging", "Averaging width", min = 1, max = 30, value = 1, step = 1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 1, step = 1)),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", selectInput("cvs", "Component:", choices = c("CO2", "O2"), multiple = FALSE, selected = "O2")),
+   h3("Time averaging of measurements"),
+   checkboxInput(inputId = "override_averaging", label = "Override averaging method (mean)"),
+   conditionalPanel(condition = "input.override_averaging == true", selectInput("avg_method_for_statistics", "Method", choices = c("mean", "median"))),
+   h3("Light cycle configuration"),
+   checkboxInput(inputId = "override_metadata_light_cycle", label = "Override"),
+   conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
+   conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction'", sliderInput("threshold_light_day", "Light threshold (Day)", min = 0, max = 100, value = 10)),
+   sliderInput(inputId = "light_cycle_start", label = "Light cycle start", min = 0, max = 24, value = 6),
+   sliderInput(inputId = "light_cycle_stop", label = "Light cycle stop", min = 0, max = 24, value = 18),
+   colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
+   colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h3("Time averaging of raw data")),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
+   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum"))), #nolint
+   )),
+   h4("Controls"),
+   tags$style(HTML("
+        #reset {
+          background-color: #637DFF; /* Pastel Blue */
+          color: white;
+          //border-color: #637DFF;
+          border-color: white;
+        }
+        #reset:hover {
+          background-color: #A3B8FF;
+          //border-color: #A3B8FF;
+          border-color: white;
+        }
+        #plotting {
+          background-color: #77DD77; /* Pastel Green */
+          color: white;
+          //border-color: #77DD77;
+          border-color: white;
+        }
+        #plotting:hover {
+          background-color: #5CB85C; 
+          //border-color: #5CB85C;
+          border-color: white;
+        }
+        #refresh {
+         background-color: #8DBBD0; /* Pastel Light Blue */
+         //border-color: #8DBBD0;
+          border-color: white;
+        }
+        #refresh:hover {
+         background-color: #6E98AA;
+          border-color: white;
+         //border-color: #6E98AA
+        }
+        #load_data { /* Pastel Red */
+         background-color: #FF6961;
+         //border-color: #FF6961;
+          border-color: white;
+        }
+        #load_data:hover {
+        background-color: #FFB3AB;
+        //border-color: #FFB3AB;
+          border-color: white;
+        }
+   ")),
+   actionButton("load_data", "Load data"),
+   actionButton("plotting", "Show plot",),
+   actionButton("refresh", "Refresh"),
+   actionButton("reset", "Reset"),
+   checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
+))
+
+
+sidebar_content2 <- fluidPage(
+   useShinyjs(),
+   sidebarPanel(
+      width=3,
+      h3("Dataset import"),
+      actionLink("toggleA", "Section A"),
+      br(),
+      actionLink("toggleB", "Section B"),
+   ),
+   column(2, id ="middle_panel", style="border: 1px solid #ddd;",
+      div(id = "sectionA", 
+         h4("Section A"),
+         p("Content"),
+         page_for_data_import,
+      ),
+      div(id = "sectionB", 
+         h4("Section B"), 
+         p("Content"),
+         page_for_visualization,
+         page_for_data_curation
+      )
+   ),
+      main_content
+)
+
+
 ################################################################################
 # Visualization panel
 ################################################################################
 visualization <- tabPanel(
   "Analysis",
   #titlePanel("Energy expenditure of cohort studies using indirect calorimetry"),
-  sidebarLayout(
-    sidebar_content, main_content
-  ),
+  sidebar_content2,
+  #sidebarLayout(
+  #  sidebar_content2, main_content
+  #),
 # hidden session ID to manage global user data (or hidden; if required to hide)
    div(class="footer_session", 
     span(textOutput("session_id"), style = "font-size: 12px; visibility: visible;"),
