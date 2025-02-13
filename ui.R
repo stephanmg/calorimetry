@@ -621,6 +621,11 @@ page_for_visualization <- fluidPage(
    conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot")),
    conditionalPanel(condition = "input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("myp")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans_choice")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wstats")),
+   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmethod")),
       ))))
 
 page_for_visualization_grouping <- fluidPage(
@@ -676,11 +681,6 @@ page_for_visualization_advanced_options <- fluidPage(
    conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_VCO2", "VCO2", min = 0, max = 100, value = 10)),
    conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_RER", "RER", min = 0, max = 100, value = 5)),
    conditionalPanel(condition = "input.rmr_method == 'SS' && input.plot_type == 'EstimateRMRforCOSMED'", sliderInput("SS_method_VE", "VE*", min = 0, max = 100, value = 10)),
-   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("myp")),
-   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans")),
-   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans_choice")),
-   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wstats")),
-   conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmethod")),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("window", "Window size", min = 1, max = 30, value = 5, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("rmr_averaging", "Averaging width", min = 1, max = 30, value = 1, step = 1)),
    conditionalPanel(condition = "input.plot_type == 'RestingMetabolicRate'", sliderInput("percentage_best", "Fraction best", min = 1, max = 100, value = 1, step = 1)),
