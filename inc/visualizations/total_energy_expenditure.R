@@ -132,7 +132,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
 	p <- add_visualization_type(p, input$box_violin_or_other, TRUE)
-	p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
+	p <- p + ylab(paste("TotalHeatProduction [", input$kj_or_kcal, "/day]", sep = ""))
 
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
@@ -150,9 +150,9 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	output$explanation <- renderText(results$statistics$p)
 	output$explanation <- renderUI({
-		str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
-		str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
-		str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+		str1 <- "<h3> Total heat production (THP) for animal for each day are displayed as violin plots</h3>"
+		str2 <- "Depending on the chosen heat production equation, THP might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
+		str3 <- "Usually there is no large discrepancy between THPs calculated from different heat production formulas"
 		str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Main plot panel."
 		HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
 	})

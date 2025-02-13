@@ -473,7 +473,7 @@ page_for_data_import_example_data <- fluidPage(
 
 page_for_data_import_select_equation <- fluidPage(
    withMathJax(),
-   h4("Select equation"),
+   h4("Heat production"),
    conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Heldmaier2", "Weir", "Ferrannini"), selected="Heldmaier2")),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
@@ -518,18 +518,77 @@ page_for_data_import <- fluidPage(
    uiOutput("fileInputs"),
    h4(textOutput("additional_information")),
    span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
-   span(textOutput("study_description"), style = "color:orange; font-weight: bold;")
+   span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
+   tags$style(HTML("
+        #reset {
+          background-color: #637DFF; /* Pastel Blue */
+          color: white;
+          //border-color: #637DFF;
+          border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
+        }
+        #reset:hover {
+          background-color: #A3B8FF;
+          //border-color: #A3B8FF;
+          border-color: white;
+        }
+        #plotting {
+          background-color: #77DD77; /* Pastel Green */
+          color: white;
+          //border-color: #77DD77;
+          border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
+        }
+        #plotting:hover {
+          background-color: #5CB85C; 
+          //border-color: #5CB85C;
+          border-color: white;
+        }
+        #refresh {
+         background-color: #8DBBD0; /* Pastel Light Blue */
+         //border-color: #8DBBD0;
+          border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
+        }
+        #refresh:hover {
+         background-color: #6E98AA;
+          border-color: white;
+         //border-color: #6E98AA
+        }
+        #load_data { /* Pastel Red */
+         background-color: #FF6961;
+         //border-color: #FF6961;
+          border-color: white;
+          display: block;
+          text-align: center;
+          width: 150px;
+        }
+        #load_data:hover {
+        background-color: #FFB3AB;
+        //border-color: #FFB3AB;
+          border-color: white;
+        }
+   ")),
+   actionButton("load_data", "Load data"), br(),
+   actionButton("plotting", "Show plot",), br(),
+
       )))
 
 page_for_data_import_preprocessing <- fluidPage(
-   h3("Preprocessing"),
+   h4("Preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen datasets"),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
    checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_raw_data_curation", "Amend raw data", value = FALSE),
    conditionalPanel(condition  ="input.use_raw_data_curation == true", 
-      h3("RawMeasurement data curation"),
+      h4("Raw data curation"),
       checkboxInput(inputId = "z_score_removal_of_outliers", label = "Remove outliers automatically by z-score"),
       conditionalPanel(condition = "input.z_score_removal_of_outliers == true", numericInput("sds", "Number of SDs", value = 2, step=1, min = 0, max = 3)),
       conditionalPanel(condition = "input.z_score_removal_of_outliers == true", selectInput("target_columns", "Measurements", c("VO2", "VCO2"), multiple=TRUE, selected=c("VO2", "VCO2"))),
@@ -539,7 +598,7 @@ page_for_data_import_preprocessing <- fluidPage(
       conditionalPanel("input.toggle_outliers == true", numericInput(inputId = "threshold_toggle_outliers", "Threshold", value=20.67, min = 0, max = 100, step = 0.01)),
       checkboxInput(inputId = "toggle_lasso_outliers", "Select and remove outliers by box selection"), 
       conditionalPanel("input.toggle_lasso_outliers == true", actionButton("remove_lasso_points", "Remove lasso selection")),
-      h3("RawMeasurement data consistency checks"),
+      h4("Consistency checks"),
       checkboxInput(inputId = "negative_values", label = "Detect negative values", value = FALSE),
       checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
       checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
@@ -701,10 +760,10 @@ page_for_visualization_control <- fluidPage(
           border-color: white;
         }
    ")),
-   actionButton("load_data", "Load data"), br(),
+   actionButton("load_data", "Reload data"), br(),
    actionButton("plotting", "Show plot",), br(),
-   actionButton("refresh", "Refresh"), br(),
-   actionButton("reset", "Reset"), br(),
+   actionButton("refresh", "Refresh plot"), br(),
+   actionButton("reset", "Reset session"), br(),
    h4("Defaults"),
    checkboxInput("use_default_plot_style", "Use default plot style", value=TRUE),
    checkboxInput("use_default_plot_style", "Use default color palette", value=TRUE),
@@ -759,13 +818,9 @@ sidebar_content2 <- fluidPage(
       br(),
       actionLink("toggleA_custom", "Custom data", class = "menu-button"),
       br(),
-      actionLink("toggleA_preprocessing", "Preprocessing", class = "menu-button"),
-      br(),
-      actionLink("toggleA_equation", "Select equation", class = "menu-button"),
+      actionLink("toggleA_preprocessing", "Import options", class = "menu-button"),
       hr(),
-      h3("Data visualization"),
-      actionLink("toggleB_control", "Plotting control", class = "menu-button"),
-      br(),
+      h3("Statistics and visualization"),
       actionLink("toggleB_variable_selection", "Variable selection", class = "menu-button"),
       br(),
       actionLink("toggleB_groups", "Grouping and filtering", class = "menu-button"),
@@ -773,6 +828,8 @@ sidebar_content2 <- fluidPage(
       actionLink("toggleB_experimental_times", "Experimental times", class = "menu-button"),
       br(),
       actionLink("toggleB_advanced_options", "Advanced options", class = "menu-button"),
+      br(),
+      actionLink("toggleB_control", "Plotting control", class = "menu-button"),
       hr(),
       h3("Data curation"),
       actionLink("toggleC_data_curation", "Trimming", class = "menu-button"),
@@ -790,12 +847,9 @@ sidebar_content2 <- fluidPage(
          page_for_data_import
       ),
       div(id = "sectionA_preprocessing", class = "section-content",
-         page_for_data_import_preprocessing
-      ),
-      div(id = "sectionA_equation", class = "section-content",
+         page_for_data_import_preprocessing,
          page_for_data_import_select_equation
       ),
-
       div(id = "sectionB_control", class = "section-content", 
          page_for_visualization_control
       ),
