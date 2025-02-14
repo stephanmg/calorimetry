@@ -168,7 +168,7 @@ sidebar_content <- sidebarPanel(
    conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'RawMeasurement'", uiOutput("myr")),
-   conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Fat oxidation", "Protein oxidation", "Nitrogen oxidation"))),
+   conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Protein oxidation", "Nitrogen oxidation"))),
    conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot")),
    conditionalPanel(condition = "input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
    hr(),
@@ -576,7 +576,6 @@ page_for_data_import <- fluidPage(
         }
    ")),
    actionButton("load_data", "Load data"), br(),
-   actionButton("plotting", "Show plot",), br(),
 
       )))
 
@@ -626,6 +625,8 @@ page_for_visualization <- fluidPage(
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmethod")),
+   actionButton("plotting", "Show plot"),
+   br()
       ))))
 
 page_for_visualization_grouping <- fluidPage(

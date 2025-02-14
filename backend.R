@@ -1274,15 +1274,15 @@ server <- function(input, output, session) {
 
             # if we have metadata, check time diff again to be consistent with metadata sheet
             time_diff <- getSession(session$token, global_data)[["time_diff"]]
-            df_diff <- read.csv2("finalC1.csv")
-            if (input$havemetadata) {
-               names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
-               time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
-               if (time_diff == 0) {
-                  time_diff <- 5
-               }
-               storeSession(session$token, "time_diff", time_diff, global_data)
-            }
+            #df_diff <- read.csv2("finalC1.csv")
+            #if (input$havemetadata) {
+            #   names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
+            #   time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
+            #   if (time_diff == 0) {
+            #      time_diff <- 5
+            #   }
+            #   storeSession(session$token, "time_diff", time_diff, global_data)
+            #}
 
             df1 <- getSession(session$token, global_data)[["RMR"]]
             df2 <- getSession(session$token, global_data)[["TEE"]]
@@ -1491,10 +1491,96 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "RawMeasurement") {
             output$explanation <- renderUI({
-               str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
-               str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
-               str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
-            HTML(paste(str1, str2, str3, sep = "<br/>"))
+               tagList(
+                  h3("Raw measurements"),
+                  p("The following table provides details on the available metabolic variables users can select in the sidebar panel"),
+                  tags$table(
+                     class = "table tables-striped table-bordered",
+                     tags$thead(
+                        tags$tr(
+                           tags$th("Metabolic variable"),
+                           tags$th("Explanation"),
+                           tags$th("Unit")
+                        )
+                     ),
+                     tags$tbody(
+                        tags$tr(
+                           tags$td("O2"),
+                           tags$td("Oxygen saturation"),
+                           tags$td("[%]")
+                        ),
+                        tags$tr(
+                           tags$td("CO2"),
+                           tags$td("Carbondioxide saturation"),
+                           tags$td("[%]")
+                        ),
+                        tags$tr(
+                           tags$td("VO2"),
+                           tags$td("Oxygen production (change in volume over time)"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("VCO2"),
+                           tags$td("Carbondioxide production (change in volume over time"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("RER"),
+                           tags$td("Fraction of CO2 production and O2 consumption"),
+                           tags$td("[1]")
+                        ),
+                        tags$tr(
+                           tags$td("TempL"),
+                           tags$td("Temperature in laboratory"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("TempC"),
+                           tags$td("Temperature in cage"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("Temp"),
+                           tags$td("Temperature of animal"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("Drink1"),
+                           tags$td("Amount of water consumption"),
+                           tags$td("[ml]")
+                        ),
+                        tags$tr(
+                           tags$td("Feed1"),
+                           tags$td("Amount of food intake"),
+                           tags$td("[g]")
+                        ),
+                        tags$tr(
+                           tags$td("WeightBody"),
+                           tags$td("Total body weight tracked over time"),
+                           tags$td("[g]")
+                        ),
+                        tags$tr(
+                           tags$td("XT+YT"),
+                           tags$td("Discrete step count in the xy-plane"),
+                           tags$td("[1]")
+                        ),
+                        tags$tr(
+                           tags$td("DistD"),
+                           tags$td("Distance"),
+                           tags$td("[cm]")
+                        ),
+                        tags$tr(
+                           tags$td("DistK"),
+                           tags$td("Cumulative distance"),
+                           tags$td("[cm]")
+                        )
+                     )
+                  )
+               )
+              # str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
+              # str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
+              # str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
+            #HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
