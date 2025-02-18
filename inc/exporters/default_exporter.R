@@ -53,7 +53,6 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    }
    # TEE and RMR 
    if (!is.null(TEE_and_RMR)) { 
-      TEE_and_RMR <- TEE_and_RMR %>% rename(TEE=Type)
       write.csv2(TEE_and_RMR, file = df_tee_and_rmr)
    }
    # GoxLox 

@@ -380,7 +380,7 @@ main_content <- mainPanel(
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
-            conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_average_with_se", "Smooth facets")),
+            conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_average_with_se", "Add trend line")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata' && input.add_average_with_se == true", checkboxInput("add_average_with_se_one_plot", "One plot", value=FALSE)),
             conditionalPanel("input.add_average_with_se == true", selectInput("averaging_method_with_facets", "Method for smoothing", choices=c("gam", "sawitzky-golay"), selected="gam")),
             conditionalPanel("input.add_average_with_se == true", numericInput("averaging_method_with_facets_confidence_levels", "SE", min=1, max=10, value=2)),
