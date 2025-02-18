@@ -438,7 +438,7 @@ page_for_data_export <-  fluidPage(
     ))))
 
 page_for_data_curation <- fluidPage(
-   h4("Trimming"),
+   h4("Time trimming"),
    tabsetPanel(id = "tabsDC", type = "hidden",
       tabPanelBody("DC",
    p("Selection of experimental times"),
