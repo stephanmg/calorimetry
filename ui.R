@@ -517,8 +517,8 @@ page_for_data_import <- fluidPage(
    numericInput("nFiles", "Number of cohorts", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
    h4(textOutput("additional_information")),
-   span(textOutput("file_type_detected"), style = "color:green; font-weight: bold;"),
-   span(textOutput("study_description"), style = "color:orange; font-weight: bold;"),
+   span(textOutput("file_type_detected"), style = "color:green; font-weight: bold; font-size: 10px;"),
+   span(textOutput("study_description"), style = "color:orange; font-weight: bold; font-size: 10px;"),
    tags$style(HTML("
         #reset {
           background-color: #637DFF; /* Pastel Blue */
