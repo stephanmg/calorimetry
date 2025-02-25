@@ -244,6 +244,7 @@ load_data <- function(file, input, exclusion, output, session) {
          print("done?")
       }
       file <- tmp_file
+      toSkip <- detectData(file)
    }
 
    # LabMaster V5 (horizontal format)
