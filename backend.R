@@ -39,6 +39,7 @@ source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
+source("inc/importers/import_calobox_helper.R") # for CaloBox
 source("inc/importers/util.R") # for consistency checks of columns
 
 ################################################################################
@@ -233,6 +234,16 @@ load_data <- function(file, input, exclusion, output, session) {
       file <- tmp_file
       toSkip <- detectData(file)
       scaleFactor <- 60
+   } else {
+      tmp_file <- tempfile()
+      if (check_for_calobox(file)) {
+         output$file_type_detected <- renderText("Input file type detected as: CaloBox")
+         storeSession(session$token, "input_file_type", "Calobox", global_data)
+         print("Import calobox!")
+         import_calobox(file, tmp_file)
+         print("done?")
+      }
+      file <- tmp_file
    }
 
    # LabMaster V5 (horizontal format)
@@ -273,12 +284,21 @@ load_data <- function(file, input, exclusion, output, session) {
    }
  
    # File encoding matters: Shiny apps crashes due to undefined character entity
+   print("with file here:")
+   print(file)
+   print("sep:")
+   print(sep)
+   print("dec:")
+   print(dec)
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+      
+   print("Here too?")
 
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
+
 
    #############################################################################
    # Curate data frame
