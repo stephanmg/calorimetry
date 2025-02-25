@@ -77,9 +77,18 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       write.csv2(df, file=df_df_input)
    }
 
+   # TODO: example to download plots, we need to save all plots in a variable called all_plots and add to it in all 
+   # of the visualization panels, note that html is okay, because we can export interactively to pdf, png and svg 
+   # when opening the html file in the browser... selfcontained=TRUE for this to work...
+   plot_for_raw_input <- file.path(tempdir(), "raw_plot.html")
+   plot_for_raw <- getSession(session$token, global_data)[["plot_for_raw"]]
+   if (!is.null(plot_for_raw)) {
+      htmlwidgets::saveWidget(plot_for_raw, plot_for_raw_input, selfcontained=TRUE)
+   }
+
    # Create zip file of all files
    zip_file <- file.path(tempdir(), "all_data.zip")
-   zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw))
+   zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input))
    return(zip_file)
 
 }
