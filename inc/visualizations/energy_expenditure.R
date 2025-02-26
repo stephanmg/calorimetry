@@ -385,5 +385,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# store plot and indicate EnergyExpenditure has been calculated
 	storeSession(session$token, "plot_for_ee", p, global_data)
 	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
+	storeSession(session$token, "plot_for_ee_window", p2, global_data)
+	storeSession(session$token, "is_EE_window_calculated", length(p2) > 0, global_data)
 	return(list("window_plot"=p2, "plot"=p))
 }

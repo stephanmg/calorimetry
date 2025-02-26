@@ -245,5 +245,10 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		}
 	}
 
+	# store plot and indicate that Raw has been calculated
+	storeSession(session$token, "plot_for_tee", p, global_data)
+	storeSession(session$token, "plot_for_tee_window", p3, global_data)
+	storeSession(session$token, "is_TEE_window_calculated", length(p3) > 0, global_data)
+
 	return(list("time_trace"=p2, "plot"=p, "window_plot"=p3))
 }

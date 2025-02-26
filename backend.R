@@ -1214,13 +1214,14 @@ server <- function(input, output, session) {
             # condition type and select data by
             #############################################################################
             observeEvent(input$condition_type, {
-            if (input$havemetadata) {
-               true_metadata <- get_true_metadata(metadatafile, FALSE)
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
-            } else {
-               tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
-            }
+               if (input$havemetadata) {
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile, FALSE)
+                  output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
+               } else {
+                  tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
+                  output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
+               }
             })
 
             # Main plot needs to be always visible
