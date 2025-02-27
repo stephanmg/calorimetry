@@ -176,6 +176,7 @@ sidebar_content <- sidebarPanel(
    checkboxInput(inputId="coarsen_data_sets", "Coarsen data sets"),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
    checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
+   checkboxInput(inputId="recalculate_HP", "Re-calculate HP", value = FALSE),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_raw_data_curation", "RawMeasurement data curation", value = FALSE),
    conditionalPanel(condition  ="input.use_raw_data_curation == true", 

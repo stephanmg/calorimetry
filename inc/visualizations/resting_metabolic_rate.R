@@ -341,7 +341,9 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- p + xlab("Zeitgeber time [h]")
 	p <- p + ggtitle("Resting metabolic rates")
 
-	convert_minutes_to_hours <- function(x) x / 60
+	convert_minutes_to_hours <- function(x) x / 60 
+
+	# TODO: there is somewhere a bug, time diff is not respected correctly, leading to extra days.
 
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)), breaks=seq(0, max(df_plot_total$Time), by=(4*60)), labels=convert_minutes_to_hours(seq(0, max(df_plot_total$Time), by=(4*60))))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))

@@ -238,10 +238,13 @@ load_data <- function(file, input, exclusion, output, session) {
       tmp_file <- tempfile()
       if (check_for_calobox(file)) {
          output$file_type_detected <- renderText("Input file type detected as: CaloBox")
+         updateCheckboxInput(session, "recalculate_RER", value = FALSE)
+         updateCheckboxInput(session, "recalculate_HP", value = FALSE)
+         updateCheckboxInput(session, "use_zeitgeber_time", value = FALSE)
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER", "VH2O"))
+         updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          storeSession(session$token, "input_file_type", "Calobox", global_data)
-         print("Import calobox!")
          import_calobox(file, tmp_file)
-         print("done?")
       }
       file <- tmp_file
       toSkip <- detectData(file)
@@ -283,19 +286,12 @@ load_data <- function(file, input, exclusion, output, session) {
       file <- tmp_file
       toSkip <- detectData(file)
    }
+
  
    # File encoding matters: Shiny apps crashes due to undefined character entity
-   print("with file here:")
-   print(file)
-   print("sep:")
-   print(sep)
-   print("dec:")
-   print(dec)
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
       
-   print("Here too?")
-
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -449,17 +445,31 @@ load_data <- function(file, input, exclusion, output, session) {
    current_cohort_time_diff = 1.0
    if (input$kj_or_kcal == "mW") {
      # 1000 because from Watts to milli Watts
-     1000 * current_cohort_time_diff <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
+     current_cohort_time_diff = 1000 * get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
    } 
-   C1 <- calc_heat_production(f1, C1, "HP", scaleFactor * (1.0 / current_cohort_time_diff))
+
+
+   if (input$recalculate_HP) {
+      C1 <- calc_heat_production(f1, C1, "HP", scaleFactor * (1.0 / current_cohort_time_diff))
+   } else {
+      C1$HP <- C1$`HP_[kJ/h]` * 0.036
+   }
 
    #############################################################################
    # Heat production formula #2 (for comparison in scatter plots)
    #############################################################################
    if (!is.null(input$variable2)) {
-      C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
+      if (input$recalculate_HP) {
+         C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
+      } else {
+         C1$HP2 <- C1$`HP2_[kJ/h]` * 0.036
+      }
    } else {
-      C1 <- calc_heat_production(f1, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
+      if (input$recalculate_HP) {
+         C1 <- calc_heat_production(f1, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
+      } else {
+         C1$HP2 <- C1$`HP2_[kJ/h]` * 0.036
+      }
    }
 
    # step 11 means
@@ -550,7 +560,7 @@ load_data <- function(file, input, exclusion, output, session) {
    raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
    raw_cols <- sub("_.*$", "", raw_cols)
    raw_cols <- sub("\\(.*$", "", raw_cols)
-   choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT.YT", "DistD", "DistK")
+   choices = c("O2", "CO2", "RER", "VO2", "VCO2", "VH2O", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT.YT", "DistD", "DistK")
    updateSelectInput(session, "myr", choices = c(intersect(unlist(choices), unlist(raw_cols)), "O2"), selected=input$myr)
 }
 
@@ -1063,13 +1073,13 @@ server <- function(input, output, session) {
    observeEvent(input$plot_type, {
       # if not any data loaded, we have 0 columns to select from
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
-      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "VH2O", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
       choices = intersect(choices, raw_cols)
       if (length(raw_cols) == 0) {
-         choices = c("O2")
+         choices = c("VO2", "VCO2", "RER", "VH2O")
       }
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="O2"))
+         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="VO2"))
     })
 
    observeEvent(input$plot_type, {
