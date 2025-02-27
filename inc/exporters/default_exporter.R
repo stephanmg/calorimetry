@@ -121,53 +121,64 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    #############################################################################
    time_trace_plots <- c()
    is_Raw_window_calculated <- getSession(session$token, global_data)[["is_Raw_window_calculated"]]
-   if (is_Raw_window_calculated) {
-      plot_for_raw_window_input <- file.path(tempdir(), "raw_plot_window.html")
-      plot_for_raw_window <- getSession(session$token, global_data)[["plot_for_raw_window"]]
-      if (!is.null(plot_for_raw_window)) {
-      htmlwidgets::saveWidget(plot_for_raw_window, plot_for_raw_window_input, selfcontained=TRUE)
+   if (!is.null(is_Raw_window_calculated)) {
+      if (is_Raw_window_calculated) {
+         plot_for_raw_window_input <- file.path(tempdir(), "raw_plot_window.html")
+         plot_for_raw_window <- getSession(session$token, global_data)[["plot_for_raw_window"]]
+         if (!is.null(plot_for_raw_window)) {
+         htmlwidgets::saveWidget(plot_for_raw_window, plot_for_raw_window_input, selfcontained=TRUE)
+         }
+         time_trace_plot <- c(time_trace_plots, plot_for_raw_window_input)
       }
-      time_trace_plot <- c(time_trace_plots, plot_for_raw_window_input)
    }
 
    is_TEE_window_calculated <- getSession(session$token, global_data)[["is_TEE_window_calculated"]]
-   if (is_TEE_window_calculated) {
-      plot_for_tee_window_input <- file.path(tempdir(), "tee_plot_window.html")
-      plot_for_tee_window <- getSession(session$token, global_data)[["plot_for_tee_window"]]
-      if (!is.null(plot_for_tee_window)) {
-         htmlwidgets::saveWidget(plot_for_tee_window, plot_for_tee_window_input, selfcontained=TRUE)
+   if (!is.null(is_TEE_window_calculated)) {
+      if (is_TEE_window_calculated) {
+         plot_for_tee_window_input <- file.path(tempdir(), "tee_plot_window.html")
+         plot_for_tee_window <- getSession(session$token, global_data)[["plot_for_tee_window"]]
+         if (!is.null(plot_for_tee_window)) {
+            htmlwidgets::saveWidget(plot_for_tee_window, plot_for_tee_window_input, selfcontained=TRUE)
+         }
+         time_trace_plot <- c(time_trace_plots, plot_for_tee_window_input)
       }
-      time_trace_plot <- c(time_trace_plots, plot_for_tee_window_input)
    }
 
+
    is_EE_window_calculated <- getSession(session$token, global_data)[["is_EE_window_calculated"]]
-   if (is_EE_window_calculated) {
-      plot_for_ee_window_input <- file.path(tempdir(), "ee_plot_window.html")
-      plot_for_ee_window <- getSession(session$token, global_data)[["plot_for_ee_window"]]
-      if (!is.null(plot_for_ee_window)) {
-         htmlwidgets::saveWidget(plot_for_ee_window, plot_for_ee_window_input, selfcontained=TRUE)
+   if (!is.null(is_EE_window_calculated)) {
+      if (is_EE_window_calculated) {
+         plot_for_ee_window_input <- file.path(tempdir(), "ee_plot_window.html")
+         plot_for_ee_window <- getSession(session$token, global_data)[["plot_for_ee_window"]]
+         if (!is.null(plot_for_ee_window)) {
+            htmlwidgets::saveWidget(plot_for_ee_window, plot_for_ee_window_input, selfcontained=TRUE)
+         }
+         time_trace_plot <- c(time_trace_plots, plot_for_ee_window_input)
       }
-      time_trace_plot <- c(time_trace_plots, plot_for_ee_window_input)
    }
 
    is_GoxLox_window_calculated <- getSession(session$token, global_data)[["is_GoxLox_window_calculated"]]
-   if (is_GoxLox_window_calculated) {
-      plot_for_ee_window_input <- file.path(tempdir(), "goxlox_plot_window.html")
-      plot_for_ee_window <- getSession(session$token, global_data)[["plot_for_goxlox_window"]]
-      if (!is.null(plot_for_ee_window)) {
-         htmlwidgets::saveWidget(plot_for_ee_window, plot_for_ee_window_input, selfcontained=TRUE)
+   if (!is.null(is_GoxLox_window_calculated)) {
+      if (is_GoxLox_window_calculated) {
+         plot_for_ee_window_input <- file.path(tempdir(), "goxlox_plot_window.html")
+         plot_for_ee_window <- getSession(session$token, global_data)[["plot_for_goxlox_window"]]
+         if (!is.null(plot_for_ee_window)) {
+            htmlwidgets::saveWidget(plot_for_ee_window, plot_for_ee_window_input, selfcontained=TRUE)
+         }
+         time_trace_plot <- c(time_trace_plots, plot_for_ee_window_input)
       }
-      time_trace_plot <- c(time_trace_plots, plot_for_ee_window_input)
    }
 
    is_RMR_window_calculated <- getSession(session$token, global_data)[["is_RMR_window_calculated"]]
-   if (is_RMR_window_calculated) {
-      plot_for_rmr_window_input <- file.path(tempdir(), "rmr_plot_window.html")
-      plot_for_rmr_window <- getSession(session$token, global_data)[["plot_for_RMR_window"]]
-      if (!is.null(plot_for_rmr_window)) {
-         htmlwidgets::saveWidget(plot_for_rmr_window, plot_for_rmr_window_input, selfcontained=TRUE)
+   if (!is.null(is_RMR_window_calculated)) {
+      if (is_RMR_window_calculated) {
+         plot_for_rmr_window_input <- file.path(tempdir(), "rmr_plot_window.html")
+         plot_for_rmr_window <- getSession(session$token, global_data)[["plot_for_RMR_window"]]
+         if (!is.null(plot_for_rmr_window)) {
+            htmlwidgets::saveWidget(plot_for_rmr_window, plot_for_rmr_window_input, selfcontained=TRUE)
+         }
+         time_trace_plot <- c(time_trace_plots, plot_for_rmr_window_input)
       }
-      time_trace_plot <- c(time_trace_plots, plot_for_rmr_window_input)
    }
 
    #############################################################################
@@ -182,7 +193,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
 
    # Create zip file of all files
    zip_file <- file.path(tempdir(), "all_data.zip")
-   zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input, plot_for_tee_input, plot_for_ee_input, plot_for_goxlox_input, plot_for_metadata_input, plot_for_rmr_input, time_trace_plots))
+   zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input, plot_for_tee_input, plot_for_ee_input, plot_for_GoxLox_input, plot_for_metadata_input, plot_for_RMR_input, time_trace_plots))
    return(zip_file)
 
 }
