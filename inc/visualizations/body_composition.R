@@ -57,15 +57,12 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 	body_comp_df$Animals <- as.factor(`$`(body_comp_df, "Animal No._NA"))
 	data_and_metadata <- enrich_with_metadata(body_comp_df, tse_metadata, input$havemetadata, get_metadata_datapath(input, session, global_data))
 	true_metadata <- data_and_metadata$metadata
-	body_comp_df <- true_metadata
-
-	print(colnames(body_comp_df))
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		# select male or female
-		if ("Sex" %in% names(body_comp_df)) {
-			body_comp_df <- body_comp_df %>% filter(Sex %in% c(input$checkboxgroup_gender))
+		if ("Sex" %in% names(true_metadata)) {
+			true_metadata <- true_metadata %>% filter(Sex %in% c(input$checkboxgroup_gender))
 		}
 	}
 
@@ -73,9 +70,11 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 	if (input$with_grouping) {
 		my_var <- input$condition_type
 		if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
-			body_comp_df <- body_comp_df %>% filter((!!sym(my_var)) == input$select_data_by)
+			true_metadata <- true_metadata %>% filter((!!sym(my_var)) == input$select_data_by)
 		}
 	}
+
+	body_comp_df <- true_metadata
 
 	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
