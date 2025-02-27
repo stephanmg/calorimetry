@@ -224,7 +224,7 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 							}
 
 							standardized_residuals <- rstandard(anova_result)
-							levene_result <- leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=body_comp_df)
+							levene_result <- car::leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=body_comp_df)
 							ggplot(data = data.frame(StandardizedResiduals = standardized_residuals), aes(sample=StandardizedResiduals)) + stat_qq() + stat_qq_line() + labs(x = "Theoretical quantiles", y = "Standardized residuals", title=paste0("Levene's test for homogenity of variances: p-value = ", levene_result[["Pr(>F)"]][1]))
 						})
 
