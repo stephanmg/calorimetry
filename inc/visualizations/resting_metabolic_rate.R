@@ -354,5 +354,10 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	}
 
 	finalC1 <- df_plot_total
+
+	storeSession(session$token, "plot_for_RMR", p, global_data)
+	storeSession(session$token, "plot_for_RMR_window", p2, global_data)
+	storeSession(session$token, "is_RMR_window_calculated", length(p2) > 0, global_data)
+
 	return(list("finalC1"=finalC1, "plot"=p, "window_plot"=p2))
 }

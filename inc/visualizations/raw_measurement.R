@@ -475,9 +475,13 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# create LME model UI
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr, session, global_data)
+
 	# store plot and indicate that Raw has been calculated
 	storeSession(session$token, "plot_for_raw", p, global_data)
+	storeSession(session$token, "plot_for_raw_window", p2, global_data)
 	storeSession(session$token, "is_Raw_calculated", TRUE, global_data)
+	storeSession(session$token, "is_Raw_window_calculated", length(p2) > 0, global_data)
+
 	# return current plot of raw measurements
 	return(list("window_plot"=p2, "plot"=p))
 }

@@ -132,7 +132,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	p <- ggplot(data = TEE, aes(x = Animals, y = TEE, label = Days, color=Cohort)) 
 	p <- add_visualization_type(p, input$box_violin_or_other, TRUE)
-	p <- p + ylab(paste("TEE [", input$kj_or_kcal, "/day]", sep = ""))
+	p <- p + ylab(paste("TotalHeatProduction [", input$kj_or_kcal, "/day]", sep = ""))
 
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
@@ -150,14 +150,14 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	output$explanation <- renderText(results$statistics$p)
 	output$explanation <- renderUI({
-		str1 <- "<h3> Total energy expenditures (TEEs) for animal for each day are displayed as violin plots</h3>"
-		str2 <- "Depending on the chosen heat production equation, TEE might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
-		str3 <- "Usually there is no large discrepancy between TEEs calculated from different heat production formulas"
+		str1 <- "<h3> Total heat production (THP) for animal for each day are displayed as violin plots</h3>"
+		str2 <- "Depending on the chosen heat production equation, THP might slightly change, usually there is no significant differences between calculated TEEs from different heat production equations."
+		str3 <- "Usually there is no large discrepancy between THPs calculated from different heat production formulas"
 		str4 <- "<hr/>Statistical testing based on condition like genotype can be conducted in the statistical testing panel by ANCOVA or ANOVA. Post-hoc testing is summarized in the Details panel. To return to the violin plots of TEE stratified by animal ID select the Main plot panel."
 		HTML(paste(str1, str2, str3, str4, sep = "<br/>"))
 	})
 
-	p <- p + ggtitle(paste0("Total energy expenditure (days=", length(levels(TEE$Days)), ") using equation ", pretty_print_equation(input$variable1), sep = ""))
+	p <- p + ggtitle(paste0("Total heat production (days=", length(levels(TEE$Days)), ") using equation ", pretty_print_equation(input$variable1), sep = ""))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	storeSession(session$token, "is_TEE_calculated", TRUE, global_data)
 
@@ -244,6 +244,11 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			p3 <- ggplotly(p3) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 		}
 	}
+
+	# store plot and indicate that Raw has been calculated
+	storeSession(session$token, "plot_for_tee", p, global_data)
+	storeSession(session$token, "plot_for_tee_window", p3, global_data)
+	storeSession(session$token, "is_TEE_window_calculated", length(p3) > 0, global_data)
 
 	return(list("time_trace"=p2, "plot"=p, "window_plot"=p3))
 }

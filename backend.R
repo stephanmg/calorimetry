@@ -178,7 +178,7 @@ load_data <- function(file, input, exclusion, output, session) {
          output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
       }
       output$file_type_detected <- renderText(paste("Input file type: ", gsub("[;,]", "", line[2]), sep = " "))
-      output$additional_information <- renderText("Additional informations")
+      output$additional_information <- renderText("Additional information")
    }
    #########################################################################################################
    # Detect data type (TSE v6/v7, v5 (Akim/Dominik) or v8 (Jan/Tabea)) or Promethion/Sable (.xlsx) (Jenny))
@@ -631,7 +631,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    RestingMetabolicRate = {
       # Check first if RMR can be calculated
       if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
-        shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
+        shinyalert("Error:", "Total heat production needs to be calculated before!")
         return()
       }
 
@@ -775,13 +775,11 @@ server <- function(input, output, session) {
        }
    })
 
-   # git info
-   output$git_info <- renderText({
-      get_git_information_from_repository()
-   })
+   # get git info from repository
+   output$git_info <- renderText(paste0("Version: ", get_git_information_from_repository()))
 
-   # save session id
-   output$session_id <- renderText(paste0("Global session ID: ", session$token))
+   # get current session id for user
+   output$session_id <- renderText(paste0("Session ID: ", session$token))
 
    # store globally the data per session
    storeSession(session$token, "time_diff", 5, global_data)
@@ -865,7 +863,7 @@ server <- function(input, output, session) {
          html_ui <- " "
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort ", i)))
+               label = paste0("Cohort #", i)))
             }
          HTML(html_ui)
          })
@@ -1016,7 +1014,7 @@ server <- function(input, output, session) {
                tagList(
                withMathJax(),
                div("Chosen equation for calculation of heat production"),
-               div(text1)
+               div(text1, style="font-size: 8px;")
                )
             )
          }
@@ -1043,7 +1041,7 @@ server <- function(input, output, session) {
       # if not any data loaded, we have 0 columns to select from
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
       choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
-      choices = intersect(choices, raw_cols)
+      #choices = intersect(choices, raw_cols)
       if (length(raw_cols) == 0) {
          choices = c("O2")
       }
@@ -1216,13 +1214,14 @@ server <- function(input, output, session) {
             # condition type and select data by
             #############################################################################
             observeEvent(input$condition_type, {
-            if (input$havemetadata) {
-               true_metadata <- get_true_metadata(metadatafile, FALSE)
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
-            } else {
-               tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
-            }
+               if (input$havemetadata) {
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile, FALSE)
+                  output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
+               } else {
+                  tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
+                  output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
+               }
             })
 
             # Main plot needs to be always visible
@@ -1276,15 +1275,15 @@ server <- function(input, output, session) {
 
             # if we have metadata, check time diff again to be consistent with metadata sheet
             time_diff <- getSession(session$token, global_data)[["time_diff"]]
-            df_diff <- read.csv2("finalC1.csv")
-            if (input$havemetadata) {
-               names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
-               time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
-               if (time_diff == 0) {
-                  time_diff <- 5
-               }
-               storeSession(session$token, "time_diff", time_diff, global_data)
-            }
+            #df_diff <- read.csv2("finalC1.csv")
+            #if (input$havemetadata) {
+            #   names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
+            #   time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
+            #   if (time_diff == 0) {
+            #      time_diff <- 5
+            #   }
+            #   storeSession(session$token, "time_diff", time_diff, global_data)
+            #}
 
             df1 <- getSession(session$token, global_data)[["RMR"]]
             df2 <- getSession(session$token, global_data)[["TEE"]]
@@ -1493,10 +1492,96 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "RawMeasurement") {
             output$explanation <- renderUI({
-               str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
-               str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
-               str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
-            HTML(paste(str1, str2, str3, sep = "<br/>"))
+               tagList(
+                  h3("Raw measurements"),
+                  p("The following table provides details on the available metabolic variables users can select in the sidebar panel"),
+                  tags$table(
+                     class = "table tables-striped table-bordered",
+                     tags$thead(
+                        tags$tr(
+                           tags$th("Metabolic variable"),
+                           tags$th("Explanation"),
+                           tags$th("Unit")
+                        )
+                     ),
+                     tags$tbody(
+                        tags$tr(
+                           tags$td("O2"),
+                           tags$td("Oxygen saturation"),
+                           tags$td("[%]")
+                        ),
+                        tags$tr(
+                           tags$td("CO2"),
+                           tags$td("Carbondioxide saturation"),
+                           tags$td("[%]")
+                        ),
+                        tags$tr(
+                           tags$td("VO2"),
+                           tags$td("Oxygen production (change in volume over time)"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("VCO2"),
+                           tags$td("Carbondioxide production (change in volume over time"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("RER"),
+                           tags$td("Fraction of CO2 production and O2 consumption"),
+                           tags$td("[1]")
+                        ),
+                        tags$tr(
+                           tags$td("TempL"),
+                           tags$td("Temperature in laboratory"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("TempC"),
+                           tags$td("Temperature in cage"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("Temp"),
+                           tags$td("Temperature of animal"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("Drink1"),
+                           tags$td("Amount of water consumption"),
+                           tags$td("[ml]")
+                        ),
+                        tags$tr(
+                           tags$td("Feed1"),
+                           tags$td("Amount of food intake"),
+                           tags$td("[g]")
+                        ),
+                        tags$tr(
+                           tags$td("WeightBody"),
+                           tags$td("Total body weight tracked over time"),
+                           tags$td("[g]")
+                        ),
+                        tags$tr(
+                           tags$td("XT+YT"),
+                           tags$td("Discrete step count in the xy-plane"),
+                           tags$td("[1]")
+                        ),
+                        tags$tr(
+                           tags$td("DistD"),
+                           tags$td("Distance"),
+                           tags$td("[cm]")
+                        ),
+                        tags$tr(
+                           tags$td("DistK"),
+                           tags$td("Cumulative distance"),
+                           tags$td("[cm]")
+                        )
+                     )
+                  )
+               )
+              # str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
+              # str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
+              # str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
+            #HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
@@ -1557,7 +1642,7 @@ server <- function(input, output, session) {
    lapply(
       X = c("DE", "PC", "DC", "HP"),
       FUN = function(i) {
-         hideTab(inputId = paste0("tabs", i), target = i)
+         showTab(inputId = paste0("tabs", i), target = i)
       }
    )
 
@@ -1579,6 +1664,17 @@ server <- function(input, output, session) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
       )
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         shinyjs::show(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::addClass(link, "active-button")
+      }
+
       guide$init()$start()
    })
 
@@ -1593,27 +1689,50 @@ server <- function(input, output, session) {
                hideTab(inputId = paste0("tabs", i), target = i)
             }
          )
+
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         shinyjs::hide(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::removeClass(link, "active-button")
+      }
+
+      shinyjs::show("sectionA_example")
+      shinyjs::addClass("toggleA_example", "active-button")
       }
     })
 
    #############################################################################
    # Observe select_day input
    #############################################################################
-   observeEvent(input$select_day, {
+   #observeEvent(input$select_day, {
+   #   click("plotting")
+   #   selected_days <<- input$select_day
+   #   storeSession(session$token, "selected_days", input$select_day, global_data)
+   #})
+
+   observeEvent(input$apply_selection, {
       click("plotting")
       selected_days <<- input$select_day
+      selected_animals <<- input$select_animal
       storeSession(session$token, "selected_days", input$select_day, global_data)
+      storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
+
 
 
    #############################################################################
    # Observe select_animal input
    #############################################################################
-   observeEvent(input$select_animal, {
-      click("plotting")
-      selected_animals <<- input$select_animal
-      storeSession(session$token, "selected_animals", input$select_animal, global_data)
-   })
+   #observeEvent(input$select_animal, {
+   #   click("plotting")
+   #   selected_animals <<- input$select_animal
+   #   storeSession(session$token, "selected_animals", input$select_animal, global_data)
+   #})
 
    #############################################################################
    # Refresh
@@ -1644,4 +1763,79 @@ server <- function(input, output, session) {
            return()
       }
    })
+
+   #############################################################################
+   # Observer event link click
+   #############################################################################
+   observeEvent(input$btn_to_analysis, {
+      updateNavbarPage(session, "navbar", selected="Analysis")
+   })
+
+   observeEvent(input$navbar, {
+      if (input$navbar == "Metadata converter") {
+         runjs("window.open('https://shiny.iaas.uni-bonn.de/CaloHelper', '_blank');")
+         updateNavbarPage(session, "navbar", selected="Home")
+      }
+
+      if (input$navbar == "Documentation") {
+         runjs("window.open('https://calorimetry.readthedocs.io/en/latest', '_blank')")
+         updateNavbarPage(session, "navbar", selected="Home")
+      }
+   })
+   # for new sidebar panel
+   observeEvent(input$toggleA_custom, { toggle_section("sectionA_custom", "toggleA_custom")})
+   observeEvent(input$toggleA_example, { toggle_section("sectionA_example", "toggleA_example")})
+   observeEvent(input$toggleA_preprocessing, { toggle_section("sectionA_preprocessing", "toggleA_preprocessing")})
+   observeEvent(input$toggleA_equation, { toggle_section("sectionA_equation", "toggleA_equation")})
+   observeEvent(input$toggleB_control, { toggle_section("sectionB_control", "toggleB_control")})
+   observeEvent(input$toggleB_variable_selection, { toggle_section("sectionB_variable_selection", "toggleB_variable_selection")})
+   observeEvent(input$toggleB_groups, { toggle_section("sectionB_groups", "toggleB_groups")})
+   observeEvent(input$toggleB_experimental_times, { toggle_section("sectionB_experimental_times", "toggleB_experimental_times")})
+   observeEvent(input$toggleB_advanced_options, { toggle_section("sectionB_advanced_options", "toggleB_advanced_options")})
+   observeEvent(input$toggleC_data_curation, {  toggle_section("sectionC_data_curation", "toggleC_data_curation")})
+   observeEvent(input$toggleC_data_curation_selection, {  toggle_section("sectionC_data_curation_selection", "toggleC_data_curation_selection")})
+   observeEvent(input$toggleD, {  toggle_section("sectionD", "toggleD")})
+
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         shinyjs::hide(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::removeClass(link, "active-button")
+      }
+
+
+      shinyjs::show("sectionA_example")
+      shinyjs::addClass("toggleA_example", "active-button")
+
+
+
+   lapply(
+      X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
+      FUN = function(i) {
+        # shinyjs::toggle(i)
+      }
+   )
+
+   toggle_section <- function(active_id, active_link) {
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         shinyjs::hide(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::removeClass(link, "active-button")
+
+      }
+      shinyjs::show(active_id)
+      shinyjs::addClass(active_link, "active-button")
+   }
+
+
 }
+

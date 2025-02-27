@@ -315,7 +315,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                }
                if (dep_var == "TEE") {
-                 mylabel = paste0("average TEE [", input$kj_or_kcal, " / day]")
+                 mylabel = paste0("average THP [", input$kj_or_kcal, " / day]")
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                } 
                if (dep_var == "EE") {
@@ -334,7 +334,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                }
             } else {
                if (mylabel == "TEE") {
-                  mylabel = paste0("TEE [", input$kj_or_kcal, " / day]")
+                  mylabel = paste0("TotalHeatProduction [", input$kj_or_kcal, " / day]")
                }
             }
          }
