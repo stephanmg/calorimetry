@@ -240,7 +240,9 @@ load_data <- function(file, input, exclusion, output, session) {
          output$file_type_detected <- renderText("Input file type detected as: CaloBox")
          updateCheckboxInput(session, "recalculate_RER", value = FALSE)
          updateCheckboxInput(session, "recalculate_HP", value = FALSE)
+         # TODO: there seems to be a bug currently when not using zeitgeber time and full days currently. we detect more days then we actually have, this needs to be fixed.
          updateCheckboxInput(session, "use_zeitgeber_time", value = FALSE)
+         updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
          updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER", "VH2O"))
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          storeSession(session$token, "input_file_type", "Calobox", global_data)

@@ -27,15 +27,15 @@ import_calobox <- function(filename, file_out) {
    # Skip header (containing recording date only as a single line)
    df <-  read.csv(filename, skip=1)
    
-   df <- df %>% mutate(VO2.mL.min. = VO2.mL.min. * 60 * 0.5) 
-   df <- df %>% mutate(CO2.prod..mL.min. = CO2.prod..mL.min. * 60 * 0.5)
-   df <- df %>% mutate(vH2O..mL.min. = vH2O..mL.min. * 60 * 0.5)
-   df <- df %>% mutate(HP.mW. = HP.mW. * 0.0036 * 0.5)
+   df <- df %>% mutate(VO2.mL.min. = VO2.mL.min. * 60) 
+   df <- df %>% mutate(CO2.prod..mL.min. = CO2.prod..mL.min. * 60)
+   df <- df %>% mutate(vH2O..mL.min. = vH2O..mL.min. * 60)
+   df <- df %>% mutate(HP.mW. = HP.mW. * 0.0036)
 
 
    # measurements
    df <- df %>% filter(Function == "Measure")
-   df <- df %>% select(c(Date.Time, Time., X.RER., HP.mW., VO2.mL.min., CO2.prod..mL.min., vH2O..mL.min.))
+   df <- df %>% select(c(Date.Time, Time., X.RER., HP.mW., VO2.mL.min., CO2.prod..mL.min., vH2O..mL.min., AirPressure..kPa., EE.cal.min.))
    # TODO: CaloBox measures below 1 minute, which we do not support currently, thus we average two values each
    df <- df %>% mutate(group=rep(1:(nrow(df) %/% 2 + (nrow(df) %% 2 > 0)), each = 2, length.out = nrow(df))) %>%
                 group_by(group) %>%
@@ -46,6 +46,8 @@ import_calobox <- function(filename, file_out) {
                 HP.mW. =  mean(HP.mW.),
                 VO2.mL.min. = mean(VO2.mL.min.),
                 CO2.prod..mL.min. = mean(CO2.prod..mL.min.),
+                AirPressure..kPa. = mean(AirPressure..kPa.),
+                EE.cal.min. = mean(EE.cal.min.),
                 vH2O..mL.min. = mean(vH2O..mL.min.)) %>% select(-group)
 
 
@@ -63,11 +65,13 @@ import_calobox <- function(filename, file_out) {
    df <- df %>% rename(RER=X.RER., `Animal No.`=AnimalID, HP=HP.mW.)
    df <- df %>% rename(`VO2(3)`=VO2.mL.min., `VCO2(3)`=CO2.prod..mL.min.)
    df <- df %>% rename(`VH2O(3)`=vH2O..mL.min.)
+   df <- df %>% rename(`EE`=EE.cal.min.)
+   df <- df %>% rename(`AirPressure`=AirPressure..kPa.)
 
    print(head(df))
 
    # units and count number of fields 
-   units <- c("", "", "", "[kJ/h]", "[ml/h]", "[ml/h]", "[ml/h]", "", "", "[kJ/h]")
+   units <- c("", "", "", "[kJ/h]", "[ml/h]", "[ml/h]", "[kPa]", "[kcal/min]", "[ml/h]", "", "", "[kJ/h]")
    fields = length(units)
 
    df_row_one <- df[1,, drop=FALSE]
