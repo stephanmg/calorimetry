@@ -1037,16 +1037,27 @@ server <- function(input, output, session) {
                choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
          })
 
+  clean_var_names <- function(list_of_columns) {
+         list_of_columns <- sub("_.*", "", list_of_columns)
+         list_of_columns <- sub("\\(.*", "", list_of_columns)
+         return(list_of_columns)
+      }
+
+
    observeEvent(input$plot_type, {
-      # if not any data loaded, we have 0 columns to select from
+          # if not any data loaded, we have 0 columns to select from
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
       choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
-      #choices = intersect(choices, raw_cols)
-      if (length(raw_cols) == 0) {
-         choices = c("O2")
+      print("raw cols:")
+      print(clean_var_names(raw_cols))
+      print("choices:")
+      print(choices)
+      choices = intersect(choices, clean_var_names(raw_cols))
+      if (length(choices) == 0) {
+         choices = c("VO2")
       }
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="O2"))
+         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="VO2"))
     })
 
    observeEvent(input$plot_type, {
