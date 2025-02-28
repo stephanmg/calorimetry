@@ -452,7 +452,7 @@ load_data <- function(file, input, exclusion, output, session) {
    if (input$recalculate_HP) {
       C1 <- calc_heat_production(f1, C1, "HP", scaleFactor * (1.0 / current_cohort_time_diff))
    } else {
-      C1$HP <- C1$`HP_[kJ/h]` * 0.036
+      C1$HP <- C1$`HP_[kJ/h]` 
    }
 
    #############################################################################
@@ -462,13 +462,13 @@ load_data <- function(file, input, exclusion, output, session) {
       if (input$recalculate_HP) {
          C1 <- calc_heat_production(f2, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
       } else {
-         C1$HP2 <- C1$`HP2_[kJ/h]` * 0.036
+         C1$HP2 <- C1$`HP2_[kJ/h]`
       }
    } else {
       if (input$recalculate_HP) {
          C1 <- calc_heat_production(f1, C1, "HP2", scaleFactor * (1.0 / current_cohort_time_diff))
       } else {
-         C1$HP2 <- C1$`HP2_[kJ/h]` * 0.036
+         C1$HP2 <- C1$`HP2_[kJ/h]`
       }
    }
 

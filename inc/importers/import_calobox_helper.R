@@ -27,10 +27,11 @@ import_calobox <- function(filename, file_out) {
    # Skip header (containing recording date only as a single line)
    df <-  read.csv(filename, skip=1)
    
-   df <- df %>% mutate(VO2.mL.min. = VO2.mL.min. * 60) 
-   df <- df %>% mutate(CO2.prod..mL.min. = CO2.prod..mL.min. * 60)
-   df <- df %>% mutate(vH2O..mL.min. = vH2O..mL.min. * 60)
-   df <- df %>% mutate(HP.mW. = HP.mW. * 0.5)
+   df <- df %>% mutate(VO2.mL.min. = VO2.mL.min. * 60 * 0.5) 
+   df <- df %>% mutate(CO2.prod..mL.min. = CO2.prod..mL.min. * 60 * 0.5)
+   df <- df %>% mutate(vH2O..mL.min. = vH2O..mL.min. * 60 * 0.5)
+   df <- df %>% mutate(HP.mW. = HP.mW. * 0.0036 * 0.5)
+
 
    # measurements
    df <- df %>% filter(Function == "Measure")
@@ -49,6 +50,9 @@ import_calobox <- function(filename, file_out) {
 
 
    df <- df %>% mutate(across(where(is.numeric), ~ gsub("\\.", ",", as.character(.)))) # replace "." with "," for TSE 6.3 format
+
+
+   print(head(df))
 
    df$AnimalID <- 1
    df$Box <- 1
