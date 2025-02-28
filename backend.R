@@ -1842,6 +1842,58 @@ server <- function(input, output, session) {
       shinyjs::addClass(active_link, "active-button")
    }
 
+   observeEvent(input$temperature_type, {
+
+      df <- getSession(session$token, global_data)[["finalC1"]]
+
+      candidates = c("TempC", "TempL", "Temp")
+      raw_cols <- clean_var_names(getSession(session$token, global_data)[["finalC1cols"]])
+      choices = intersect(candidates, raw_cols)
+
+      selected_temperature_type = choices[1]
+      if (!is.null(input$temperature_type)) {
+         selected_temperature_type = input$temperature_type
+      }
+
+      temp_min = floor(min(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_max = ceiling(max(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_value = round(temp_min + (temp_max - temp_min) / 2) # mid point of temperature range
+      temp_dev_min = 0
+      temp_dev_max = temp_max
+      temp_dev_value = (temp_max - temp_min) * 0.50 # 50% from max temperature range as default
+      updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
+      updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
+   })
+
+
+   observeEvent(input$select_temperature, {
+      df <- getSession(session$token, global_data)[["finalC1"]]
+
+      candidates = c("TempC", "TempL", "Temp")
+      raw_cols <- clean_var_names(getSession(session$token, global_data)[["finalC1cols"]])
+      choices = intersect(candidates, raw_cols)
+
+      output$temperature_type <- renderUI({
+         selectInput(inputId="temperature_type", label = "Temperature type", choices = choices, selected = choices[1])
+      })
+      
+
+      selected_temperature_type = choices[1]
+      if (!is.null(input$temperature_type)) {
+         selected_temperature_type = input$temperature_type
+      }
+
+      temp_min = floor(min(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_max = ceiling(max(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_value = round(temp_min + (temp_max - temp_min) / 2) # mid point of temperature range
+      temp_dev_min = 0
+      temp_dev_max = temp_max
+      temp_dev_value = (temp_max - temp_min) * 0.50 # 50% from max temperature range as default
+      updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
+      updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
+   })
+
+
 
 }
 

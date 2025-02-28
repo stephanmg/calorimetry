@@ -638,6 +638,7 @@ page_for_visualization_grouping <- fluidPage(
    conditionalPanel(condition = "input.with_facets == true", uiOutput("facets_by_data_one")),
    conditionalPanel(condition = "input.with_facets == true", selectInput("orientation", "Orientation", choices = c("Horizontal", "Vertical"))),
    checkboxInput(inputId = "select_temperature", label = "Select temperature"),
+   conditionalPanel(condition = "input.select_temperature == true", uiOutput("temperature_type")),
    conditionalPanel(condition = "input.select_temperature == true", sliderInput(inputId = "temperature_mean", label = "Temperature", min=0, max=30, value=4, step=1)),
    conditionalPanel(condition = "input.select_temperature == true", sliderInput(inputId = "temperature_deviation", label = "Deviation from temperature", min=0, max=1, value=0.05, step=0.05)),
    uiOutput("checkboxgroup_gender")
