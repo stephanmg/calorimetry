@@ -1041,18 +1041,13 @@ server <- function(input, output, session) {
          list_of_columns <- sub("_.*", "", list_of_columns)
          list_of_columns <- sub("\\(.*", "", list_of_columns)
          return(list_of_columns)
-      }
-
+   }
 
    observeEvent(input$plot_type, {
-          # if not any data loaded, we have 0 columns to select from
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
       choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
-      print("raw cols:")
-      print(clean_var_names(raw_cols))
-      print("choices:")
-      print(choices)
       choices = intersect(choices, clean_var_names(raw_cols))
+      # Clean var names ensures that users dont need to worry about the units in the drop down menu
       if (length(choices) == 0) {
          choices = c("VO2")
       }

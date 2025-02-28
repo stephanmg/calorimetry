@@ -109,6 +109,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		mylabel <- sub("\\+", ".", mylabel)
 	}
 
+	# Note that units are always the same, when we read data files, we scale appropriately to reach
+	# always these consensus/default units as displayed throughout the UI in the web application
 	if (startsWith(input$myr, "V")) { mylabel <- paste0(input$myr, sep = "", "(3)_[ml/h]") }
 
 	# rename Temp
