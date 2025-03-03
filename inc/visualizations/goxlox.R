@@ -349,6 +349,9 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	storeSession(session$token, "plot_for_goxlox_window", p2, global_data)
 	storeSession(session$token, "is_GoxLox_window_calculated", length(p2) > 0, global_data)
 
+	create_lme_model_ui(input, output, true_metadata, df_to_plot, "GoxLox", session, global_data)
+
+
 	# return plot p
 	return(list("window_plot"=p2, "plot"=ggplotly(p)))
 }
