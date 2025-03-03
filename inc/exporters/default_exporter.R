@@ -181,16 +181,6 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       }
    }
 
-   #############################################################################
-   # Statistics testing plots
-   #############################################################################
-   # TODO: Add export 
-
-   #############################################################################
-   # Statistics details plots
-   #############################################################################
-   # TODO: Add export 
-
    # Create zip file of all files
    zip_file <- file.path(tempdir(), "all_data.zip")
    zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input, plot_for_tee_input, plot_for_ee_input, plot_for_GoxLox_input, plot_for_metadata_input, plot_for_RMR_input, time_trace_plots))
