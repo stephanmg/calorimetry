@@ -762,8 +762,8 @@ page_for_visualization_control <- fluidPage(
           border-color: white;
         }
    ")),
-   actionButton("load_data", "Reload data"), br(),
-   actionButton("plotting", "Show plot",), br(),
+   #actionButton("load_data", "Reload data"), br(),
+   #actionButton("plotting", "Show plot",), br(),
    actionButton("refresh", "Refresh plot"), br(),
    actionButton("reset", "Reset session"), br(),
    h4("Defaults"),
