@@ -14,17 +14,17 @@ library(ggplot2)
 #' @param light_cycle choose Day or Night 
 #' @param only_full_days_zeitgeber full days or not
 ################################################################################
-draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "gray", light_cycle = c("Day", "Night"), only_full_days_zeitgeber=TRUE) {
+draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night"), only_full_days_zeitgeber=TRUE) {
    # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
    intervals <- seq(0, max(df$x, na.rm=T), (light_end - light_start))
 
-   # zeitgeber zeit assumes to start with night not day
-   light_on <- FALSE
+   # zeitgeber zeit assumes to start with night  not day
+   light_on <- TRUE
 
    # if only Night select, we need to start with night color (assuming light_on is FALSE)
    if (length(light_cycle) == 1) {
       if (light_cycle == "Night") {
-         light_on <- TRUE
+         light_on <- FALSE
       }
    }
    # then default to night color
@@ -44,9 +44,9 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    }
 
    # if we have overhanging days (incomplete days) color it either as day or night accordingly
-   fill_color_last <- night_color
+   fill_color_last <- day_color
    if ((length(intervals) %% 2 == 0)) {
-      fill_color_last <- day_color
+      fill_color_last <- night_color
    }
    p <- p + annotate("rect", xmin=xmin_last_rect+light_offset, xmax=max(df$x), ymin = min(df$y), ymax = max(df$y), fill=fill_color_last, alpha=0.1)
 
@@ -61,7 +61,7 @@ draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, li
    }
 
    # stitch together all rects for overlay onto plot
-   p <- p + annotate("rect", xmin=xmin_first_rect, xmax=xmax_first_rect, ymin=min(df$y), ymax=max(df$y), fill=day_color, alpha=0.1)
+   p <- p + annotate("rect", xmin=xmin_first_rect, xmax=xmax_first_rect, ymin=min(df$y), ymax=max(df$y), fill=night_color, alpha=0.1)
 
    # regular intervals, set set limits for these
    p <- p + ylim(min(df$y), max(df$y))
