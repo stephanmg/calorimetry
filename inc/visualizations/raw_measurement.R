@@ -440,13 +440,17 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# need to start at 0 and 12 for zeitgeber time
 	light_offset <- -12 # otherwise outside 0 on left
+
+    first_night_start = min(lights$x, na.rm=T)+19-(-min(lights$x, na.rm=T)+7)
+	print("firsty:")
+	print(first_night_start)
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2+first_night_start, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 	# indicate night start
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
