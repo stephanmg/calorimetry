@@ -980,10 +980,11 @@ zeitgeber_zeit <- function(df, light_on) {
    offsets$offset3 <- light_on - offsets$offset 
 
    #offsets$offset <- offsets$offset + (light_on - min(offsets$offset)) - light_on
+   offset_global = 0 # 8
    offsets <- offsets %>% unique()
    df_joined <- df %>% left_join(offsets, by = "Animal No._NA")
-   df_joined <- df_joined %>% mutate(running_total.hrs = running_total.hrs + offset3)
-   df_joined <- df_joined %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour + offset3)
+   df_joined <- df_joined %>% mutate(running_total.hrs = running_total.hrs + offset3 + offset_global)
+   df_joined <- df_joined %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour + offset3 + offset_global)
    return(df_joined)
 }
 
