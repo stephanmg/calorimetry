@@ -34,7 +34,7 @@ test_that("get_light_cycle", {
 ################################################################################
 test_that("get_true_metadata", {
    expect_equal(ncol(df_meta_test_2), 11)
-   expect_equal(nrow(df_meta_test_2), 16)
+   expect_equal(nrow(df_meta_test_2), 23)
    expect_equal(colnames(df_meta_test_2), c("lm_start","lm_end","fm_start","fm_end","Animals","Diet", "Genotype","bw_start","bw_end","Sex","Age"))
 })
 
