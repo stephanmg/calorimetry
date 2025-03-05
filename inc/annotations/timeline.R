@@ -17,25 +17,34 @@ library(ggplot2)
 draw_day_night_rectangles <- function(df, p, light_start = 7, light_end = 19, light_offset = 0, day_color = "yellow", night_color = "grey", light_cycle = c("Day", "Night"), only_full_days_zeitgeber=TRUE) {
    # day/night assumed to be always of length 12 (light_end-light_start should always be 12)
    print(min(df$x, na.rm=T))
-   intervals <- seq(min(df$x, na.rm=T)+light_end-(-min(df$x, na.rm=T)+light_start), max(df$x, na.rm=T), (light_end - light_start))
+   intervals <- seq(0, max(df$x, na.rm=T), (light_end - light_start))
    print("intervals:")
    print(intervals)
 
    first_night_start = min(df$x, na.rm=T)+light_end-(-min(df$x, na.rm=T)+light_start)
    print("first night start")
    print(first_night_start)
+   first_night_start = 0
 
    # zeitgeber zeit assumes to start with night not day
-   light_on <- FALSE
+   light_on <- TRUE
 
+   color <- day_color
    # if only Night select, we need to start with night color (assuming light_on is FALSE)
    if (length(light_cycle) == 1) {
       if (light_cycle == "Night") {
-         light_on <- TRUE
+         light_on <- FALSE
+         color <- day_color
+      } 
+      if (light_cycle == "Day") {
+         light_on <- FALSE
+         color <- night_color
       }
+   } else {
+      light_on <- FALSE
    }
    # then default to night color
-   color <- day_color
+   #color <- day_color
 
    # first interval is night, color this accordingly
    lapply(intervals, function(item) { p <<- p + annotate("rect", xmin = item - (light_end - light_start) + light_offset, xmax = item + light_offset, ymin = min(df$y), ymax = max(df$y), fill = color, alpha = 0.1); if (light_on) { color <<- day_color; light_on <<- FALSE }  else {  color <<- night_color; light_on <<- TRUE}; }) # nolint: semicolon_linter, brace_linter.
