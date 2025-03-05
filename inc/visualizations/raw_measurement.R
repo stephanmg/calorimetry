@@ -83,7 +83,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
 		# TODO Better revise zeitgeber zeit, such that 0 is light begin really
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
+		finalC1 <- zeitgeber_zeit(finalC1, 17)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			# TODO: need to select > first_night_start
