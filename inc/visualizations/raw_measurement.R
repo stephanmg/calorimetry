@@ -83,7 +83,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
 		# TODO Better revise zeitgeber zeit, such that 0 is light begin really
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			# TODO: need to select > first_night_start
@@ -91,7 +91,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		} 
 		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 		# TODO: missing offset running_total_hrs - first_night required
-		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
@@ -183,7 +183,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# prepare grouping of data frame
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 	df_to_plot <- finalC1
@@ -447,6 +447,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
     first_night_start = min(lights$x, na.rm=T)+19-(-min(lights$x, na.rm=T)+7)
 	print("firsty:")
 	print(first_night_start)
+	first_night_start = 0
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2+first_night_start, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
