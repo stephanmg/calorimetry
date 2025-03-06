@@ -191,8 +191,11 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
 
   } else {
-    label_y <- c(max(df$TEE), max(df$TEE))
-    label_x <- c(min(df$Weight, min(df$Weight)+1.0))
+    group_count <- length(unique(df$group))
+    y_max <- max(df$TEE)
+    y_range <- max(df$TEE) - min(df$TEE)
+    label_x <- rep(min(df$Weight), group_count)
+    label_y <- seq(y_max, y_max+((y_range * 0.05) * (group_count - 1)), length.out = group_count)
     df <- df %>% rename(!!dep_var := TEE)
     p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line", alpha=0)
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, label.x=label_x, geom="text", output.type = "text", parse=FALSE)
@@ -390,7 +393,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         p2 <<- p2_old + stat_compare_means()
        } 
     } else {
-      print("Here?")
        p2 <- ggboxplot(df, "group", "TEE", color = "Days")
        p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days), color=Days), size=3, width=0.2, alpha=0.6)
        p2 <- p2 + stat_compare_means()
