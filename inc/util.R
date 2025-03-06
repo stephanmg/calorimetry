@@ -986,10 +986,9 @@ zeitgeber_zeit <- function(df, light_on) {
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
    offsets$`offset`  <- as.numeric(offsets$`offset`)
-   offsets$offset2 <- offsets$offset - (offsets$offset - light_on)
-   offsets$offset3 <- light_on - offsets$offset 
+   offsets$offset2 <- offsets$offset - (light_on - offsets$offset)
+   offsets$offset3 <- offsets$offset - light_on
 
-   #offsets$offset <- offsets$offset + (light_on - min(offsets$offset)) - light_on
    offsets <- offsets %>% unique()
    df_joined <- df %>% left_join(offsets, by = "Animal No._NA")
    df_joined <- df_joined %>% mutate(running_total.hrs = running_total.hrs + offset3)

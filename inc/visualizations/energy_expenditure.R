@@ -1,7 +1,3 @@
-# This is an example on how to use the metadata (sheet) in different functions.
-## The metadata from the data files (e.g. TSE) could be joined directly with the metadata sheet. For compability, we 
-# currently require a valid TSE metadata header corresponding with entries in the columns of metadata sheet, issue #62.
-
 ################################################################################
 #' energy_expenditure
 #' 
@@ -70,13 +66,13 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
 		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
@@ -148,7 +144,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
 
 	# Day Night filtering
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 

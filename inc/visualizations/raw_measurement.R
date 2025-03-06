@@ -82,13 +82,15 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		print("max:")
+		print(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
 		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
@@ -180,7 +182,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# prepare grouping of data frame
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 	df_to_plot <- finalC1
@@ -281,7 +283,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 					.x %>%
 					mutate(
 						fit = pred$fit,
-						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						trend = group_value
 					)
@@ -440,13 +442,15 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# need to start at 0 and 12 for zeitgeber time
 	light_offset <- -12 # otherwise outside 0 on left
+	first_night_start = 0 # always 0 in zeitgeber time
+
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2+first_night_start, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 	# indicate night start
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers

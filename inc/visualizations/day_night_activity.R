@@ -38,13 +38,13 @@ day_night_activity <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		df_to_plot <- zeitgeber_zeit(df_to_plot, input$light_cycle_start)
+		df_to_plot <- zeitgeber_zeit(df_to_plot, input$light_cycle_stop)
 		num_days <- floor(max(df_to_plot$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			df_to_plot <- df_to_plot %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
 		df_to_plot$DayCount <- ceiling((df_to_plot$running_total.hrs.halfhour / 24) + 1)
-		df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Day", "Night")
+		df_to_plot$NightDay <- ifelse((df_to_plot$running_total.hrs %% 24) < 12, "Night", "Day")
 		} else {
 			convert <- function(x) {
 			splitted <- strsplit(as.character(x), " ")
