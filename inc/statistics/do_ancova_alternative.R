@@ -390,6 +390,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         p2 <<- p2_old + stat_compare_means()
        } 
     } else {
+      print("Here?")
        p2 <- ggboxplot(df, "group", "TEE", color = "Days")
        p2 <- p2 + geom_jitter(aes(text=paste0("ID: ", Animals, "<br>", "Group: ", group, "<br>Day: ", Days), color=Days), size=3, width=0.2, alpha=0.6)
        p2 <- p2 + stat_compare_means()
