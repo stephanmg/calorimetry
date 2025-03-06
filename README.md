@@ -7,7 +7,7 @@ CALOR is a holistic web application for data integration, visualization and stat
 <br clear="left"/>
 <hr/>
 
-[![Docker.io](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml/badge.svg?branch=develop)](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml)
+[![Docker.io](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml)
 [![Docs](https://github.com/stephanmg/calorimetry/actions/workflows/docs.yml/badge.svg?branch=develop)](https://github.com/stephanmg/calorimetry/actions/workflows/docs.yml)
 [![Tests](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml/badge.svg?branch=develop)](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml)
 [![R](https://img.shields.io/badge/R%3E%3D-4.2.0-6666ff.svg)](https://cran.r-project.org/)
