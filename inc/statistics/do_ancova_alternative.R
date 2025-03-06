@@ -258,15 +258,13 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         p.adjust.method = adjust_method
       )
 
+  mean_p_value = mean(pwc$p.adj)
   # Visualization of estimated marginal means for 1-way ancova
   pwc <- pwc %>% add_xy_position(x = "group", fun = "mean_se")
   p <- ggline(get_emmeans(pwc), x = "group", y = "emmean", color="group", group="group") +
-    geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
-    stat_pvalue_manual(pwc, hide.ns = TRUE, tip.length = FALSE) +
-    labs(
-      subtitle = get_test_label(res.aov, detailed = TRUE),
-     caption = get_pwc_label(pwc)
-    )
+    geom_errorbar(aes(ymin = conf.low, ymax = conf.high, color=group), width = 0.1) 
+    p <- p + annotate("text", x  = 1.0, y = max(get_emmeans(pwc)$emmean) + 1, label = paste0("p-value: ", round(mean_p_value, 6)), size = 4)
+
   }
 
   if (test_type == "2-way ANCOVA") {
@@ -421,8 +419,8 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       mean_p_value <- mean(pairwise$p.adj)
 
       p <- ggplot(emm_df, aes(x=group, y=emmean, group=group, color=group)) + geom_line() + geom_point()
-      p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
-      p <- p + geom_text(aes(x = levels(emm_df$group)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))
+      p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.1) 
+      p <- p + annotate("text", x  = 1.0, y = max(emm_df$emmean) + 1, label = paste0("p-value: ", round(mean_p_value, 6)), size = 4)
       pwc <- pairwise 
   }
 
