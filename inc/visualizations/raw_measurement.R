@@ -83,7 +83,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
 		# TODO Better revise zeitgeber zeit, such that 0 is light begin really
-		finalC1 <- zeitgeber_zeit(finalC1, 17)
+		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			# TODO: need to select > first_night_start
@@ -443,11 +443,8 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# need to start at 0 and 12 for zeitgeber time
 	light_offset <- -12 # otherwise outside 0 on left
+	first_night_start = 0 # always 0 in zeitgeber time
 
-    first_night_start = min(lights$x, na.rm=T)+19-(-min(lights$x, na.rm=T)+7)
-	print("firsty:")
-	print(first_night_start)
-	first_night_start = 0
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2+first_night_start, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
