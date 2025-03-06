@@ -357,7 +357,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       ) %>% rename(group1=contrast) %>% rename(group2=Days) %>% rename(statistic=t.ratio) %>% rename(p=p.value) %>% rename(p.adj.signif=significance)
       pairwise <- pairwise %>% mutate(p.adj = pairwise_raw$p.value)
       mean_p_value <- mean(pairwise$p.adj)
-      p <- p + geom_text(aes(x = levels(emm_df$Days)[1], y = max(emm_df$emmean)), label=paste0("p-value: ", mean_p_value))
+      p <- p + annotate("text", x = levels(emm_df$Days)[1], y = min(emm_df$emmean) -1, label=paste0("p-value: ", round(mean_p_value, 6)))
       pwc <- pairwise 
   } 
 
