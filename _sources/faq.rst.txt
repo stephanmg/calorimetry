@@ -1,13 +1,11 @@
 Frequently Asked Questions
 ==========================
 
-Q: I receive the error `Error: wrong sign in 'by' argument` when using my metadata sheet
+Q: I receive the error `Error: wrong sign in 'by' argument` or similiar when using my metadata sheet
 
-A: Make sure to select all cohorts in the input file dialog, e.g. when two cohorts are recorded in your accompanying metadata sheet, you will need to provide all two cohorts in the app typically. Otherwise it may or may not lead to errors.
+A1: Make sure to select all cohorts in the input file dialog, e.g. when two cohorts are recorded in your accompanying metadata sheet, you will need to provide all two cohorts in the app typically. Otherwise it may or may not lead to errors. The error then can occur sporadic, i.e. in the case of select full days, since after joining animal IDs are missing for counting of individual days.
 
-Q: I receive the error `Error: wrong sign in 'by' argument` or similar when using my metadata sheet
-
-A: Make sure that there are no NaNs in your provided metadata sheet. That error will always occur if metadata sheet has any NaN.
+A2: Make sure that there are no NaNs in your provided metadata sheet. That error will always occur if metadata sheet has any NaN.
 
 Q: I do not have a metadata sheet for my data sets. How can I create the metadata sheet?
 
