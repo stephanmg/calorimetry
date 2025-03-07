@@ -96,7 +96,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
@@ -309,10 +309,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$timeline) {
 		if (!is.null(input$only_full_days_zeitgeber)) {
 			if (input$only_full_days_zeitgeber == TRUE) {
-				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
 				p <- p + my_lights
 			} else {
-				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 				p <- p + my_lights
 			}
 		}
@@ -420,10 +420,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 						if (input$timeline) {
 							if (!is.null(input$only_full_days_zeitgeber)) {
 								if (input$only_full_days_zeitgeber == TRUE) {
-									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
 									p <- p + my_lights
 								} else {
-									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 									p <- p + my_lights
 								}
 							}

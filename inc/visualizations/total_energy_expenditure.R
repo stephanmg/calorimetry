@@ -42,12 +42,17 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	}
 
 	# use defaults for light, cycle then try metadata, otherwise force override
-	light_on <- 720
+	light_on <- input$light_cycle_start
+	light_off <- input$light_cycle_stop
+
 	if (input$havemetadata) {
-		light_on <- 60 * as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_off <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_off"))) %>% select(2) %>% pull())
 	}
+
 	if (input$override_metadata_light_cycle) {
-		light_on <- 60 * input$light_cycle_start
+		light_on <- input$light_cycle_start
+		light_off <- input$light_cycle_stop
 	}
 
 	convert <- function(x) {
@@ -57,7 +62,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
+		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
@@ -66,7 +71,7 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
