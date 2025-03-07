@@ -9,7 +9,12 @@ library(shinyalert)
 ################################################################################
 #' get_study_description_from_metadata
 #' 
-#' This function extract study description from metadata sheet
+#' This function extracts study description from metadata sheet
+#' 
+#' Note: If more metadata is relevant, these have to be extracted here.
+#' We can in theory pull all information from a fully filled metadata sheet,
+#' or from the expected/specified fields from the metadata converter which
+#' writes an abridged, thus not full, metadata sheet for usage in CALOR
 #' @param file input file
 #' @examples 
 #' get_study_description_from_metadata(input_file)
@@ -21,7 +26,7 @@ get_study_description_from_metadata <- function(file) {
    colnames(df) <- seq(1, length(colnames(df)))
    title <- df %>% filter(if_any(everything(), ~str_detect(., "Title"))) %>% slice(1)
    comment <- df %>% filter(if_any(everything(), ~str_detect(., "Date"))) %>% slice(1)
-   strain <- df %>% filter(if_any(everything(), ~str_detect(., "name of mouse strain"))) %>% slice(1)
+   strain <- df %>% filter(if_any(everything(), ~str_detect(., "mouse_strain"))) %>% slice(1)
    system <- df %>% filter(if_any(everything(), ~str_detect(., "Group"))) %>% slice(1)
    date <- df %>% filter(if_any(everything(), ~str_detect(., "Date"))) %>% slice(1)
    name <- df %>% filter(if_any(everything(), ~str_detect(., "Name"))) %>% slice(1)

@@ -61,15 +61,18 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# default from UI for light cycle start 
 	light_on <- input$light_cycle_start 
+	light_off <- input$light_cycle_stop
 
 	# in case we have metadata, override with values from sheet
 	if (input$havemetadata) {
 		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_off <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_off"))) %>% select(2) %>% pull())
 	}
 
 	# in case no information in metadata sheet, override light cycle manually
 	if (input$override_metadata_light_cycle) {
 		light_on <- input$light_cycle_start
+		light_off <- input$light_cycle_stop
 	}
 
 	# display zeitgeber zeit
@@ -82,7 +85,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_stop)
+		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		print("max:")
 		print(max(finalC1$running_total.hrs.halfhour) / 24)
