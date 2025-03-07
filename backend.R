@@ -486,7 +486,7 @@ load_data <- function(file, input, exclusion, output, session) {
       finalC1 <- remove_zero_values(finalC1, input$eps)
    }
 
-    # step 13 (debugging: save all cohort means)
+   # step 13 (debugging: save all cohort means)
    C1meta <- finalC1meta
 
    # rescale to kcal from kj
@@ -1616,7 +1616,7 @@ server <- function(input, output, session) {
         }
       })
       # scroll to top after click on plot only
-      #shinyjs::runjs("window.scrollTo(0, 50);")
+      # shinyjs::runjs("window.scrollTo(0, 50);")
     })
 
    #############################################################################
