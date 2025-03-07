@@ -20,10 +20,27 @@ get_study_description_from_metadata <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
    title <- df %>% filter(if_any(everything(), ~str_detect(., "Title"))) %>% slice(1)
-   comment <- df %>% filter(if_any(everything(), ~str_detect(., "comment"))) %>% slice(1)
+   comment <- df %>% filter(if_any(everything(), ~str_detect(., "Date"))) %>% slice(1)
    strain <- df %>% filter(if_any(everything(), ~str_detect(., "name of mouse strain"))) %>% slice(1)
-   system <- df %>% filter(if_any(everything(), ~str_detect(., "Experimental System"))) %>% slice(2)
-   return(paste0(title$`2`, " (", comment$`2`, ") with ", strain$`2`, " (", system$`2`, ")"))
+   system <- df %>% filter(if_any(everything(), ~str_detect(., "Group"))) %>% slice(1)
+   date <- df %>% filter(if_any(everything(), ~str_detect(., "Date"))) %>% slice(1)
+   name <- df %>% filter(if_any(everything(), ~str_detect(., "Name"))) %>% slice(1)
+   number_of_samples <- length(df %>% filter(if_any(everything(), ~str_detect(., "Name")))) - 1 # first column is identifier name
+   number_of_sexes <- length(levels(as.factor(as.character(unlist(df %>% filter(if_any(everything(), ~str_detect(., "sex")))))))) - 1
+   number_of_diets <- length(levels(as.factor(as.character(unlist(df %>% filter(if_any(everything(), ~str_detect(., "diet_group")))))))) - 1
+   number_of_genotypes <- length(levels(as.factor(as.character(unlist(df %>% filter(if_any(everything(), ~str_detect(., "genotype_group")))))))) - 1
+   return(list(
+      study_name = title$`2`,
+      comment = comment$`2`,
+      mouse_strain = ifelse(is.null(strain$`2`), "Not specified", strain$`2`),
+      lab = system$`2`,
+      date = date$`2`,
+      name = name$`2`,
+      number_of_samples = number_of_samples,
+      number_of_genotypes = number_of_genotypes,
+      number_of_diets = number_of_diets,
+      number_of_sexes = number_of_sexes
+   ))
 }
 
 ################################################################################

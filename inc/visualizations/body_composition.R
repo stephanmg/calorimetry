@@ -312,7 +312,7 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 			true_metadata[[col_name]] = as.numeric(true_metadata[[col_name]])
 			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_density(fill=colors[i]) + ylab("Density") + xlab(col_name)
 		} else {
-			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") 
+			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + ylab("Count")
 		}
 		p <- p + theme(axis.title.x = element_text(size=10, face="bold"))
 		p <- p + theme(axis.title.y = element_text(size=10, face="bold"))

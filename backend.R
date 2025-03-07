@@ -172,13 +172,29 @@ load_data <- function(file, input, exclusion, output, session) {
    if (i == 1) {
       fileFormatTSE <- line[2]
       studyDescription <- line[1]
-      if  (input$havemetadata) {
-         output$study_description <- renderText(paste0("Study description: ", get_study_description_from_metadata(metadatafile)))
-      } else {
-         output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
+      have_example_data_with_metadata <- FALSE
+      if (!is.null(use_example_data)) {
+         if (use_example_data == TRUE) {
+            have_example_data_with_metadata <- TRUE
+         }
       }
-      output$file_type_detected <- renderText(paste("Input file type: ", gsub("[;,]", "", line[2]), sep = " "))
-      output$additional_information <- renderText("Additional information")
+
+      if (input$havemetadata || have_example_data_with_metadata) {
+         study_details <- get_study_description_from_metadata(metadatafile)
+         output$study_name <- renderText(study_details$study_name)
+         output$lab <- renderText(study_details$lab)
+         output$mouse_strain <- renderText(study_details$mouse_strain)
+         output$comment <- renderText(study_details$comment)
+         output$author <- renderText(study_details$name)
+         output$date <- renderText(study_details$date)
+         output$number_of_samples  <- renderText(study_details$number_of_samples) 
+         output$number_of_diets <- renderText(study_details$number_of_diets)
+         output$number_of_genotypes <- renderText(study_details$number_of_genotypes)
+         output$number_of_sexes <- renderText(study_details$number_of_sexes)
+      } else {
+         output$study_name <- renderText(paste("", gsub("[;]", "", studyDescription), sep = " "))
+      }
+      output$file_type_detected <- renderText(paste("",gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
    # Detect data type (TSE v6/v7, v5 (Akim/Dominik) or v8 (Jan/Tabea)) or Promethion/Sable (.xlsx) (Jenny))
@@ -1670,8 +1686,8 @@ server <- function(input, output, session) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
       )
-      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options", "sectionE")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options", "toggleE")
 
       for (section in all_sections) {
          shinyjs::show(section)
@@ -1696,8 +1712,8 @@ server <- function(input, output, session) {
             }
          )
 
-      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options", "toggleE")
 
       for (section in all_sections) {
          shinyjs::hide(section)
@@ -1801,6 +1817,7 @@ server <- function(input, output, session) {
    observeEvent(input$toggleC_data_curation, {  toggle_section("sectionC_data_curation", "toggleC_data_curation")})
    observeEvent(input$toggleC_data_curation_selection, {  toggle_section("sectionC_data_curation_selection", "toggleC_data_curation_selection")})
    observeEvent(input$toggleD, {  toggle_section("sectionD", "toggleD")})
+   observeEvent(input$toggleE, {  toggle_section("sectionE", "toggleE")})
 
       all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
       all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
@@ -1820,15 +1837,15 @@ server <- function(input, output, session) {
 
 
    lapply(
-      X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
+      X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
       FUN = function(i) {
         # shinyjs::toggle(i)
       }
    )
 
    toggle_section <- function(active_id, active_link) {
-      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleE", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
       for (section in all_sections) {
          shinyjs::hide(section)

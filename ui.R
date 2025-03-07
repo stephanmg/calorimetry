@@ -93,8 +93,8 @@ main_content <- mainPanel(
             conditionalPanel("input.windowed_plot == true", hr()),
             conditionalPanel("input.windowed_plot == true && input.plot_type != 'Metadata'", h3("Windowed time-trace plot")),
             conditionalPanel("(output.plotRendered && (input.plot_type == 'RawMeasurement' || input.plot_type == 'HeatProduction' || input.plot_type == 'FuelOxidation' || input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RestingMetabolicRate')) && input.windowed_plot == true", plotlyOutput("windowPlot")),
-            conditionalPanel("input.windowed_plot == true", sliderInput("interval_length_for_window", "Interval length", min=5, max=240, value=30)),
-            conditionalPanel("input.windowed_plot == true", sliderInput("interval_steps_for_window", "Steps", min=1, max=10, value=2)),
+            conditionalPanel("input.windowed_plot == true", sliderInput("interval_length_for_window", "Interval length [min]", min=5, max=240, value=30)),
+            conditionalPanel("input.windowed_plot == true", sliderInput("interval_steps_for_window", "Steps [#]", min=1, max=10, value=2)),
             conditionalPanel("input.windowed_plot == true", checkboxInput("boxplots_or_sem_plots", "Time boxplot", value=FALSE)),
             conditionalPanel("input.windowed_plot == true && input.connect_medians_of_boxplots != true && input.with_facets == true", checkboxInput("facet_medians", "Display only facet medians", value=FALSE)),
             conditionalPanel("input.windowed_plot == true && input.connect_medians_of_boxplots != true && input.with_facets == true", checkboxInput("facet_medians_statistics", "Display test statistics", value=FALSE)),
@@ -115,6 +115,113 @@ main_content <- mainPanel(
 ################################################################################
 plotting_validation_panel <- mainPanel(
    plotOutput("plotvalidation")
+)
+
+
+################################################################################
+# Data export
+################################################################################
+
+page_for_study_details <- fluidPage(
+   h4("Study details"),
+   tags$style(HTML(
+      "
+   .study-desc-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 10px;
+    font-family: Arial, sans-serif;
+}
+
+.study-desc-table th, .study-desc-table td {
+    padding: 6px 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.study-desc-table th {
+    background-color: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+}
+
+.study-desc-table tr:hover {
+    background-color: #555;
+}
+
+.study-desc-table tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.study-desc-table td {
+    color: #fafafa;
+}
+      "
+   )),
+   tags$table(
+      class = "study-desc-table",
+      tags$thead(
+         tags$tr(
+            tags$th("File type"),
+            tags$td(textOutput("file_type_detected"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Name"),
+            tags$td(textOutput("study_name"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Lab"),
+            tags$td(textOutput("lab"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Mouse strain"),
+            tags$td(textOutput("mouse_strain"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Date"),
+            tags$td(textOutput("date"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Author"),
+            tags$td(textOutput("author"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Number of samples"),
+            tags$td(textOutput("number_of_samples"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Number of genotypes"),
+            tags$td(textOutput("number_of_genotypes"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Number of diets"),
+            tags$td(textOutput("number_of_diets"))
+         )
+      ),
+      tags$tbody(
+         tags$tr(
+            tags$th("Number of sexes"),
+            tags$td(textOutput("number_of_sexes"))
+         )
+      )
+   )
 )
 
 ################################################################################
@@ -167,7 +274,8 @@ page_for_data_curation_selection <- fluidPage(
       tabPanelBody("DC",
    uiOutput("select_day"),
    uiOutput("select_animal"),
-   div(actionButton("apply_selection", "Apply selection"), style="text-align: center; padding: 5px;")
+   div(actionButton("apply_selection", "Apply selection"), style="text-align: center; margin-left: 50px;"),
+   br()
 )))
 
 ################################################################################
@@ -222,9 +330,8 @@ page_for_data_import <- fluidPage(
    p("Specify number of file(s)"),
    numericInput("nFiles", "Number of cohorts", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
-   h4(textOutput("additional_information")),
-   span(textOutput("file_type_detected"), style = "color:green; font-weight: bold; font-size: 10px;"),
-   span(textOutput("study_description"), style = "color:orange; font-weight: bold; font-size: 10px;"),
+   div(actionButton("load_data", "Load data"), style="text-align: center; margin-left: 50px"),
+   br(),
    tags$style(HTML("
        #reset {
           background-color: #637DFF; /* Pastel Blue */
@@ -273,18 +380,17 @@ page_for_data_import <- fluidPage(
           border-color: white;
         }
    ")),
-   actionButton("load_data", "Load data"), br(),
 )))
 
 ################################################################################
 # Data import preprocessing
 ################################################################################
 page_for_data_import_preprocessing <- fluidPage(
-   h4("Preprocessing"),
+   h4("Data preprocessing"),
    checkboxInput(inputId="coarsen_data_sets", "Coarsen datasets"),
+   conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
    checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
-   conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_raw_data_curation", "Amend raw data", value = FALSE),
    conditionalPanel(condition  ="input.use_raw_data_curation == true", 
       h4("Raw data curation"),
@@ -328,9 +434,12 @@ page_for_visualization <- fluidPage(
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans_choice")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wstats")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmethod")),
-   actionButton("plotting", "Show plot"),
+))),
+column(width=8, style="padding: 0px",
+   div(style="text-align: center; margin-left: 50px;", actionButton("plotting", "Show plot")),
    br()
-))))
+))
+
 
 
 ################################################################################
@@ -469,6 +578,17 @@ page_for_visualization_control <- fluidPage(
           background-color: #FFB3AB;
           border-color: white;
         }
+        #apply_selection {
+         background-color: #77DD77; /* Pastel Green */
+          color: white;
+          border-color: white;
+          display: block;
+          text-align: center;
+        }
+        #apply_selection:hover {
+          background-color: #5CB85C; 
+          border-color: white;
+        }
    ")),
    actionButton("refresh", "Refresh plot"), br(),
    actionButton("reset", "Reset session"), br(),
@@ -536,6 +656,8 @@ sidebar_content <- fluidPage(
       hr(),
       h3("Result summary"),
       actionLink("toggleD", "Download data", class = "menu-button"),
+      br(),
+      actionLink("toggleE", "Study details", class = "menu-button")
    ),
    column(2, id ="middle_panel", style="border: 1px solid #ddd;",
       div(id = "sectionA_example", class = "section-content",
@@ -571,7 +693,10 @@ sidebar_content <- fluidPage(
       ),
       div(id = "sectionD", class = "section-content",
          page_for_data_export
-      )
+      ),
+      div(id = "sectionE", class = "section-content",
+         page_for_study_details
+      ),
    ),
    main_content
 )
