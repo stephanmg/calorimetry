@@ -132,9 +132,9 @@ load_data <- function(file, input, exclusion, output, session) {
    fileFormatTSE <- FALSE
    finalC1 <- c()
 
-   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 7))
+   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 8))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
-   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob")
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob", "Measurement")
 
    # check if we need to use example data or not
    use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
