@@ -558,13 +558,10 @@ load_data <- function(file, input, exclusion, output, session) {
     # TODO: Should this be done always? I think so, in case we have duplicates arising, should be only the case for time diff <= 1 minutes for measurement intervals though)
     # TODO: Add option to select the time-scale to plot, instead of hours do plot seconds, then also do not need to add the averaging
     if (timeScale == "hours") {
-       print(colnames(finalC1))
        id_cols = c("running_total.hrs.halfhour", "Animal No._NA", "Box_NA")
        all_columns = colnames(finalC1)
        other_columns = c("Datetime2", "Datetime", "timeintervalinmin", "running_total.hrs", "diff.sec", "minutes", "hour", "MeasPoint", "running_total.sec", "running_total.hrs.round")
        measurement_columns = setdiff(all_columns, c(id_cols, other_columns))
-       print("measurement_columns")
-       print(measurement_columns)
        finalC1 <- finalC1 %>%
           group_by(across(all_of(id_cols))) %>%
           summarize(
@@ -572,11 +569,10 @@ load_data <- function(file, input, exclusion, output, session) {
              across(all_of(other_columns), first),
              .cgroups = "drop"
           )
- 
-       write.csv2(finalC1, "finalC1_mod.csv")
     } else {
        # Nothing to do here
-       # TODO: But store in session as timeScale variable, will be required in plotting panels to select the appropriate timescale
+       # TODO: But store in session as timeScale variable, will be required in plotting panels 
+       # to select and visualize the appropriate timescale either hours or seconds...
     }
  
 

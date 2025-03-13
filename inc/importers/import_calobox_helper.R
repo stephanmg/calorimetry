@@ -28,7 +28,7 @@ import_calobox <- function(filename, file_out) {
    df <-  read.csv(filename, skip=1)
    
    df <- df %>% mutate(VO2.mL.min. = VO2.mL.min. * 60) 
-   df <- df %>% mutate(CO2.prod..mL.min. = CO2.prod..mL.min. * 60)
+   df <- df %>% mutate(VCO2.prod..mL.min. = CO2.prod..mL.min. * 60)
    df <- df %>% mutate(vH2O..mL.min. = vH2O..mL.min. * 60)
    df <- df %>% mutate(HP.mW. = HP.mW. * 0.0036)
 
@@ -64,7 +64,7 @@ import_calobox <- function(filename, file_out) {
 
    # measurements
    df <- df %>% filter(Function == "Measure")
-   df <- df %>% select(c(Date.Time, Time., X.RER., HP.mW., VO2.mL.min., CO2.prod..mL.min., vH2O..mL.min., AirPressure..kPa., EE.cal.min.))
+   df <- df %>% select(c(Date.Time, Time., X.RER., HP.mW., VO2.mL.min., VCO2.prod..mL.min., vH2O..mL.min., AirPressure..kPa., EE.cal.min.))
    df <- df %>% mutate(across(where(is.numeric), ~ gsub("\\.", ",", as.character(.)))) # replace "." with "," for TSE 6.3 format
 
    df$AnimalID <- 1
@@ -74,13 +74,13 @@ import_calobox <- function(filename, file_out) {
    df <- df %>% select(-Time.)
    df <- df %>% separate(Date.Time, into=c("Date", "Time"), sep = " ") %>% mutate(Time = format(strptime(Time, format="%H:%M:%S"), "%H:%M"))
    df <- df %>% rename(RER=X.RER., `Animal No.`=AnimalID, HP=HP.mW.)
-   df <- df %>% rename(`VO2(3)`=VO2.mL.min., `VCO2(3)`=CO2.prod..mL.min.)
+   df <- df %>% rename(`VO2(3)`=VO2.mL.min., `VCO2(3)`=VCO2.prod..mL.min.)
    df <- df %>% rename(`VH2O(3)`=vH2O..mL.min.)
    df <- df %>% rename(`EE`=EE.cal.min.)
    df <- df %>% rename(`AirPressure`=AirPressure..kPa.)
 
    # units and count number of fields 
-   units <- c("", "", "", "[kJ/h]", "[ml/h]", "[ml/h]", "[kPa]", "[kcal/min]", "[ml/h]", "", "", "[kJ/h]")
+   units <- c("", "", "", "[kJ/h]", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/min]", "[ml/h]", "", "", "[kJ/h]")
    fields = length(units)
 
    df_row_one <- df[1,, drop=FALSE]
