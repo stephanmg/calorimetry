@@ -46,7 +46,7 @@ do_add_wavelet_analysis_alt <- function(df, measurement) {
 	wavelet_power_spectrum <- ggplot(wavelet_df, aes(x = Time, y = Period, fill = Power)) +
 	geom_tile() +
 	scale_fill_viridis_c(option = "plasma") +  
-	labs(title = "Wavelet Power Spectrum", x = "Time", y = "Period (Scale)", fill = "Power") +
+	labs(title = "Wavelet Power Spectrum", x = "Time [h]", y = "Period (Scale)", fill = "Power") +
 	theme_minimal()
 
 	global_spectrum_df <- data.frame(
