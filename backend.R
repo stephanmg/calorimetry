@@ -735,6 +735,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    RawMeasurement = {
       p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       p_window <- p$window_plot
+      p_wavelet <- p$wavelet_plot
+      p_wavelet_global <- p$wavelet_plot_global
       p <- p$plot
 
       # indicate if plot available
@@ -745,6 +747,14 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       if (!is.null(p_window)) {
          output$windowPlot <- renderPlotly(p_window)
+      }
+
+      if (!is.null(p_wavelet)) {
+         output$waveletPlot <- renderPlotly(p_wavelet)
+      }
+      
+      if (!is.null(p_wavelet_global)) {
+         output$waveletGlobalPlot <- renderPlotly(p_wavelet_global)
       }
    },
    #####################################################################################################################
