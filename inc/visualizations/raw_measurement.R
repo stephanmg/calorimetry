@@ -1,6 +1,7 @@
 library(DT)
 source("inc/statistics/lme_model.R")
 source("inc/statistics/wavelet_analysis.R")
+source("inc/statistics/simple_rmr.R")
 
 ################################################################################
 #' raw_measurement
@@ -467,6 +468,17 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	}
 	# store number of total curves already present in plotly
 	storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
+
+	# add simple RMR to plot
+	simple_rmr <- add_simple_rmr(df_to_plot, input$myr)
+	if (input$add_simple_rmr) {
+		if (!is.null(simple_rmr)) {
+			print("add simple rmr")
+			print(simple_rmr)
+			p <- p + geom_line(data=simple_rmr, aes(x=running_total.hrs.halfhour, y=rolling_mean), linetype="dashed", color="magenta", size=1)
+		}
+	}
+
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	if (input$windowed_plot == TRUE) {
 		if (!is.null(p2)) {
@@ -493,5 +505,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	storeSession(session$token, "is_Raw_calculated", TRUE, global_data)
 	# return current plot of raw measurements
 	print("before return?")
+
+
 	return(list("window_plot"=p2, "plot"=p, "wavelet_plot"=wavelet_plot, "wavelet_plot_global"=wavelet_power_spectrum))
 }

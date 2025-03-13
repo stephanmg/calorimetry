@@ -415,7 +415,8 @@ main_content <- mainPanel(
       tabPanel("Main plot", 
          tagList(
             conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("windowed_plot", "Add windowed time-trace plot", value=FALSE)),
-            conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("wavelet_plot_ui", "Add wavelet analysis plot", value=FALSE)),
+            conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("wavelet_plot_ui", "Add wavelet analysis plots", value=FALSE)),
+            conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("add_simple_rmr", "Add simple RMR to plot", value=FALSE)),
             conditionalPanel("input.plot_type != 'Metadata'", h3("Overview")),
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
