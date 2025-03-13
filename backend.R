@@ -1340,17 +1340,18 @@ server <- function(input, output, session) {
             # summary of plot
             output$summary <- renderPlotly(ggplotly(p))
 
+            # TODO: commented the below code, it is not really necessary, remove in next commit
             # if we have metadata, check time diff again to be consistent with metadata sheet
-            time_diff <- getSession(session$token, global_data)[["time_diff"]]
-            df_diff <- read.csv2("finalC1.csv")
-            if (input$havemetadata) {
-               names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
-               time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
-               if (time_diff == 0) {
-                  time_diff <- 5
-               }
-               storeSession(session$token, "time_diff", time_diff, global_data)
-            }
+            #time_diff <- getSession(session$token, global_data)[["time_diff"]]
+            #df_diff <- read.csv2("finalC1.csv")
+            #if (input$havemetadata) {
+            #   names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
+            #   time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
+            #   if (time_diff == 0) {
+            #      time_diff <- 5
+            #   }
+            #   storeSession(session$token, "time_diff", time_diff, global_data)
+            #}
 
             df1 <- getSession(session$token, global_data)[["RMR"]]
             df2 <- getSession(session$token, global_data)[["TEE"]]
