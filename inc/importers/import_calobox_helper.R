@@ -105,4 +105,5 @@ import_calobox <- function(filename, file_out) {
 
    combined_output <- c(output1, output2)
    write.table(combined_output, file=file_out, sep=";", row.names=FALSE, quote=FALSE, col.names=FALSE)
+   write.table(combined_output, file="test_file.csv", sep=";", row.names=FALSE, quote=FALSE, col.names=FALSE)
 }
