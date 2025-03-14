@@ -43,7 +43,6 @@ import_calobox <- function(filename, file_out) {
    indices_to_remove <- NULL
    difference_df = df %>%  filter(Function == "Measure") %>% slice_head(n=2)
    difference_df <- df %>% mutate(Time. = as.POSIXct(Time., format="%H:%M:%S", tz = "UTC"))
-
    difference <- as.numeric(difftime(difference_df$Time.[2], difference_df$Time.[1], units = "secs"))
 
    if (difference == 4) {
@@ -80,7 +79,7 @@ import_calobox <- function(filename, file_out) {
    df <- df %>% rename(`AirPressure`=AirPressure..kPa.)
 
    # units and count number of fields 
-   units <- c("", "", "", "[kJ/h]", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/min]", "[ml/h]", "", "", "[kJ/h]")
+   units <- c("", "", "", "[kJ/h]", "[ml/h]", "[ml/h]", "[ml/h]", "[kPa]", "[kJ/h]", "", "", "[ml/h]")
    fields = length(units)
 
    df_row_one <- df[1,, drop=FALSE]

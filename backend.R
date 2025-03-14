@@ -249,6 +249,7 @@ load_data <- function(file, input, exclusion, output, session) {
             storeSession(session$token, "input_file_type", "Unknown", global_data)
         }
       } else {
+        # for Sable and Calobox
         output$file_type_detected <- renderText("Input file type detected as: Promethion/Sable")
         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
         storeSession(session$token, "input_file_type", "Sable", global_data)
@@ -579,11 +580,11 @@ load_data <- function(file, input, exclusion, output, session) {
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
-    timeScale = "hours"
+    timeScale = input$time_scale_for_plot
     # Step #14 - average duplicated running_total.hrs.halfhour 
     # TODO: Should this be done always? I think so, in case we have duplicates arising, should be only the case for time diff <= 1 minutes for measurement intervals though)
     # TODO: Add option to select the time-scale to plot, instead of hours do plot seconds, then also do not need to add the averaging
-    if (timeScale == "hours") {
+    if (timeScale == "h") {
        id_cols = c("running_total.hrs.halfhour", "Animal No._NA", "Box_NA")
        all_columns = colnames(finalC1)
        other_columns = c("Datetime2", "Datetime", "timeintervalinmin", "running_total.hrs", "diff.sec", "minutes", "hour", "MeasPoint", "running_total.sec", "running_total.hrs.round")
@@ -595,11 +596,20 @@ load_data <- function(file, input, exclusion, output, session) {
              across(all_of(other_columns), first),
              .cgroups = "drop"
           )
-    } else {
+    } else if (timeScale == "s") {
+       # Nothing to do here
+       # TODO: But store in session as timeScale variable, will be required in plotting panels 
+       # to select and visualize the appropriate timescale either hours or seconds...
+    } else if (timeScale == "min") {
        # Nothing to do here
        # TODO: But store in session as timeScale variable, will be required in plotting panels 
        # to select and visualize the appropriate timescale either hours or seconds...
     }
+   # TODO: re-use this in visualizations (in fact, this should be factored out, the code above, because
+   # it will be applied once only during load_data(..)), in the first, call change of selectInput(time_scale_for_plot))
+   # must be observed, and then x-axis time-scale appropriately used in visualizations and downstream tasks. think
+   # about how to best refactor this code to make it reusable...
+   storeSession(session$token, "time_scale_plot", input$time_scale_for_plot, global_data)
  
 
    storeSession(session$token, "finalC1", finalC1, global_data)
@@ -1137,7 +1147,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
-      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "VH2O", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
       choices = intersect(choices, clean_var_names(raw_cols))
       # Clean var names ensures that users dont need to worry about the units in the drop down menu
       if (length(choices) == 0) {

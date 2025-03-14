@@ -498,14 +498,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	wavelet_plot <- NULL
 	wavelet_power_spectrum <- NULL
 	if (input$wavelet_plot_ui == TRUE) {
-		wavelet_plots <- do_add_wavelet_analysis_alt(df_to_plot, input$myr)
+		wavelet_plots <- do_add_wavelet_analysis_alt(df_to_plot, input$myr, input)
 		wavelet_plot <- wavelet_plots$wavelet_plot
 		wavelet_power_spectrum <- wavelet_plots$wavelet_power_spectrum
 	}
-
-	print("wavelet plot???")
-	print(wavelet_plot)
-	print(is.null(wavelet_plot))
 
 	# create LME model UI
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr, session, global_data)
@@ -517,8 +513,5 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	storeSession(session$token, "is_Raw_window_calculated", length(p2) > 0, global_data)
 
 	# return current plot of raw measurements
-	print("before return?")
-
-
 	return(list("window_plot"=p2, "plot"=p, "wavelet_plot"=wavelet_plot, "wavelet_plot_global"=wavelet_power_spectrum))
 }

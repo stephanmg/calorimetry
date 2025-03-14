@@ -5,31 +5,54 @@ library(ggplot2)
 #' 
 #' This function performs wavelet analysis of a time signal in hours
 #' @param df
-do_add_wavelet_analysis_alt <- function(df, measurement) {
+do_add_wavelet_analysis_alt <- function(df, measurement, input) {
 	# Get Time consistenly for wavelet function
 	df$Time <- df$running_total.hrs.halfhour
 
+	# Detrend
+	if (input$wavelet_detrend) {
+		df <- df %>% mutate(!!sym(measurement) := !!sym(measurement) - rollmean(!!sym(measurement), k = 10, fill = NA))
+		df <- df %>% na.omit()
+	}
+
+	# Smooth
+	if (input$wavelet_smooth) {
+		df <- df %>% mutate(!!sym(measurement) := rollmean(!!sym(measurement), k = 10, fill = NA))
+		df <- df %>% na.omit()
+	}
+
 	# Perform wavelet analysis
 	dt_value = mean(diff(df$Time))
+	print("dt_value wavelet:")
+	print(dt_value)
 
 	# regular time for the signal (should already be the case, but better to be sure)
 	time_regular <- seq(min(df$Time), max(df$Time), length.out = nrow(df))
+	print("length_regular_time")
+	print(length(time_regular))
 	df <- data.frame(
 		Time = time_regular,
 		Measurement = approx(x = df$Time, y = df[[measurement]], xout = time_regular)$y
 	)
 
 	# now, we also interpolate the measurement onto a regular time grid, 0.5 h interval...
-	time_new <- seq(min(df$Time), max(df$Time), by = 0.5) # since we use the time-scale running_total.hrs.halfhour
-	# otherwise we should interpolate on the regular time grid of diff(df$Time) in seconds (CaloBox timescale)
-	df <- data.frame(
-		Time = time_new,
-		Measurement = approx(x=df$Time, y= df$Measurement, xout=time_new)$y
-	)
+	if (input$wavelet_interpolate) {
+		time_new <- seq(min(df$Time), max(df$Time), by = min(dt_value, input$wavelet_interpolate_dt)) # since we use the time-scale running_total.hrs.halfhour
+		# otherwise we should interpolate on the regular time grid of diff(df$Time) in seconds (CaloBox timescale)
+		df <- data.frame(
+			Time = time_new,
+			Measurement = approx(x=df$Time, y= df$Measurement, xout=time_new)$y
+		)
+	}
 
 	# biwavelet package needs data frame as matrix
 	df = as.matrix(df)
-	wavelet_result <- biwavelet::wt(df)
+	s0 = input$wavelet_lower_period
+	dj = 0.1 # 0.01 smoother y-axis scale steps
+	dj = input$wavelet_scale_step
+	T = 24
+	J = floor(log2(T/s0) / dj)
+	wavelet_result <- biwavelet::wt(df, dj=dj) #  dj=dj, J=J, s0=s0)
 
 	wavelet_df <- data.frame(
 		Time = rep(wavelet_result$t, each = length(wavelet_result$period)),
