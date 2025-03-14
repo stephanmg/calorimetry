@@ -57,7 +57,25 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 	body_comp_df$Animals <- as.factor(`$`(body_comp_df, "Animal No._NA"))
 	data_and_metadata <- enrich_with_metadata(body_comp_df, tse_metadata, input$havemetadata, get_metadata_datapath(input, session, global_data))
 	true_metadata <- data_and_metadata$metadata
+
+	# Select sexes
+	if (!is.null(input$checkboxgroup_gender)) {
+		# select male or female
+		if ("Sex" %in% names(true_metadata)) {
+			true_metadata <- true_metadata %>% filter(Sex %in% c(input$checkboxgroup_gender))
+		}
+	}
+
+	# Filter conditions based on factor level
+	if (input$with_grouping) {
+		my_var <- input$condition_type
+		if (!is.null(input$select_data_by) && !is.null(input$condition_type)) {
+			true_metadata <- true_metadata %>% filter((!!sym(my_var)) == input$select_data_by)
+		}
+	}
+
 	body_comp_df <- true_metadata
+
 	# Basic configuration: Ask for number of covariates and dynamically create selection for factors for each group
 	output$test <- renderUI({
 		tagList(
@@ -224,7 +242,7 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 							}
 
 							standardized_residuals <- rstandard(anova_result)
-							levene_result <- leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=body_comp_df)
+							levene_result <- car::leveneTest(as.formula(paste0("residuals(anova_result)", "~", input[[paste0("how_many_for_anova_", i)]][j])), data=body_comp_df)
 							ggplot(data = data.frame(StandardizedResiduals = standardized_residuals), aes(sample=StandardizedResiduals)) + stat_qq() + stat_qq_line() + labs(x = "Theoretical quantiles", y = "Standardized residuals", title=paste0("Levene's test for homogenity of variances: p-value = ", levene_result[["Pr(>F)"]][1]))
 						})
 
@@ -294,7 +312,7 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 			true_metadata[[col_name]] = as.numeric(true_metadata[[col_name]])
 			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_density(fill=colors[i]) + ylab("Density") + xlab(col_name)
 		} else {
-			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") 
+			p <- ggplot(true_metadata, aes_string(x=col_name)) + geom_bar(fill=colors[i], color="black") + ylab("Count")
 		}
 		p <- p + theme(axis.title.x = element_text(size=10, face="bold"))
 		p <- p + theme(axis.title.y = element_text(size=10, face="bold"))
@@ -305,5 +323,6 @@ body_composition <- function(body_comp_df, tse_metadata, input, output, session,
 	combined_plot <- subplot(plots, nrows = as.integer(ncol(true_metadata)/3)+1, margin = 0.05, shareX = FALSE, shareY=FALSE, titleX = TRUE, titleY=TRUE) 
 	combined_plot <- combined_plot %>% layout(height=1000)
 	combined_plot <- ggplotly(combined_plot) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+	storeSession(session$token, "plot_for_metadata", combined_plot, global_data)
 	return(combined_plot)
 }

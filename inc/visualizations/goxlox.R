@@ -47,14 +47,17 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# default is the provided light cycle from metadata sheet if available, otherwise default from UI is taken
 	light_on <- input$light_cycle_start 
+	light_of <- input$light_cycle_stop
 
 	if (input$havemetadata) {
 		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_off <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_off"))) %>% select(2) %>% pull())
 	}
 
 	# if one wishes, one can override the light cycle configuration from metadata sheet
 	if (input$override_metadata_light_cycle) {
 		light_on <- input$light_cycle_start
+		light_off <- input$light_cycle_stop
 	}
 
 	convert <- function(x) {
@@ -64,16 +67,16 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
 		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
@@ -128,7 +131,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
 
 	# Day Night filtering
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
@@ -137,7 +140,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
 	# filtering for Day and Night based on light_cycle length
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < input$light_cycle_stop-input$light_cycle_start, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < light_off-light_on, "Day", "Night")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
@@ -230,10 +233,10 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	if (input$timeline) {
 		if (!is.null(input$only_full_days_zeitgeber)) {
 			if (input$only_full_days_zeitgeber == TRUE) {
-				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
 				p <- p + my_lights
 			} else {
-				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 				p <- p + my_lights
 			}
 		}
@@ -295,10 +298,10 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 						if (input$timeline) {
 							if (!is.null(input$only_full_days_zeitgeber)) {
 								if (input$only_full_days_zeitgeber == TRUE) {
-									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
 									p <- p + my_lights
 								} else {
-									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 									p <- p + my_lights
 								}
 							}
@@ -346,6 +349,12 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# store plot and indicate GoxLox has been calculated
 	storeSession(session$token, "plot_for_goxlox", p, global_data)
 	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)
+	storeSession(session$token, "plot_for_goxlox_window", p2, global_data)
+	storeSession(session$token, "is_GoxLox_window_calculated", length(p2) > 0, global_data)
+
+	create_lme_model_ui(input, output, true_metadata, df_to_plot, "GoxLox", session, global_data)
+
+
 	# return plot p
-	return(list("window_plot"=p2, "plot"=p))
+	return(list("window_plot"=p2, "plot"=ggplotly(p)))
 }

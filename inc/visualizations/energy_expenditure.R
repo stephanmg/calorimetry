@@ -1,7 +1,3 @@
-# This is an example on how to use the metadata (sheet) in different functions.
-## The metadata from the data files (e.g. TSE) could be joined directly with the metadata sheet. For compability, we 
-# currently require a valid TSE metadata header corresponding with entries in the columns of metadata sheet, issue #62.
-
 ################################################################################
 #' energy_expenditure
 #' 
@@ -52,15 +48,18 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# default from UI
 	light_on <- input$light_cycle_start 
+	light_off <- input$light_cycle_stop
 
 	# otherwise take from metadata sheet  
 	if (input$havemetadata) {
 		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_off <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_off"))) %>% select(2) %>% pull())
 	}
 
 	# force override if metadata was available
 	if (input$override_metadata_light_cycle) {
 		light_on <- input$light_cycle_start
+		light_off <- input$light_cycle_stop
 	}
 
 	convert <- function(x) {
@@ -70,16 +69,16 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
 		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
@@ -148,7 +147,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
 
 	# Day Night filtering
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
@@ -218,7 +217,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		EE <- getSession(session$token, global_data)[["TEE_and_RMR"]]
 		EE <- EE %>% filter(TEE == "non-RMR") %>% select(-TEE) 
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
-		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, paste0("Energy expenditure [", input$kj_or_kcal, "/day]"), "EE")
+		add_anova_ancova_panel(input, output, session, global_data, true_metadata, EE, metadatafile, paste0("Heat production [", input$kj_or_kcal, "/day]"), "EE")
 
 		if (input$windowed_plot == TRUE) {
 			# offset is minimum value for time (on x-axis)
@@ -251,11 +250,11 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	mylabel <- NULL
 	# display unit correctly on y-axis label
 	if (input$kj_or_kcal == "mW") {
-		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " "))
-		mylabel <- paste("Energy expenditure [", input$kj_or_kcal, "[J/s]", sep = " ")
+		p <- p + ylab(paste("Heat production [", input$kj_or_kcal, "[J/s]", sep = " "))
+		mylabel <- paste("Heat production [", input$kj_or_kcal, "[J/s]", sep = " ")
 	} else {
-		p <- p + ylab(paste("Energy expenditure [", input$kj_or_kcal, "/h]", sep = " "))
-		mylabel <- paste("Energy expenditure [", input$kj_or_kcal, "/h]", sep = " ")
+		p <- p + ylab(paste("Heat production [", input$kj_or_kcal, "/h]", sep = " "))
+		mylabel <- paste("Heat production [", input$kj_or_kcal, "/h]", sep = " ")
 	}
 
 	# add light cycle annotation
@@ -265,17 +264,17 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	if (input$timeline) {
 		if (!is.null(input$only_full_days_zeitgeber)) {
 			if (input$only_full_days_zeitgeber == TRUE) {
-				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
 				p <- p + my_lights
 			} else {
-				my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 				p <- p + my_lights
 			}
 		}
 	}
 
 	# add title
-	p <- p + ggtitle(paste0("Energy expenditure [", input$kj_or_kcal, "/h]", " using equation ", pretty_print_equation(input$myp)))
+	p <- p + ggtitle(paste0("Heat production [", input$kj_or_kcal, "/h]", " using equation ", pretty_print_equation(input$myp)))
 
 	# TODO: this can be factored out -> refactor to method
 	# group with group from metadata
@@ -334,10 +333,10 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 						if (input$timeline) {
 							if (!is.null(input$only_full_days_zeitgeber)) {
 								if (input$only_full_days_zeitgeber == TRUE) {
-									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
 									p <- p + my_lights
 								} else {
-									my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
 									p <- p + my_lights
 								}
 							}
@@ -385,5 +384,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# store plot and indicate EnergyExpenditure has been calculated
 	storeSession(session$token, "plot_for_ee", p, global_data)
 	storeSession(session$token, "is_EnergyExpenditure_calculated", TRUE, global_data)
+	storeSession(session$token, "plot_for_ee_window", p2, global_data)
+	storeSession(session$token, "is_EE_window_calculated", length(p2) > 0, global_data)
 	return(list("window_plot"=p2, "plot"=p))
 }

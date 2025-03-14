@@ -2,6 +2,7 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
+
 ################################################################################
 #' add_windowed_plot_statistics
 #' 
@@ -315,7 +316,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                }
                if (dep_var == "TEE") {
-                 mylabel = paste0("average TEE [", input$kj_or_kcal, " / day]")
+                 mylabel = paste0("average THP [", input$kj_or_kcal, " / day]")
                  input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                } 
                if (dep_var == "EE") {
@@ -334,7 +335,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                }
             } else {
                if (mylabel == "TEE") {
-                  mylabel = paste0("TEE [", input$kj_or_kcal, " / day]")
+                  mylabel = paste0("TotalHeatProduction [", input$kj_or_kcal, " / day]")
                }
             }
          }
@@ -405,12 +406,20 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
         }
       }
 
-      # plotly does not respect outlier aesthetics from geom_boxplot
-      # outliers assumed on layer 1
-      # TODO: should this be even choseable for the user?
+      # plotly does not respect outlier aesthetics from geom_boxplot:
+      # per default get rid of the outlier marks by geom_boxplot.
+      # but let the user decide if he wishes to highlight the outliers
       number_levels <- length(levels(df$group))
+      if (input$test_statistic == "2-way ANOVA") {
+         number_levels <- length(levels(df$Days))
+      }
       for (index in 1:number_levels) {
       if (input$show_outliers_from_plot == FALSE) {
+         # TODO: Actually one should remove the outliers here manually
+         #, i.e. in the lapply statement, for a specific point of y value
+         # remove the point altogether. 
+         # 1. Find index (i) of y-value with value e.g. of 33 in p$x$data[index]'s list x
+         # 2. Remove this value in list x, also remove value at index i from list y
          p$x$data[index] <- lapply(p$x$data[index], function(x) {
             x$marker = list(opacity = 0)
             x$marker$line = list(color = "blue")
@@ -425,6 +434,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
       }
       }
       }
+      # Use plotlyProxy(...) for the plot, and apply plotlyProxyInvoke("restyle", y=modified_y_values_without_value_33)
+      # p$x$data <- p$x$data
       p
 	})
 
@@ -975,10 +986,9 @@ zeitgeber_zeit <- function(df, light_on) {
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
    offsets$`offset`  <- as.numeric(offsets$`offset`)
-   offsets$offset2 <- offsets$offset - (offsets$offset - light_on)
-   offsets$offset3 <- light_on - offsets$offset 
+   offsets$offset2 <- offsets$offset - (light_on - offsets$offset)
+   offsets$offset3 <- offsets$offset - light_on
 
-   #offsets$offset <- offsets$offset + (light_on - min(offsets$offset)) - light_on
    offsets <- offsets %>% unique()
    df_joined <- df %>% left_join(offsets, by = "Animal No._NA")
    df_joined <- df_joined %>% mutate(running_total.hrs = running_total.hrs + offset3)

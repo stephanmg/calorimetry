@@ -38,6 +38,7 @@ add_example_data_sets <- function(input, session, output, global_data) {
 			placeholder = "example metadata.xlsx"))
 			HTML(html_ui)
 		})
+		click("plotting")
 	})
 
 	#############################################################################
@@ -68,5 +69,6 @@ add_example_data_sets <- function(input, session, output, global_data) {
 			placeholder = "example metadata.xlsx"))
 			HTML(html_ui)
 		})
+		click("plotting")
 	})
 }
