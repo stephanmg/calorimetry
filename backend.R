@@ -1548,6 +1548,11 @@ server <- function(input, output, session) {
                            tags$td("[ml/h]")
                         ),
                         tags$tr(
+                           tags$td("VH2O"),
+                           tags$td("Water (change in volume over time)"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
                            tags$td("RER"),
                            tags$td("Fraction of CO2 production and O2 consumption"),
                            tags$td("[1]")
