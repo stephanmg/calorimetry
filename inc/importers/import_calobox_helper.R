@@ -10,10 +10,15 @@ library(tidyr)
 ################################################################################
 check_for_calobox <- function(filename) {
 	header =  readLines(filename, n=2)
-	pattern <- "^\\d{2}-\\d{2}-\\d{4}:"
+	pattern <- "^\\d{2}-\\d{2}-\\d{4}:\\d*"
 	first_line_matches_date <- grepl(pattern, header[1])
    number_of_columns_matches <- as.integer(str_count(header[2], ","))
    return(first_line_matches_date & (number_of_columns_matches == 24))
+}
+
+get_animal_id_for_calobox <- function(filename) {
+	header =  readLines(filename, n=2)
+   return(strsplit(header, ":")[[1]][2])
 }
 
 
@@ -26,6 +31,7 @@ check_for_calobox <- function(filename) {
 import_calobox <- function(filename, file_out) {
    # Skip header (containing recording date only as a single line)
    df <-  read.csv(filename, skip=1)
+
    
    df <- df %>% mutate(VO2.mL.min. = VO2.mL.min. * 60) 
    df <- df %>% mutate(VCO2.prod..mL.min. = CO2.prod..mL.min. * 60)
@@ -64,10 +70,30 @@ import_calobox <- function(filename, file_out) {
    # measurements
    df <- df %>% filter(Function == "Measure")
    df <- df %>% select(c(Date.Time, Time., X.RER., HP.mW., VO2.mL.min., VCO2.prod..mL.min., vH2O..mL.min., AirPressure..kPa., EE.cal.min.))
+   # This should be in principle not necessary anymore, see timeScale feature in backend
+   df <- df %>% mutate(group=rep(1:(nrow(df) %/% 2 + (nrow(df) %% 2 > 0)), each = 2, length.out = nrow(df))) %>%
+                group_by(group) %>%
+                summarize(
+                Date.Time = first(Date.Time),
+                Time. = first(Time.),
+               X.RER. = mean(X.RER.),
+                HP.mW. =  mean(HP.mW.),
+                VO2.mL.min. = mean(VO2.mL.min.),
+                VCO2.prod..mL.min. = mean(VCO2.prod..mL.min.),
+               AirPressure..kPa. = mean(AirPressure..kPa.),
+                EE.cal.min. = mean(EE.cal.min.),
+                vH2O..mL.min. = mean(vH2O..mL.min.)) %>% select(-group)
+ 
+
+
    df <- df %>% mutate(across(where(is.numeric), ~ gsub("\\.", ",", as.character(.)))) # replace "." with "," for TSE 6.3 format
 
-   df$AnimalID <- 1
-   df$Box <- 1
+
+   animal_id <- get_animal_id_for_calobox(filename)
+   print("calobox animal id:")
+   print(animal_id)
+   df$AnimalID <- animal_id
+   df$Box <- animal_id
    df$HP2 <- df$HP.mW.
 
    df <- df %>% select(-Time.)
@@ -94,7 +120,7 @@ import_calobox <- function(filename, file_out) {
    df_meta <- rbind(df_meta, file_format)
    sample_section <- c("Box", "Animal No.", "Weight [g]", rep("", fields - 3))
    df_meta <- rbind(df_meta, sample_section)
-   sample_entry <- c(1, 1, "0", rep("", fields - 3))
+   sample_entry <- c(animal_id, animal_id, "NA", rep("", fields - 3))
    df_meta <- rbind(df_meta, sample_entry)
    separator <- rep("", fields)
    df_meta <- rbind(df_meta, separator)

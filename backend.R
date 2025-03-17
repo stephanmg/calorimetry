@@ -270,6 +270,8 @@ load_data <- function(file, input, exclusion, output, session) {
          updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
          updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER", "VH2O"))
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
+         updateSelectInput(session, "time_scale_for_plot", choices=c("h", "min", "s"), selected = "s")
+         updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED", "Calobox"), selected = "Calobox")
          storeSession(session$token, "input_file_type", "Calobox", global_data)
          import_calobox(file, tmp_file)
          file <- tmp_file
@@ -439,6 +441,7 @@ load_data <- function(file, input, exclusion, output, session) {
       }
    }
 
+   if (input$time_scale_for_plot == "h") { # Hour time-scale
    # Step #9 - define 1/n-hours steps
    if (input$averaging == 10) { # 1/6 hours
       C1 <- C1 %>%
@@ -460,9 +463,11 @@ load_data <- function(file, input, exclusion, output, session) {
    } else { # no averaging at all
       C1 <- C1 %>% mutate(timeintervalinmin = minutes)
    }
+   }
    # Step #10 - create a running total with half hour intervals by adding
    # the thirty min to the full hours
    C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
+
 
    # heat production equations #1 and #2
    f1 <- input$variable1
@@ -580,37 +585,7 @@ load_data <- function(file, input, exclusion, output, session) {
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
-    timeScale = input$time_scale_for_plot
-    # Step #14 - average duplicated running_total.hrs.halfhour 
-    # TODO: Should this be done always? I think so, in case we have duplicates arising, should be only the case for time diff <= 1 minutes for measurement intervals though)
-    # TODO: Add option to select the time-scale to plot, instead of hours do plot seconds, then also do not need to add the averaging
-    if (timeScale == "h") {
-       id_cols = c("running_total.hrs.halfhour", "Animal No._NA", "Box_NA")
-       all_columns = colnames(finalC1)
-       other_columns = c("Datetime2", "Datetime", "timeintervalinmin", "running_total.hrs", "diff.sec", "minutes", "hour", "MeasPoint", "running_total.sec", "running_total.hrs.round")
-       measurement_columns = setdiff(all_columns, c(id_cols, other_columns))
-       finalC1 <- finalC1 %>%
-          group_by(across(all_of(id_cols))) %>%
-          summarize(
-             across(all_of(measurement_columns), mean),
-             across(all_of(other_columns), first),
-             .cgroups = "drop"
-          )
-    } else if (timeScale == "s") {
-       # Nothing to do here
-       # TODO: But store in session as timeScale variable, will be required in plotting panels 
-       # to select and visualize the appropriate timescale either hours or seconds...
-    } else if (timeScale == "min") {
-       # Nothing to do here
-       # TODO: But store in session as timeScale variable, will be required in plotting panels 
-       # to select and visualize the appropriate timescale either hours or seconds...
-    }
-   # TODO: re-use this in visualizations (in fact, this should be factored out, the code above, because
-   # it will be applied once only during load_data(..)), in the first, call change of selectInput(time_scale_for_plot))
-   # must be observed, and then x-axis time-scale appropriately used in visualizations and downstream tasks. think
-   # about how to best refactor this code to make it reusable...
-   storeSession(session$token, "time_scale_plot", input$time_scale_for_plot, global_data)
- 
+   
 
    storeSession(session$token, "finalC1", finalC1, global_data)
    storeSession(session$token, "finalC1meta", finalC1meta, global_data)

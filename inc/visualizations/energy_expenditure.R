@@ -31,6 +31,24 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		storeSession(session$token, "EE_df", data_and_metadata, global_data)
 	}
 
+timeScale = input$time_scale_for_plot
+   # Step #14 - average duplicated running_total.hrs.halfhour 
+    if (timeScale == "h" || timeScale == "min") {
+       id_cols = c("running_total.hrs.halfhour", "Animal No._NA", "Box_NA")
+       all_columns = colnames(finalC1)
+       other_columns = c("Datetime2", "Datetime", "timeintervalinmin", "running_total.hrs", "diff.sec", "minutes", "hour", "MeasPoint", "running_total.sec", "running_total.hrs.round")
+       measurement_columns = setdiff(all_columns, c(id_cols, other_columns))
+       finalC1 <- finalC1 %>%
+         group_by(across(all_of(id_cols))) %>%
+         summarize(
+             across(all_of(measurement_columns), mean),
+             across(all_of(other_columns), first),
+             .cgroups = "drop"
+          )
+    }
+ 
+
+
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
@@ -354,6 +372,25 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
 	if (input$only_full_days_zeitgeber) {
 		day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
+	}
+
+	if (input$ic_system == "Calobox") {
+		# add simple RMR to plot
+		simple_rmr <- add_simple_rmr(df_to_plot, "HP2")
+		if (input$add_simple_rmr) {
+			if (!is.null(simple_rmr)) {
+				if (input$time_scale_for_plot == "h") {
+					p <- p + geom_line(data=simple_rmr, aes(x=running_total.hrs.halfhour, y=rolling_mean), linetype="dashed", color="magenta", size=1)
+				} else {
+					p <- p + geom_line(data=simple_rmr, aes(x=running_total.sec, y=rolling_mean), linetype="dashed", color="magenta", size=1)
+				}
+			}
+		}
+
+		# add simple LOESS to plot
+		if (input$add_simple_loess) {
+			p <- p + geom_smooth(method = "loess", span=input$simple_loess_span, color = "blue")
+		}
 	}
 
 	light_offset <- -12

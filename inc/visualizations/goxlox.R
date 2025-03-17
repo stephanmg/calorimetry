@@ -47,7 +47,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# default is the provided light cycle from metadata sheet if available, otherwise default from UI is taken
 	light_on <- input$light_cycle_start 
-	light_of <- input$light_cycle_stop
+	light_off <- input$light_cycle_stop
 
 	if (input$havemetadata) {
 		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())

@@ -35,6 +35,22 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		storeSession(session$token, "Raw_df", data_and_metadata, global_data)
 	}
 
+ timeScale = input$time_scale_for_plot
+   # Step #14 - average duplicated running_total.hrs.halfhour 
+    if (timeScale == "h" || timeScale == "min") {
+       id_cols = c("running_total.hrs.halfhour", "Animal No._NA", "Box_NA")
+       all_columns = colnames(finalC1)
+       other_columns = c("Datetime2", "Datetime", "timeintervalinmin", "running_total.hrs", "diff.sec", "minutes", "hour", "MeasPoint", "running_total.sec", "running_total.hrs.round")
+       measurement_columns = setdiff(all_columns, c(id_cols, other_columns))
+       finalC1 <- finalC1 %>%
+         group_by(across(all_of(id_cols))) %>%
+         summarize(
+             across(all_of(measurement_columns), mean),
+             across(all_of(other_columns), first),
+             .cgroups = "drop"
+          )
+    }
+ 
 	# account for inconsistenly formatted data frames from TSE export
 	colnames(finalC1) <- gsub("Â°C", "°C", colnames(finalC1))	
 
@@ -302,11 +318,24 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
-	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
+
+	time_scale_string <- "running_total.hrs.halfhour"
+	time_scale <- input$time_scale_for_plot
+	if (time_scale == "h") {
+		time_scale_string <- "running_total.hrs.halfhour"
+	} else if (time_scale == "s") {
+		time_scale_string <- "running_total.sec"
+	} else if (time_scale == "min") {
+		print("Not yet implemented")
+	}
+
+	print(time_scale_string)
+
+	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = time_scale_string, color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
 
 	# annotate timeline
-	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
+	lights <- data.frame(x = df_to_plot[time_scale_string], y = df_to_plot[input$myr])
 	colnames(lights) <- c("x", "y")
 	if (input$timeline) {
 		if (!is.null(input$only_full_days_zeitgeber)) {
@@ -445,6 +474,12 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		day_annotations$annotations <- day_annotations$annotations %>% mutate(label=gsub("Day", "Full Day", label))
 	}
 
+	print("day annotation")
+	print(day_annotations$annotations)
+	if (time_scale == "s") {
+		day_annotations$annotations$x <- day_annotations$annotations$x * 60 * 60
+	}
+
 	# need to start at 0 and 12 for zeitgeber time
 	light_offset <- -12 # otherwise outside 0 on left
 	first_night_start = 0 # always 0 in zeitgeber time
@@ -453,15 +488,25 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# +2 for annotation inside plotting
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2+first_night_start, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
-	# indicate night start
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	if (time_scale != "s") {
+		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+		# indicate night start
+		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	} else {
+		# TODO: Annotate day night start for seconds
+	}
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
 	if (input$toggle_outliers) { p <- p + geom_point() }
 	# center x axis
-	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
+	if (time_scale == "s") {
+		p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.sec), max(finalC1$running_total.sec)))
+		p <- p + xlab("Time [s]")
+	} else {
+		p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
+	}
+
 	if (input$boxplots_or_sem_plots == FALSE) {
 		p2 <- p2 + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
 	}
@@ -478,15 +523,25 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# store number of total curves already present in plotly
 	storeSession(session$token, "all_curves_plotly", length(plotly_build(p)$x$data), global_data)
 
-	# add simple RMR to plot
-	simple_rmr <- add_simple_rmr(df_to_plot, input$myr)
-	if (input$add_simple_rmr) {
-		if (!is.null(simple_rmr)) {
-			print("add simple rmr")
-			print(simple_rmr)
-			p <- p + geom_line(data=simple_rmr, aes(x=running_total.hrs.halfhour, y=rolling_mean), linetype="dashed", color="magenta", size=1)
+	if (input$ic_system == "Calobox") {
+		# add simple RMR to plot
+		simple_rmr <- add_simple_rmr(df_to_plot, input$myr)
+		if (input$add_simple_rmr) {
+			if (!is.null(simple_rmr)) {
+				if (input$time_scale_for_plot == "h") {
+					p <- p + geom_line(data=simple_rmr, aes(x=running_total.hrs.halfhour, y=rolling_mean), linetype="dashed", color="magenta", size=1)
+				} else {
+					p <- p + geom_line(data=simple_rmr, aes(x=running_total.sec, y=rolling_mean), linetype="dashed", color="magenta", size=1)
+				}
+			}
+		}
+
+		# add simple LOESS to plot
+		if (input$add_simple_loess) {
+			p <- p + geom_smooth(method = "loess", span=input$simple_loess_span, color = "blue")
 		}
 	}
+
 
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	if (input$windowed_plot == TRUE) {
