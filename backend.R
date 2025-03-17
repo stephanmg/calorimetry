@@ -39,6 +39,7 @@ source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
+source("inc/importers/import_impc_data_sets_helper.R") # for IMPC database
 source("inc/importers/util.R") # for consistency checks of columns
 
 ################################################################################
@@ -146,9 +147,22 @@ load_data <- function(file, input, exclusion, output, session) {
    use_example_data_set <- getSession(session$token, global_data)[["example_data_single"]]
    num_files <- getSession(session$token, global_data)[["example_data_single_length"]]
 
-   if (!use_example_data) {
+   # check if we need to use IMPC data set
+   use_impc_data <- getSession(session$token, global_data)[["use_impc_data"]]
+
+   if (is.null(use_impc_data)) {
+      storeSession(session$token, "use_impc_data", FALSE, global_data)
+   }
+   use_impc_data <- getSession(session$token, global_data)[["use_impc_data"]]
+
+   if (use_impc_data) {
+      num_files <- 3
+   }
+
+   if (!use_example_data && !use_impc_data) {
       num_files <- input$nFiles
    } 
+
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 
 	metadatafile <- get_metadata_datapath(input, session, global_data)
@@ -167,6 +181,28 @@ load_data <- function(file, input, exclusion, output, session) {
             }
          }
       }
+      use_impc_data <- getSession(session$token, global_data)[["use_impc_data"]]
+      if (use_impc_data) {
+         if (!dir.exists(paste0(Sys.getenv("SHINY_IMPC_DATA_FOLDER"), input$impc_gene_symbol))) {
+            shinyalert("Error", paste("Chosen gene symbol", input$impc_gene_symbol, " not found in IMPC database"), showCancelButton=TRUE)
+         }
+
+         if (i == 1) {
+           file <- paste(Sys.getenv(c("SHINY_IMPC_DATA_FOLDER")), paste0(input$impc_gene_symbol, "/means_female", ".csv"), sep = "")
+         }
+
+         if (i == 2) {
+           file <- paste(Sys.getenv(c("SHINY_IMPC_DATA_FOLDER")), paste0(input$impc_gene_symbol, "/means_male", ".csv"), sep = "")
+         }
+
+         if (i == 3) {
+           file <- paste(Sys.getenv(c("SHINY_IMPC_DATA_FOLDER")), paste0(input$impc_gene_symbol, "/ko_vs_wt", ".csv"), sep = "")
+         }
+
+         impc_data_set_name <- input$impc_gene_symbol
+         
+      }
+
       con <- file(file)
       line <- readLines(con, n = 2)
    if (i == 1) {
@@ -1168,7 +1204,14 @@ server <- function(input, output, session) {
             use_example_data = TRUE
          }
 
-         if (is.null(input$File1) && !use_example_data) {
+         use_impc_data <- getSession(session$token, global_data)[["use_impc_data"]]
+         if (is.null(use_impc_data)) {
+            use_impc_data = FALSE
+         } else {
+            use_impc_data =  TRUE
+         }
+
+         if (is.null(input$File1) && !use_example_data && !use_impc_data) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
             shinyalert("Not any data given", "Did you forget to click on an example data set or upload own data sets?")
             return()
@@ -1644,6 +1687,11 @@ server <- function(input, output, session) {
    # Add example data sets
    #############################################################################
    add_example_data_sets(input, session, output, global_data)
+
+   #############################################################################
+   # Add IMPC data sets
+   #############################################################################
+   add_impc_data_sets(input, session, output, global_data)
  
    #############################################################################
    # Helpers to hide/show components
