@@ -300,6 +300,11 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		}
 	}
 
+	if (!is.null(input$sg_filter)) {
+		if (input$sg_filter) {
+			df_to_plot <- df_to_plot %>% group_by(Animals) %>% mutate(!!sym(input$myr) := signal::sgolayfilt(!!sym(input$myr), p = input$sg_filter_p, n = input$sg_filter_n))
+		}
+	}
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
 
