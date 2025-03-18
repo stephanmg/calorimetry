@@ -147,6 +147,9 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
 	df_plot_total$HP <- as.numeric(df_plot_total$HP) 
 	df_plot_total$Time <- as.numeric(df_plot_total$Time)
+	# TODO: if there are changing interval sizes in ONE cohort, we get shorter or longer traces as expected,
+	# for instance in Calobox there is missing 5 minutes repeatelay from zero measurements adjutmensts,
+	# thus the effective dt is different and not 1 minute, but larger, say 1.2, so we do not get a full day!
 	df_plot_total$Type <- sapply(df_plot_total$Animal, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
 	df_plot_total$Time <- df_plot_total$Time * df_plot_total$Type
 	df_plot_total$Cohort <- sapply(df_plot_total$Animal, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)

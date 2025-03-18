@@ -25,6 +25,7 @@ do_add_wavelet_analysis_alt <- function(df, measurement, input) {
 	dt_value = mean(diff(df$Time))
 	print("dt_value wavelet:")
 	print(dt_value)
+	# TODO: mean is different from actual 60 secs time diff, since there are 5 min gaps because of 0 measurement adjustment..
 
 	# regular time for the signal (should already be the case, but better to be sure)
 	time_regular <- seq(min(df$Time), max(df$Time), length.out = nrow(df))
