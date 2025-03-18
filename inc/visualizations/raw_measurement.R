@@ -560,6 +560,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	wavelet_plot <- NULL
 	wavelet_power_spectrum <- NULL
 	if (input$wavelet_plot_ui == TRUE) {
+		# TODO: does not work yet with facets but only single animals
 		wavelet_plots <- do_add_wavelet_analysis_alt(df_to_plot, input$myr, input)
 		wavelet_plot <- wavelet_plots$wavelet_plot
 		wavelet_power_spectrum <- wavelet_plots$wavelet_power_spectrum

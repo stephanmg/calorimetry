@@ -85,13 +85,16 @@ main_content <- mainPanel(
             conditionalPanel("input.wavelet_plot_ui == true", numericInput("wavelet_lower_period", "Upper period [min]", min=0, max = 24*60, value = 24*60)),
             conditionalPanel("input.wavelet_plot_ui == true", numericInput("wavelet_scale_step", "Scale step", min=0.01, max=1, value = 0.1)),
             conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("add_simple_rmr", "Add simple RMR to plot", value=FALSE)),
-            conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("add_simple_loess", "Add simple LOESS smoothing to plot", value=FALSE)),
+            conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("add_simple_loess", "Add LOESS plot", value=FALSE)),
             conditionalPanel("input.add_simple_loess == true", numericInput("simple_loess_span", "Span", min=0.001, max=10, value = 0.01)),
             conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("apply_z_transform", "Apply z-transform")),
             conditionalPanel("input.apply_z_transform == true", sliderInput("apply_z_transform_a", "a", min=0.01, max=0.99, step = 0.01, value=0.5)),
              tags$script(HTML("
                $(document).ready(function() {
-               $('#apply_z_transform').attr('title', 'Apply z-transformation (Bartholomew Vleck (1981))')
+               $('#apply_z_transform').attr('title', 'Apply z-transformation (Bartholomew and Vleck (1981))');
+               $('#add_simple_loess').attr('title', 'Add Locally estimated/weighted Scatterplot Smoothing plot');
+               $('#add_simple_rmr').attr('title', 'Add Heldmaier RMR to plot');
+               $('#wavelet_plot_ui').attr('title', 'Add wavelet analysis for URs');
                })
            ")),
             conditionalPanel("input.plot_type != 'Metadata'", h3("Overview")),
