@@ -67,13 +67,13 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
-		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		finalC1$DayCount <- floor((finalC1$running_total.sec / (24*60*60)) + 1)
 		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
-		finalC1$DayCount <- floor((finalC1$running_total.sec / (24*60*60)) + 1)
+		finalC1$DayCount <- floor((finalC1$running_total.sec / (24*60*60)) + 1) 
 		if (input$time_scale_for_plot != "s") {
 			# TODO: Dense Rank won't work in case of %d/%m/%Y %H:%M:%S format, because currently we do not support seconds resolution
 			finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
