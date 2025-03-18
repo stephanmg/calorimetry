@@ -273,7 +273,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "time_scale_for_plot", choices=c("h", "min", "s"), selected = "s")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED", "Calobox"), selected = "Calobox")
          storeSession(session$token, "input_file_type", "Calobox", global_data)
-         import_calobox(file, tmp_file)
+         import_calobox(file, tmp_file, i)
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
@@ -578,6 +578,10 @@ load_data <- function(file, input, exclusion, output, session) {
 
    # time interval diff for finalC1
    storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
+
+   # TODO: if time interval differeces within ONE cohort (check interval_length_list for multiple cohorts), then
+   # interpolate / approx first on finest time-grid values... say 60 seconds for calobox... but for multiple
+   # cohorts interpolate on the detected time_diff minimum interval length for individual cohorts...
 
    # set the time date ranges once for the final data frame
    if (is.null(time_start_end)) {

@@ -21,6 +21,11 @@ get_animal_id_for_calobox <- function(filename) {
    return(strsplit(header, ":")[[1]][2])
 }
 
+get_date_for_calobox <- function(filename) {
+   header = readLines(filename, n=2)
+   return(strsplit(header, ":")[[1]][1])
+}
+
 
 ################################################################################
 #' import_calobox
@@ -28,7 +33,7 @@ get_animal_id_for_calobox <- function(filename) {
 #' This function imports a single calobox file
 #' 
 ################################################################################
-import_calobox <- function(filename, file_out) {
+import_calobox <- function(filename, file_out, i) {
    # Skip header (containing recording date only as a single line)
    df <-  read.csv(filename, skip=1)
 
@@ -90,6 +95,7 @@ import_calobox <- function(filename, file_out) {
 
 
    animal_id <- get_animal_id_for_calobox(filename)
+   animal_id <- paste0("ID ", i, " @ ", get_date_for_calobox(filename))
    print("calobox animal id:")
    print(animal_id)
    df$AnimalID <- animal_id
