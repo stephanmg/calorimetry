@@ -73,8 +73,13 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
-		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+		finalC1$DayCount <- floor((finalC1$running_total.sec / (24*60*60)) + 1)
+		if (input$time_scale_for_plot != "s") {
+			# TODO: Dense Rank won't work in case of %d/%m/%Y %H:%M:%S format, because currently we do not support seconds resolution
+			finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+		}
 	}
+
 
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
@@ -100,12 +105,15 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	df_to_plot <- finalC1
 
+
 	write.csv2(apply(finalC1, 2, as.character), "before_scaling_finalC1.csv")
 	finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
 	finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
 	finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
 
 	TEE1 <- aggregate(finalC1$HP, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T)
+
+	print(TEE1)
 	TEE2 <- aggregate(finalC1$HP2, by = list(Animals = finalC1$Animals, Days = finalC1$DayCount), FUN = sum, na.rm = T) 
 
 	if (input$with_facets) {
@@ -115,9 +123,17 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		}
 	} 
 
-	TEE <- rbind(TEE1, TEE2)
+	#TEE <- rbind(TEE1, TEE2)
+	#names(TEE)[names(TEE) == "x"] <- "TEE"
+	#TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+	#TEE$Days <- as.factor(TEE$Days)
+	#TEE$Animals <- as.factor(TEE$Animals)
+
+	TEE <- TEE1
 	names(TEE)[names(TEE) == "x"] <- "TEE"
-	TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1)), rep(input$variable2, nrow(TEE2))))
+
+	print(TEE)
+	TEE$Equation <- as.factor(c(rep(input$variable1, nrow(TEE1))))
 	TEE$Days <- as.factor(TEE$Days)
 	TEE$Animals <- as.factor(TEE$Animals)
 	if (input$with_facets) {
