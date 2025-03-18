@@ -2,6 +2,7 @@ library(DT)
 source("inc/statistics/lme_model.R")
 source("inc/statistics/wavelet_analysis.R")
 source("inc/statistics/simple_rmr.R")
+source("inc/statistics/math.R")
 
 ################################################################################
 #' raw_measurement
@@ -330,6 +331,12 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	}
 
 	print(time_scale_string)
+
+	if (!is.null(input$apply_z_transform)) {
+		if (input$apply_z_transform) {
+			df_to_plot <- df_to_plot %>% group_by(Animals) %>% mutate(!!sym(input$myr) := instantaneous_measurement(!!sym(input$myr), a=input$apply_z_transform_a))
+		}
+	} 
 
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = time_scale_string, color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)

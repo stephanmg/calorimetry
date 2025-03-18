@@ -87,6 +87,13 @@ main_content <- mainPanel(
             conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("add_simple_rmr", "Add simple RMR to plot", value=FALSE)),
             conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("add_simple_loess", "Add simple LOESS smoothing to plot", value=FALSE)),
             conditionalPanel("input.add_simple_loess == true", numericInput("simple_loess_span", "Span", min=0.001, max=10, value = 0.01)),
+            conditionalPanel("input.plot_type != 'Metadata' && input.ic_system == 'Calobox'", checkboxInput("apply_z_transform", "Apply z-transform")),
+            conditionalPanel("input.apply_z_transform == true", sliderInput("apply_z_transform_a", "a", min=0.01, max=0.99, step = 0.01, value=0.5)),
+             tags$script(HTML("
+               $(document).ready(function() {
+               $('#apply_z_transform').attr('title', 'Apply z-transformation (Bartholomew Vleck (1981))')
+               })
+           ")),
             conditionalPanel("input.plot_type != 'Metadata'", h3("Overview")),
             conditionalPanel("input.plot_type != 'Metadata' && input.ic_system != 'Calobox'", checkboxInput("windowed_plot", "Add windowed time-trace plot", value=FALSE)),
             plotlyOutput("plot"),
