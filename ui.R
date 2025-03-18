@@ -312,7 +312,13 @@ page_for_data_import_select_equation <- fluidPage(
          )
       )
    ),
-   uiOutput("heat_production_equations")
+   uiOutput("heat_production_equations"),
+   checkboxInput("regularize_time", "Regularize time", value=TRUE),
+   tags$script(HTML("
+   $(document).ready(function() {
+   $('#regularize_time').prop('disabled', true);
+   })
+   "))
 )
 
 ################################################################################
