@@ -285,8 +285,10 @@ page_for_data_import_example_data <- fluidPage(
    h4("Examples"),
    div(actionButton("example_data_single", "UCP1 KO study", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(42,82,190,0.5)"), style="text-align: center"), br(),
    div(actionButton("example_data_single_alternative", "DAKO study", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(213,173,65,0.5)"), style="text-align: center"),
+   hr(),
    h4("User guide"),
    div(actionButton("guide", "Getting help", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(255,69,0,0.5)"), style="text-align: center"),
+   br()
 )
 
 ################################################################################
@@ -313,10 +315,19 @@ page_for_data_import_select_equation <- fluidPage(
       )
    ),
    uiOutput("heat_production_equations"),
+   hr(),
+   h4("Miscellaneous"),
    checkboxInput("regularize_time", "Regularize time", value=TRUE),
+   checkboxInput("common_columns_only", "Common columns", value=FALSE),
    tags$script(HTML("
    $(document).ready(function() {
    $('#regularize_time').prop('disabled', true);
+   $('#common_columns_only').hover(function() {
+      $(this).attr('title', 'Use only common columns across cohorts');
+   })
+   $('#regularize_time').hover(function() {
+      $(this).attr('title', 'Interpolate to a regular time-grid');
+   })
    })
    "))
 )
@@ -332,10 +343,12 @@ page_for_data_import <- fluidPage(
    div("Provided through standardized Excel metadata sheets [7]"),
    checkboxInput(inputId = "havemetadata", label = "Have additional metadata?"),
    conditionalPanel(condition = "input.havemetadata == true", uiOutput("metadatafile")),
+   hr(),
    h3("Datasets"),
    p("Specify number of file(s)"),
    numericInput("nFiles", "Number of cohorts", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
+   hr(),
    div(actionButton("load_data", "Load data"), style="text-align: center; margin-left: 50px"),
    br(),
    tags$style(HTML("
@@ -414,7 +427,9 @@ page_for_data_import_preprocessing <- fluidPage(
       checkboxInput(inputId = "detect_nonconstant_measurement_intervals", label = "Detect non-constant measurement intervals", value = FALSE),
       checkboxInput(inputId = "highly_varying_measurements", label = "Detect highly varying measurements", value = FALSE),
       conditionalPanel("input.highly_varying_measurements == true", sliderInput("threshold_for_highly_varying_measurements", "Threshold [%]", min = 0, max = 200, step = 10, value = 200)),
-))
+   ),
+   hr()
+)
 
 
 ################################################################################

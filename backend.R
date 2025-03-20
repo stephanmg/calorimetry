@@ -494,7 +494,15 @@ load_data <- function(file, input, exclusion, output, session) {
    # add interval info for each data frame / cohort separately
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
 
-     # compile final measurement frame
+   # compile final measurement frame
+   if (input$common_columns_only) {
+      if (i == 1) {
+         current_data_cols <- colnames(C1)
+      } else {
+         current_data_cols <- intersect(current_data_cols, colnames(C1))
+      }
+      C1 <- C1 %>% select(all_of(current_data_cols))
+   }
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
