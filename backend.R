@@ -273,7 +273,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "time_scale_for_plot", choices=c("h", "min", "s"), selected = "s")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED", "Calobox"), selected = "Calobox")
          storeSession(session$token, "input_file_type", "Calobox", global_data)
-         import_calobox(file, tmp_file, i)
+         import_calobox(file, tmp_file, input[[paste0("AnimalInFile", i)]], input[[paste0("AnimalInBox", i)]])
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
@@ -944,7 +944,8 @@ server <- function(input, output, session) {
          html_ui <- " "
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort #", i)))
+               label = paste0("Cohort #", i)), numericInput(paste0("AnimalInFile", i), label=paste0("Animal ID #", i), value=i),
+               numericInput(paste0("AnimalInBox", i), label=paste0("Box ID #", i), value=i))
             }
          HTML(html_ui)
          })
