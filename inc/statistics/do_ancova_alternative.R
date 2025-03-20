@@ -177,8 +177,9 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+  # sort factors decreasing or not
   if (!sort_factors_alphabetically_decreasing) {
-   df$group <- factor(df$group, levels=sort(unique(df$group), decreasing=TRUE))
+    df$group <- factor(df$group, levels=sort(unique(df$group), decreasing=TRUE))
   }
 
   p2 <- NULL
