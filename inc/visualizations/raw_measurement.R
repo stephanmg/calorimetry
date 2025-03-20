@@ -454,7 +454,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2+first_night_start, y = y, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 	# indicate night start
