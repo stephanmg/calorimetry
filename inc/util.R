@@ -270,6 +270,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			plotlyOutput("plot_statistics_details"),
 			hr(style = "width: 50%"),
 			h4("Plotting control"),
+         checkboxInput("sort_factors_alphabetically_decreasing", "Sort factors alphabetically", value = TRUE),
 			fluidRow(
 				column(6,
 				h5("x-axis limits"),
@@ -340,7 +341,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
 
-		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm)
+		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing)
       p <- ret$plot_summary
       df <- ret$df
 
@@ -446,7 +447,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	})
 
 	output$plot_statistics_details2 <- renderPlotly({
-		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm)$plot_summary2 
+		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing)$plot_summary2 
       p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile)) 
       p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile)) 
 		p <- p + ggtitle(input$study_description)

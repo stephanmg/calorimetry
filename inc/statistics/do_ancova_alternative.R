@@ -58,7 +58,7 @@ calculate_statistic <- function(data, method) {
 ################################################################################
 # TODO: Add possibility to let the user choose the glm family and link function 
 # via the inputs (input$glm_family and input$link_function) - not only defaults
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE) {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE, sort_factors_alphabetically_decreasing=TRUE) {
   print("dataframe:")
   print(df_data)
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
@@ -175,6 +175,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
         df = as.data.frame(df) %>% select(c("Animals", "group", "Weight", "TEE", "Days")) %>% distinct()
       }
     }
+  }
+
+  if (!sort_factors_alphabetically_decreasing) {
+   df$group <- factor(df$group, levels=sort(unique(df$group), decreasing=TRUE))
   }
 
   p2 <- NULL
