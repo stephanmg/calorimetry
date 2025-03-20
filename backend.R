@@ -944,8 +944,12 @@ server <- function(input, output, session) {
          html_ui <- " "
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort #", i)), numericInput(paste0("AnimalInFile", i), label=paste0("Animal ID #", i), value=i),
+               label = paste0("Cohort #", i)))
+               if (input$ic_system == 'Calobox') {
+                  html_ui <- paste0(html_ui,
+               numericInput(paste0("AnimalInFile", i), label=paste0("Animal ID #", i), value=i),
                numericInput(paste0("AnimalInBox", i), label=paste0("Box ID #", i), value=i))
+               }
             }
          HTML(html_ui)
          })

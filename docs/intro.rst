@@ -583,7 +583,7 @@ Thus we are able to conclude the following:
 
 
 5.3. Own data set
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 For own data set or studies, users can make of the workflows as detailed in the
 two example data set use-cases from above for UCP1-KO and DAKO. First hypotheses
@@ -597,6 +597,89 @@ All data sets calculated in the app can be downloaded as a **.zip** file in the
 in the corresponding plot, and saved as **.svg**, **.pdf** or **.png**.
 
 
+5.4 Advanced analysis
+~~~~~~~~~~~~~~~~~~~~~
+
+5.4.1 Wavelet analysis
+^^^^^^^^^^^^^^^^^^^^^^
+
+CALOR provides possibilities to study ultradian rhythms (URs) by conducting
+a wavelet analysis on e.g. the metabolic rate or any other raw, derived
+or calculated quantiy. Note that the metabolic rate (MR) is proportional
+to the oxygen consumption. When high-frequency measurements are available,
+e.g. from the TSE Calobox system (measurement frequency as low as 3 seconds
+possible but usually well below 60 seconds) or other indirect calorimetry 
+systems, the study of ultradian rhythms renders possible and a wavelet
+analysis should be conducted.
+
+A wavelet power spectrum with periods (y-axis) and time (x-axis) can be 
+generated with CALOR:
+
+.. figure:: img/wavelet_analysis.png
+   :align: center
+   :scale: 50%
+   :alt: Wavelet power spectrum of MR
+
+   Figure 21: Wavelet power spectrum of MR
+
+
+Additionally a global wavelet power spectrum with power (y-axis) and periods
+(x-axis) can be generated to faciliate the detection of dominant or main
+oscillations (URs):
+
+.. figure:: img/wavelet_analysis_spectrum.png
+   :align: center
+   :scale: 50%
+   :alt: Wavelet global power spectrum of MR
+
+   Figure 22: Wavelet global power spectrum of MR
+
+
+5.4.2 Linear mixed effect modelling
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A LME model is used for modeling data with both fixed and random effects,
+particularly when observations are nested, repeated or correlated, i.e.
+repeated measurements on the same subject. CALOR allows users to build
+LME models based on available metadata (Genotype, Diet, etc.) and numeric
+covariates (Body Weight, lean mass, fat mass, etc.) to model raw (e.g. oxygen
+consumption), derived (RER) or calculated outcome variables (RMR) as either
+random or fixed effects.
+
+The functionality is available under the tab panel `Statistical model` in the
+main panel on the right. The resulting equation is displayed and standard
+visualization of the predicted outcome variable are shown, as well as the
+model selection criteria Akaike (AIC) and Bayesian information criterion (BIC),
+and marginal and conditional R² values.
+
+
+5.4.3 Locomotional analysis
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Further CALOR allows to analyse the locomotion of samples in detail by
+locomotional budgeting and calculation of probability density maps, cf.
+Figs. :ref:`locomotion_budget` and :ref:`probability_density_map`,
+currently supported fully for Sable Systems only.
+
+.. _locomotion_budget:
+
+.. figure:: img/locomotion_budget.png
+   :align: center
+   :scale: 50%
+   :alt: Locomotional budget
+
+   Figure 23: Locomotional budget
+
+.. _probability_density_map:
+
+.. figure:: img/probability_density_map.png
+   :align: center
+   :scale: 50%
+   :alt: Probability density map
+
+   Figure 24: Probability density map
+
+
 6. Data export
 --------------
 To export combined data sets for all cohorts, data frames for plotting of results, and calculated quantities,
@@ -605,9 +688,9 @@ compressed file containing all data.
 
 
 Tutorial videos
-====================
+===============
 
-Workflow and use-cases are documented in a series of short instructional YouTube videos demonstrating the features of the
+Workflow and use-cases are documented in a series of three instructional YouTube videos demonstrating the features of the
 web application: `@CALOR-APP <https://www.youtube.com/@CALOR-APP>`_.
 
 
