@@ -292,6 +292,11 @@ load_data <- function(file, input, exclusion, output, session) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
+   # Remove NaNs just in case, sloppy TSE systems export
+   if (input$drop_nan_rows) {
+      C1 <- C1 %>% drop_na()
+   }
+
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
@@ -321,6 +326,8 @@ load_data <- function(file, input, exclusion, output, session) {
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
 
+
+
    if (!is.null(time_start_end)) {
       start_date <<- time_start_end$date_start
       end_date <<- time_start_end$date_end
@@ -330,6 +337,8 @@ load_data <- function(file, input, exclusion, output, session) {
       start_date <<- "1970-01-01"
       end_date <<- Sys.Date()
    }
+
+
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
    arrange(Datetime2) %>%
@@ -371,10 +380,17 @@ load_data <- function(file, input, exclusion, output, session) {
    C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+	print("nan count 4:")
+	print(colSums(is.na(C1)))
+
    # Step #9 - recalculate RER
    if (input$recalculate_RER) {
      C1$RER_NA = C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`
    }
+
+	print("nan count 5:")
+	print(colSums(is.na(C1)))
 
    #############################################################################
    # Consistency check: Negative values
@@ -444,11 +460,20 @@ load_data <- function(file, input, exclusion, output, session) {
    numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
    other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
 
+
+	print("nan count 2:")
+	print(colSums(is.na(C1)))
+
    C1 <- C1 %>% group_by(`Animal No._NA`) %>% complete(running_total.sec = seq(min(running_total.sec), max(running_total.sec), by = interpolate_to * 60)) %>%
    arrange(`Animal No._NA`, running_total.sec) %>%
    mutate(across(all_of(numeric_cols), ~ approx(running_total.sec, .x, xout=running_total.sec, rule=2)$y)) %>%
    fill(all_of(other_cols), .direction = "downup") %>%
    ungroup()
+
+
+	print("nan count 3:")
+	print(colSums(is.na(C1)))
+
 
    #############################################################################
    # Heat production formula #1

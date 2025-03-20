@@ -397,6 +397,7 @@ page_for_data_import_preprocessing <- fluidPage(
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
    checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
+   checkboxInput(inputId="drop_nan_rows", "Drop NaN rows", value = TRUE),
    checkboxInput(inputId="use_raw_data_curation", "Amend raw data", value = FALSE),
    conditionalPanel(condition  ="input.use_raw_data_curation == true", 
       h4("Raw data curation"),
