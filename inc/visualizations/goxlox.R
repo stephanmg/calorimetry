@@ -324,7 +324,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# with zeitgeber zeit, the offset is always 0
 	light_offset <- -12
 	# add day annotations and indicators vertical lines
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox), label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox)+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 	# indicate night start
