@@ -28,8 +28,8 @@ RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes
 RUN Rscript -e "install.packages(c('shinyWidgets', 'shinyalert', 'shinyhelper', 'colourpicker'))"
 RUN Rscript -e "install.packages(c('dplyr', 'writexl', 'readxl', 'tidyr', 'viridis', 'lubridate'))"
 RUN Rscript -e "install.packages(c('zoo', 'fs', 'hash', 'tools', 'cicerone', 'tidyverse'))"
-RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2', 'doBy', 'stringr', 'broom')"
-RUN Rscript -e "install.packages(c('rstatix', 'emmeans', 'ggExtra', 'patchwork, 'ggpubr', 'DT'))"
+RUN Rscript -e "install.packages(c('data.table', 'plotly', 'ggplot2', 'doBy', 'stringr', 'broom'))"
+RUN Rscript -e "install.packages(c('rstatix', 'emmeans', 'ggExtra', 'patchwork', 'ggpubr', 'DT'))"
 
 EXPOSE 1338
 CMD ["Rscript", "startapp.R"]
