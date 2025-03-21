@@ -31,6 +31,10 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		storeSession(session$token, "EE_df", data_and_metadata, global_data)
 	}
 
+
+	print("nan count 1:")
+	print(colSums(is.na(finalC1)))
+
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
@@ -158,6 +162,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	gam_model <- NULL
 	grouped_gam <- NULL
 	df_to_plot <- finalC1
+	print("nan count:")
+	print(colSums(is.na(finalC1)))
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {
@@ -173,7 +179,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 					.x %>%
 					mutate(
 						fit = pred$fit,
-						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
 						trend = group_value
 					)
