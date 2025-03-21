@@ -10,6 +10,7 @@
 #' @export
 #############################################################################
 add_example_data_sets <- function(input, session, output, global_data) {
+	updateCheckboxInput(session, "regularize_time", value=FALSE)
 	#############################################################################
 	# Load example data UCP1KO
 	#############################################################################
