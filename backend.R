@@ -456,6 +456,8 @@ load_data <- function(file, input, exclusion, output, session) {
       numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
       other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
 
+      # TODO: approx may fail, if there is duplicated values in running_total.sec - should actually never be the case...
+      # however, to be sure, average duplicated running_total.sec values per Animal No._NA
       C1 <- C1 %>% group_by(`Animal No._NA`) %>% complete(running_total.sec = seq(min(running_total.sec), max(running_total.sec), by = interpolate_to * 60)) %>%
       arrange(`Animal No._NA`, running_total.sec) %>%
       mutate(across(all_of(numeric_cols), ~ approx(running_total.sec, .x, xout=running_total.sec, rule=2)$y)) %>%
