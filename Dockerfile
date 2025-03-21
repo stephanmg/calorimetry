@@ -20,7 +20,8 @@ ENV SHINY_DATA_FOLDER=/home/app/
 COPY . /home/app/
 COPY inc/ /home/app/inc/
 COPY www/ /home/app/www/
-Copy helpfiles/ /home/app/helpfiles/
+COPY helpfiles/ /home/app/helpfiles/
+COPY example_data/ /home/app/example_data/
 WORKDIR /home/app
 
 RUN Rscript -e "install.packages(c('shiny', 'shinybusy', 'shinyjs', 'shinythemes', 'shinyFiles'))"
