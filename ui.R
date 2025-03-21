@@ -321,7 +321,7 @@ page_for_data_import_select_equation <- fluidPage(
    checkboxInput("common_columns_only", "Common columns", value=FALSE),
    tags$script(HTML("
    $(document).ready(function() {
-   $('#regularize_time').prop('disabled', true);
+   // $('#regularize_time').prop('disabled', true);
    $('#common_columns_only').hover(function() {
       $(this).attr('title', 'Use only common columns across cohorts');
    })
