@@ -120,13 +120,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]
 	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
 
-	# Select temperature
-	if (!is.null(input$select_temperature)) {
-		if (input$select_temperature) {
-			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
-		}
-	}
-
 	# filter now for selected animals
 	finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
 
@@ -150,6 +143,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < light_off-light_on, "Day", "Night")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
+
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+		}
+	}
 
 	df_to_plot <- finalC1
 	# if we do not have metadata, this comes from some not-clean TSE headers
