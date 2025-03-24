@@ -318,6 +318,8 @@ page_for_data_import_select_equation <- fluidPage(
    hr(),
    h4("Miscellaneous"),
    checkboxInput("regularize_time", "Regularize time", value=TRUE),
+   conditionalPanel("input.regularize_time == true", checkboxInput("override_interval_length", "Specify manually", value=TRUE)),
+   conditionalPanel("input.regularize_time == true", sliderInput("override_interval_length_minutes", "dt", min=1, max=30, value=15)),
    checkboxInput("common_columns_only", "Common columns", value=FALSE),
    tags$script(HTML("
    $(document).ready(function() {

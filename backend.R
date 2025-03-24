@@ -453,6 +453,10 @@ load_data <- function(file, input, exclusion, output, session) {
    if (input$regularize_time) {
       interpolate_to <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
 
+      if (input$override_interval_length) {
+         interpolate_to <- input$override_interval_length_minutes
+      }
+
       numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
       other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
 
