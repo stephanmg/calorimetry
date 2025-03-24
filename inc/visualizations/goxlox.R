@@ -123,7 +123,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# Select temperature
 	if (!is.null(input$select_temperature)) {
 		if (input$select_temperature) {
-			print("select temp?")
 			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
 		}
 	}
@@ -362,7 +361,8 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, "GoxLox", session, global_data)
 
+	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 	# return plot p
-	return(list("window_plot"=p2, "plot"=ggplotly(p)))
+	return(list("window_plot"=p2, "plot"=p))
 }
