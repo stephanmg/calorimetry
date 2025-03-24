@@ -31,9 +31,17 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		storeSession(session$token, "EE_df", data_and_metadata, global_data)
 	}
 
-
 	print("nan count 1:")
 	print(colSums(is.na(finalC1)))
+
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+		}
+	}
+
+
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
