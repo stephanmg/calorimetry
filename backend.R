@@ -449,26 +449,7 @@ load_data <- function(file, input, exclusion, output, session) {
    f1 <- input$variable1
    f2 <- input$variable2
 
-   # interpolate to regular time grid in case a cohort has un-even spacing of data
-   if (input$regularize_time) {
-      interpolate_to <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
-
-      if (input$override_interval_length) {
-         interpolate_to <- input$override_interval_length_minutes
-      }
-
-      numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
-      other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
-
-      # TODO: approx may fail, if there is duplicated values in running_total.sec - should actually never be the case...
-      # however, to be sure, average duplicated running_total.sec values per Animal No._NA
-      C1 <- C1 %>% group_by(`Animal No._NA`) %>% complete(running_total.sec = seq(min(running_total.sec), max(running_total.sec), by = interpolate_to * 60)) %>%
-      arrange(`Animal No._NA`, running_total.sec) %>%
-      mutate(across(all_of(numeric_cols), ~ approx(running_total.sec, .x, xout=running_total.sec, rule=2)$y)) %>%
-      fill(all_of(other_cols), .direction = "downup") %>%
-      ungroup()
-   }
-
+  
    #############################################################################
    # Heat production formula #1
    #############################################################################
@@ -498,6 +479,39 @@ load_data <- function(file, input, exclusion, output, session) {
                               Time = C1$running_total.hrs.round), # groups by total rounded running hour
                         FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
 
+ # compile final measurement frame
+   if (input$common_columns_only) {
+      if (i == 1) {
+         current_data_cols <- c(colnames(C1))
+      } else {
+         current_data_cols <- intersect(current_data_cols, c(colnames(C1)))
+      }
+      C1 <- C1 %>% select(all_of(current_data_cols))
+   }
+
+
+
+   # interpolate to regular time grid in case a cohort has un-even spacing of data
+   if (input$regularize_time) {
+      interpolate_to <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
+
+      if (input$override_interval_length) {
+         interpolate_to <- input$override_interval_length_minutes * 60
+      }
+
+      numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
+      other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
+
+      # TODO: approx may fail, if there is duplicated values in running_total.sec - should actually never be the case...
+      # however, to be sure, average duplicated running_total.sec values per Animal No._NA
+      C1 <- C1 %>% group_by(`Animal No._NA`) %>% complete(running_total.sec = seq(min(running_total.sec), max(running_total.sec), by = interpolate_to * 60)) %>%
+      arrange(`Animal No._NA`, running_total.sec) %>%
+      mutate(across(all_of(numeric_cols), ~ approx(running_total.sec, .x, xout=running_total.sec, rule=2)$y)) %>%
+      fill(all_of(other_cols), .direction = "downup") %>%
+      ungroup()
+   }
+
+
    # exclude animals (outliers) from data sets
    if (! is.null(exclusion)) {
       for (to_exclude_from_list in exclusion) {
@@ -510,10 +524,7 @@ load_data <- function(file, input, exclusion, output, session) {
       C1 <- coarsen_data_sets(C1, input$coarsening_factor)
    }
 
-   # add interval info for each data frame / cohort separately
-   interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
-
-   # compile final measurement frame
+  # compile final measurement frame
    if (input$common_columns_only) {
       if (i == 1) {
          current_data_cols <- colnames(C1)
@@ -522,6 +533,27 @@ load_data <- function(file, input, exclusion, output, session) {
       }
       C1 <- C1 %>% select(all_of(current_data_cols))
    }
+
+
+
+   # add interval info for each data frame / cohort separately
+   interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
+
+
+   if (input$common_columns_only) {
+      if (!is.null(finalC1)) {
+        finalC1 <- finalC1 %>% select(all_of(current_data_cols))
+      }
+
+     if (!is.null(C1)) {
+      C1 <- C1 %>% select(all_of(current_data_cols))
+      }
+   }
+
+   print("oclnames:")
+   print(length(colnames(C1)))
+   print(length(colnames(finalC1)))
+
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
