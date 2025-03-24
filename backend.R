@@ -448,7 +448,6 @@ load_data <- function(file, input, exclusion, output, session) {
    # heat production equations #1 and #2
    f1 <- input$variable1
    f2 <- input$variable2
-
   
    #############################################################################
    # Heat production formula #1
@@ -479,7 +478,7 @@ load_data <- function(file, input, exclusion, output, session) {
                               Time = C1$running_total.hrs.round), # groups by total rounded running hour
                         FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
 
- # compile final measurement frame
+   # compile final measurement frame
    if (input$common_columns_only) {
       if (i == 1) {
          current_data_cols <- c(colnames(C1))
@@ -488,8 +487,6 @@ load_data <- function(file, input, exclusion, output, session) {
       }
       C1 <- C1 %>% select(all_of(current_data_cols))
    }
-
-
 
    # interpolate to regular time grid in case a cohort has un-even spacing of data
    if (input$regularize_time) {
@@ -549,10 +546,6 @@ load_data <- function(file, input, exclusion, output, session) {
       C1 <- C1 %>% select(all_of(current_data_cols))
       }
    }
-
-   print("oclnames:")
-   print(length(colnames(C1)))
-   print(length(colnames(finalC1)))
 
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
