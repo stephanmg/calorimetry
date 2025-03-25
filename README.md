@@ -58,17 +58,26 @@ Note that you can also build your own container from the `Dockerfile` provided w
 
 ## Option 2: ShinyApps.io and on-premise Uni Bonn
 The CALOR application is also hosted on http://shinyapps.io/stephanmg/CALOR
-and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/calo
+and deployed to our local infrastructure on http://shinys.iaas.uni-bonn.de/CALOR
+
+Note that on the Uni Bonn infrastructure, a small Kubernetes cluster is used for efficient multi-user usage, upscaling and load balancing.
 
 ## Option 3: Development installation
 1. Clone *this* repository
 2. Install dependencies with `Rscript -e "library(renv); renv::restore()"` from the current working directory
 3. Run `Rscript startapp.R` from base directory (inside *this* respository)
+4. Optionally if you wish to use load balancing, use the shell script `start_app_instances.sh` which will run 
+(specified by the user) a variable number of app instances in parallel. 
+
+An example Nginx configuration for load balancing is provided in `nginx_config.txt` for administrators.
 
 Note for developers: After building documentation a folder `R` will be created in the root directory. Manually
 delete this folder and do not add for tracking with Git, nor deploy, as this interferes with the Shiny app. 
 We need to fake a proper R package structure in order to use the `roxygenise` functions, but do not need the
 structure after docs have been generated.
+
+## Option 4: Standalone Desktop application
+Download the nightly builds for Windows, OSX or Linux from the repository's Github Actions artifacts section.
 
 ## References
 
