@@ -34,15 +34,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	print("nan count 1:")
 	print(colSums(is.na(finalC1)))
 
-	# Select temperature
-	if (!is.null(input$select_temperature)) {
-		if (input$select_temperature) {
-			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
-		}
-	}
-
-
-
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
@@ -100,6 +91,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1$Animals <- colors
 
 	# already shifted by zeitgeber zeit above, so light_on is now 0
+	# TODO: bug here if beginning of measurement misses... try to fix for TE.
 	day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
 	finalC1 <- day_annotations$df_annotated
 
@@ -163,6 +155,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
+
+	print("selecting temps?")
 	# Select temperature
 	if (!is.null(input$select_temperature)) {
 		if (input$select_temperature) {
