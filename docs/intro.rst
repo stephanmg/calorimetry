@@ -582,8 +582,8 @@ Thus we are able to conclude the following:
    There is no genotype-specific effect (WT vs DAKO) on the resting metabolic rate.
 
 
-5.3. Own data set
-~~~~~~~~~~~~~~~~~
+5.3. Custom datasets
+~~~~~~~~~~~~~~~~~~~~
 
 For own data set or studies, users can make of the workflows as detailed in the
 two example data set use-cases from above for UCP1-KO and DAKO. First hypotheses
