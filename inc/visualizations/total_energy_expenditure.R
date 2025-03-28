@@ -80,6 +80,13 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
 	finalC1$Animals <- colors
 
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+		}
+	}
+
 	# if we do not have metadata, this comes from some not-clean TSE headers
 	if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
