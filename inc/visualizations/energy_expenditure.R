@@ -155,6 +155,13 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+		}
+	}
+
 	# if we do not have metadata, this comes from some non-clean TSE headers
 	if (!input$havemetadata) { finalC1$`Animal.No.` <- finalC1$Animals }
 
