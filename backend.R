@@ -322,7 +322,11 @@ load_data <- function(file, input, exclusion, output, session) {
          sep = " ") # separator set to blank
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
    # transform into time format appropriate to experimenters
-   C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
+   if (input$correct_clock_change) {
+     C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M", tz="Etc/GMT-1")
+   } else {
+     C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
+   }
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
 
