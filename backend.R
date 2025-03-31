@@ -536,7 +536,6 @@ load_data <- function(file, input, exclusion, output, session) {
    }
 
 
-
    # add interval info for each data frame / cohort separately
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
 
@@ -1391,11 +1390,6 @@ server <- function(input, output, session) {
             df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
             df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
 
-            write.csv2(df1, "only_df1.csv")
-            write.csv2(df2, "only_df2.csv")
-
-            # TODO: Here RMR and EE get averaged per day already... need to change this if required.
-            # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
             # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
             ## This also creates the bar plots, we need to create grouped by day bar plots here instead? or we need to add the option
             df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
@@ -1422,14 +1416,12 @@ server <- function(input, output, session) {
             combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
             combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
             combined_df$EE <- pmax(combined_df$EE, 0) # zeros instead for RMR (might be due to RMR method not estimating as good, thus overestimating...)
-            write.csv2(combined_df, "combined_fine_df.csv")
 
             df_total <- rbind(df1, df2)
             df_total$Animals <- as.factor(df_total$Animals)
             df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
 
             combined_df <- combined_df %>% select(Animals, EE_a, EE, unique_days_a) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR", "unique_days_a"="Days"))
-            write.csv2(df_total, "df_total_verify_plot.csv")
             df_total <- combined_df
             p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
             p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
@@ -1440,14 +1432,11 @@ server <- function(input, output, session) {
             )
             
             storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
-            write.csv2(df_total, "test_for_rmr.csv")
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
             # TODO: refactor this, because this is what we usually want (only for the bar plot above we want to average)
             no_averages_required_for_RMR_and_TEE = TRUE
             if (no_averages_required_for_RMR_and_TEE == TRUE) {
-               df1 <- read.csv2("only_df1.csv")
-               df2 <- read.csv2("only_df2.csv")
                df1 <- df1 %>% group_by(Days, Animals) %>% summarize(EE=sum(Value, na.rm=TRUE))
                df1$TEE="RMR"
                df2 <- df2 %>% filter(Equation=="Heldmaier2") %>% group_by(Days, Animals) %>% summarize(EE=sum(TEE, na.rm=TRUE))
@@ -1460,7 +1449,6 @@ server <- function(input, output, session) {
                df_total$Animals <- as.factor(df_total$Animals)
                storeSession(session$token, "TEE_and_RMR", df_total, global_data)
                df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
-               write.csv2(df_total, "new_rmr_and_tee_df.csv")
             }
 
             data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
@@ -1673,10 +1661,6 @@ server <- function(input, output, session) {
                      )
                   )
                )
-              # str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
-              # str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
-              # str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
-            #HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
@@ -1729,7 +1713,6 @@ server <- function(input, output, session) {
          )
       }
    )
-
 
    #############################################################################
    # Hide certain components on startup
@@ -1818,17 +1801,6 @@ server <- function(input, output, session) {
       storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
 
-
-
-   #############################################################################
-   # Observe select_animal input
-   #############################################################################
-   #observeEvent(input$select_animal, {
-   #   click("plotting")
-   #   selected_animals <<- input$select_animal
-   #   storeSession(session$token, "selected_animals", input$select_animal, global_data)
-   #})
-
    #############################################################################
    # Refresh
    #############################################################################
@@ -1860,12 +1832,15 @@ server <- function(input, output, session) {
    })
 
    #############################################################################
-   # Observer event link click
+   # Observe event btn to analysis
    #############################################################################
    observeEvent(input$btn_to_analysis, {
       updateNavbarPage(session, "navbar", selected="Analysis")
    })
 
+   #############################################################################
+   # Observe event navbar
+   #############################################################################
    observeEvent(input$navbar, {
       if (input$navbar == "Metadata converter") {
          runjs("window.open('https://shiny.iaas.uni-bonn.de/CaloHelper', '_blank');")
@@ -1877,7 +1852,11 @@ server <- function(input, output, session) {
          updateNavbarPage(session, "navbar", selected="Home")
       }
    })
-   # for new sidebar panel
+
+
+   #############################################################################
+   # Observe individual sections
+   #############################################################################
    observeEvent(input$toggleA_custom, { toggle_section("sectionA_custom", "toggleA_custom")})
    observeEvent(input$toggleA_example, { toggle_section("sectionA_example", "toggleA_example")})
    observeEvent(input$toggleA_preprocessing, { toggle_section("sectionA_preprocessing", "toggleA_preprocessing")})
@@ -1892,22 +1871,19 @@ server <- function(input, output, session) {
    observeEvent(input$toggleD, {  toggle_section("sectionD", "toggleD")})
    observeEvent(input$toggleE, {  toggle_section("sectionE", "toggleE")})
 
-      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
-      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+   all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+   all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
 
-      for (section in all_sections) {
-         shinyjs::hide(section)
-      }
+   for (section in all_sections) {
+      shinyjs::hide(section)
+   }
 
-      for (link in all_links) {
-         shinyjs::removeClass(link, "active-button")
-      }
+   for (link in all_links) {
+      shinyjs::removeClass(link, "active-button")
+   }
 
-
-      shinyjs::show("sectionA_example")
-      shinyjs::addClass("toggleA_example", "active-button")
-
-
+   shinyjs::show("sectionA_example")
+   shinyjs::addClass("toggleA_example", "active-button")
 
    lapply(
       X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
@@ -1932,6 +1908,10 @@ server <- function(input, output, session) {
       shinyjs::addClass(active_link, "active-button")
    }
 
+
+   #############################################################################
+   # Observe event temperature type
+   #############################################################################
    observeEvent(input$temperature_type, {
 
       df <- getSession(session$token, global_data)[["finalC1"]]
@@ -1956,6 +1936,9 @@ server <- function(input, output, session) {
    })
 
 
+   #############################################################################
+   # Observe event select temperature
+   #############################################################################
    observeEvent(input$select_temperature, {
       df <- getSession(session$token, global_data)[["finalC1"]]
 
@@ -1982,8 +1965,4 @@ server <- function(input, output, session) {
       updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
       updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
    })
-
-
-
 }
-

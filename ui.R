@@ -411,7 +411,7 @@ page_for_data_import_preprocessing <- fluidPage(
    checkboxInput(inputId="coarsen_data_sets", "Coarsen datasets"),
    conditionalPanel(condition = "input.coarsen_data_sets == true", numericInput("coarsening_factor", "Factor", value = 1, min = 1, max = 10, step=1)),
    checkboxInput(inputId="use_zeitgeber_time", "Use zeitgeber time", value = TRUE),
-   checkboxInput(inputId="correct_clock_change", "Correct clock change", value = TRUE),
+   checkboxInput(inputId="correct_clock_change", "Correct clock change", value = FALSE),
    checkboxInput(inputId="recalculate_RER", "Re-calculate RER", value = TRUE),
    tags$script(HTML("
       $(document).ready(function() {
