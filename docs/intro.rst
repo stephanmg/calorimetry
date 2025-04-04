@@ -1,23 +1,26 @@
 What is CALOR?
 ==============
 
-CALOR is a web application based on Shiny R to allow for streamlined visualization and statistical analysis of
-indirect calorimetry data set making use of structured metadata to faciliate downstream analysis tasks.
+CALOR is a web application based on Shiny for GNU R to allow for a streamlined comprehensive analysis of 
+indirect calorimetry data from the major indirect calorimetry systems, i.e. TSE Systems, Sable Systems and
+COSMED. Metadata analysis, visualization and statistical analysis of all indirect calorimetry measurements are
+available. Furthermore CALOR ingests structured metadata to faciliate downstream analysis tasks.
 
 For a very brief tour use the **User guide** button in the **Visualization and statistical analysis** tab.
-Short written examples are accessible through the **Getting help** button on the landing page of the app.
+Short written examples are accessible through the **Help** button on the landing page of the app.
 
 
 Getting started
----------------
+===============
 
-1. Loading and navigating the application
+Loading and navigating the application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Navigate to `CALOR <https://shiny.iaas.uni-bonn.de/Calo>`_ access the Shiny web application.
-The landing page displays some information about supported file formats and the app's main features, see
-:ref:`calor_landing`. Click the **Visualization and statistical analysis** tab in the nagivation bar at the top
-to get started. To get help or access a helper app for metadata sheets use the **Getting help** or **Metadata converter** button.
+Navigate to `CALOR <https://shiny.iaas.uni-bonn.de/Calo>`_ access the web application.
+The landing page displays information about supported file formats and the app's main features, see
+:ref:`calor_landing`. Click the **Go to analysis** tab in the nagivation bar at the top or below the CALOR logo
+to immediately get started. To get help or access a helper app to generate metadata sheets for your own indirect
+calorimetry experiments use the **Help** respectively **Metadata converter** button.
 
 .. _calor_landing:
 
@@ -29,13 +32,13 @@ to get started. To get help or access a helper app for metadata sheets use the *
    Figure 1: CALOR landing page
 
 
-2. Loading indirect calorimetry data sets 
+Loading indirect calorimetry data sets 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Jump ahead to the section **Conducting analyses with CALOR** to directly get started, or use the
 **User guide** built into the application, see :ref:`load_example_data_set`.
 
-2.1 Loading example data sets
+Loading example data sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Load example data sets and metadata, either **UCP1 KO** (4 cohort study) or **DAKO** (2 cohort study) are available. 
 Metadata is automatically loaded and attached to the corresponding data set, see :ref:`load_example_data_set`.
@@ -50,7 +53,7 @@ Metadata is automatically loaded and attached to the corresponding data set, see
    Figure 1: Load example data set
 
 
-2.2 Loading own data sets
+Loading own data sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Note that providing metadata is optional. Metadata can be added through the upload of a standardized and hierarchical
@@ -87,8 +90,8 @@ Adjust the **Number of data files** value according to your needs. Note that typ
 
 .. _generate_metadata_sheet:
 
-3. Generate metadata sheet for indirect calorimetry data sets 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Generate metadata sheet for indirect calorimetry data sets 
+=============================================================
 While this step is optional, we want to emphazise that generation of a Metadata Sheet for your cohort study has multiple 
 benefits, i.e. statistical analysis of related metadata, comprehensive visualization of all collected metadata for the experiment,
 streamlined statistical analysis and visualization of data sets supported by consistent metadata with corresponding units. 
@@ -105,7 +108,7 @@ This application will allow you to fill out a Metadata Sheet and save it in Exce
 First option: Provide an Excel (*.xlsx*) file with the following column structure to the Metadata converter:
 
 Example metadata table for metadata converter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    +-----------+--------+------+----------+-------------+----------+---------+----------+--------+----------+--------+
    | Animal #  | sex    | diet | genotype | age at start| bw start | bw end  | fm start | fm_end | lm start | lm end |
@@ -154,8 +157,8 @@ for each sample. Additional information, such as conditions (cold exposure vs ro
 
 You can then download the metadata sheet by the download button **Download metadata sheet**.
 
-4. A Walk-through of CALOR's features
---------------------------------------------------------
+Features
+=====================================
 
 Use the larger **+** (plus symbol) right to the **Plotting** section to expand options and see which quantities are available.
 
@@ -170,7 +173,7 @@ a menu with options will appear at the top border of the plotting area then.
 
 The next subsections will provide an overview of the individual analysis panels.
 
-4.1 Inspect recorded metadata for your experiment
+1: Inspect recorded metadata for your experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
@@ -180,7 +183,7 @@ Inspection of metadata should be always the starting point before conducting any
 of data recorded. For instance if there is a significant difference between two genotype groups', say KO and WT, body
 composition, i.e. fat mass, further analysis should take the information into account before drawing conclusions.
 
-4.2. Raw measurements
+2: Raw measurements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
@@ -188,7 +191,7 @@ in percentage or volume changes over time intervals (typically recording interva
 5 or 10 minutes). Derived quantities, as for instance the RER (respiratory exchange ratio) can be calculated. If desired,
 users can pre-smooth or coarsen the raw traces (Typically not required).
 
-4.3. Total heat production
+3: Total heat production
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The total heat production (THP) is the sum of :math:`THP = RMR+HP`, i.e. of resting metabolic rate and heat production (HP).
@@ -198,26 +201,26 @@ defined by resting metabolic rate and energy expenditure (including physical act
 Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
 panel is available.
 
-4.4. Heat production
+4: Heat production
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Heat production (HP) is the non-RMR contribution to the THP. Same analysis methods as for THP apply for the HP panel.
 
-4.5. Resting Metabolic Rate
+5: Resting Metabolic Rate
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same analysis methods as for THP apply for the RMR panel as well.
 
-4.6. Fuel oxidation
+6: Fuel oxidation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Same analyiss methods as for THP ally for the fuel oxidation panel too.
 
 
-5. Conducting analyses with CALOR
----------------------------------
+Conducting analyses with CALOR
+=================================
 
-5.1. Example data set I: UCP1 KO
+Example data set I: UCP1 KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container:: highlight-box
@@ -418,7 +421,7 @@ For RMR see Figs. :ref:`rmr_ancova`, :ref:`rmr_ancova_details` and THP see Figs.
    Based on our analysis we can reject all of our posed null hypotheses for the UCP1 KO cohort study.
 
 
-5.2. Example data set II: DAKO KO
+Example data set II: DAKO KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container:: highlight-box
@@ -582,7 +585,7 @@ Thus we are able to conclude the following:
    There is no genotype-specific effect (WT vs DAKO) on the resting metabolic rate.
 
 
-5.3. Own data set
+Custom data sets
 ~~~~~~~~~~~~~~~~~~~~~~
 
 For own data set or studies, users can make of the workflows as detailed in the
@@ -597,8 +600,8 @@ All data sets calculated in the app can be downloaded as a **.zip** file in the
 in the corresponding plot, and saved as **.svg**, **.pdf** or **.png**.
 
 
-6. Data export
---------------
+Data export
+~~~~~~~~~~~
 To export combined data sets for all cohorts, data frames for plotting of results, and calculated quantities,
 all data can be download through the **Data export** panel, choose the *.zip* download which downloads one
 compressed file containing all data.
@@ -615,7 +618,7 @@ Flow charts
 =============
 
 Statistical analysis
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 For a flow chart on how to select the appropriate statistical test, refer to 
 Fig. :ref:`flowchart_statistics` below.
