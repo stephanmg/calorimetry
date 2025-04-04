@@ -1114,12 +1114,6 @@ server <- function(input, output, session) {
                choices = c(input$variable1), selected = input$variable1))
          })
 
-   observeEvent(input$plot_type, {
-            output$checkboxgroup_gender <- renderUI(
-               checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chosen sexes",
-               choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
-         })
-
   clean_var_names <- function(list_of_columns) {
          list_of_columns <- sub("_.*", "", list_of_columns)
          list_of_columns <- sub("\\(.*", "", list_of_columns)
