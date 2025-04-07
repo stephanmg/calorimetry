@@ -208,8 +208,6 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
          }
 		}
 
-
-
    annotations <- NULL
    if (input$facet_medians_statistics) {
       p_statistic_details$y = max(plot_data$avg_meas, na.rm=TRUE) 

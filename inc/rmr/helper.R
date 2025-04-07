@@ -14,11 +14,10 @@ annotate_rmr_days <- function(df) {
    return(df_anno %>% unique() %>% filter(Label != 'Day #0'))
 }
 
-
 ################################################################################
 #' padding_helper
 #' 
-#' This function used to pad data to same length in RMR calculations
+#' This function i used to pad data to same length in RMR calculations
 #' @param df
 ################################################################################
 padding_helper <- function(df) {
@@ -51,7 +50,7 @@ padding_helper <- function(df) {
 ################################################################################
 #' partition
 #' 
-#' Helper function to partition data 
+#' Helper function to partition data for RMR calculation
 #' @param mydf
 ################################################################################
 partition <- function(mydf) {
@@ -85,7 +84,7 @@ partition <- function(mydf) {
 ################################################################################
 #' cv
 #' 
-#' This function calculates the coefficient of variation for data frmae
+#' This function calculates the coefficient of variation for a given data frame
 #' @param mydf data frame
 #' @param window window size
 ################################################################################
@@ -139,7 +138,6 @@ reformat <- function(df_new) {
 ################################################################################
 get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
-   write.csv2(df, "during_getting_time_diff.csv")
    # note first time diff might be 0 if sorted ascending and because first measurement point,
    # thus pick 2 or 3, however 2 or 3 might still be 0 depending on the frequency of recordings (multiple per minute...)
    time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% nth(from) %>% pull(diff.sec)
@@ -215,30 +213,30 @@ check_for_cosmed <- function(file) {
 calc_heat_production <- function(choice, C1, variable, scaleFactor) {
    df <- C1
    switch(choice,
-   Lusk = {
-      df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
-   },
-   Heldmaier1 = {
-      df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  + 15.3) * 0.278 / 1000 * (3600 / 1000)
-   },
-   Heldmaier2 = {
-      df[[variable]] <- (4.44 + 1.43 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
-   },
-   Weir = {
-      df[[variable]] <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
-   },
-   Elia = {
-      df[[variable]] <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  / 1000
-   },
-   Brower = {
-      df[[variable]] <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 *  (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
-   },
-   Ferrannini = {
-      df[[variable]] <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$`VCO2(3)_[ml/h]` / 1000
-   },
-   {
+      Lusk = {
+         df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
+      },
+      Heldmaier1 = {
+         df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  + 15.3) * 0.278 / 1000 * (3600 / 1000)
+      },
+      Heldmaier2 = {
+         df[[variable]] <- (4.44 + 1.43 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
+      },
+      Weir = {
+         df[[variable]] <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
+      },
+      Elia = {
+         df[[variable]] <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  / 1000
+      },
+      Brower = {
+         df[[variable]] <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 *  (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
+      },
+      Ferrannini = {
+         df[[variable]] <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$`VCO2(3)_[ml/h]` / 1000
+      },
+      {
 
-   }
+      }
    )
    return(df)
 }
@@ -266,7 +264,6 @@ filter_full_days_alternative <- function(df, threshold, cohort_list) {
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs = running_total.hrs - min(running_total.hrs, na.rm = TRUE)) %>% ungroup()
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour - min(running_total.hrs.halfhour, na.rm = TRUE)) %>% ungroup()
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.sec = running_total.sec - min(running_total.sec, na.rm = TRUE)) %>% ungroup()
-   write.csv2(df_filtered, "df_filtered_after_full.csv")
    return(df_filtered)
 }
 

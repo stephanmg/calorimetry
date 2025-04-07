@@ -249,9 +249,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		}
 	}
 
-
-
-
 	p2 <- NULL
 	if (input$windowed_plot == TRUE) {
 		# offset is minimum value for time (on x-axis)
