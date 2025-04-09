@@ -205,6 +205,7 @@
 <li class="toctree-l1"><a class="reference internal" href="#generate-metadata-sheet-for-indirect-calorimetry-data-sets">Generate metadata sheet for indirect calorimetry data sets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#features">Features</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#conducting-analyses-with-calor">Conducting analyses with CALOR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#advanced-use-cases">Advanced use-cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#tutorial-videos">Tutorial videos</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#flow-charts">Flow charts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -391,8 +392,6 @@ the Excel Metadata Sheet template for indirect calorimetry data) or use the Meta
 the Metadata Sheet online if you have Excel not available. In the latter case navigate to <a class="reference external" href="https://shiny.iaas.uni-bonn.de/CaloHelper">Metadata converter</a>.
 This application will allow you to fill out a Metadata Sheet and save it in Excel format for metadata input into CALOR.</p>
 <p>First option: Provide an Excel (<em>.xlsx</em>) file with the following column structure to the Metadata converter:</p>
-<section id="example-metadata-table-for-metadata-converter">
-<h2>Example metadata table for metadata converter<a class="headerlink" href="#example-metadata-table-for-metadata-converter" title="Link to this heading">¶</a></h2>
 <blockquote>
 <div><div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -478,17 +477,23 @@ for each sample. Additional information, such as conditions (cold exposure vs ro
 </figure>
 <p>You can then download the metadata sheet by the download button <strong>Download metadata sheet</strong>.</p>
 </section>
-</section>
 <section id="features">
 <h1>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h1>
-<p>Use the larger <strong>+</strong> (plus symbol) right to the <strong>Plotting</strong> section to expand options and see which quantities are available.</p>
-<p>Note that on the right hand side a plot of the quantity of interest will be displayed, additional panels for <strong>Statistical Analysis</strong>,
-<strong>Modelling</strong> and additional information about group comparisons are displayed.</p>
-<p>During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the <strong>Data curation</strong>
-panel analogue to the previous <strong>Plotting</strong> section to visualize and analyze results.</p>
-<p>Note that all plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area,
-a menu with options will appear at the top border of the plotting area then.</p>
-<p>The next subsections will provide an overview of the individual analysis panels.</p>
+<p>On the left navigation panel the workflow within CALOR is implictly specified from top to bottom.
+Individual steps are:
+1. Dataset import
+2. Statistics and visualization (Includes possibility to review metadata)
+3. Data curation and
+4. Result summary (For exporting of results)</p>
+<p>Note that on the right panel a plot of the quantity of interest will be displayed in the tab (Main plot).
+Additional panels for <strong>Statistical testing</strong>, <strong>Details</strong> of statistical testing and <strong>Statistical model</strong> are available.
+The <strong>Explanation</strong> tab provides additional information and a description of which data is currently displayed.</p>
+<p>During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the <strong>Data curation</strong> panel.</p>
+<p>The section statistics and visualization provides the calculation of energy expenditure (EE), total energy expenditure (TEE),
+resting metabolic rate (RMR) and raw quantities as well as fuel oxidation (from here on ocassionally referred to as modalities).</p>
+<p>All plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area on the right panel,
+a menu with options will appear at the top border of the plotting area to select either PDF, PNG or SVG export.</p>
+<p>The next paragraphs will provide an overview of the individual analysis panels.</p>
 <section id="inspect-recorded-metadata-for-your-experiment">
 <h2>1: Inspect recorded metadata for your experiment<a class="headerlink" href="#inspect-recorded-metadata-for-your-experiment" title="Link to this heading">¶</a></h2>
 <p>The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
@@ -510,7 +515,7 @@ users can pre-smooth or coarsen the raw traces (Typically not required).</p>
 Alternatively one can interpret the THP as total energy expenditure (TEE) such that we have the sum <span class="math notranslate nohighlight">\(TEE=RMR+EE\)</span>, which is
 defined by resting metabolic rate and energy expenditure (including physical activity).</p>
 <p>Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
-panel is available.</p>
+panel is available for all modalities.</p>
 </section>
 <section id="heat-production">
 <h2>4: Heat production<a class="headerlink" href="#heat-production" title="Link to this heading">¶</a></h2>
@@ -522,7 +527,9 @@ panel is available.</p>
 </section>
 <section id="fuel-oxidation">
 <h2>6: Fuel oxidation<a class="headerlink" href="#fuel-oxidation" title="Link to this heading">¶</a></h2>
-<p>Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Same analyiss methods as for THP ally for the fuel oxidation panel too.</p>
+<p>Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to
+visualize the utilization of glucose or lipid oxidation during energy expenditure, similar as the RER can indicate which
+component is mainly oxidized (Raw measurements). Same analyis methods as for THP are available for the fuel oxidation panel.</p>
 </section>
 </section>
 <section id="conducting-analyses-with-calor">
@@ -813,6 +820,11 @@ in the corresponding plot, and saved as <strong>.svg</strong>, <strong>.pdf</str
 all data can be download through the <strong>Data export</strong> panel, choose the <em>.zip</em> download which downloads one
 compressed file containing all data.</p>
 </section>
+</section>
+<section id="advanced-use-cases">
+<h1>Advanced use-cases<a class="headerlink" href="#advanced-use-cases" title="Link to this heading">¶</a></h1>
+<p>For advanced use case, e.g. locomotional analysis and budgeting as well as wavelet analysis to study ultradian rhythms,
+we refer to the supplementary material provided in the preprint [TODO: insert DOI here].</p>
 </section>
 <section id="tutorial-videos">
 <h1>Tutorial videos<a class="headerlink" href="#tutorial-videos" title="Link to this heading">¶</a></h1>
