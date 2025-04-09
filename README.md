@@ -28,11 +28,13 @@ The app is available on the following web sites:
 
 Please refer also to the supplementary material from CALOR preprint [1].
 
+Tutorial videos are available on YouTube: [Tutorials](http://youtube.com/@CALOR-APP).
+
 ## Standalone Desktop apps
 
 One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
 
-Releases are uploaded to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
+Releases are uploaded to Sciebo automatically here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
 
 There you can download the nightly builds for Windows, OSX or Linux. Builds are automatically generated and artifacts deployed trough the `build` Github workflow.
 
