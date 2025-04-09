@@ -28,7 +28,7 @@ test_interval <- function(df) {
   if (length(groups) == 2) {
     # Perform t-test for two groups
     formula = reformulate(facet, response=as.character(meas))
-    test_result <- t.test(formula, data=df)
+    #test_result <- t.test(formula, data=df)
     test_result <- wilcox.test(formula, data=df)
     return(data.frame(
       p_value = test_result$p.value
