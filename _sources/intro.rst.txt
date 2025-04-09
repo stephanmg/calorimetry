@@ -225,8 +225,8 @@ visualize the utilization of glucose or lipid oxidation during energy expenditur
 component is mainly oxidized (Raw measurements). Same analyis methods as for THP are available for the fuel oxidation panel.
 
 
-Conducting analyses with CALOR
-=================================
+Conducting analyses
+===================
 
 Example data set I: UCP1 KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
