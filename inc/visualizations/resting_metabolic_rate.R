@@ -13,7 +13,9 @@
 #' resting_metabolic_rate(values, full_metadata, input, output, session, global_data, 1)
 #' @export
 ################################################################################
-resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
+resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor, true_metadata) {
+	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
+	metadatafile <- get_metadata_datapath(input, session, global_data)
 	component2 <- ""
 	if (length(input$cvs) == 2) {
 		component <- input$cvs[[1]]
@@ -30,13 +32,17 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		component2 <- "HP"
 	}
 
-	light_on <- 720
+	light_on <- input$light_cycle_start
+	light_off <- input$light_cycle_stop
+
 	if (input$havemetadata) {
-		light_on <- 60 * as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_off <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_off"))) %>% select(2) %>% pull())
 	}
 
 	if (input$override_metadata_light_cycle) {
-		light_on <- 60 * input$light_cycle_start
+		light_on <- input$light_cycle_start
+		light_off <- input$light_cycle_start
 	}
 
 	convert <- function(x) {
@@ -47,21 +53,19 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
-		finalC1 <- zeitgeber_zeit(finalC1 %>% ungroup(), input$light_cycle_start)
+		finalC1 <- zeitgeber_zeit(finalC1 %>% ungroup(), light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
 		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
-		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
-		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < light_on, "Day", "Night")
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
 		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
 	}
-
-	# TODO: v0.4.0- Add back animal and days selection as in EE, Raw, and GoxLox panels
 
 	# df already prepared to be day and night summed activities
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
@@ -150,7 +154,10 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	df_plot_total$Animals = df_plot_total$Animal
 	# since NAs might be introduced due to un-even measurement lengths in the not full days case, we need to remove NAs here (overhang)
 	# this is from multiple cohorts case, for a single cohrot we should never have the nas introduced in the first place
-	df_plot_total <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, input$metadatafile)$data %>% na.omit()
+	#with_metadata <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)$data %>% na.omit()
+	with_metadata <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)
+	df_plot_total <- with_metadata$data %>% na.omit()
+	true_metadata <- with_metadata$metadata
 	write.csv2(df_plot_total, "after_enriching_again.csv")
 
 	# Select sexes
@@ -171,16 +178,49 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	# we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
 	# p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
 	p <- NULL 
-	print(colnames(df_plot_total))
+
+	df_plot_total$running_total.hrs.halfhour = df_plot_total$Time
+	df_plot_total$running_total.sec = df_plot_total$Time * 60
+	df_to_plot <- df_plot_total
+
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				signal <- "HP"
+				group = input$facets_by_data_one
+				# Fit GAM for each group
+				grouped_gam <- df_to_plot %>%
+				group_by(!!sym(group)) %>%
+				group_map(~ {
+					group_value <- .y[[group]][1]
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = ", as.numeric(input$averaging_method_with_facets_basis_functions), ", bs = 'cr')")), data= .x)
+					pred <- predict(gam_model, se.fit = TRUE)
+					.x %>%
+					mutate(
+						fit = pred$fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels* pred$se.fit,
+						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
+						trend = group_value
+					)
+				}) %>%
+				bind_rows()  # Combine predictions for all groups
+			}
+		} else {
+			gam_model <- mgcv::gam(df_to_plot[["HP"]] ~ s(running_total.hrs.halfhour, k=input$averaging_method_with_facets_basis_functions, bs=input$averaging_method_with_facets_basis_function), data=df_to_plot)
+			pred <- predict(gam_model, se.fit=TRUE)
+			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
+		}
+	}
+	df_plot_total <- df_to_plot
 
 	# group with group from metadata
 	if (input$with_facets) {
 		p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, color=Animal)) + geom_line()
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
-				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
 			} else {
-				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 			}
 		}
 	} else {
@@ -188,14 +228,73 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		p <- p + facet_wrap(~Animal)
 	}
 
+	# add trend lines: 
+	# TODO: can also be factored out to remove code duplication
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				grouped_gam$trend <- as.factor(grouped_gam$trend)
+				if (!is.null(input$add_average_with_se_one_plot)) {
+					if (input$add_average_with_se_one_plot) {
+						p <- ggplot(data = df_to_plot, aes_string(y = "HP", x = "running_total.hrs.halfhour"))
+						p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+						p <- p + labs(colour=input$facets_by_data_one, fill=input$facets_by_data_one)
+						# set y-axis label
+						mylabel <- "RMR"
+						p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
+						# set x-axis label
+						if (input$use_zeitgeber_time) {
+							p <- p + xlab("Zeitgeber time [h]")
+						} else {
+							p <- p + xlab("Time [h]")
+						}
+						# add back timeline
+						if (input$timeline) {
+							if (!is.null(input$only_full_days_zeitgeber)) {
+								if (input$only_full_days_zeitgeber == TRUE) {
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+									p <- p + my_lights
+								} else {
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+									p <- p + my_lights
+								}
+							}
+						}
+					} else {
+						p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+					}
+				}
+			}
+		} else {
+				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
+		}
+	}
 
+	p2 <- NULL
+	if (input$windowed_plot == TRUE) {
+		# offset is minimum value for time (on x-axis)
+		offset <- min(df_plot_total$Time)
+		df_plot_total$running_total.hrs.halfhour = df_plot_total$Time
+		df_plot_total$running_total.sec = df_plot_total$Time * 60
+		df_plot_total$DayCount = ceiling(df_plot_total$running_total.sec / (3600*24))
 
+		write.csv2(df_plot_total, "for_windowed_RMR_plot.csv")
+		# windowed time trace plot
+		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_plot_total, "HP", offset, "HP")
+
+		p2 <- window_plot$plot
+		mylabel <- "RMR"
+		p2 <- p2 + ggtitle(paste0("Average measurement of ", mylabel, " in window")) + ylab(mylabel)
+		annotations_window_plot <<- window_plot$annotations
+	}
+
+	# add light cycle annotation
+	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
+	colnames(lights) <- c("x", "y")
 	write.csv2(df_plot_total, "before_anno_rmr.csv")
 	df_annos <- annotate_rmr_days(df_plot_total) %>% na.omit()
 	write.csv2(df_annos, "before_annos.csv")
-	print("annos:")
-	print(df_annos)
-	p <- p + geom_text(data = df_annos, aes(x=Time, y = 0, label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
+	p <- p + geom_text(data = df_annos, aes(x=Time, y = min(df_plot_total$HP, na.rm=TRUE), label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
 	day_length <- 24
 	# if selected either Day or Night, the day length is assumed to be 12 hours
@@ -212,18 +311,33 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="black")
 	p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
 
-	# add light cycle annotation
-	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
-	colnames(lights) <- c("x", "y")
+	if (input$timeline) {
+		lights <- seq(min(df_plot_total$Time), max(df_plot_total$Time), by = 60 * (light_off - light_on))
+		lights <- data.frame(Start=head(lights, -1), End=tail(lights, -1))
+		days <- 0
+		nights <- 0
+		last_day_or_night <- NULL
+		lapply(1:nrow(lights), function(i) {
+			pair <- lights[i,]
+			if (i %% 2 == 0) {
+				days <<- days + 1
+				p <<- p + annotate("rect", xmin=pair$Start, xmax=pair$End, ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_night_color, alpha=0.1)
+			} else {
+				nights <<- nights + 1
+				p <<- p + annotate("rect", xmin=pair$Start, xmax=pair$End, ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_day_color, alpha=0.1)
+			}
+			last_day_or_night <<- pair$End
+		})
+
+		# if not aligns, say 2 days is 48 hours, but we have 40 hours, we have 1 light phase, 1 dark phase, 1 light phase (36 hours)
+		# so 2 light phases 1 dark phase, so the remainder must be dark phase
+		if (days > nights) {
+			p <- p + annotate("rect", xmin=last_day_or_night, xmax=max(df_plot_total$Time, na.rm=TRUE),  ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_day_color, alpha=0.1)
+		} else {
+			p <- p + annotate("rect", xmin=last_day_or_night, xmax=max(df_plot_total$Time, na.rm=TRUE),  ymin = min(df_plot_total$HP, na.rm=TRUE), ymax = max(df_plot_total$HP, na.rm=TRUE), fill=input$light_cycle_night_color, alpha=0.1)
+		}
+	}
 	
-	#if (input$timeline) {
-	#	light_offset <- 0
-		# this is already corrected with zeitgeber zeit above (shifted towards the beginning of the light cycle, then re-centered at 0)
-	#	my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, light_offset, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
-	#	p <- p + my_lights
-	#}
-
-
 	p <- p + ylab(paste0("RMR [", input$kj_or_kcal, "/ h]"))
 	p <- p + xlab("Zeitgeber time [h]")
 	p <- p + ggtitle("Resting metabolic rates")
@@ -233,6 +347,18 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_plot_total$Time), max(df_plot_total$Time)), breaks=seq(0, max(df_plot_total$Time), by=(4*60)), labels=convert_minutes_to_hours(seq(0, max(df_plot_total$Time), by=(4*60))))
 	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
 	storeSession(session$token, "is_RMR_calculated", TRUE, global_data)
+
+	if (input$windowed_plot == TRUE) {
+		if (!is.null(p2)) {
+			p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		}
+	}
+
 	finalC1 <- df_plot_total
-	return(list("finalC1"=finalC1, "plot"=p))
+
+	storeSession(session$token, "plot_for_RMR", p, global_data)
+	storeSession(session$token, "plot_for_RMR_window", p2, global_data)
+	storeSession(session$token, "is_RMR_window_calculated", length(p2) > 0, global_data)
+
+	return(list("finalC1"=finalC1, "plot"=p, "window_plot"=p2))
 }

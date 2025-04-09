@@ -1,0 +1,69 @@
+upstream shiny_cluster_calo {
+  #sticky cookie srv_id expires=1h;
+  ip_hash;
+  server 127.0.0.1:9000;
+  server 127.0.0.1:9001;
+  server 127.0.0.1:9002;
+  server 127.0.0.1:9003;
+  server 127.0.0.1:9004;
+  server 127.0.0.1:9005;
+  server 127.0.0.1:9006;
+  server 127.0.0.1:9007;
+  server 127.0.0.1:9008;
+  server 127.0.0.1:9009;
+}
+
+server {
+  # default server listening interface for non-SSL
+  listen 80 default_server;
+  listen [::]:80 default_server;
+
+  # max upload size
+  client_max_body_size 200M;
+
+  # redirect from http to https always to use SSL
+  location / {
+    return 301 https://shiny.iaas.uni-bonn.de;
+  }
+}
+
+# app setup, forwards and redirects, SSL configuration
+server {
+   location /CALOR {
+    proxy_pass http://127.0.0.1:3839/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header Host $host;
+    proxy_connect_timeout 3600s;
+    proxy_send_timeout 3600s;
+    proxy_read_timeout 3600s;
+  }
+
+  # index page
+  root /var/www/html/;
+  index index.html;
+  server_name shiny.iaas.uni-bonn.de; 
+  listen [::]:443 ssl ipv6only=on; 
+  listen 443 ssl;
+
+  # SSL
+  ssl_certificate /etc/letsencrypt/live/shiny.iaas.uni-bonn.de/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/shiny.iaas.uni-bonn.de/privkey.pem; 
+  include /etc/letsencrypt/options-ssl-nginx.conf;
+  ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
+
+server {
+  client_max_body_size 200M;
+
+  if ($host = shiny.iaas.uni-bonn.de) {
+      return 301 https://$host$request_uri;
+  } 
+
+  listen 80 ;
+  listen [::]:80 ;
+    server_name shiny.iaas.uni-bonn.de;
+    return 404;
+}
+

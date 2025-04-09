@@ -38,6 +38,8 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/importers/import_example_data_sets_helper.R") # for example data sets
+source("inc/importers/util.R") # for consistency checks of columns
 
 ################################################################################
 # Locomotion helpers
@@ -62,7 +64,6 @@ source("inc/statistics/do_ancova_alternative.R") # for ancova with metadata
 ################################################################################
 source("inc/metadata/read_metadata.R") 
 
-use_example_data <- FALSE
 ################################################################################
 # Export functionality
 ################################################################################
@@ -91,31 +92,33 @@ source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR es
 source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
-# TODO: Global variables - not safe in multi-user context
+# Selection of calendrical dates, currently not implemented/thus obsolete
 ################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
 end_date <- Sys.Date()
 
 ################################################################################
-# Session global environement to hold user data
+# Session global environment to hold user data
 ################################################################################
 global_data <- new.env()
 
 ################################################################################
-# Create plotly plot
+# Configure base plot look and feel with ggpubr
 ################################################################################
-do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
-   #############################################################################
-   # Configure base plot look and feel with ggpubr
-   #############################################################################
+configure_default_plot_look_and_feel <- function() {
    theme_pubr_update <- theme_pubr(base_size = 8.5) +
    theme(legend.key.size = unit(0.3, "cm")) +
    theme(strip.background = element_blank()) +
    theme(strip.text = element_text(hjust = 0)) +
    theme(axis.text.x = element_text(angle = 45, hjust = 1))
    theme_set(theme_pubr_update)
+}
 
+################################################################################
+# Load data
+################################################################################
+load_data <- function(file, input, exclusion, output, session) {
    #############################################################################
    # Detect file type
    #############################################################################
@@ -129,33 +132,69 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    fileFormatTSE <- FALSE
    finalC1 <- c()
 
-   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 7))
+   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 8))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
-   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob")
-    num_files <- 4
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob", "Measurement")
+
+   # check if we need to use example data or not
+   use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+   if (is.null(use_example_data)) {
+      storeSession(session$token, "use_example_data", FALSE, global_data)
+   }
+   use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+
+   use_example_data_set <- getSession(session$token, global_data)[["example_data_single"]]
+   num_files <- getSession(session$token, global_data)[["example_data_single_length"]]
+
    if (!use_example_data) {
       num_files <- input$nFiles
    } 
    interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
 
-   for (i in 1:input$nFiles) {
+	metadatafile <- get_metadata_datapath(input, session, global_data)
+
+   for (i in 1:num_files) {
       file <- input[[paste0("File", i)]]
       file <- file$datapath
       if (use_example_data) {
-         file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data_", i, ".csv"), sep = "")
+         if (use_example_data_set) {
+            example_data_set_name <- getSession(session$token, global_data)[["example_data_single_name"]]
+            if (example_data_set_name == "UCP1KO") {
+               file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data/UCP1KO/", "example_data_", i, ".csv"), sep = "")
+            }
+            if (example_data_set_name == "DAKO") {
+               file <- paste(Sys.getenv(c("SHINY_DATA_FOLDER")), paste0("example_data/DAKO/", "example_data_", i, ".csv"), sep = "")
+            }
+         }
       }
       con <- file(file)
       line <- readLines(con, n = 2)
    if (i == 1) {
       fileFormatTSE <- line[2]
       studyDescription <- line[1]
-      if  (input$havemetadata) {
-         output$study_description <- renderText(paste0("Study description: ", get_study_description_from_metadata(input$metadatafile$datapath)))
-      } else {
-         output$study_description <- renderText(paste("Study description: ", gsub("[;]", "", studyDescription), sep = " "))
+      have_example_data_with_metadata <- FALSE
+      if (!is.null(use_example_data)) {
+         if (use_example_data == TRUE) {
+            have_example_data_with_metadata <- TRUE
+         }
       }
-      output$file_type_detected <- renderText(paste("Input file type: ", gsub("[;,]", "", line[2]), sep = " "))
-      output$additional_information <- renderText("Additional informations")
+
+      if (input$havemetadata || have_example_data_with_metadata) {
+         study_details <- get_study_description_from_metadata(metadatafile)
+         output$study_name <- renderText(study_details$study_name)
+         output$lab <- renderText(study_details$lab)
+         output$mouse_strain <- renderText(study_details$mouse_strain)
+         output$comment <- renderText(study_details$comment)
+         output$author <- renderText(study_details$name)
+         output$date <- renderText(study_details$date)
+         output$number_of_samples  <- renderText(study_details$number_of_samples) 
+         output$number_of_diets <- renderText(study_details$number_of_diets)
+         output$number_of_genotypes <- renderText(study_details$number_of_genotypes)
+         output$number_of_sexes <- renderText(study_details$number_of_sexes)
+      } else {
+         output$study_name <- renderText(paste("", gsub("[;]", "", studyDescription), sep = " "))
+      }
+      output$file_type_detected <- renderText(paste("",gsub("[;,]", "", line[2]), sep = " "))
    }
    #########################################################################################################
    # Detect data type (TSE v6/v7, v5 (Akim/Dominik) or v8 (Jan/Tabea)) or Promethion/Sable (.xlsx) (Jenny))
@@ -235,25 +274,32 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
    # PhenoMaster V8
    if (grepl("V8", fileFormatTSE)) {
+      # V8 seems to export sloppy, i.e. non-consistent CSV files, check for this before importing data sets
+      is_consistent <- check_column_consistency(file, sep=sep)
+      if (!is_consistent) {
+         shinyalert("Error", paste("Input data file has different number of columns for rows. Inconsistent format."), showCancelButton=TRUE)
+         return()
+      }
+
       storeSession(session$token, "input_file_type", "PhenoMaster/V8", global_data)
       tmp_file <- tempfile()
       import_pheno_v8(file, tmp_file)
       file <- tmp_file
       toSkip <- detectData(file)
    }
-
-
-
+ 
    # File encoding matters: Shiny apps crashes due to undefined character entity
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
+   # Remove NaNs just in case, sloppy TSE systems export
+   if (input$drop_nan_rows) {
+      C1 <- C1 %>% drop_na()
+   }
 
    # Note: We will keep the basic metadata informatiom from TSE files
    C1meta <- read.table(file, header = TRUE, skip = 2, nrows = toSkip + 1 - 4,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
-
-      print(C1meta)
 
    #############################################################################
    # Curate data frame
@@ -276,9 +322,15 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          sep = " ") # separator set to blank
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
    # transform into time format appropriate to experimenters
-   C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
+   if (input$correct_clock_change) {
+     C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M", tz="Etc/GMT-1")
+   } else {
+     C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M")
+   }
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
+
+
 
    if (!is.null(time_start_end)) {
       start_date <<- time_start_end$date_start
@@ -289,6 +341,8 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       start_date <<- "1970-01-01"
       end_date <<- Sys.Date()
    }
+
+
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
    arrange(Datetime2) %>%
@@ -330,6 +384,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    C1$running_total.hrs <- round(C1$running_total.sec / 3600, 1)
    # Step #8 - round hours downwards to get "full" hours
    C1$running_total.hrs.round <- floor(C1$running_total.hrs)
+
+   # Step #9 - recalculate RER
+   if (input$recalculate_RER) {
+     C1$RER_NA = C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`
+   }
 
 
    #############################################################################
@@ -389,11 +448,11 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # Step #10 - create a running total with half hour intervals by adding
    # the thirty min to the full hours
    C1$running_total.hrs.halfhour <- C1$running_total.hrs.round + C1$timeintervalinmin
-   f1 <- input$variable1
-   print("f1:")
-   print(f1)
-   f2 <- input$variable2
 
+   # heat production equations #1 and #2
+   f1 <- input$variable1
+   f2 <- input$variable2
+  
    #############################################################################
    # Heat production formula #1
    #############################################################################
@@ -417,14 +476,42 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    C1.mean.hours <- do.call(data.frame, aggregate(list(HP2 = C1$HP2, # calculate mean of HP2
                                        VO2 = C1$`VO2(3)_[ml/h]`, # calculate mean of VO2
                                        VCO2 = C1$`VCO2(3)_[ml/h]`, # calculate mean of VCO2
-                                       RER = C1$RER_NA), # calculate mean of RER
+                                       RER = C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`), # calculate mean of RER
                      by = list(
                               Animal = C1$`Animal No._NA`, # groups by Animal ID
                               Time = C1$running_total.hrs.round), # groups by total rounded running hour
                         FUN = function(x) c(mean = mean(x), sd = sd(x)))) # calculates mean and standard deviation
 
-   # step 12 (debugging: save cohort means)
-   write.csv2(C1.mean.hours, file = paste0(tools::file_path_sans_ext(file), "-cohort_means.csv"))
+   # compile final measurement frame
+   if (input$common_columns_only) {
+      if (i == 1) {
+         current_data_cols <- c(colnames(C1))
+      } else {
+         current_data_cols <- intersect(current_data_cols, c(colnames(C1)))
+      }
+      C1 <- C1 %>% select(all_of(current_data_cols))
+   }
+
+   # interpolate to regular time grid in case a cohort has un-even spacing of data
+   if (input$regularize_time) {
+      interpolate_to <- get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals)
+
+      if (input$override_interval_length) {
+         interpolate_to <- input$override_interval_length_minutes * 60
+      }
+
+      numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
+      other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
+
+      # TODO: approx may fail, if there is duplicated values in running_total.sec - should actually never be the case...
+      # however, to be sure, average duplicated running_total.sec values per Animal No._NA
+      C1 <- C1 %>% group_by(`Animal No._NA`) %>% complete(running_total.sec = seq(min(running_total.sec), max(running_total.sec), by = interpolate_to * 60)) %>%
+      arrange(`Animal No._NA`, running_total.sec) %>%
+      mutate(across(all_of(numeric_cols), ~ approx(running_total.sec, .x, xout=running_total.sec, rule=2)$y)) %>%
+      fill(all_of(other_cols), .direction = "downup") %>%
+      ungroup()
+   }
+
 
    # exclude animals (outliers) from data sets
    if (! is.null(exclusion)) {
@@ -438,10 +525,32 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       C1 <- coarsen_data_sets(C1, input$coarsening_factor)
    }
 
+  # compile final measurement frame
+   if (input$common_columns_only) {
+      if (i == 1) {
+         current_data_cols <- colnames(C1)
+      } else {
+         current_data_cols <- intersect(current_data_cols, colnames(C1))
+      }
+      C1 <- C1 %>% select(all_of(current_data_cols))
+   }
+
+
+
    # add interval info for each data frame / cohort separately
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
 
-   # compile final measurement frame
+
+   if (input$common_columns_only) {
+      if (!is.null(finalC1)) {
+        finalC1 <- finalC1 %>% select(all_of(current_data_cols))
+      }
+
+     if (!is.null(C1)) {
+      C1 <- C1 %>% select(all_of(current_data_cols))
+      }
+   }
+
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
@@ -450,7 +559,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    # print master list for interval lengths
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
-
 
    # remove z-score outliers
    if (input$z_score_removal_of_outliers) {
@@ -462,8 +570,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       finalC1 <- remove_zero_values(finalC1, input$eps)
    }
 
-    # step 13 (debugging: save all cohort means)
-   write.csv2(C1.mean.hours, file = paste0("all-cohorts_means.csv"))
+   # step 13 (debugging: save all cohort means)
    C1meta <- finalC1meta
 
    # rescale to kcal from kj
@@ -497,28 +604,64 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       output$daterange <- renderUI(dateRangeInput("daterange", "Date", start = time_start_end$date_start, end = time_start_end$date_end))
    }
 
+   storeSession(session$token, "finalC1", finalC1, global_data)
+   storeSession(session$token, "finalC1meta", finalC1meta, global_data)
+   storeSession(session$token, "C1meta", C1meta, global_data)
+   storeSession(session$token, "scaleFactor", scaleFactor, global_data)
+   storeSession(session$token, "finalC1cols", colnames(finalC1), global_data)
+
+   raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
+   raw_cols <- sub("_.*$", "", raw_cols)
+   raw_cols <- sub("\\(.*$", "", raw_cols)
+   choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT.YT", "DistD", "DistK")
+   updateSelectInput(session, "myr", choices = c(intersect(unlist(choices), unlist(raw_cols)), "O2"), selected=input$myr)
+}
+
+
+################################################################################
+# Create plotly plot
+################################################################################
+do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyclocomp_linter.
+   # if data is not loaded, load the data
+   if (is.null(getSession(session$token, global_data)[["data_loaded"]])) {
+      load_data(file, input, exclusion, output, session)
+      storeSession(session$token, "data_loaded", TRUE, global_data)
+     } else {
+      # Nothing to load
+   }
+
+   # load default plotting style
+   if (input$use_default_plot_style) {
+      configure_default_plot_look_and_feel()
+   }
+
+   # get stored data so far
+   finalC1 = getSession(session$token, global_data)[["finalC1"]]
+   finalC1meta = getSession(session$token, global_data)[["finalC1meta"]]
+   C1meta = getSession(session$token, global_data)[["C1meta"]]
+   scaleFactor = getSession(session$token, global_data)[["scaleFactor"]]
+
+   # Filter out additionally whole calendrical days with given percentage threshold
+   # However this is currently imcompatible with zeitgeber time utility, which shifts
+   # based on the assumption that running_total.secs == 0 exists in the data frame to 
+   # find the shift offset with respect to the start of the light cycle (this also means
+   # that running_total.secs might be negative). If we filter out non-full calendricald
+   # dates, we might not have running_total.secs == 0 true in our data frame, so the
+   # zeitgeber_time function in util.R fails accordingly.
+   # We use && ! input$use_zeitgeber_time to exclude this for now - also in ui.R we 
+   # do not offer the selection of calendrical days if zeitgeber time is used.
+   # TODO: Remove the if statement once zeitgeber_time function in util.R has been adapted
+   if (input$only_full_days && !input$use_zeitgeber_time) {
+      interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+      storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
+      finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
+   }
 
    #####################################################################################################################
    # Plotting and data output for downstream debugging
    #####################################################################################################################
    plotType <- input$plot_type
-   write.csv2(C1, file = "all_data.csv")
-   write.csv2(finalC1, file = "finalC1.csv")
-
-   # filter out whole days with given threshold
-   # TODO: These are calendrical dates, used for RMR, TEE, and DayNightAcvitiy
-   # Note: This can be made a preprocessing step to select for specific days (also half days),
-   # this is incompatible currently with panels EE, Raw and GoxLox since zeitgeber time shifts based on running_total.secs == 0 to find  the offset
-   # see util.R for this, this needs first to be adapted, then we can support filtering on two methods: zeitgeber time and also on calendrical days
-   # thats why we use && ! input$use_zeitgeber_time to exclude this for now. this is data preprocessing step!
-   if (input$only_full_days && !input$use_zeitgeber_time) {
-      storeSession(session$token, "time_diff", get_time_diff(finalC1, 2, 3, input$detect_nonconstant_measurement_intervals), global_data)
-      print("int val length list:")
-      print(interval_length_list)
-      finalC1 <- filter_full_days_alternative(finalC1, input$full_days_threshold, interval_length_list)
-      write.csv2(finalC1, "after_fitlering.csv")
-   }
-
+  
    switch(plotType,
    #####################################################################################################################
    # CompareHeatProductionFormulas
@@ -530,10 +673,12 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       p <- p + ggtitle("Pearson-correlation between energy expenditures as computed by two different formulas")
    },
    #####################################################################################################################
-   # GoxLox
+   # FuelOxidation
    #####################################################################################################################
-   GoxLox = {
+   FuelOxidation = {
       p <- goxlox(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_window = p$window_plot
+      p <- p$plot
 
       # indicate if plot available
       indicate_plot_rendered(p, output)
@@ -541,13 +686,18 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # style plot
       p <- style_plot(p, input)
 
-      p
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
+
    },
    #####################################################################################################################
    ### Energy Expenditure
    #####################################################################################################################
-   EnergyExpenditure = {
+   HeatProduction = {
       p <- energy_expenditure(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_window <- p$window_plot
+      p <- p$plot
 
       # indicate if plot available
       indicate_plot_rendered(p, output)
@@ -555,16 +705,36 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       # style plot
       p <- style_plot(p, input)
 
-      p
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
    },
    #####################################################################################################################
    ### RestingMetabolicRate
    #####################################################################################################################
    RestingMetabolicRate = {
-      df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      # Check first if RMR can be calculated
+      if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
+        shinyalert("Error:", "Total heat production needs to be calculated before!")
+        return()
+      }
+
+      df_returned <- resting_metabolic_rate(finalC1, finalC1meta, input, output, session, global_data, scaleFactor, true_metadata)
       finalC1 <- df_returned$finalC1
+
       p <- df_returned$plot
-      p
+      p_window <- df_returned$window_plot
+
+      # indicate if plot available
+      indicate_plot_rendered(p, output)
+
+      # style plot
+      p <- style_plot(p, input)
+
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
+
    },
    #####################################################################################################################
    ### Day Night Activity
@@ -577,8 +747,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
    ### Locomotion
@@ -591,7 +759,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
          p <- plot_locomotion(file$datapath)
       }
       p <- p + ggtitle("Probability density map of locomotion")
-      p
    },
    #####################################################################################################################
    ### Locomotion Budget
@@ -600,7 +767,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
       file <- input[[paste0("File", 1)]]
       p <- plot_locomotion_budget(file$datapath)
       p <- p + ggtitle("Locomotional budget")
-      p
    },
    #####################################################################################################################
    ### Estimate RMR for COSMED
@@ -613,48 +779,61 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       # style plot
       p <- style_plot(p, input)
-
-      p
    },
    #####################################################################################################################
-   ### Raw
+   ### RawMeasurement
    #####################################################################################################################
-   Raw = {
+   RawMeasurement = {
       p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_window <- p$window_plot
+      p <- p$plot
 
       # indicate if plot available
       indicate_plot_rendered(p, output)
 
       # style plot
       p <- style_plot(p, input)
-     
-      # return (potentially restyled) plot
-      p
+
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
    },
    #####################################################################################################################
    ### Total Energy Expenditure
    #####################################################################################################################
-   TotalEnergyExpenditure = {
+   TotalHeatProduction = {
       p <- total_energy_expenditure(finalC1, C1meta, finalC1meta, input, output, session, global_data, scaleFactor)
+      p_time <- p$time_trace
+      p_window <- p$window_plot
+      p <- p$plot
 
-      # indicate if plot available
+      # indicate if main plot available
       indicate_plot_rendered(p, output)
 
-      # style plot
+      # style main plot
       p <- style_plot(p, input)
+      
+      # add time plot as well
+      if (!is.null(p_time)) {
+         output$timeTrace <- renderPlotly(p_time)
+      }
 
-      p
+      # and windowed plot
+      if (!is.null(p_window)) {
+         output$windowPlot <- renderPlotly(p_window)
+      }
    },
-   BodyComposition = {
+   #####################################################################################################################
+   ### Metadata
+   #####################################################################################################################
+   Metadata = {
       p <- body_composition(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
 
       # indicate if plot available
       indicate_plot_rendered(p, output)
 
-      # style plot
-      p <- style_plot(p, input)
-
-      p
+      # increase plot size
+      p %>% layout(height=1000)
    },
    #####################################################################################################################
    ### Other options
@@ -680,13 +859,11 @@ server <- function(input, output, session) {
        }
    })
 
-   # git info
-   output$git_info <- renderText({
-      get_git_information_from_repository()
-   })
+   # get git info from repository
+   output$git_info <- renderText(paste0("Version: ", get_git_information_from_repository()))
 
-   # save session id
-   output$session_id <- renderText(paste0("Global session ID: ", session$token))
+   # get current session id for user
+   output$session_id <- renderText(paste0("Session ID: ", session$token))
 
    # store globally the data per session
    storeSession(session$token, "time_diff", 5, global_data)
@@ -730,7 +907,7 @@ server <- function(input, output, session) {
       }
       },
          content = function(file) {
-            status_okay <- do_export_alternative(input$export_format, input, output, session, file, do_plotting)
+            status_okay <- do_export_alternative(input$export_format, input, output, session, file, do_plotting, global_data)
       }
    )
 
@@ -758,11 +935,11 @@ server <- function(input, output, session) {
             paste0("all_data-", Sys.Date(), ".zip")
          },
          content = function(file) {
+            print("Here?")
             zip_file = do_export_all_data(input, output, session, file, do_plotting, global_data)
             file.copy(zip_file, file)
          }
     )
-
 
    # Dynamically create fileInput fields by the number of requested files of the user
    observeEvent(input$nFiles, {
@@ -770,7 +947,7 @@ server <- function(input, output, session) {
          html_ui <- " "
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort ", i)))
+               label = paste0("Cohort #", i)))
             }
          HTML(html_ui)
          })
@@ -795,7 +972,6 @@ server <- function(input, output, session) {
       }
    })
 
-
    #####################################################################################################################
    # Observer plotly_selected (lasso or rectangle)
    #####################################################################################################################
@@ -803,8 +979,8 @@ server <- function(input, output, session) {
       selected_data <- event_data("plotly_selected")
       if (!is.null(selected_data)) {
          data <- getSession(session$token, global_data)[["reactive_data"]]()
-         # Animal grouping is added last, thus we have an offset of number of traces already in plot - number of unique levels in factor
-         # TODO: Generalize this that it is useable in other plots as well. currently used only in Raw for outlier removal.
+         # Animal grouping is added last, thus we have an offset of number of traces already in the plot object - number of unique levels in factor
+         # TODO: Generalize this that it is re-useable in other plots as well. Currently only used in panel RawMeasurement for outlier removal.
          all_curves_plotly <- getSession(session$token, global_data)[["all_curves_plotly"]] - length(levels(data$Animals))
          curve_to_sampleid_mapping <- levels(data$Animals)
          selected_sampleid <- curve_to_sampleid_mapping[selected_data$curveNumber+1-all_curves_plotly]
@@ -845,7 +1021,7 @@ server <- function(input, output, session) {
 
          updated_data <- data[-selected_indices, ]
          getSession(session$token, global_data)[["reactive_data"]](updated_data)
-         # trigger re-plotting, but will take the modified data in the Raw panel now (reactive_data)
+         # trigger re-plotting, but will take the modified data in the RawMeasurement panel now (reactive_data)
          click("plotting")
       }
    })
@@ -922,7 +1098,7 @@ server <- function(input, output, session) {
                tagList(
                withMathJax(),
                div("Chosen equation for calculation of heat production"),
-               div(text1)
+               div(text1, style="font-size: 8px;")
                )
             )
          }
@@ -930,24 +1106,31 @@ server <- function(input, output, session) {
    #####################################################################################################################
    # Observe plot type
    #####################################################################################################################
-   # TODO: check that this is in fact the problematic code which leads to the HP / HP2 issue in RMR
-   # on server side, but it appears it is already fixed by now.
+   # FIXME: Check that this is in fact the problematic code which leads to the HP / HP2 issue in RMR
+   # on server side, but it appears it is already fixed by now - see note about old bug in ui.R too.
    observeEvent(input$plot_type, {
             output$myp <- renderUI(
                selectInput(inputId = "myp",
-               label = "Choose prefered method for calculating caloric equivalent over time",
+               label = "Chosen prefered method for calculating caloric equivalent over time",
                choices = c(input$variable1), selected = input$variable1))
          })
 
-   observeEvent(input$plot_type, {
-            output$checkboxgroup_gender <- renderUI(
-               checkboxGroupInput(inputId = "checkboxgroup_gender", label = "Chosen sexes",
-               choices = list("male" = "male", "female" = "female"), selected = c("male", "female")))
-         })
+  clean_var_names <- function(list_of_columns) {
+         list_of_columns <- sub("_.*", "", list_of_columns)
+         list_of_columns <- sub("\\(.*", "", list_of_columns)
+         return(list_of_columns)
+   }
 
    observeEvent(input$plot_type, {
+      raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
+      choices = intersect(choices, clean_var_names(raw_cols))
+      # Clean var names ensures that users dont need to worry about the units in the drop down menu
+      if (length(choices) == 0) {
+         choices = c("VO2")
+      }
       output$myr <- renderUI(
-         selectInput(inputId = "myr", label = "Choose raw data to plot", choices = c("O2", "CO2", "RER", "VO2", "VCO2", "Temp")))
+         selectInput(inputId = "myr", label = "Chosen raw data to plot", choices = choices, selected="VO2"))
     })
 
    observeEvent(input$plot_type, {
@@ -989,7 +1172,7 @@ server <- function(input, output, session) {
       }
       # Excel
       if (input$export_format == "Excel") {
-           status_okay <- do_export_alternative("Excel", input, output, session, do_plotting)
+           status_okay <- do_export_alternative("Excel", input, output, session, do_plotting, global_data)
           if (!status_okay) {
              output$message <- renderText("Error during data export to Excel, check logs")
            } else {
@@ -1004,10 +1187,11 @@ server <- function(input, output, session) {
    #############################################################################
    observeEvent(c(input$replotting, input$daterange), {
            output$plot <- renderPlotly({
-           file <- input$File1
-           real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
-           time_start_end <<- get_date_range(real_data$data)
-           real_data$plot
+             file <- input$File1
+             real_data <- do_plotting(file$datapath, input, exclusion = input$sick, output)
+             storeSession(session$token, "real_data", real_data, global_data)
+             time_start_end <<- get_date_range(real_data$data)
+             real_data$plot
            })
    })
 
@@ -1031,7 +1215,6 @@ server <- function(input, output, session) {
          })
    })
 
-   real_data <- NULL
    #############################################################################
    # Show plot (action button's action)
    #############################################################################
@@ -1040,12 +1223,21 @@ server <- function(input, output, session) {
       # req(input$File1)
       # req(grepl("\\.xls$", input$metadatafile$datafilepath, ignore.case = TRUE) || grepl("\\.xlsx$", input$metadatafile$datafilepath, ignore.case=TRUE))
       output$plot <- renderPlotly({
+         use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+         if (is.null(use_example_data)) {
+            use_example_data = FALSE
+         } else {
+            use_example_data = TRUE
+         }
+
          if (is.null(input$File1) && !use_example_data) {
             output$message <- renderText("Not any cohort data given. Need at least one data set.")
+            shinyalert("Not any data given", "Did you forget to click on an example data set or upload own data sets?")
+            return()
          } else {
-
            file <- input$File1
            real_data <- do_plotting(file$datapath, input, input$sick, output, session)
+           storeSession(session$token, "real_data", real_data, global_data)
 
            if (! is.null(real_data$status)) {
                if (real_data$status == FALSE) {
@@ -1068,9 +1260,10 @@ server <- function(input, output, session) {
             #############################################################################
             if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
                if (input$havemetadata) {
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath)
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile)
                   output$facets_by_data_one <- renderUI(
-                  selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+                  selectInput(inputId = "facets_by_data_one", label = "Chosen facet",
                   selected = "Animals", choices = colnames(true_metadata)))
                 } else {
                   df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
@@ -1080,7 +1273,7 @@ server <- function(input, output, session) {
                   our_group_names <- unique(colnames(df_filtered))
 
                   output$facets_by_data_one <- renderUI(
-                     selectInput(inputId = "facets_by_data_one", label = "Choose facet",
+                     selectInput(inputId = "facets_by_data_one", label = "Chosen facet",
                      selected = "Animals", choices = our_group_names))
                   }
              }  
@@ -1090,7 +1283,8 @@ server <- function(input, output, session) {
             #############################################################################
             if (input$havemetadata) {
                if (is.null(input$condition_type)) {
-                  true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile, FALSE)
                   output$condition_type <- renderUI(selectInput(inputId = "condition_type", colnames(true_metadata), label = "Condition"))
                }
             } else {
@@ -1104,29 +1298,31 @@ server <- function(input, output, session) {
             # condition type and select data by
             #############################################################################
             observeEvent(input$condition_type, {
-            if (input$havemetadata) {
-               true_metadata <- get_true_metadata(input$metadatafile$datapath, use_example_data)
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
-            } else {
-               tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
-               output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
-            }
+               if (input$havemetadata) {
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile, FALSE)
+                  output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by", choices = unique(true_metadata[[input$condition_type]]), selected = input$select_data_by))
+               } else {
+                  tse_metadata <- enrich_with_metadata(real_data$data, real_data$metadata, FALSE, FALSE)$metadata
+                  output$select_data_by <- renderUI(selectInput("select_data_by", "Filter by",  choices = levels(tse_metadata[[input$condition_type]]), selected = input$select_data_by))
+               }
             })
 
-            # Basic plot needs to be always visible
-            showTab(inputId = "additional_content", target = "Basic plot")
+            # Main plot needs to be always visible
+            showTab(inputId = "additional_content", target = "Main plot")
+
+            ## TODO: Resting Metabolic Rate is still handled differently, i.e. in backend.R,
+            ## should be moved in principle fully to inc/visualizations/resting_metabolic_rate.R
 
             if (input$plot_type == "RestingMetabolicRate") {
-                if (!getSession(session$token, global_data)[["is_TEE_calculated"]]) {
-                     shinyalert("Error:", "Total energy expenditure needs to be calculated before!")
-                     return()
-                  }
-
-
+               
+	            metadatafile <- get_metadata_datapath(input, session, global_data)
                showTab(inputId = "additional_content", target = "Summary statistics")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
 
-               write.csv2(real_data$data, "before_rmr_written.csv")
+               # RMR time trace required in TotalEnergyExpenditure
+               storeSession(session$token, "RMR_time_trace", real_data$data, global_data)
+
                # bar plot rmr vs non-rmr (we filter out nans just in case to be sure - might come from covariance analysis above)
                df_filtered <- real_data$data %>%
                   select(-which(is.na(names(real_data$data)))) %>%
@@ -1134,7 +1330,7 @@ server <- function(input, output, session) {
                   select(!Component) %>%
                   group_by(Animal) %>%
                   na.omit() %>%
-                  summarize(Value = HP, cgroups = c(Animal))
+                  summarize(Value = HP, cgroups = c(Animal), Days=floor(running_total.sec / (3600*24))+1)
                   # summarize(Value = min(HP), cgroups = c(Animal))
                write.csv2(df_filtered, "rmr.csv")
                storeSession(session$token, "RMR", df_filtered, global_data)
@@ -1163,251 +1359,123 @@ server <- function(input, output, session) {
 
             # if we have metadata, check time diff again to be consistent with metadata sheet
             time_diff <- getSession(session$token, global_data)[["time_diff"]]
-            df_diff <- read.csv2("finalC1.csv")
-            if (input$havemetadata) {
-               names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
-               time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
-               if (time_diff == 0) {
-                  time_diff <- 5
-               }
-               storeSession(session$token, "time_diff", time_diff, global_data)
+            #df_diff <- read.csv2("finalC1.csv")
+            #if (input$havemetadata) {
+            #   names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
+            #   time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
+            #   if (time_diff == 0) {
+            #      time_diff <- 5
+            #   }
+            #   storeSession(session$token, "time_diff", time_diff, global_data)
+            #}
+
+            df1 <- getSession(session$token, global_data)[["RMR"]]
+            df2 <- getSession(session$token, global_data)[["TEE"]]
+
+            df1 <- rename(df1, Animals = Animal)
+            how_many_days <- length(levels(as.factor(df2$Days)))
+            df1$Animals <- as.factor(df1$Animals)
+            df2$Animals <- as.factor(df2$Animals)
+
+            # unique days
+            unique_days_tee <- df2 %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days)) %>% as.data.frame()
+
+            # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
+            interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+            df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
+            df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
+
+            write.csv2(df1, "only_df1.csv")
+            write.csv2(df2, "only_df2.csv")
+
+            # TODO: Here RMR and EE get averaged per day already... need to change this if required.
+            # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
+            # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
+            ## This also creates the bar plots, we need to create grouped by day bar plots here instead? or we need to add the option
+            df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
+            df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
+
+            df1 <- left_join(df1, unique_days_tee, by = "Animals")
+            df2 <- left_join(df2, unique_days_tee, by = "Animals")
+
+            # calculate averages of RMR over number of given days
+            df1 <- df1 %>% mutate(EE = EE / unique_days)
+            df2 <- df2 %>% mutate(EE = EE / unique_days)
+
+            df1$TEE <- as.factor(rep("RMR", nrow(df1)))
+            df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
+            df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
+            df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
+
+            # Verify whether correct or not, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
+            # thus we need  to check for negative values in difference as well ... can happen because the one data sets has very large measurement intervals: 30 minutes! 
+            # so the rmr is severely overestimates, and larger than TEE, we need to visually correct for this...
+            df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
+            df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
+
+            combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
+            combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
+            combined_df$EE <- pmax(combined_df$EE, 0) # zeros instead for RMR (might be due to RMR method not estimating as good, thus overestimating...)
+            write.csv2(combined_df, "combined_fine_df.csv")
+
+            df_total <- rbind(df1, df2)
+            df_total$Animals <- as.factor(df_total$Animals)
+            df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
+
+            combined_df <- combined_df %>% select(Animals, EE_a, EE, unique_days_a) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR", "unique_days_a"="Days"))
+            write.csv2(df_total, "df_total_verify_plot.csv")
+            df_total <- combined_df
+            p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
+            p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
+            p2 <- p2 + scale_fill_manual(values=c("non-RMR" = "#B2DF8A", "RMR" = "#CAB2D6"))
+            p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
+            output$summary <- renderPlotly(
+               ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian"))) 
+            )
+            
+            storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
+            write.csv2(df_total, "test_for_rmr.csv")
+            df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
+
+            # TODO: refactor this, because this is what we usually want (only for the bar plot above we want to average)
+            no_averages_required_for_RMR_and_TEE = TRUE
+            if (no_averages_required_for_RMR_and_TEE == TRUE) {
+               df1 <- read.csv2("only_df1.csv")
+               df2 <- read.csv2("only_df2.csv")
+               df1 <- df1 %>% group_by(Days, Animals) %>% summarize(EE=sum(Value, na.rm=TRUE))
+               df1$TEE="RMR"
+               df2 <- df2 %>% filter(Equation=="Heldmaier2") %>% group_by(Days, Animals) %>% summarize(EE=sum(TEE, na.rm=TRUE))
+               df2$TEE="non-RMR"
+               df_merged = merge(df1, df2, by=c("Days", "Animals"), suffixes=c("_df1", "_df2"))
+               df_merged$EE = df_merged$EE_df2 - df_merged$EE_df1
+               df_merged <- df_merged %>% select(Days, Animals, EE=EE_df1, TEE=TEE_df1) %>% bind_rows(df_merged %>% select(Days, Animals, EE=EE_df2, TEE=TEE_df2))
+               df_total = df_merged
+               df_total <- df_total %>% group_by(Days, Animals)
+               df_total$Animals <- as.factor(df_total$Animals)
+               storeSession(session$token, "TEE_and_RMR", df_total, global_data)
+               df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
+               write.csv2(df_total, "new_rmr_and_tee_df.csv")
             }
 
-         df1 <- getSession(session$token, global_data)[["RMR"]]
-         df2 <- getSession(session$token, global_data)[["TEE"]]
+            data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
+            true_metadata <- data_and_metadata$metadata
 
-         df1 <- rename(df1, Animals = Animal)
-         how_many_days <- length(levels(as.factor(df2$Days)))
-         df1$Animals <- as.factor(df1$Animals)
-         df2$Animals <- as.factor(df2$Animals)
+            # add statistics panel here
+            if (no_averages_required_for_RMR_and_TEE == TRUE) {
+               add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total, metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            } else {
+               add_anova_ancova_panel(input, output, session, global_data, true_metadata, df_total %>% rename(Days=unique_days_a), metadatafile, paste0("RMR [", input$kcal, "/ day]"), "RMR")
+            }
 
-         # unique days
-         unique_days_tee <- df2 %>% group_by(Animals) %>% summarize(unique_days = n_distinct(Days)) %>% as.data.frame()
-
-         # RMR has not been scaled before to minutes and interval length, required to be compared with TEE which has been previously scaled already.
-         interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-         df1$CohortTimeDiff <- sapply(df1$Animals, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
-         df1 <- df1 %>% mutate(Value = (Value / 60) * CohortTimeDiff)
-
-         # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-         # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
-         df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
-         df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
-
-         df1 <- left_join(df1, unique_days_tee, by = "Animals")
-         df2 <- left_join(df2, unique_days_tee, by = "Animals")
-
-         # calculate averages of RMR over number of given days
-         df1 <- df1 %>% mutate(EE = EE / unique_days)
-         df2 <- df2 %>% mutate(EE = EE / unique_days)
-
-         df1$TEE <- as.factor(rep("RMR", nrow(df1)))
-         df2$TEE <- as.factor(rep("non-RMR", nrow(df2)))
-         df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
-         df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
-
-         # Verify whether correct or not, but this should be correct... depending on the quality of RMR estimation we ovre or under estimate the RMR contribution,
-         # thus we need  to check for negative values in difference as well ... can happen because the one data sets has very large measurement intervals: 30 minutes! 
-         # so the rmr is severely overestimates, and larger than TEE, we need to visually correct for this...
-         df1 <- df1 %>% group_by(Animals) %>% arrange(Animals)
-         df2 <- df2 %>% group_by(Animals) %>% arrange(Animals)
-
-         combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
-         combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
-         combined_df$EE <- pmax(combined_df$EE, 0) # zeros instead for RMR (might be due to RMR method not estimating as good, thus overestimating...)
-         write.csv2(combined_df, "combined_fine_df.csv")
-
-         df_total <- rbind(df1, df2)
-         df_total$Animals <- as.factor(df_total$Animals)
-         df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
-
-         combined_df <- combined_df %>% select(Animals, EE_a, EE) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR"))
-         write.csv2(df_total, "df_total_verify_plot.csv")
-         df_total <- combined_df
-         p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
-         p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
-         p2 <- p2 + scale_fill_manual(values=c("non-RMR" = "#B2DF8A", "RMR" = "#CAB2D6"))
-         p2 <- p2 + ggtitle(paste("Energy expenditure (over a maximum of ", how_many_days, " days)", sep = ""))
-         output$summary <- renderPlotly(
-            ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian"))) 
-         )
-         
-         # write.csv2(df_total, "tee_and_rmr.csv")
-         storeSession(session$token, "TEE_and_RMR", df_total, global_data)
-         write.csv2(df_total, "test_for_rmr.csv")
-         df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
-
-      data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, input$metadatafile)
-      #df_total <- data_and_metadata$data
-      true_metadata <- data_and_metadata$metadata
-      print("true_metadata")
-      print(true_metadata)
-
-
-
-         if (input$havemetadata || !input$havemetadata) {
-               # true_metadata <- get_true_metadata(input$metadatafile$datapath)
-               output$test <- renderUI({
-                  tagList(
-                     h4("Configuration"),
-                     selectInput("test_statistic", "Test", choices = c("1-way ANCOVA")),
-                     selectInput("dep_var", "Dependent variable", choice = c("RMR")),
-                     selectInput("indep_var", "Independent grouping variable", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-                     selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-                     selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-                     conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Diet", get_factor_columns(true_metadata)), selected = "Days")),
-                     conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-                     hr(style = "width: 50%"),
-                     h4("Advanced"),
-                     selectInput("post_hoc_test", "Post-hoc test", choices = c("bonferroni", "tukey", "spearman")),
-                     sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-                     checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-                     hr(style = "width: 75%"),
-                     renderPlotly({
-                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary 
-                        p <- p + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
-                        if (!input$auto_scale_rmr_plot_limits_x) {
-                           p <- p + xlim(c(input$x_min_rmr_plot, input$x_max_rmr_plot))
-                        }
-
-                        if (!input$auto_scale_rmr_plot_limits_y) {
-                           p <- p + ylim(c(input$y_min_rmr_plot, input$y_max_rmr_plot))
-                        }
-
-                        ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-                     }),
-                        hr(style = "width: 50%"),
-                        h4("Plotting control"),
-                        fluidRow(
-                           column(6,
-                           h5("x-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_x", "Auto-scale", value = TRUE),
-                           numericInput("x_min_rmr_plot", "min", value = 0, min = 0),
-                           numericInput("x_max_rmr_plot", "max", value = 100, max = 100)
-                           ),
-                           column(6,
-                           h5("y-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_y", "Auto-scale", value = TRUE),
-                           numericInput("y_min_rmr_plot", "min", value = 0, min = 0),
-                           numericInput("y_max_rmr_plot", "max", value = 100, max = 100)
-                           )
-                        ),
-
-                     hr(style = "width: 75%"),
-                     conditionalPanel("input.num_covariates == '2'", renderPlotly({
-                        p <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 
-                        p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) 
-                        p <- p + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) 
-                        if (!input$auto_scale_rmr_plot_limits_x2) {
-                           p <- p + xlim(c(input$x_min_rmr_plot2, input$x_max_rmr_plot2))
-                        }
-
-                        if (!input$auto_scale_rmr_plot_limits_y2) {
-                           p <- p + ylim(c(input$y_min_rmr_plot2, input$y_max_rmr_plot2))
-                        }
-                        ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
-                     })),
-                     conditionalPanel("input.num_covariates == '2'", 
-                        hr(style = "width: 50%"),
-                        h4("Plotting control"),
-                        fluidRow(
-                           column(6,
-                           h5("x-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_x2", "Auto-scale", value = TRUE),
-                           numericInput("x_min_rmr_plot2", "min", value = 0, min = 0),
-                           numericInput("x_max_rmr_plot2", "max", value = 100, max = 100)
-                           ),
-                           column(6,
-                           h5("y-axis limits"),
-                           checkboxInput("auto_scale_rmr_plot_limits_y2", "Auto-scale", value = TRUE),
-                           numericInput("y_min_rmr_plot2", "min", value = 0, min = 0),
-                           numericInput("y_max_rmr_plot2", "max", value = 100, max = 100)
-                           )
-                        )
-                     )
-                  )
-                  })
-
-
-               output$details <- renderUI({
-                  results <- do_ancova_alternative(df_total, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "RMR", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-                  tagList(
-                     h3("Post-hoc analysis"),
-                     renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-                     hr(style = "width: 75%"),
-                     h4("Results of statistical testing"),
-                     tags$table(
-                        tags$thead(
-                           tags$tr(
-                              tags$th("p-value", style="width: 100px"),
-                              tags$th("p-value (adjusted)", style="width: 100px"),
-                              tags$th("significance level", style="width: 100px"),
-                              tags$th("degrees of freedom", style="width: 100px" ),
-                              tags$th("test statistic", style="width: 100px")
-                           )
-                        ),
-                        tags$tbody(
-					            generate_statistical_table(results)
-                           )
-                     ),
-
-                     h4("Test assumptions"),
-                     tags$table(
-                              tags$thead(
-                                 tags$tr(
-                                    tags$th("Description", style="width:200px"),
-                                    tags$th("Name of significance test", style="width:200px"),
-                                    tags$th("Null hypothesis", style="width:400px"),
-                                    tags$th("p-value", style="width:200px"),
-                                    tags$th("Status", style="width:200px")
-                                 )
-                              ),
-                              tags$tbody(
-                                 tags$tr(
-                                    tags$td("Homogeneity of variances", style="width:200px"),
-                                    tags$td("Levene's test", style="width:200px"),
-                                    tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-                                    tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-                                    tags$td(
-                                       if (as.numeric(results$levene$p) < as.numeric(input$alpha_level)) {
-                                          icon("times")
-                                       } else {
-                                          icon("check")
-                                       }
-                                    ,style="width: 200px"
-                                    )
-                                 ),
-                                 tags$tr(
-                                    tags$td("Normality of residuals", style="width:200px"),
-                                    tags$td("Shapiro-Wilk test", style="width:200px"),
-                                    tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-                                    tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-                                    tags$td(
-                                    if (as.numeric(results$shapiro$p.value) < 0.05) {
-                                          icon("times")
-                                       } else {
-                                          icon("check")
-                                       }
-                                    ,style="width: 200px"
-                                    )
-                                 )
-                              )
-                     )
-                  )
-               })
-               # create LME model UI
-               RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
-               RMR_for_model <- RMR_for_model %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(RMR=EE)
-               if (!is.null(RMR_for_model)) {
-                  RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
-                  write.csv2(RMR_for_model, "tee_before_lme_model.csv")
-                  #create_lme_model_ui(input, output, true_metadata, finalC1, "HP2")
-                  create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR")
-               }
-              }
-           } else if (input$plot_type == "CompareHeatProductionFormulas") {
+            # create LME model UI
+            RMR_for_model <- getSession(session$token, global_data)[["TEE_and_RMR"]]
+            RMR_for_model <- RMR_for_model %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(RMR=EE)
+            if (!is.null(RMR_for_model)) {
+               RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
+               write.csv2(RMR_for_model, "tee_before_lme_model.csv")
+               create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR", session, global_data)
+            }
+          } else if (input$plot_type == "CompareHeatProductionFormulas") {
             output$explanation <- renderUI({
             str1 <- "<h3> Comparison of heat production formulas </h3>"
             str2 <- "Two heat production formulas can be compared via a simple scatter plot and plotting into the plot a regression line (Pearson-Product-Moment correlation coefficient r)" #nolint
@@ -1419,17 +1487,17 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Statistical testing")
-           } else if (input$plot_type == "GoxLox") {
+           } else if (input$plot_type == "FuelOxidation") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
                showTab(inputId = "additional_content", target = "Statistical testing")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
             output$explanation <- renderUI({
                str1 <- "<h3> Glucose, lipid and protein oxidation </h3>"
                   str2 <- "Displays the glucose, lipid and protein oxidation by means of respiratory gas exchange measurements during indirect calorimetry"
                HTML(paste(str1, str2, sep = "<br/>"))
             })
-           } else if (input$plot_type == "EnergyExpenditure") {
+           } else if (input$plot_type == "HeatProduction") {
        highlight_style <- "background-color: #FFB3BA;"
          # Function to create a table row with optional highlighting
          create_row <- function(name, equation, unit, reference, highlight = FALSE) {
@@ -1493,7 +1561,7 @@ server <- function(input, output, session) {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
-               showTab(inputId = "additional_content", target = "Modelling")
+               showTab(inputId = "additional_content", target = "Statistical model")
            } else if (input$plot_type == "DayNightActivity") {
               output$explanation <- renderUI({
                str1 <- "<h3> Day and night (average) energy expenditure of animals in cohorts </h3>"
@@ -1505,44 +1573,139 @@ server <- function(input, output, session) {
                showTab(inputId = "additional_content", target = "Statistical testing")
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Details")
-               hideTab(inputId = "additional_content", target = "Modelling")
-           } else if (input$plot_type == "Raw") {
+               hideTab(inputId = "additional_content", target = "Statistical model")
+           } else if (input$plot_type == "RawMeasurement") {
             output$explanation <- renderUI({
-               str1 <- "<h3> Raw measurements and derived quantities </h3>"
-               str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
-               str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
-            HTML(paste(str1, str2, str3, sep = "<br/>"))
+               tagList(
+                  h3("Raw measurements"),
+                  p("The following table provides details on the available metabolic variables users can select in the sidebar panel"),
+                  tags$table(
+                     class = "table tables-striped table-bordered",
+                     tags$thead(
+                        tags$tr(
+                           tags$th("Metabolic variable"),
+                           tags$th("Explanation"),
+                           tags$th("Unit")
+                        )
+                     ),
+                     tags$tbody(
+                        tags$tr(
+                           tags$td("O2"),
+                           tags$td("Oxygen saturation"),
+                           tags$td("[%]")
+                        ),
+                        tags$tr(
+                           tags$td("CO2"),
+                           tags$td("Carbondioxide saturation"),
+                           tags$td("[%]")
+                        ),
+                        tags$tr(
+                           tags$td("VO2"),
+                           tags$td("Oxygen production (change in volume over time)"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("VCO2"),
+                           tags$td("Carbondioxide production (change in volume over time"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("VH2O"),
+                           tags$td("Water (change in volume over time)"),
+                           tags$td("[ml/h]")
+                        ),
+                        tags$tr(
+                           tags$td("RER"),
+                           tags$td("Fraction of CO2 production and O2 consumption"),
+                           tags$td("[1]")
+                        ),
+                        tags$tr(
+                           tags$td("TempL"),
+                           tags$td("Temperature in laboratory"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("TempC"),
+                           tags$td("Temperature in cage"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("Temp"),
+                           tags$td("Temperature of animal"),
+                           tags$td("[°C]")
+                        ),
+                        tags$tr(
+                           tags$td("Drink1"),
+                           tags$td("Amount of water consumption"),
+                           tags$td("[ml]")
+                        ),
+                        tags$tr(
+                           tags$td("Feed1"),
+                           tags$td("Amount of food intake"),
+                           tags$td("[g]")
+                        ),
+                        tags$tr(
+                           tags$td("WeightBody"),
+                           tags$td("Total body weight tracked over time"),
+                           tags$td("[g]")
+                        ),
+                        tags$tr(
+                           tags$td("XT+YT"),
+                           tags$td("Discrete step count in the xy-plane"),
+                           tags$td("[1]")
+                        ),
+                        tags$tr(
+                           tags$td("DistD"),
+                           tags$td("Distance"),
+                           tags$td("[cm]")
+                        ),
+                        tags$tr(
+                           tags$td("DistK"),
+                           tags$td("Cumulative distance"),
+                           tags$td("[cm]")
+                        )
+                     )
+                  )
+               )
+              # str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
+              # str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
+              # str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
+            #HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
-               hideTab(inputId = "additional_content", target = "Modelling")
-           } else if (input$plot_type == "TotalEnergyExpenditure") {
+               showTab(inputId = "additional_content", target = "Explanation")
+           } else if (input$plot_type == "TotalHeatProduction") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
                showTab(inputId = "additional_content", target = "Details")
-               showTab(inputId = "additional_content", target = "Modelling")
-           } else if (input$plot_type == "BodyComposition") {
-               #hideTab(inputId = "additional_content", target = "Basic plot")
+               showTab(inputId = "additional_content", target = "Statistical model")
+           } else if (input$plot_type == "Metadata") {
                hideTab(inputId = "additional_content", target = "Summary statistics")
                hideTab(inputId = "additional_content", target = "Details")
                hideTab(inputId = "additional_content", target = "Explanation")
-               hideTab(inputId = "additional_content", target = "Modelling")
+               hideTab(inputId = "additional_content", target = "Statistical model")
            } else {
             output$summary <- renderPlotly(NULL)
             hideTab(inputId = "additional_content", target = "Explanation")
            }
 
-           # Basic plot needs to be always visible
-           showTab(inputId = "additional_content", target = "Basic plot")
+           # Main plot needs to be always visible
+           showTab(inputId = "additional_content", target = "Main plot")
 
            # plot
            real_data$plot
         }
       })
       # scroll to top after click on plot only
-      #shinyjs::runjs("window.scrollTo(0, 50);")
+      # shinyjs::runjs("window.scrollTo(0, 50);")
     })
+
+   #############################################################################
+   # Add example data sets
+   #############################################################################
+   add_example_data_sets(input, session, output, global_data)
  
    #############################################################################
    # Helpers to hide/show components
@@ -1566,9 +1729,9 @@ server <- function(input, output, session) {
    # Hide certain components on startup
    #############################################################################
    lapply(
-      X = c("DE", "PC", "DC"),
+      X = c("DE", "PC", "DC", "HP"),
       FUN = function(i) {
-         hideTab(inputId = paste0("tabs", i), target = i)
+         showTab(inputId = paste0("tabs", i), target = i)
       }
    )
 
@@ -1585,11 +1748,22 @@ server <- function(input, output, session) {
    observeEvent(input$guide, {
       # for guide, we need to see all components
       lapply(
-         X = c("DC", "DE", "PC"),
+         X = c("DC", "DE", "PC", "HP"),
          FUN = function(i) {
             showTab(inputId = paste0("tabs", i), target = i, select = TRUE)
          }
       )
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options", "sectionE")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options", "toggleE")
+
+      for (section in all_sections) {
+         shinyjs::show(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::addClass(link, "active-button")
+      }
+
       guide$init()$start()
    })
 
@@ -1604,53 +1778,206 @@ server <- function(input, output, session) {
                hideTab(inputId = paste0("tabs", i), target = i)
             }
          )
+
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options", "toggleE")
+
+      for (section in all_sections) {
+         shinyjs::hide(section)
       }
 
+      for (link in all_links) {
+         shinyjs::removeClass(link, "active-button")
+      }
+
+      shinyjs::show("sectionA_example")
+      shinyjs::addClass("toggleA_example", "active-button")
+      }
     })
-   #############################################################################
-   # Load example data
-   #############################################################################
-   observeEvent(input$example_data_single, {
-    use_example_data <<- TRUE
-    output$nFiles <- renderUI(numericInput("nFiles", "Number of data files", value = 4, min = 4, step = 4))
-
-    output$fileInputs <- renderUI({
-      html_ui <- " "
-      for (i in seq_along(1:4)) {
-         html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-            label = paste0("Cohort #", i), placeholder = paste0("example data set ", i, ".csv")))
-         }
-      HTML(html_ui)
-      })
-   })
-
-   # TODO: enable this after merging, as the metadata sheet is supported fully only in branch with_metadata_sheet
-   #updateCheckboxInput(session, "havemetadata", value = TRUE)
-   #output$metadatafile <- renderUI({
-   #   html_ui <- " "
-   #   html_ui <- paste0(html_ui,
-   #      fileInput("metadatafile",
-   #      label = "Metadata file",
-   #      placeholder = "example metadata.xlsx"))
-   #   HTML(html_ui)
-   #})
 
    #############################################################################
    # Observe select_day input
    #############################################################################
-   observeEvent(input$select_day, {
+   #observeEvent(input$select_day, {
+   #   click("plotting")
+   #   selected_days <<- input$select_day
+   #   storeSession(session$token, "selected_days", input$select_day, global_data)
+   #})
+
+   observeEvent(input$apply_selection, {
       click("plotting")
       selected_days <<- input$select_day
+      selected_animals <<- input$select_animal
       storeSession(session$token, "selected_days", input$select_day, global_data)
+      storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
+
 
 
    #############################################################################
    # Observe select_animal input
    #############################################################################
-   observeEvent(input$select_animal, {
+   #observeEvent(input$select_animal, {
+   #   click("plotting")
+   #   selected_animals <<- input$select_animal
+   #   storeSession(session$token, "selected_animals", input$select_animal, global_data)
+   #})
+
+   #############################################################################
+   # Refresh
+   #############################################################################
+   observeEvent(input$refresh, {
+     if (is.null(input$file)) {
+         use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
+         if (is.null(use_example_data)) {
+            shinyalert("Nothing to refresh", "Did you forgot to upload data or use an example data set and press load?")
+            return()
+         }
+      }
+
+      storeSession(session$token, "data_loaded", NULL, global_data)
+      storeSession(session$token, "is_FuelOxidation_calculated", NULL, global_data)
       click("plotting")
-      selected_animals <<- input$select_animal
-      storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
+
+   #############################################################################
+   # Load data
+   #############################################################################
+   observeEvent(input$load_data, {
+      if (!is.null(input$File1)) {
+           load_data(file$File1$datapath, input, input$sick, output, session)
+           storeSession(session$token, "data_loaded", TRUE, global_data)
+      } else {
+           shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
+           return()
+      }
+   })
+
+   #############################################################################
+   # Observer event link click
+   #############################################################################
+   observeEvent(input$btn_to_analysis, {
+      updateNavbarPage(session, "navbar", selected="Analysis")
+   })
+
+   observeEvent(input$navbar, {
+      if (input$navbar == "Metadata converter") {
+         runjs("window.open('https://shiny.iaas.uni-bonn.de/CaloHelper', '_blank');")
+         updateNavbarPage(session, "navbar", selected="Home")
+      }
+
+      if (input$navbar == "Documentation") {
+         runjs("window.open('https://calorimetry.readthedocs.io/en/latest', '_blank')")
+         updateNavbarPage(session, "navbar", selected="Home")
+      }
+   })
+   # for new sidebar panel
+   observeEvent(input$toggleA_custom, { toggle_section("sectionA_custom", "toggleA_custom")})
+   observeEvent(input$toggleA_example, { toggle_section("sectionA_example", "toggleA_example")})
+   observeEvent(input$toggleA_preprocessing, { toggle_section("sectionA_preprocessing", "toggleA_preprocessing")})
+   observeEvent(input$toggleA_equation, { toggle_section("sectionA_equation", "toggleA_equation")})
+   observeEvent(input$toggleB_control, { toggle_section("sectionB_control", "toggleB_control")})
+   observeEvent(input$toggleB_variable_selection, { toggle_section("sectionB_variable_selection", "toggleB_variable_selection")})
+   observeEvent(input$toggleB_groups, { toggle_section("sectionB_groups", "toggleB_groups")})
+   observeEvent(input$toggleB_experimental_times, { toggle_section("sectionB_experimental_times", "toggleB_experimental_times")})
+   observeEvent(input$toggleB_advanced_options, { toggle_section("sectionB_advanced_options", "toggleB_advanced_options")})
+   observeEvent(input$toggleC_data_curation, {  toggle_section("sectionC_data_curation", "toggleC_data_curation")})
+   observeEvent(input$toggleC_data_curation_selection, {  toggle_section("sectionC_data_curation_selection", "toggleC_data_curation_selection")})
+   observeEvent(input$toggleD, {  toggle_section("sectionD", "toggleD")})
+   observeEvent(input$toggleE, {  toggle_section("sectionE", "toggleE")})
+
+      all_sections = c("sectionA_equation", "sectionA_custom",  "sectionA_preprocessing", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_equation", "toggleA_custom",  "toggleA_preprocessing", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         shinyjs::hide(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::removeClass(link, "active-button")
+      }
+
+
+      shinyjs::show("sectionA_example")
+      shinyjs::addClass("toggleA_example", "active-button")
+
+
+
+   lapply(
+      X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
+      FUN = function(i) {
+        # shinyjs::toggle(i)
+      }
+   )
+
+   toggle_section <- function(active_id, active_link) {
+      all_sections = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options")
+      all_links = c("toggleA_preprocessing", "toggleA_equation", "toggleA_custom", "toggleA_example", "toggleC_data_curation", "toggleC_data_curation_selection", "toggleD", "toggleE", "toggleB_control", "toggleB_variable_selection", "toggleB_groups", "toggleB_experimental_times", "toggleB_advanced_options")
+
+      for (section in all_sections) {
+         shinyjs::hide(section)
+      }
+
+      for (link in all_links) {
+         shinyjs::removeClass(link, "active-button")
+
+      }
+      shinyjs::show(active_id)
+      shinyjs::addClass(active_link, "active-button")
+   }
+
+   observeEvent(input$temperature_type, {
+
+      df <- getSession(session$token, global_data)[["finalC1"]]
+
+      candidates = c("TempC", "TempL", "Temp")
+      raw_cols <- clean_var_names(getSession(session$token, global_data)[["finalC1cols"]])
+      choices = intersect(candidates, raw_cols)
+
+      selected_temperature_type = choices[1]
+      if (!is.null(input$temperature_type)) {
+         selected_temperature_type = input$temperature_type
+      }
+
+      temp_min = floor(min(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_max = ceiling(max(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_value = round(temp_min + (temp_max - temp_min) / 2) # mid point of temperature range
+      temp_dev_min = 0
+      temp_dev_max = temp_max
+      temp_dev_value = (temp_max - temp_min) * 0.50 # 50% from max temperature range as default
+      updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
+      updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
+   })
+
+
+   observeEvent(input$select_temperature, {
+      df <- getSession(session$token, global_data)[["finalC1"]]
+
+      candidates = c("TempC", "TempL", "Temp")
+      raw_cols <- clean_var_names(getSession(session$token, global_data)[["finalC1cols"]])
+      choices = intersect(candidates, raw_cols)
+
+      output$temperature_type <- renderUI({
+         selectInput(inputId="temperature_type", label = "Temperature type", choices = choices, selected = choices[1])
+      })
+      
+
+      selected_temperature_type = choices[1]
+      if (!is.null(input$temperature_type)) {
+         selected_temperature_type = input$temperature_type
+      }
+
+      temp_min = floor(min(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_max = ceiling(max(df[[paste0(selected_temperature_type, "_[°C]")]], na.rm=TRUE))
+      temp_value = round(temp_min + (temp_max - temp_min) / 2) # mid point of temperature range
+      temp_dev_min = 0
+      temp_dev_max = temp_max
+      temp_dev_value = (temp_max - temp_min) * 0.50 # 50% from max temperature range as default
+      updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
+      updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
+   })
+
+
+
 }
+

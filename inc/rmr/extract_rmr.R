@@ -1,7 +1,6 @@
 # libraries
 library(doBy)
 library(dplyr)
-#library(ggpubr)
 library(patchwork)
 
 ################################################################################
@@ -9,6 +8,10 @@ library(patchwork)
 #' 
 #' This function does the heavy lifting, calculating the interval-based resting
 #' metabolic rates based on the coefficient of variation criteria
+#' @param df data frame
+#' @param component O2 or CO2 component
+#' @param percentage percentage of smallest varying values
+#' @param N window length
 ################################################################################
 # N specifies the number of total intervals of time increase of e.g. 15 minutes
 # M specifies the number of intervals one wishes to find a minimum energy exp.
@@ -20,8 +23,7 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
    # order df by component O2
    df_ordered <- df[order(df[[component]]), ]
 
-   # indices of minimum energy expenditure, but at least we need ONE element: 
-   # Note: Is this correct? We need at least one element, that is for sure.
+   # indices of minimum energy expenditure, but at least one element
    indices <- which.minn(df_ordered[[component]], n = max(1, N * percentage / 100))
 
    # extract a sub data frame from the indices
@@ -46,6 +48,12 @@ do_extract <- function(df, component = "O2", percentage = 5, N) {
 #' create_df
 #' 
 #' This function prepares the data frame for resting metabolic rate calculation
+#' @param df
+#' @param component
+#' @param M
+#' @param N
+#' @param percentage
+#' @param interval_length 
 ################################################################################
 # df, data frame
 # component, either O2 or CO2
@@ -71,14 +79,14 @@ create_df <- function(df, component, M, N, percentage = 1, interval_length = 15)
    df_plot
 }
 
-# default settings for test
-filename <- "test_O2.pdf"
-percentage <- 5
-
 ################################################################################
 #' extract_rmr
 #' 
 #' This function extracts the resting metabolic rate from the data frame
+#' @param data
+#' @param M
+#' @param PERCENTAGE
+#' @param interval_length
 ################################################################################
 extract_rmr <- function(data, M = 5, PERCENTAGE = 5, interval_length = 15) {
    N <- nrow(data)

@@ -9,6 +9,16 @@ library(cicerone)
 guide <- Cicerone$
     new(id = "guide")$
     step(
+        "example_data_single",
+        "Example data set UCP1 KO",
+        "Choose example data set I to explore app features"
+    )$
+    step(
+        "example_data_single_alternative",
+        "Example data set DAKO",
+        "Choose example data set II to explore app features"
+    )$
+    step(
         "heat_production_equations",
         "Heat production equations",
         "Choose your desired heat production equation from the list above and select the unit (kJ or kcal) for energy expenditure."
@@ -24,19 +34,19 @@ guide <- Cicerone$
         "Specify how many data sets (cohorts) you wish to upload and analyze"
     )$
     step(
-        "negative_values",
-        "Plausability check",
+        "use_raw_data_curation",
+        "Raw data curation",
         "Indicate if you wish to automatically filter out e.g. negative values or inconsistent raw measurements"
-    )$
-    step(
-        "highly_varying_measurements",
-        "Data curation",
-        "Indicate if you wish to filter out highly (unphysiologically) varying raw measurements"
     )$
     step(
         "plotting",
         "Show plot",
         "Plotting control lets you (re-)plot your data",
+    )$
+    step(
+        "refresh",
+        "Refresh the plot",
+        "Plott might need manualy refreshing in some cases, e.g. Browser window resize"
     )$
     step(
         "reset",
@@ -62,4 +72,17 @@ guide <- Cicerone$
         "export_file_name",
         "Save data",
         "Choose a file name to save compiled data sets and calculated quantities. Plotting data frame can be exported as individual .csv files below as well."
+    )$
+    step(
+        "session_info",
+        "Session information",
+        "Provide information of current user session during a bug report"
+    )$
+    step("git_info",
+        "Version information",
+        "Provide information of current version during a bug report"
+    )$
+    step("plot",
+        "Main plot",
+        "The basic plot is the starting point of analyses. A scatter plot over time with the measured or calculated quantity or a boxplot of measurements or calculated quantity per Day is plotted."
     )

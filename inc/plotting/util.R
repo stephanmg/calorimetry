@@ -5,6 +5,7 @@
 #' @param p plot object
 #' @param type geom shape type
 #' @param with_point overlay with geom_point as well or not
+#' @export
 ################################################################################
 add_visualization_type <- function(p, type, with_point=TRUE) {
 	if (type == "Violinplot") { 

@@ -9,7 +9,12 @@ library(shinyalert)
 ################################################################################
 #' get_study_description_from_metadata
 #' 
-#' This function extract study description from metadata sheet
+#' This function extracts study description from metadata sheet
+#' 
+#' Note: If more metadata is relevant, these have to be extracted here.
+#' We can in theory pull all information from a fully filled metadata sheet,
+#' or from the expected/specified fields from the metadata converter which
+#' writes an abridged, thus not full, metadata sheet for usage in CALOR
 #' @param file input file
 #' @examples 
 #' get_study_description_from_metadata(input_file)
@@ -20,10 +25,27 @@ get_study_description_from_metadata <- function(file) {
    df <- read_excel(file)
    colnames(df) <- seq(1, length(colnames(df)))
    title <- df %>% filter(if_any(everything(), ~str_detect(., "Title"))) %>% slice(1)
-   comment <- df %>% filter(if_any(everything(), ~str_detect(., "comment"))) %>% slice(1)
-   strain <- df %>% filter(if_any(everything(), ~str_detect(., "name of mouse strain"))) %>% slice(1)
-   system <- df %>% filter(if_any(everything(), ~str_detect(., "Experimental System"))) %>% slice(2)
-   return(paste0(title$`2`, " (", comment$`2`, ") with ", strain$`2`, " (", system$`2`, ")"))
+   comment <- df %>% filter(if_any(everything(), ~str_detect(., "Date"))) %>% slice(1)
+   strain <- df %>% filter(if_any(everything(), ~str_detect(., "mouse_strain"))) %>% slice(1)
+   system <- df %>% filter(if_any(everything(), ~str_detect(., "Group"))) %>% slice(1)
+   date <- df %>% filter(if_any(everything(), ~str_detect(., "Date"))) %>% slice(1)
+   name <- df %>% filter(if_any(everything(), ~str_detect(., "Name"))) %>% slice(1)
+   number_of_samples <- length(df %>% filter(if_any(everything(), ~str_detect(., "Name")))) - 1 # first column is identifier name
+   number_of_sexes <- length(levels(as.factor(as.character(unlist(df %>% filter(if_any(everything(), ~str_detect(., "sex")))))))) - 1
+   number_of_diets <- length(levels(as.factor(as.character(unlist(df %>% filter(if_any(everything(), ~str_detect(., "diet_group")))))))) - 1
+   number_of_genotypes <- length(levels(as.factor(as.character(unlist(df %>% filter(if_any(everything(), ~str_detect(., "genotype_group")))))))) - 1
+   return(list(
+      study_name = title$`2`,
+      comment = comment$`2`,
+      mouse_strain = ifelse(is.null(strain$`2`), "Not specified", strain$`2`),
+      lab = system$`2`,
+      date = date$`2`,
+      name = name$`2`,
+      number_of_samples = number_of_samples,
+      number_of_genotypes = number_of_genotypes,
+      number_of_diets = number_of_diets,
+      number_of_sexes = number_of_sexes
+   ))
 }
 
 ################################################################################
@@ -191,7 +213,7 @@ get_true_metadata <- function(file, load_example_data) {
 
    # check if metadata has been formatted properly 
    if (inherits(df_meta, "try-error")) {
-      shinyalert("Warning", "Metadata sheet wrongly formatted. Please check within Excel for correctness. Fallback to TSE metadata header. Required information missing: Genotype, Sex, Age, Diet, lean_mass, fat_mass and body_weight are required.", showCancelButton = TRUE)
+      shinyalert("Warning", "Metadata sheet is lacking informations. Fallback to data file metadata headers. Required columns: Genotype, Sex, Age, Diet, lm_start, lm_end, fm_start, fm_end, bw_start and bw_end", showCancelButton = TRUE)
       return(NULL)
    }
 

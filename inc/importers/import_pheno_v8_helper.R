@@ -11,6 +11,8 @@ library(dplyr)
 #' import_pheno_v8(input_file, output_file)
 ################################################################################
 import_pheno_v8 <- function(file, file_out) {
+   # PhenoMaster v8 typically uses ";" as separator, but sometimes also "," 
+   # TODO: We need to accomodate for both separators 
    toskip <- 0
    con <- file(file, "r")
    filetype <- ""
@@ -28,8 +30,43 @@ import_pheno_v8 <- function(file, file_out) {
    close(con)
 
    df <- read.csv2(file, skip = toskip)
-   df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2"))
-   df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time) # PhenoMaster v8 is in format HH:MM:SS
+   
+   additional_fields = c()
+   if ("XT.YT" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "XT.YT")
+   }
+
+   if ("Temp" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "Temp")
+   }
+
+   if ("TempL" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "TempL")
+   }
+
+   if ("TempC" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "TempC")
+   }
+
+   if ("Drink1" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "Drink1")
+   }
+
+   if ("Feed1" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "Feed1")
+   }
+
+   if ("DistD" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "DistD")
+   }
+
+   if ("DistK" %in% colnames(df)) {
+      additional_fields <- append(additional_fields, "DistK")
+   }
+
+   df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "Weight", additional_fields))
+   # PhenoMaster v8 has the following time format HH:MM:SS
+   df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time)
    units <- df_selected[1,]
    units[is.na(units)] <- ''
    df_selected <- df_selected[-1, ]
@@ -37,24 +74,30 @@ import_pheno_v8 <- function(file, file_out) {
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VCO2.3.")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "O2")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "CO2")), ]
+   df_selected <- df_selected[!grepl("-", `$`(df_selected, "Weight")), ]
+   df_selected <- df_selected[!grepl("-", `$`(df_selected, "TempL")), ]
 
-   # 8
+   for (additional_field in additional_fields) {
+      df_selected <<- df_selected[!grepl("-", `$`(df_selected, additional_field)), ]
+   }
+
+   # 9
    header <- data.frame(matrix(ncol = length(colnames(df_selected)), nrow = 0))
-   colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2")
+   colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "WeightBody", additional_fields)
    colnames(header) <- colnames(df_selected)
-   header[nrow(header) + 1, ] <- c(file, rep("", 9))
-   header[nrow(header) + 1, ] <- c("", filetype, rep("", 8))
+   header[nrow(header) + 1, ] <- c(file, rep("", 10 + length(additional_fields)))
+   header[nrow(header) + 1, ] <- c("", filetype, rep("", 9 + length(additional_fields)))
 
    metadata <- read.csv2(file, skip = 2, nrows = toskip - 4)
    cc <- colnames(metadata)
    cc <- cc[!grepl("^X", cc)]
-   header[nrow(header) + 1, ] <- c(cc, rep("", 4))
+   header[nrow(header) + 1, ] <- c(cc, rep("", 5 + length(additional_fields)))
    metadata_selected <- metadata %>% select(cc)
 
    for (i in 1:nrow(metadata_selected)) {
       header[nrow(header) + 1, ] <- c(metadata_selected[i, ], rep("", 1))
    }
-   header[nrow(header) + 1, ] <- rep("", 10)
+   header[nrow(header) + 1, ] <- rep("", 11 + length(additional_fields))
    header[nrow(header) + 1, ] <- colnames(header)
    header[nrow(header) + 1, ] <- units
 

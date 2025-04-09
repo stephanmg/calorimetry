@@ -14,13 +14,21 @@
 #' @export
 ################################################################################
 goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
-	# colors for plotting as factor
-	finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+	# get metadata
+	metadatafile <- get_metadata_datapath(input, session, global_data)
 
-	# get metadata from tse header only
-	data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, input$metadatafile)
-	finalC1 <- data_and_metadata$data
-	true_metadata <- data_and_metadata$metadata
+	# only join data frame if not already joined 
+	if (!is.null(getSession(session$token, global_data)[["is_GoxLox_calculated"]])) {
+		data_and_metadata <- getSession(session$token, global_data)[["GoxLox_df"]]
+		finalC1 <- data_and_metadata$data
+		true_metadata <- data_and_metadata$metadata
+	} else {
+		finalC1$Animals <- as.factor(`$`(finalC1, "Animal No._NA"))
+		data_and_metadata <- enrich_with_metadata(finalC1, finalC1meta, input$havemetadata, metadatafile)
+		finalC1 <- data_and_metadata$data
+		true_metadata <- data_and_metadata$metadata
+		storeSession(session$token, "GoxLox_df", data_and_metadata, global_data)
+	}
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
@@ -39,29 +47,45 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# default is the provided light cycle from metadata sheet if available, otherwise default from UI is taken
 	light_on <- input$light_cycle_start 
+	light_off <- input$light_cycle_stop
 
 	if (input$havemetadata) {
-		light_on <- as.integer(get_constants(input$metadatafile$datapath) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_on <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_on"))) %>% select(2) %>% pull())
+		light_off <- as.integer(get_constants(metadatafile) %>% filter(if_any(everything(), ~str_detect(., "light_off"))) %>% select(2) %>% pull())
 	}
 
 	# if one wishes, one can override the light cycle configuration from metadata sheet
 	if (input$override_metadata_light_cycle) {
 		light_on <- input$light_cycle_start
+		light_off <- input$light_cycle_stop
 	}
 
-	# calculate zeitgeber time
-	finalC1 <- zeitgeber_zeit(finalC1, input$light_cycle_start)
+	convert <- function(x) {
+		splitted <- strsplit(as.character(x), " ")
+		paste(splitted[[1]][2], ":00", sep = "")
+	}
+
+	# when zeitgeber time should be used  
+	if (input$use_zeitgeber_time) {
+		finalC1 <- zeitgeber_zeit(finalC1, light_off)
+		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		if (input$only_full_days_zeitgeber) {
+			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
+		} 
+		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
+	} else {
+		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
+		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
+		finalC1$NightDay <- as.factor(finalC1$NightDay)
+		finalC1 <- finalC1 %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
+	}
 
 	# annotate days and animals (already shifted by above correction, thus light_on is now 0: Zeitgeber!)
 	day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
 	finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
-	num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-	if (input$only_full_days_zeitgeber) {
-		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-	}
-	finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
 
 	# selected calendrical days
@@ -107,7 +131,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
 
 	# Day Night filtering
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
 
@@ -116,9 +140,16 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	storeSession(session$token, "selected_days", intersect(selected_days, levels(as.factor(finalC1$DayCount))), global_data)
 
 	# filtering for Day and Night based on light_cycle length
-	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < input$light_cycle_stop-input$light_cycle_start, "Day", "Night")
+	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < light_off-light_on, "Day", "Night")
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 	finalC1$NightDay <- as.factor(finalC1$NightDay)
+
+	# Select temperature
+	if (!is.null(input$select_temperature)) {
+		if (input$select_temperature) {
+			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
+		}
+	}
 
 	df_to_plot <- finalC1
 	# if we do not have metadata, this comes from some not-clean TSE headers
@@ -145,118 +176,150 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# df to plot now contains the summed oxidation over individual days   
 	df_to_plot$Datetime <- day(dmy(lapply(df_to_plot$Datetime, convert)))
-	GoxLox <- aggregate(df_to_plot$GoxLox, by = list(Animals = df_to_plot$Animals, Days = df_to_plot$Datetime), FUN = sum)
-	GoxLox <- GoxLox %>% rename(GoxLox = x)
+	GoxLox <- df_to_plot %>% group_by(Animals, DayCount) %>% summarize(GoxLox = (max(GoxLox, na.rm=TRUE)+min(GoxLox, na.rm=TRUE))/2, .groups = "drop") %>% rename(Days=DayCount)
+
+	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
+	GoxLox$Cohort <- sapply(GoxLox$Animals, lookup_cohort_belonging, interval_length_list_per_cohort_and_animals=interval_length_list)
 	storeSession(session$token, "df_gox_lox", GoxLox, global_data)
+	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
 
-	output$test <- renderUI({
-		tagList(
-			h4("Configuration"),
-			selectInput("test_statistic", "Test", choices = c("1-way ANCOVA", "2-way ANCOVA")),
-			selectInput("dep_var", "Dependent variable", choice = c("GoxLox")),
-			selectInput("indep_var", "Independent grouping variable #1", choices = get_factor_columns(true_metadata), selected = "Genotype"),
-			selectInput("num_covariates", "Number of covariates", choices=c('1', '2'), selected='1'),
-			selectInput("covar", "Covariate #1", choices = get_non_factor_columns(true_metadata), selected = "body_weight"),
-			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", selectInput("indep_var2", "Independent grouping variable #2", choices = c("Days", get_factor_columns(true_metadata)), selected = "Days")),
-			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
-			hr(style = "width: 50%"),
-			h4("Advanced"),
-			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
-			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),
-			hr(style = "width: 75%"),
-			renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)$plot_summary + xlab(pretty_print_label(input$covar, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)),
-			hr(style = "width: 75%"),
-			conditionalPanel("input.num_covariates == '2'", renderPlotly(do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates)$plot_summary2 + xlab(pretty_print_label(input$covar2, input$metadatafile$datapath)) + ylab(pretty_print_label(input$dep_var, input$metadatafile$datapath)) + ggtitle(input$study_description)))
-		)
-	})
+	# add anova/ancova panel
+	add_anova_ancova_panel(input, output, session, global_data, true_metadata, GoxLox, metadatafile, "GoxLox", "GoxLox")
+	
+	p2 <- NULL
+	# add windowed plot
+	if (input$windowed_plot == TRUE) {
+		# offset is minimum value for time (on x-axis)
+		offset <- min(finalC1$running_total.hrs.halfhour)
+		# windowed time trace plot
+		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "FuelOxidation", offset, "GoxLox")
+		p2 <- window_plot$plot
+		p2 <- p2 + ggtitle(paste0("Average ", input$goxlox, "in window")) + ylab(paste(input$goxlox, "[ml/h]", sep = " "))
+		annotations_window_plot <<- window_plot$annotations
+	}
 
-	output$details <- renderUI({
-		results <- do_ancova_alternative(GoxLox, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, "GoxLox", input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
-		tagList(
-			h3("Post-hoc analysis"),
-			renderPlotly(results$plot_details + xlab(input$indep_var) + ylab("estimated marginal mean")),
-			hr(style = "width: 75%"),
-			h4("Results of statistical testing"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("p-value", style="width: 100px"),
-					tags$th("p-value (adjusted)", style="width: 100px"),
-					tags$th("significance level", style="width: 100px"),
-					tags$th("degrees of freedom", style="width: 100px" ),
-					tags$th("test statistic", style="width: 100px")
-					)
-				),
-				tags$tbody(
-					generate_statistical_table(results)
-					)
-			),
-			h4("Test assumptions"),
-			tags$table(
-				tags$thead(
-					tags$tr(
-					tags$th("Description", style="width:200px"),
-					tags$th("Name of significance test", style="width:200px"),
-					tags$th("Null hypothesis", style="width:400px"),
-					tags$th("p-value", style="width:200px"),
-					tags$th("Status", style="width:200px")
-					)
-				),
-				tags$tbody(
-					tags$tr(
-					tags$td("Homogeneity of variances", style="width:200px"),
-					tags$td("Levene's test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the population variances are equal (homoscedasticity). If the p-value is below a chosen signficance level, the obtained differences in sample variances are unlikely to have occured based on random sampling from a population with equal variances, thus the null hypothesis of equal variances is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$levene$p), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$levene$p) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					),
-					tags$tr(
-					tags$td("Normality of residuals", style="width:200px"),
-					tags$td("Shapiro-Wilk test", style="width:200px"),
-					tags$td("Tests the null hypothesis that the residuals (sample) came from a normally distributed population. If the p-value is below a chosen significance level, the null hypothesis of normality of residuals is rejected.", style="width: 400px"),
-					tags$td(round(as.numeric(results$shapiro$p.value), digits=6), style="width:200px"),
-					tags$td(
-						if (as.numeric(results$shapiro$p.value) < 0.05) {
-							icon("times")
-						} else {
-							icon("check")
-						}
-					,style="width: 200px"
-					)
-					)
-				)
-			),
-		)
-	})
 
+	# add smoothing
+	gam_model <- NULL
+	grouped_gam <- NULL
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				signal <- "GoxLox"
+				group = input$facets_by_data_one
+				# Fit GAM for each group
+				grouped_gam <- df_to_plot %>%
+				group_by(!!sym(group)) %>%
+				group_map(~ {
+					group_value <- .y[[group]][1]
+					gam_model <- mgcv::gam(as.formula(paste(signal, " ~ s(running_total.hrs.halfhour, k = ", as.numeric(input$averaging_method_with_facets_basis_functions), ", bs = 'cr')")), data= .x)
+					pred <- predict(gam_model, se.fit = TRUE)
+					.x %>%
+					mutate(
+						fit = pred$fit,
+						upper = pred$fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit,
+						lower = pred$fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit,
+						trend = group_value
+					)
+				}) %>%
+				bind_rows()  # Combine predictions for all groups
+			}
+		} else {
+			gam_model <- mgcv::gam(df_to_plot[["GoxLox"]] ~ s(running_total.hrs.halfhour, k=input$averaging_method_with_facets_basis_functions, bs=input$averaging_method_with_facets_basis_function), data=df_to_plot)
+			pred <- predict(gam_model, se.fit=TRUE)
+			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
+		}
+	}
+
+	
 	p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
 	# timeline
-	# TODO: v0.4.0 - Debug why this is not displayed locally but on server
 	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot$GoxLox)
 	colnames(lights) <- c("x", "y")
 	if (input$timeline) {
-		my_lights <- draw_day_night_rectangles(lights, p, input$light_cycle_start, input$light_cycle_stop, 0, input$light_cycle_day_color, input$light_cycle_night_color)
-		p <- p + my_lights
+		if (!is.null(input$only_full_days_zeitgeber)) {
+			if (input$only_full_days_zeitgeber == TRUE) {
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+				p <- p + my_lights
+			} else {
+				my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+				p <- p + my_lights
+			}
+		}
 	}
 
 	# group with group from metadata
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
 			if (input$orientation == "Horizontal") {
-				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)))
+				p <- p + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+				if (!is.null(input$facet_medians)) {
+					if (!input$facet_medians) {
+						p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+					} else {
+						if (!is.null(input$facet_medians_in_one_plot)) {
+							if (!input$facet_medians_in_one_plot) {
+								p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
+							}
+						}
+					}
+				}
 			} else {
-				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")))
+				p <- p + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+				if (!is.null(input$facet_medians)) {
+					if (!input$facet_medians) {
+						p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+					} else {
+						if (!is.null(input$facet_medians_in_one_plot)) {
+							if (!input$facet_medians_in_one_plot) {
+								p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
+							}
+						}
+					}
+				}
 			}
+		}
+	}
+
+	# add trend lines
+	if (input$add_average_with_se) {
+		if (input$with_facets) {
+			if (!is.null(input$facets_by_data_one)) {
+				grouped_gam$trend <- as.factor(grouped_gam$trend)
+				if (!is.null(input$add_average_with_se_one_plot)) {
+					if (input$add_average_with_se_one_plot) {
+						p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour"))
+						p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+						p <- p + labs(colour=input$facets_by_data_one, fill=input$facets_by_data_one)
+						# set y-axis label
+						mylabel <- paste(input$goxlox, "[ml/h]", sep = " ")
+						p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
+						# set x-axis label
+						if (input$use_zeitgeber_time) {
+							p <- p + xlab("Zeitgeber time [h]")
+						} else {
+							p <- p + xlab("Time [h]")
+						}
+						# add back timeline
+						if (input$timeline) {
+							if (!is.null(input$only_full_days_zeitgeber)) {
+								if (input$only_full_days_zeitgeber == TRUE) {
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle, input$only_full_days_zeitgeber)
+									p <- p + my_lights
+								} else {
+									my_lights <- draw_day_night_rectangles(lights, p, light_on, light_off, 0, input$light_cycle_day_color, input$light_cycle_night_color, input$light_cycle)
+									p <- p + my_lights
+								}
+							}
+						}
+					} else {
+						p <- p + geom_ribbon(data = grouped_gam, aes(ymin = lower, ymax = upper, group = trend, color=trend, fill=trend), alpha =input$averaging_method_with_facets_alpha_level) 
+					}
+				}
+			}
+		} else {
+				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
 		}
 	}
 
@@ -268,7 +331,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# with zeitgeber zeit, the offset is always 0
 	light_offset <- -12
 	# add day annotations and indicators vertical lines
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox), label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox)+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 	# indicate night start
@@ -276,7 +339,30 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	# re-center at 0
 	p <- p + scale_x_continuous(expand = c(0, 0), limits = c(min(df_to_plot$running_total.hrs.halfhour), max(df_to_plot$running_total.hrs.halfhour)))
 	# legends
-	p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + xlab("Zeitgeber time [h]") + ggtitle(input$goxlox)
+	p <- p + ylab(paste(input$goxlox, "[ml/h]", sep = " ")) + ggtitle(input$goxlox)
+	# set x-axis label
+	if (input$use_zeitgeber_time) {
+		p <- p + xlab("Zeitgeber time [h]")
+	} else {
+		p <- p + xlab("Time [h]")
+	}
+
+	if (input$windowed_plot == TRUE) {
+		if (!is.null(p2)) {
+			p2 <- ggplotly(p2) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+		}
+	}
+
+	# store plot and indicate GoxLox has been calculated
+	storeSession(session$token, "plot_for_goxlox", p, global_data)
+	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)
+	storeSession(session$token, "plot_for_goxlox_window", p2, global_data)
+	storeSession(session$token, "is_GoxLox_window_calculated", length(p2) > 0, global_data)
+
+	create_lme_model_ui(input, output, true_metadata, df_to_plot, "GoxLox", session, global_data)
+
+	p <- ggplotly(p) %>% config(displaylogo = FALSE, modeBarButtons = list(c("toImage", get_new_download_buttons()), list("zoom2d", "pan2d", "select2d", "lasso2d", "zoomIn2d", "zoomOut2d", "autoScale2d"), list("hoverClosestCartesian", "hoverCompareCartesian")))
+
 	# return plot p
-	return(p)
+	return(list("window_plot"=p2, "plot"=p))
 }

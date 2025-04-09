@@ -1,8 +1,5 @@
 library(lme4)
 
-# TODO replace with sessionStore(...) otherwise unsafe in multi user context
-fittedValues <- NULL
-
 ################################################################################
 #' model_effects
 #' 
@@ -30,8 +27,15 @@ model_effects <- function(df, dep_var, input) {
 #' visualize_model_effects
 #' 
 #' This functions visualizes the linear mixed effect modelling results
+#' @param df data frame
+#' @param dep_var dependent variable
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data data stored in global session object
+#' @export
 ################################################################################
-visualize_model_effects <- function(df, dep_var, input, output) {
+visualize_model_effects <- function(df, dep_var, input, output, session, global_data) {
 	# set up LME model
 	fixed_effects <- sapply(1:(input$how_many_fixed_effects), function(i) input[[paste0("fixed_effect_variable_", i)]])
 	random_effects <- sapply(1:(input$how_many_random_effects), function(i) input[[paste0("random_effect_variable_", i)]])
@@ -42,9 +46,22 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 	formula_string <- paste(dep_var, "~", fixed_effects_formula, "+", random_effects_formula) 
 	lmm <- lmer(as.formula(formula_string), data = df)
 
+	formula_latex <- paste0(
+	"$$",
+	gsub("~", " = ", gsub("_(\\w+)", "_{\\1}", deparse(as.formula(formula_string)))),
+	"$$"
+	)
+
+	output$formula_display <- renderUI(
+		tagList(
+			withMathJax(),
+			div(formula_latex)
+		)
+	)
+
 	# calculation of metrics
 	df$Fitted <- fitted(lmm)
-	fittedValues <<- df$Fitted
+	storeSession(session$token, "fitted_values", df$Fitted, global_data)
 	rss <- sum((df[[dep_var]] - df$Fitted)^2)
 	tss <- sum((df[[dep_var]] - mean(df[[dep_var]]))^2)
 	# traditional R-squared
@@ -69,16 +86,25 @@ visualize_model_effects <- function(df, dep_var, input, output) {
 #' create_lme_model_ui
 #' 
 #' This function creates UI for LME modelling
+#' @param input shiny input
+#' @param output shiny output
+#' @param true_metadata metadata
+#' @param df_to_plot data frame to be plotted
+#' @param my_dep_var dependent variable
+#' @param session shiny session
+#' @param global_data data stored in global session object
 ################################################################################
-create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var) {
+create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep_var, session, global_data) {
+	fittedValues <- getSession(session$token, global_data)[["fitted_values"]]
 	output$modelling <- renderUI({
 		tagList(
 			h4("Modelling dependent variable with an LME model"),
+			uiOutput("formula_display"),
 			sliderInput("how_many_fixed_effects", "How many fixed effect variables", min=1, max=length(names(true_metadata)), value=1, step=1),
 			sliderInput("how_many_random_effects", "How many random effect variables", min=1, max=length(names(true_metadata)), value=1, step=1),
 			uiOutput("selection_sliders_fixed"),
 			uiOutput("selection_sliders_random"),
-			renderPlot(visualize_model_effects(df_to_plot, my_dep_var, input, output)),
+			renderPlot(visualize_model_effects(df_to_plot, my_dep_var, input, output, session, global_data)),
 			verbatimTextOutput("r_squared_output"),
 			h5("Additional metrics"),
 			verbatimTextOutput("AIC_value"),
@@ -89,6 +115,32 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 			hr(),
 			uiOutput("fixed_effect_overview"),
 			h5("Summary tables"),
+			tags$style(HTML("
+				table.dataTable tbody td {
+					background-color: white !important;
+					color: black !important
+				}
+				table.dataTable thead td {
+					color: white !important;
+				}
+
+				table.dataTable thead tr {
+					color: white !important;
+				}
+
+				table.dataTable tfoot th {
+					color: white !important;
+				}
+
+				.dataTables_wrapper .dataTables_paginate .paginate_button {
+					color: white !important;
+				}
+
+				.dataTables_wrapper .dataTables_info {
+					color: white !improtant;
+				}
+
+			")),
 			renderDT({
 				datatable(model_effects(df_to_plot, my_dep_var, input)$df1, options=list(pageLength=5), caption = "Fixed effects") %>% formatStyle(columns=names(model_effects(df_to_plot, my_dep_var, input)$df1), color='white', backgroundColor = 'black')
 			}),

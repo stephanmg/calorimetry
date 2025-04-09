@@ -3,8 +3,7 @@ name: Docs
 on:
    push:
       branches:
-         - main
-         - with_metadata_sheet
+         - develop
 
 jobs:
    build-docs:
@@ -21,19 +20,26 @@ jobs:
         run: | 
            python -m pip install --upgrade pip
            pip install sphinx furo
-           sudo Rscript -e 'install.packages("Rd2md")'
-           sudo Rscript -e 'install.packages("roxygen2")'
            sudo apt-get update
            sudo apt-get install -y pandoc
 
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.4.0'
+      - name: "Install R dependencies"
+        run: |
+           Rscript -e 'install.packages("Rd2md", repos="https://cran.us.r-project.org")'
+           Rscript -e 'install.packages("roxygen2", repos="https://cran.us.r-project.org")'
+
       - name: Build Sphinx documentation
         run: |
-           mkdir docs/md
-           mkdir docs/rst
+           mkdir -p docs/md
+           mkdir -p docs/rst
            chmod +x scripts/Rd_to_rst.sh
            chmod +x scripts/populate_api_docs.sh
            chmod +x scripts/build_sphinx_docs.sh
-           ./scripts/build_sphinx_docs.sh
+           cd ./scripts/ && ./build_sphinx_docs.sh
       
       - name: Deploy to GH pages
         uses: peaceiris/actions-gh-pages@v4

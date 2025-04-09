@@ -1,3 +1,16 @@
+################################################################################
+#' estimate_rmr_for_cosmed
+#' 
+#' This function calculates RMR for the COSMED platform
+#' @param finalC1 input data
+#' @param finalC1meta combined metadata
+#' @param input shiny input
+#' @param output shiny output
+#' @param session shiny session
+#' @param global_data dictionary to store variables session-based for users
+#' @param scaleFactor used to scale energy expenditure units correctly
+#' @export
+################################################################################
 estimate_rmr_for_cosmed <- function(finalC1, finalC1meta, input, output, session, global_data, scaleFactor) {
 	C1meta_tmp <- C1meta
 	colnames(C1meta_tmp)[colnames(C1meta_tmp) == "Animal.No."] <- "Animal No._NA"

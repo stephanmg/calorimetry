@@ -6,6 +6,7 @@ library(shinyalert)
 #' annotate_rmr_days
 #' 
 #' Helper function to annotate RMR days
+#' @param df
 ################################################################################
 annotate_rmr_days <- function(df) {
    df_anno <- df %>% group_by(Animal) %>% mutate(Day = ceiling(Time / (24*60))) %>% ungroup()
@@ -13,11 +14,11 @@ annotate_rmr_days <- function(df) {
    return(df_anno %>% unique() %>% filter(Label != 'Day #0'))
 }
 
-
 ################################################################################
 #' padding_helper
 #' 
-#' This function used to pad data to same length in RMR calculations
+#' This function i used to pad data to same length in RMR calculations
+#' @param df
 ################################################################################
 padding_helper <- function(df) {
    # Find the last row for each group
@@ -49,7 +50,8 @@ padding_helper <- function(df) {
 ################################################################################
 #' partition
 #' 
-#' Helper function to partition data 
+#' Helper function to partition data for RMR calculation
+#' @param mydf
 ################################################################################
 partition <- function(mydf) {
    df <- mydf
@@ -82,7 +84,7 @@ partition <- function(mydf) {
 ################################################################################
 #' cv
 #' 
-#' This function calculates the coefficient of variation for data frmae
+#' This function calculates the coefficient of variation for a given data frame
 #' @param mydf data frame
 #' @param window window size
 ################################################################################
@@ -112,6 +114,7 @@ cv <- function(mydf, window = 2) {
 #' reformat
 #' 
 #' This function reformats the calculates RMR accordingly for post processing
+#' @param df_new
 ################################################################################
 # df_new, data
 reformat <- function(df_new) {
@@ -128,10 +131,13 @@ reformat <- function(df_new) {
 #' get_time_diff
 #' 
 #' This function get's the time difference (measurement interval length) in minutes
+#' @param df
+#' @param from
+#' @param to
+#' @param do_warn
 ################################################################################
 get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
    id <- df %>% nth(1) %>% select("Animal No._NA")
-   write.csv2(df, "during_getting_time_diff.csv")
    # note first time diff might be 0 if sorted ascending and because first measurement point,
    # thus pick 2 or 3, however 2 or 3 might still be 0 depending on the frequency of recordings (multiple per minute...)
    time_diff1 <- df %>% filter(`Animal No._NA` == id) %>% arrange(diff.sec) %>% nth(from) %>% pull(diff.sec)
@@ -168,6 +174,7 @@ get_time_diff <- function(df, from = 2, to = 3, do_warn=FALSE) {
 #' get_date_range
 #' 
 #' This function get's all available dates in the data sets
+#' @param df
 ################################################################################
 get_date_range <- function(df) {
  date_first <- df %>% select(Datetime) %>% first() %>% pull()
@@ -182,6 +189,7 @@ get_date_range <- function(df) {
 #' check_for_cosmed
 #' 
 #' Helper function to check for COSMED (.xlsx) data sets
+#' @param file
 ################################################################################
 check_for_cosmed <- function(file) {
    if (length(excel_sheets(file)) == 2) {
@@ -194,41 +202,47 @@ check_for_cosmed <- function(file) {
 }
 
 ################################################################################
-# calc_heat_production
+#' calc_heat_production
+#' 
+#' This function calculates the heat production
+#' @param choice
+#' @param C1
+#' @param variable
+#' @param scaleFactor
 ################################################################################
 calc_heat_production <- function(choice, C1, variable, scaleFactor) {
    df <- C1
    switch(choice,
-   Lusk = {
-      df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
-   },
-   Heldmaier1 = {
-      df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  + 15.3) * 0.278 / 1000 * (3600 / 1000)
-   },
-   Heldmaier2 = {
-      df[[variable]] <- (4.44 + 1.43 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
-   },
-   Weir = {
-      df[[variable]] <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
-   },
-   Elia = {
-      df[[variable]] <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  / 1000
-   },
-   Brower = {
-      df[[variable]] <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 *  (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
-   },
-   Ferrannini = {
-      df[[variable]] <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$`VCO2(3)_[ml/h]` / 1000
-   },
-   {
+      Lusk = {
+         df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
+      },
+      Heldmaier1 = {
+         df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  + 15.3) * 0.278 / 1000 * (3600 / 1000)
+      },
+      Heldmaier2 = {
+         df[[variable]] <- (4.44 + 1.43 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000
+      },
+      Weir = {
+         df[[variable]] <- 16.3 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.57 * C1$`VCO2(3)_[ml/h]` / 1000
+      },
+      Elia = {
+         df[[variable]] <- 15.8 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.18 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  / 1000
+      },
+      Brower = {
+         df[[variable]] <- 16.07 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.69 *  (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
+      },
+      Ferrannini = {
+         df[[variable]] <- 16.37117 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 4.6057 * C1$`VCO2(3)_[ml/h]` / 1000
+      },
+      {
 
-   }
+      }
    )
    return(df)
 }
 
 ################################################################################
-# filter_full_days
+#' convert_to_days
 ################################################################################
 convert_to_days <- function(x) {
    splitted <- strsplit(as.character(x), " ")
@@ -237,7 +251,12 @@ convert_to_days <- function(x) {
 
 
 ################################################################################
-# filter_full_days_alternative
+#' filter_full_days_alternative
+#' 
+#' This function filters for full days
+#' @param
+#' @param threshold
+#' @param cohort_list
 ################################################################################
 filter_full_days_alternative <- function(df, threshold, cohort_list) {
    df_filtered <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(Datetime4) %>% filter(n_distinct(hour) >= (24 * ((100-threshold)/100))) %>% ungroup()
@@ -245,10 +264,17 @@ filter_full_days_alternative <- function(df, threshold, cohort_list) {
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs = running_total.hrs - min(running_total.hrs, na.rm = TRUE)) %>% ungroup()
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour - min(running_total.hrs.halfhour, na.rm = TRUE)) %>% ungroup()
    df_filtered <- df_filtered %>% group_by(`Animal No._NA`) %>% mutate(running_total.sec = running_total.sec - min(running_total.sec, na.rm = TRUE)) %>% ungroup()
-   write.csv2(df_filtered, "df_filtered_after_full.csv")
    return(df_filtered)
 }
 
+################################################################################
+#' filter_full_days
+#' 
+#' This function filters for full days
+#' @param df
+#' @param time_diff
+#' @param threshold
+################################################################################
 filter_full_days <- function(df, time_diff, threshold) {
    df$DaysCount <- lapply(df$Datetime, convert_to_days)
    df$`Animal No._NA` <- as.factor(df$`Animal No._NA`)
@@ -270,15 +296,22 @@ filter_full_days <- function(df, time_diff, threshold) {
    return(df_final)
 }
 
-
 ################################################################################
-# trim_front_end
+#' convert_to_day_only
 ################################################################################
 convert_to_day_only <- function(x) {
    splitted <- strsplit(as.character(x), "/")
    paste(splitted[[1]][1], splitted[[1]][2], splitted[[1]][3], sep = "-")
 }
 
+################################################################################
+#' trim_front_end
+#' 
+#' This function trims time series data at front and end
+#' @param df
+#' @param end_trim
+#' @param front_trim
+################################################################################
 trim_front_end <- function(df, end_trim, front_trim) {
    df$Date <- lapply(df$Datetime, convert_to_days)
    df$Date <- lapply(df$Date, convert_to_day_only)
