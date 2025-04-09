@@ -2,7 +2,7 @@
 
 
 <img src="https://github.com/stephanmg/calorimetry/blob/data/shiny_logo.png?raw=true" align="left" width="50" height="70"> 
-CALOR is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
+CALOR is a Shiny/R web application for data and metadata integration, visualization and comprehensive statistical analysis of indirect calorimetry data sets. CALOR ingests data sets originating from common metabolic phenotyping platforms, i.e. Sable, TSE Systems and COSMED. Metadata is provided through a standardized metadata sheet (Excel) and as a fallback through the metadata headers in raw data sets. For more details please refer to the documentation for users from the section below or the supplementary material of the CALOR preprint (see references below).
 
 <br clear="left"/>
 <hr/>
@@ -19,26 +19,30 @@ CALOR is a holistic web application for data integration, visualization and stat
 
 # For users
 
+## Documentation
 Documentation available through Github Pages: https://stephanmg.github.io/calorimetry
 
 The app is available on the following web sites: 
 - [CALOR in ShinyApps](https://calorimetry.shinyapps.io/calorimetry/) or 
 - [CALOR on on-premise Uni Bonn](https://shinys.iaas.uni-bonn.de/Calo).
 
+Please refer also to the supplementary material from CALOR preprint [1].
+
 ## Standalone Desktop apps
 
 One can use the Electron wrapper of the app which uses docker inside the Electron app: https://github.com/stephanmg/shiny-electron-wrapper
 
-Releases are deployed to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
+Releases are uploaded to Sciebo here: https://uni-bonn.sciebo.de/s/0qDhG2Bu1VNkRli/
 
-## Metadata Sheet
+There you can download the nightly builds for Windows, OSX or Linux. Builds are automatically generated and artifacts deployed trough the `build` Github workflow.
 
-One can use the metadata shiny app converter app: https://github.com/stephanmg/metadata-converter to generate a truncated metadata sheet.
 
-## Caveats
+## Metadata integration
 
-- Use time averaging if cohorts have different sampling frequency in indirect calorimetry experiments (should not happen often)
-- IC experiments might have not the same length of time, currently plots are thus not equal in length on the time axis
+One can use the Shiny/R metadata converter app: https://github.com/stephanmg/metadata-converter 
+The metadata converter will generate a truncated metadata sheet compatible for reading into CALOR.
+
+Alternatively you can fill out the standardized metadata sheet [2] yourself in Excel or fall back to relying on the metadata header of raw data sets.
 
 # For developers
 
@@ -76,12 +80,9 @@ delete this folder and do not add for tracking with Git, nor deploy, as this int
 We need to fake a proper R package structure in order to use the `roxygenise` functions, but do not need the
 structure after docs have been generated.
 
-## Option 4: Standalone Desktop application
-Download the nightly builds for Windows, OSX or Linux from the repository's Github Actions artifacts section.
-
 ## References
 
+[1] Add reference to CALOR
+[2] Add reference to Metadata Sheet
+
 The CALOR image was created with the assistance of the AI tool DALL-E 2.
-
-## Latest changes
-
