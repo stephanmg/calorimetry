@@ -107,8 +107,6 @@ This application will allow you to fill out a Metadata Sheet and save it in Exce
 
 First option: Provide an Excel (*.xlsx*) file with the following column structure to the Metadata converter:
 
-Example metadata table for metadata converter
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
    +-----------+--------+------+----------+-------------+----------+---------+----------+--------+----------+--------+
    | Animal #  | sex    | diet | genotype | age at start| bw start | bw end  | fm start | fm_end | lm start | lm end |
@@ -160,18 +158,26 @@ You can then download the metadata sheet by the download button **Download metad
 Features
 =====================================
 
-Use the larger **+** (plus symbol) right to the **Plotting** section to expand options and see which quantities are available.
+On the left navigation panel the workflow within CALOR is implictly specified from top to bottom.
+Individual steps are:
+1. Dataset import
+2. Statistics and visualization (Includes possibility to review metadata)
+3. Data curation and
+4. Result summary (For exporting of results)
 
-Note that on the right hand side a plot of the quantity of interest will be displayed, additional panels for **Statistical Analysis**,
-**Modelling** and additional information about group comparisons are displayed.
+Note that on the right panel a plot of the quantity of interest will be displayed in the tab (Main plot). 
+Additional panels for **Statistical testing**, **Details** of statistical testing and **Statistical model** are available.
+The **Explanation** tab provides additional information and a description of which data is currently displayed.
 
-During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the **Data curation** 
-panel analogue to the previous **Plotting** section to visualize and analyze results.
+During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the **Data curation** panel.
 
-Note that all plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area,
-a menu with options will appear at the top border of the plotting area then.
+The section statistics and visualization provides the calculation of energy expenditure (EE), total energy expenditure (TEE),
+resting metabolic rate (RMR) and raw quantities as well as fuel oxidation (from here on ocassionally referred to as modalities).
 
-The next subsections will provide an overview of the individual analysis panels.
+All plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area on the right panel,
+a menu with options will appear at the top border of the plotting area to select either PDF, PNG or SVG export.
+
+The next paragraphs will provide an overview of the individual analysis panels.
 
 1: Inspect recorded metadata for your experiment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -191,7 +197,7 @@ in percentage or volume changes over time intervals (typically recording interva
 5 or 10 minutes). Derived quantities, as for instance the RER (respiratory exchange ratio) can be calculated. If desired,
 users can pre-smooth or coarsen the raw traces (Typically not required).
 
-3: Total heat production
+3: Total heat production 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The total heat production (THP) is the sum of :math:`THP = RMR+HP`, i.e. of resting metabolic rate and heat production (HP).
@@ -199,7 +205,7 @@ Alternatively one can interpret the THP as total energy expenditure (TEE) such t
 defined by resting metabolic rate and energy expenditure (including physical activity).
 
 Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
-panel is available.
+panel is available for all modalities.
 
 4: Heat production
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -214,7 +220,9 @@ Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same a
 6: Fuel oxidation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Same analyiss methods as for THP ally for the fuel oxidation panel too.
+Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to 
+visualize the utilization of glucose or lipid oxidation during energy expenditure, similar as the RER can indicate which
+component is mainly oxidized (Raw measurements). Same analyis methods as for THP are available for the fuel oxidation panel.
 
 
 Conducting analyses with CALOR
@@ -605,6 +613,13 @@ Data export
 To export combined data sets for all cohorts, data frames for plotting of results, and calculated quantities,
 all data can be download through the **Data export** panel, choose the *.zip* download which downloads one
 compressed file containing all data.
+
+
+Advanced use-cases
+==================
+
+For advanced use case, e.g. locomotional analysis and budgeting as well as wavelet analysis to study ultradian rhythms,
+we refer to the supplementary material provided in the preprint [TODO: insert DOI here].
 
 
 Tutorial videos
