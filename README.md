@@ -84,7 +84,7 @@ structure after docs have been generated.
 
 ## References
 
-[1] Add reference to CALOR
-[2] Add reference to Metadata Sheet
+- [1] Add reference to CALOR
+- [2] Add reference to Metadata Sheet
 
 The CALOR image was created with the assistance of the AI tool DALL-E 2.
