@@ -1,7 +1,7 @@
 # CALOR: A package for <ins>C</ins>alorimetric <ins>A</ins>nalysis to <ins>L</ins>everage <ins>O</ins>rderly data visualization using Shiny <ins>R</ins> 
 
 
-<img src="https://github.com/stephanmg/calorimetry/blob/data/shiny_logo.png?raw=true" align="left" width="50" height="70"> 
+<img src="https://github.com/stephanmg/calorimetry/blob/data/shiny_logo.png?raw=true" align="left" width="70" height="70"> 
 CALOR is a Shiny/R web application for data and metadata integration, visualization and comprehensive statistical analysis of indirect calorimetry data sets. CALOR ingests data sets originating from common metabolic phenotyping platforms, i.e. Sable, TSE Systems and COSMED. Metadata is provided through a standardized metadata sheet (Excel) and as a fallback through the metadata headers in raw data sets. For more details please refer to the documentation for users from the section below or the supplementary material of the CALOR preprint (see references below).
 
 <br clear="left"/>
