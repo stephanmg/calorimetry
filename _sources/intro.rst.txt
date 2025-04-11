@@ -1,14 +1,22 @@
 What is CALOR?
 ==============
 
-CALOR is a web application based on Shiny for GNU R to allow for a streamlined comprehensive analysis of 
-indirect calorimetry data from the major indirect calorimetry systems, i.e. TSE Systems, Sable Systems and
-COSMED. Metadata analysis, visualization and statistical analysis of all indirect calorimetry measurements are
-available. Furthermore CALOR ingests structured metadata to faciliate downstream analysis tasks.
+CALOR is a web application based on Shiny for GNU R to allow for a streamlined and comprehensive analysis of 
+indirect calorimetry data. CALOR supports most of the major indirect calorimetry systems, i.e. TSE Systems, Sable Systems and
+the COSMED platform. Metadata analysis, visualization and statistical analysis of the entirety of indirect calorimetry
+measurements are instrumental for biomedical researchers and accordingly implemented in CALOR.  
 
-For a very brief tour use the **User guide** button in the **Visualization and statistical analysis** tab.
-Short written examples are accessible through the **Help** button on the landing page of the app.
+Furthermore CALOR ingests structured, hierarchical metadata sheets in the Excel format to faciliate downstream analysis tasks,
+in particular standardized metadata renders useful in multi-factor analyses and allows for unit consistency across experiments.
 
+For a brief tour use the in-app **User guide** (available via the corresponding button) from the **Visualization and statistical analysis** tab.
+Short expository examples are accessible through the **Help** button on the landing page of the app (left click the red question mark in the linked page).
+
+In case you encounter issues while using the app (e.g. bugs), please report them using the version and session information stated in the bottom right corner.
+Likewise, if you miss features (or any indirect calorimetry system) vital to the analysis of your indirect calorimetry experiments, let us know by email (see contact section) or 
+use the issue tracker on the linked Github repository.
+
+A compiled list of common questions and issues are collected in the FAQ section at the end of the documentation, which might provide already the directions you require to solve your problem.
 
 Getting started
 ===============
@@ -16,11 +24,13 @@ Getting started
 Loading and navigating the application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Navigate to `CALOR <https://shiny.iaas.uni-bonn.de/Calo>`_ access the web application.
-The landing page displays information about supported file formats and the app's main features, see
+Navigate to the landing page on `CALOR <https://shiny.iaas.uni-bonn.de/Calo>`_ to access the web application.
+
+The landing page displays information about the supported file formats and the application's main features, see
 :ref:`calor_landing`. Click the **Go to analysis** tab in the nagivation bar at the top or below the CALOR logo
-to immediately get started. To get help or access a helper app to generate metadata sheets for your own indirect
-calorimetry experiments use the **Help** respectively **Metadata converter** button.
+to immediately get started with your analysis. To get help and access a helper application which is used to generate 
+standardized metadata sheets for your own indirect calorimetry experiments use the **Help** respectively **Metadata converter** 
+button from the navigation bar.
 
 .. _calor_landing:
 
@@ -29,19 +39,20 @@ calorimetry experiments use the **Help** respectively **Metadata converter** but
    :alt: CALOR landing page
    :scale: 50%
 
-   Figure 1: CALOR landing page
+   Figure 1: CALOR landing page and overview of common analysis tasks
 
 
-Loading indirect calorimetry data sets 
+Loading indirect calorimetry datasets 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Jump ahead to the section **Conducting analyses with CALOR** to directly get started, or use the
-**User guide** built into the application, see :ref:`load_example_data_set`.
+Click the button **Go to analysis** to directly get started. Use the
+**User guide** built into the application in the section **Dataset import -> Example Data** to get a tour of the application, 
+see Figure :ref:`load_example_data_set`.
 
-Loading example data sets
+Loading example datasets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Load example data sets and metadata, either **UCP1 KO** (4 cohort study) or **DAKO** (2 cohort study) are available. 
-Metadata is automatically loaded and attached to the corresponding data set, see :ref:`load_example_data_set`.
+Load example datasets and metadata, either **UCP1 KO** (4 cohort study) or **DAKO** (2 cohort study) are available. 
+Metadata is automatically loaded and attached to the corresponding dataset, see Figure :ref:`load_example_data_set`.
 
 .. _load_example_data_set:
 
@@ -50,19 +61,21 @@ Metadata is automatically loaded and attached to the corresponding data set, see
    :alt: Load example data set
    :scale: 50%
 
-   Figure 1: Load example data set
+   Figure 1: Load example datasets and activation of the user guide
 
 
-Loading own data sets
+Loading own datasets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note that providing metadata is optional. Metadata can be added through the upload of a standardized and hierarchical
-Excel Metadata Sheet (Seep et al., 2024, Scientific Data). Since the amount of metadata encoded in raw data file headers (short and non-standardized section
-in the beginning of each data file exported from e.g. TSE Systems) is limited, some of CALOR's functionality might not
-be available for users providing only raw data sets. See :ref:`generate_metadata_sheet` below on how to generate 
-standardized metadata for your data set(s).
+Provision of metadata is optional. However, metadata can be added through the upload of a standardized and hierarchical
+Excel Metadata Sheet (Seep et al., 2024, Scientific Data). Since the amount of metadata encoded in raw data file headers 
+(short and non-standardized section in the beginning of each data file exported from e.g. TSE Systems, etc.) is limited, 
+and usually error-prone, as metadata fields have to be specified by users of the indirect calorimetry system individually,
+we recommend to provide a Metadata Sheet. Also under certain circumstances, not all of CALOR's functionality might be
+available for users providing only raw datasets. See :ref:`generate_metadata_sheet` below on how to generate 
+standardized metadata for your data set(s) with either fixed format Excel template or the Metadata converter Shiny application.
 
-To load your own data set, left-click on the large plus symbol.
+To load your own dataset, left-click on the large plus symbol.
 
 .. _load_own_data_set:
 
@@ -76,6 +89,8 @@ To load your own data set, left-click on the large plus symbol.
 
 If you already have the Metadata Sheet, simply tick **Have additional metadata?** in the top left section of the application,
 and provide your individual cohorts (possible multiple) as file uploads by clicking on the **Browse...** button, see Figure :ref:`load_own_data_set_dialog`.
+The metadata for all cohorts is recorded conveniently in a single Excel sheet for the whole study.
+
 Adjust the **Number of data files** value according to your needs. Note that typically 2 or 4 cohorts are recorded per indirect calorimetry experiment.
 
 .. _load_own_data_set_dialog:
@@ -94,15 +109,18 @@ Generate metadata sheet for indirect calorimetry data sets
 =============================================================
 While this step is optional, we want to emphazise that generation of a Metadata Sheet for your cohort study has multiple 
 benefits, i.e. statistical analysis of related metadata, comprehensive visualization of all collected metadata for the experiment,
-streamlined statistical analysis and visualization of data sets supported by consistent metadata with corresponding units. 
-(Reminder: For instance TSE Systems file headers provide limited and non-standardized metadata and is prone to unit and conversion
-errors when combining cohort studies when not carefully exported from the PhenoMaster/LabMaster, also Metadata like Conditions
-as cold exposure vs room temperate might be lacking).
+streamlined statistical analysis and visualization of datasets supported by consistent metadata with corresponding units. 
+
+Reminder: For instance TSE Systems file headers provide limited and non-standardized metadata and is prone to unit and conversion
+errors when combining cohort studies when not carefully exported from the PhenoMaster/LabMaster with identical settings by the user
+, also categorical metadata, e.g. conditions (cold exposure vs room temperate), treatments (feeding pattern), photoperiod, etc.  might be lacking.
 
 If you already have filled out a Metadata Sheet (Seep et al., 2024, Scientific Data) for your indirect calorimetry experiment,
 then you can skip this step, otherwise we encourage you to fill out either the full Metadata Sheet for your experiment (see 
 the Excel Metadata Sheet template for indirect calorimetry data) or use the Metadata Sheet helper application to fill out 
-the Metadata Sheet online if you have Excel not available. In the latter case navigate to `Metadata converter <https://shiny.iaas.uni-bonn.de/CaloHelper>`_. 
+the Metadata Sheet online if you have Excel not available. 
+
+In the latter case navigate to `Metadata converter <https://shiny.iaas.uni-bonn.de/CaloHelper>`_. 
 This application will allow you to fill out a Metadata Sheet and save it in Excel format for metadata input into CALOR.
 
 First option: Provide an Excel (*.xlsx*) file with the following column structure to the Metadata converter:
@@ -133,7 +151,7 @@ required structure displayed in the example metadata table above, see :ref:`meta
 
 You can then download the metadata sheet by the download button **Download metadata sheet**.
 
-Note that animal IDs (Animal #) need to be numeric, sex always specified as male or female, diet as a string, age at 
+Note that animal IDs (Animal #) need to be numeric, sex always specified as male or female, diet as an alphanumerical string, age at 
 start must use the same unit, i.e. weeks or days, **bw** start, **bw** end, **fm** start, **fm** end, **lm** start and 
 **lm** end correspond to the body weight, lean and fat mass at the start respectively end of the
 experiment and to be reported in units of gram. All displayed columns are required. 
@@ -158,12 +176,14 @@ You can then download the metadata sheet by the download button **Download metad
 Features
 =====================================
 
-On the left navigation panel the workflow within CALOR is implictly specified from top to bottom.
-Individual steps are:
+On the left side the navigation panel indicates the workflow within CALOR. The workflow is implictly assumed to follwo the order from top to bottom.
+
+The individual steps for analysis within CALOR are thus:
+
 1. Dataset import
-2. Statistics and visualization (Includes possibility to review metadata)
-3. Data curation and
-4. Result summary (For exporting of results)
+2. Statistics and visualization (Includes possibility to review metadata and detection of biases)
+3. Data curation (Outlier correction, selection of subjects, days, trimming of experimental times) and
+4. Result summary (For exporting of results in high quality graphics and data tables)
 
 Note that on the right panel a plot of the quantity of interest will be displayed in the tab (Main plot). 
 Additional panels for **Statistical testing**, **Details** of statistical testing and **Statistical model** are available.
@@ -171,7 +191,9 @@ The **Explanation** tab provides additional information and a description of whi
 
 During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the **Data curation** panel.
 
-The section statistics and visualization provides the calculation of energy expenditure (EE), total energy expenditure (TEE),
+Datasets can be filtered for temperature and photoperiod over time.
+
+The section statistics and visualization provides the calculation of heat production (HP), total heat production (THP)
 resting metabolic rate (RMR) and raw quantities as well as fuel oxidation (from here on ocassionally referred to as modalities).
 
 All plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area on the right panel,
@@ -179,33 +201,37 @@ a menu with options will appear at the top border of the plotting area to select
 
 The next paragraphs will provide an overview of the individual analysis panels.
 
-1: Inspect recorded metadata for your experiment
+1: Analyse recorded metadata
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
-recorded alongside the indirect calorimetry experiment. Covariates like body weight, lean mass, fat mass can be compared.
+recorded alongside the indirect calorimetry experiment. Covariates like body weight, lean mass, fat mass can be statistically
+(with significace tests) compared and visualized via appropriate plots (boxplots, regression plots).
 
-Inspection of metadata should be always the starting point before conducting any analysis to assess the quality and quantity
-of data recorded. For instance if there is a significant difference between two genotype groups', say KO and WT, body
-composition, i.e. fat mass, further analysis should take the information into account before drawing conclusions.
+Analysis of metadata should always be the starting point before conducting any analysis. Assessment of the quality and the
+distributions of recorded quantities is vital to a consistent downstream analysis. For instance if there is a significant 
+difference between two genotype groups', say KO and WT, body composition, i.e. fat mass, further analysis should take the 
+information into account before drawing any conclusions.
 
 2: Raw measurements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
 in percentage or volume changes over time intervals (typically recording intervals in indirect calorimetry experiments are
-5 or 10 minutes). Derived quantities, as for instance the RER (respiratory exchange ratio) can be calculated. If desired,
-users can pre-smooth or coarsen the raw traces (Typically not required).
+5 or 10 minutes, but users can interpolate to a finer or coarser time grid by using **Dataset import->Import options**).
+
+Derived quantities, as for instance the RER (respiratory exchange ratio) can be (re-)calculated. If desired,
+users can pre-smooth or coarsen the raw traces too (typically not required, but depends on your use case).
 
 3: Total heat production 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The total heat production (THP) is the sum of :math:`THP = RMR+HP`, i.e. of resting metabolic rate and heat production (HP).
 Alternatively one can interpret the THP as total energy expenditure (TEE) such that we have the sum :math:`TEE=RMR+EE`, which is 
-defined by resting metabolic rate and energy expenditure (including physical activity).
+defined by resting metabolic rate and heat production (including physical activity).
 
 Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
-panel is available for all modalities.
+panel is available for all modalities recorded in the indirect calorimetry experiment.
 
 4: Heat production
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -221,38 +247,38 @@ Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same a
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to 
-visualize the utilization of glucose or lipid oxidation during energy expenditure, similar as the RER can indicate which
-component is mainly oxidized (Raw measurements). Same analyis methods as for THP are available for the fuel oxidation panel.
+visualize the utilization of glucose or lipid oxidation during heat production, similar as the RER can indicate which
+component is mainly oxidized (Raw measurements). Same analysis methods as for THP are available for the fuel oxidation panel.
 
 
 Conducting analyses
 ===================
 
-Example data set I: UCP1 KO
+Example dataset I: UCP1 KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. container:: highlight-box
 
    :math:`H_0`:
-   There is no genotype-specific effect (WT vs UCP1 KO) on the total heat production or resting metabolic rate.
+   There is no genotype-specific effect (WT vs UCP1 KO) on the total production or resting metabolic rate.
 
 To either reject or accept the null hypothesis :math:`H_0` we can make use of CALOR's features.
 
-First, we do inspect the metadata recorded with this 4 cohort study, to identify outliers or idiosyncrasies associated with the data set.
+First, we do inspect the metadata recorded with this multi cohort study, to identify outliers or idiosyncrasies associated with the dataset.
 
 .. _ucp1_ko_metadata:
 
 .. figure:: img/metadata.png
    :align: center
-   :alt: Metadata for 4 cohort UCP1 KO data set
+   :alt: Metadata for multi cohort UCP1 KO data set
    :scale: 50%
 
-   Figure 5: Metadata for 4 cohort UCP1 KO data set
+   Figure 5: Metadata for multi cohort UCP1 KO data set
 
 According to Fig. :ref:`ucp1_ko_metadata` distribution numbers (n) for Genotype and Diet are balanced, there is no 
 irregularities for body composition (fat and lean mass) and also no problematic changes of body composition over the
 time course of the experiment. The study entails only male samples (male) on a high fat diet (HFD). Since there are no
-obvious issues with the metadata, we can proceed by inspecting the raw measurements as recorded from the metabolic phenotyping system (TSE).
+obvious issues with the metadata, we can proceed by inspecting the raw measurements as recorded from the metabolic phenotyping system.
 
 Plotting the raw quantities can be a valid and important first diagnostic of consistency of the experiment. 
 See Fig. :ref:`ucp1_ko_rer_with_outlier` in particular for the RER stratified by Genotype (WT vs KO).
@@ -267,10 +293,11 @@ See Fig. :ref:`ucp1_ko_rer_with_outlier` in particular for the RER stratified by
    Figure 6: RER for UCP1 KO with outlier
 
 We identify an outlier which has an erratic RER time plot, and thus also an erratic oxygen and carbon dioxide curve,
-since RER is defined as: :math:`RER=\frac{\dot{V}_{CO_{2}}}{\dot{V}_{O_{2}}} \in [0,1]`.
+since the dimensionless RER is defined as: :math:`RER=\frac{\dot{V}_{CO_{2}}}{\dot{V}_{O_{2}}} \in [0,1]`.
 
-Therefore we proceed with the *Data Curation* panel in the bottom left of the application, we remove outlier **2547**,
-resulting in the stratified plots of RER as depicted in Fig. :ref:`ucp1_ko_rer_without_outlier`.
+Therefore we proceed with the *Data Curation* panel in the bottom left of the application, we remove outlier **2547**.
+Furthermore, to see genotype differences, we select grouping by facets for the genotype, resulting in the stratified plots
+of RER as depicted in Fig. :ref:`ucp1_ko_rer_without_outlier`.
 
 .. _ucp1_ko_rer_without_outlier:
 
@@ -281,10 +308,11 @@ resulting in the stratified plots of RER as depicted in Fig. :ref:`ucp1_ko_rer_w
 
    Figure 7a: RER for UCP1 KO without outlier 2547
 
-Note that instead of removing the outlier completely, we could trim the data set. From experience we know that 
+Instead of removing the outlier completely, we could trim the dataset (experimental times). From experience we know that 
 at the beginning and end of an experiment we might have erratic gas exchange values recorded (as for instance samples
 are handled at the beginning and end of an experiment, metabolic cage is opened and closed, sample acclimatisation to
-the temperature-controlled environment), thus we can use **Data curation** to trim these experimental times, see Fig. :ref:`trimming`.
+the temperature-controlled environment), thus CALOR provides the **Data curation** panel to trim these experimental times, 
+select full days, or specific days in either zeitgeber time or calender time, see Fig. :ref:`trimming`.
 
 .. _trimming:
 
@@ -296,16 +324,16 @@ the temperature-controlled environment), thus we can use **Data curation** to tr
    Figure 7b: Trimming of experimental times
 
 
-
-
 Notice that there is no qualitative (significant) difference between the mean traces of RER for the two genotypes.
-(Displayed are mean and standard deviation ribbons as can be configure directly below the plot in the application).
+Displayed are mean and standard deviation ribbons as can be configure directly below the plot in the application
+as a generalized additive model.
 
-We can confirm this by navigating to the *Statistical Testing* panel to conduct a 1-way ANOVA on day averaged values of RER,
-revealing no statistical significant difference for genotypes, see Fig. :ref:`rer_anova` and employ for this the *Wilcoxon-test*
-as a non-parametric test since we are operating in the low *n* regime. Other tests for post-hoc analysis can be selected in the
-application directly above the plot panel. Multiple-testing corrections can be selected when conducting higher-order ANOVAs,
-which we do not require here since our only factor is the genotype with two levels (minimum for ANOVAs or a unpaired t-test).
+We can confirm the visual analysis by navigating to the *Statistical Testing* panel to conduct a 1-way ANOVA on day-averaged values of RER,
+revealing no statistical significant difference for genotypes, see Fig. :ref:`rer_anova`. We employ for this the *Wilcoxon-test*
+as a non-parametric test since we are operating in the low *n* regime, otherwise also a *t-test* could be selected by the user. 
+
+Other tests for post-hoc analysis can be selected in the application directly above the plot panel. Multiple-testing corrections (Bonferonni, etc.) 
+can be selected when conducting higher-order ANOVAs, which we do not require here since our only factor is the genotype with two levels for one factor.
 
 .. _rer_anova:
 
@@ -317,8 +345,7 @@ which we do not require here since our only factor is the genotype with two leve
    Figure 8: 1-way ANOVA on genotype stratifiction for RER
 
 
-Since outliers are now removed, we can inspect the total heat production, in order to answer our null hypothesis.
-
+Since outliers are now removed, we can revisit the total heat production in order to answer our null hypothesis.
 
 .. container:: highlight-box
 
@@ -326,13 +353,13 @@ Since outliers are now removed, we can inspect the total heat production, in ord
    There is no genotype-specific effect (WT vs UCP1 KO) on neither THP or RMR.
 
 Since there are no changes in THP or RMR when considering only the genotype, we
-want now to consider also the during the experiment recorded covariates, i.e.
+want now to consider also the case that during the experiment recorded covariates, i.e.
 lean mass and fat mass (or changes therefore, in the following we use the terms
-delta lm and delta fm) or the whole body weight (or delta bw) and their influence
-on the THP and RMR in the KO and WT genotype. To factor this into our statistical
-model, we will make use of 1-way ANOVAs during our further analysis.
+delta lm and delta fm) or the whole body weight (or delta bw) are available. Their influence
+on the THP and RMR in the KO and WT genotype should be analyzed. To factor this into our
+statistical model, we will make use of 1-way ANCOVAs during our next analyses.
 
-In layman's terms the 1-way ANOVA model is formulated as follows, where 
+In layman's terms the 1-way ANCOVA model is formulated as follows, where 
 the dependent variable :math:`\text{DependentVar}`, the covariate :math:`\text{Covariate}`, 
 and the grouping variable :math:`\text{Group}` appear in the model as:
 
@@ -340,7 +367,7 @@ and the grouping variable :math:`\text{Group}` appear in the model as:
 
    \text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Covariate}_{ij} - \overline{\text{Covariate}}) + \epsilon_{ij}
 
-Where:
+The variables in the euqation are defined by:
 
 - :math:`\mu` is the overall mean.
 - :math:`\tau_i` is the effect of the :math:`i`-th group (:math:`\text{Group}`).
@@ -349,16 +376,17 @@ Where:
 - :math:`\overline{\text{Covariate}}` is the mean of the covariate :math:`\text{Covariate}` across all observations.
 - :math:`\epsilon_{ij}` is the random error term.
 
-In this model:
+In particular for this model:
 
 - The covariate :math:`\text{Covariate}` is adjusted by subtracting its mean (:math:`\overline{\text{Covariate}}`), centering it to reduce multicollinearity.
 - The :math:`\beta` term measures the relationship between the covariate :math:`\text{Covariate}` and the dependent variable :math:`\text{DependentVariable}`.
 
 The ANCOVA tests whether the group effects :math:`\tau_i` are significant while controlling for the covariate :math:`\text{Covariate}`.
-Do not worry, test assumptions are reported in *Details Panel*, and most importantly if the statistical test is valid to be applied for our data set.
+Whether test assumptions are met (for ANCOVA we also need homogeneity of regression slopes in addition to the usual assumptions of homoscedasticity and normality of ANOVA),
+is reported in the **Details** panel. Test statistics, and in particular p-values, are reported also in the **Details** panel. Statistical testing is configured in the homonymous panel.
 
 
-Thus our first null hypothesis for the RM can be stated as:
+Thus our first null hypothesis for the RMR can be stated as:
 
 .. container:: highlight-box
 
@@ -366,7 +394,7 @@ Thus our first null hypothesis for the RM can be stated as:
    There is a genotype-specific effect (WT vs UCP1 KO) on RMR corrected for one 
    of the covariates (lm, fm or bw)
 
-Likewise an anlog null hypothesis for the THP can be stated as:
+Likewise an analogue null hypothesis for the THP can be stated as:
 
 .. container:: highlight-box
 
@@ -375,8 +403,7 @@ Likewise an anlog null hypothesis for the THP can be stated as:
    of the covariates (lm, fm or bw)
 
 
-
-Now, we will proceed as before, but make use of 1-way ANOVAs for THP 
+Now, we will proceed as before, but make use of 1-way ANCOVAs for THP 
 (inluding either lm, fm or bw) and RMR (including either lm, fm or bw)
 grouped by genotype KO and WT to investigate if body weight composition
 might be a confounding factor in observing the true genotype effect.
@@ -435,13 +462,14 @@ Example data set II: DAKO KO
 .. container:: highlight-box
 
    :math:`H_0`:
-   There is a genotype-specific effect on the total heat production or resting metabolic rate.
+   There is a genotype-specific effect on the  production or resting metabolic rate.
 
-We will proceed as before with the analysis of this data set. The DAKO KO data set is a two cohort study in
+We will proceed as before with the analysis of this dataset. The DAKO KO data set is a two cohort study of
 a double knockout experiment.
+
 As before we get an overview of the metadata recorded with the experiment, see Fig. :ref:`dako_metadata` and
 enspect the raw measurement, e.g. the RER, see Fig. :ref:`dako_rer` and detect not obvious outlier, so we
-can use all samples from this data set.
+can use all samples from this dataset.
 
 .. _dako_metadata:
 
@@ -473,9 +501,9 @@ in the plot, see Fig. :ref:`dako_anova`.
 .. figure:: img/dako_thp.png
    :align: center
    :scale: 50%
-   :alt: Total heat production for DAKO data set
+   :alt:  production for DAKO data set
 
-   Figure 12: Total heat production for DAKO data set
+   Figure 12:  production for DAKO data set
 
 
 .. _dako_anova:
@@ -483,9 +511,9 @@ in the plot, see Fig. :ref:`dako_anova`.
 .. figure:: img/dako_anova.png
    :align: center
    :scale: 50%
-   :alt: 1-way ANOVA for DAKO and total heat production
+   :alt: 1-way ANOVA for DAKO and  production
 
-   Figure 13: 1-way ANOVA for DAKO and total heat production
+   Figure 13: 1-way ANOVA for DAKO and  production
 
 
 Next we ask, where these effects could possibly be stemming from, and conduct thus multiple 1-way ANCOVA where we
@@ -498,7 +526,7 @@ adjust for the body weight, lean mass and fat mass respectively, see Fig. :ref:`
    :align: center
    :scale: 50%
 
-   Figure 14: 1-way ANCOVA for DAKO and total heat production adjusted for body weight
+   Figure 14: 1-way ANCOVA for DAKO and  production adjusted for body weight
 
 
 .. _dako_ancova_lean:
@@ -507,7 +535,7 @@ adjust for the body weight, lean mass and fat mass respectively, see Fig. :ref:`
    :align: center
    :scale: 50%
 
-   Figure 15: 1-way ANCOVA for DAKO and total heat production adjusted for lean mass
+   Figure 15: 1-way ANCOVA for DAKO and  production adjusted for lean mass
 
 
 .. _dako_ancova_fat:
@@ -516,7 +544,7 @@ adjust for the body weight, lean mass and fat mass respectively, see Fig. :ref:`
    :align: center
    :scale: 50%
 
-   Figure 16: 1-way ANCOVA for DAKO and total heat production adjusted for fat mass
+   Figure 16: 1-way ANCOVA for DAKO and  production adjusted for fat mass
 
 
 We do confirm with the *Statistical testing* and *Details* panel, that in fact the
@@ -528,9 +556,9 @@ and not from the lean mass or total body weight.
 .. figure:: img/ancova_thp_details.png
    :align: center
    :scale: 50%
-   :alt: Statistics for 1-way ANCOVA of total heat production adjusted for fat mass
+   :alt: Statistics for 1-way ANCOVA of  production adjusted for fat mass
 
-   Figure 17: Statistics for 1-way ANCOVA of total heat production adjusted for fat mass
+   Figure 17: Statistics for 1-way ANCOVA of  production adjusted for fat mass
 
 
 Thus we are able to conclude the following:
@@ -538,7 +566,7 @@ Thus we are able to conclude the following:
 .. container:: highlight-box
 
    :math:`Conclusion`:
-   There is a genotype-specific effect (WT vs DAKO) on the total heat production
+   There is a genotype-specific effect (WT vs DAKO) on the  production
    mediated by the body composition's covariate fat mass.
 
 
@@ -596,23 +624,25 @@ Thus we are able to conclude the following:
 Custom data sets
 ~~~~~~~~~~~~~~~~~~~~~~
 
-For own data set or studies, users can make of the workflows as detailed in the
-two example data set use-cases from above for UCP1-KO and DAKO. First hypotheses
-should be posed, then consistency checks (metadata and raw data should be inspected,
-and outliers be removed) should be applied, then quantities should be visualized
+For own dataset or studies, users can make of the workflows as detailed in the
+two use cases for the example datasets from above. 
+
+In general, at the very beginning hypotheses should be posed for the experiment,
+then consistency checks (metadata and raw data should be inspected,
+and outliers be removed) should be applied. Afterwards quantities should be visualized
 and analyzed, in the suggested order: TotalHeatProduction, RestingMetabolicRate,
 HeatProduction and FuelOxidation.
 
-All data sets calculated in the app can be downloaded as a **.zip** file in the
-*Export Data* section. Plots can be downloaded directly from the top right corner
-in the corresponding plot, and saved as **.svg**, **.pdf** or **.png**.
+All data frames calculated in CALOR can be downloaded as a single compressed **.zip** file
+in the *Export Data* section. Indidivual plots can be downloaded directly from the top
+right corner in the corresponding plot, and saved as **.svg**, **.pdf** or **.png**.
 
 
 Data export
 ~~~~~~~~~~~
-To export combined data sets for all cohorts, data frames for plotting of results, and calculated quantities,
+To export combined datasets for all cohorts, data frames for plotting of results, and calculated quantities,
 all data can be download through the **Data export** panel, choose the *.zip* download which downloads one
-compressed file containing all data.
+compressed file containing all data frames and plots.
 
 
 Advanced use-cases
