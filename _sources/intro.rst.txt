@@ -21,8 +21,8 @@ A compiled list of common questions and issues are collected in the FAQ section 
 Getting started
 ===============
 
-Loading and navigating the application
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Navigating the application
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Navigate to the landing page on `CALOR <https://shiny.iaas.uni-bonn.de/Calo>`_ to access the web application.
 
@@ -50,7 +50,7 @@ Click the button **Go to analysis** to directly get started. Use the
 see Figure :ref:`load_example_data_set`.
 
 Loading example datasets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 Load example datasets and metadata, either **UCP1 KO** (4 cohort study) or **DAKO** (2 cohort study) are available. 
 Metadata is automatically loaded and attached to the corresponding dataset, see Figure :ref:`load_example_data_set`.
 
@@ -65,7 +65,7 @@ Metadata is automatically loaded and attached to the corresponding dataset, see 
 
 
 Loading own datasets
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 Provision of metadata is optional. However, metadata can be added through the upload of a standardized and hierarchical
 Excel Metadata Sheet (Seep et al., 2024, Scientific Data). Since the amount of metadata encoded in raw data file headers 
@@ -105,8 +105,8 @@ Adjust the **Number of data files** value according to your needs. Note that typ
 
 .. _generate_metadata_sheet:
 
-Generate metadata sheet for indirect calorimetry data sets 
-=============================================================
+Generation of metadata sheets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 While this step is optional, we want to emphazise that generation of a Metadata Sheet for your cohort study has multiple 
 benefits, i.e. statistical analysis of related metadata, comprehensive visualization of all collected metadata for the experiment,
 streamlined statistical analysis and visualization of datasets supported by consistent metadata with corresponding units. 
@@ -173,7 +173,7 @@ for each sample. Additional information, such as conditions (cold exposure vs ro
 
 You can then download the metadata sheet by the download button **Download metadata sheet**.
 
-Features
+Key features
 =====================================
 
 On the left side the navigation panel indicates the workflow within CALOR. The workflow is implictly assumed to follwo the order from top to bottom.
@@ -201,7 +201,7 @@ a menu with options will appear at the top border of the plotting area to select
 
 The next paragraphs will provide an overview of the individual analysis panels.
 
-1: Analyse recorded metadata
+1: Metadata analysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
@@ -213,7 +213,7 @@ distributions of recorded quantities is vital to a consistent downstream analysi
 difference between two genotype groups', say KO and WT, body composition, i.e. fat mass, further analysis should take the 
 information into account before drawing any conclusions.
 
-2: Raw measurements
+2: Raw Measurements
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
@@ -223,7 +223,7 @@ in percentage or volume changes over time intervals (typically recording interva
 Derived quantities, as for instance the RER (respiratory exchange ratio) can be (re-)calculated. If desired,
 users can pre-smooth or coarsen the raw traces too (typically not required, but depends on your use case).
 
-3: Total heat production 
+3: Total Heat Production 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The total heat production (THP) is the sum of :math:`THP = RMR+HP`, i.e. of resting metabolic rate and heat production (HP).
@@ -233,7 +233,7 @@ defined by resting metabolic rate and heat production (including physical activi
 Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
 panel is available for all modalities recorded in the indirect calorimetry experiment.
 
-4: Heat production
+4: Heat Production
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Heat production (HP) is the non-RMR contribution to the THP. Same analysis methods as for THP apply for the HP panel.
@@ -243,7 +243,7 @@ Heat production (HP) is the non-RMR contribution to the THP. Same analysis metho
 
 Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same analysis methods as for THP apply for the RMR panel as well.
 
-6: Fuel oxidation
+6: Fuel Oxidation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to 
@@ -251,8 +251,8 @@ visualize the utilization of glucose or lipid oxidation during heat production, 
 component is mainly oxidized (Raw measurements). Same analysis methods as for THP are available for the fuel oxidation panel.
 
 
-Conducting analyses
-===================
+Visualization and statistical data analysis
+===========================================
 
 Example dataset I: UCP1 KO
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -646,7 +646,7 @@ compressed file containing all data frames and plots.
 
 
 Advanced use-cases
-==================
+~~~~~~~~~~~~~~~~~~
 
 For advanced use case, e.g. locomotional analysis and budgeting as well as wavelet analysis to study ultradian rhythms,
 we refer to the supplementary material provided in the preprint [TODO: insert DOI here].
@@ -662,8 +662,8 @@ web application: `@CALOR-APP <https://www.youtube.com/@CALOR-APP>`_.
 Flow charts
 =============
 
-Statistical analysis
-~~~~~~~~~~~~~~~~~~~~
+Statistical testing
+~~~~~~~~~~~~~~~~~~~
 
 For a flow chart on how to select the appropriate statistical test, refer to 
 Fig. :ref:`flowchart_statistics` below.

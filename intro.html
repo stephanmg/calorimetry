@@ -202,10 +202,8 @@
   <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">What is CALOR?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#getting-started">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#generate-metadata-sheet-for-indirect-calorimetry-data-sets">Generate metadata sheet for indirect calorimetry data sets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#features">Features</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#conducting-analyses">Conducting analyses</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#advanced-use-cases">Advanced use-cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#key-features">Key features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#visualization-and-statistical-data-analysis">Visualization and statistical data analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#tutorial-videos">Tutorial videos</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#flow-charts">Flow charts</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
@@ -325,8 +323,8 @@ use the issue tracker on the linked Github repository.</p>
 </section>
 <section id="getting-started">
 <h1>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h1>
-<section id="loading-and-navigating-the-application">
-<h2>Loading and navigating the application<a class="headerlink" href="#loading-and-navigating-the-application" title="Link to this heading">¶</a></h2>
+<section id="navigating-the-application">
+<h2>Navigating the application<a class="headerlink" href="#navigating-the-application" title="Link to this heading">¶</a></h2>
 <p>Navigate to the landing page on <a class="reference external" href="https://shiny.iaas.uni-bonn.de/Calo">CALOR</a> to access the web application.</p>
 <p>The landing page displays information about the supported file formats and the application’s main features, see
 <a class="reference internal" href="#calor-landing"><span class="std std-ref">Figure 1: CALOR landing page and overview of common analysis tasks</span></a>. Click the <strong>Go to analysis</strong> tab in the nagivation bar at the top or below the CALOR logo
@@ -346,9 +344,8 @@ button from the navigation bar.</p>
 <p>Click the button <strong>Go to analysis</strong> to directly get started. Use the
 <strong>User guide</strong> built into the application in the section <strong>Dataset import -&gt; Example Data</strong> to get a tour of the application,
 see Figure <a class="reference internal" href="#load-example-data-set"><span class="std std-ref">Figure 1: Load example datasets and activation of the user guide</span></a>.</p>
-</section>
 <section id="loading-example-datasets">
-<h2>Loading example datasets<a class="headerlink" href="#loading-example-datasets" title="Link to this heading">¶</a></h2>
+<h3>Loading example datasets<a class="headerlink" href="#loading-example-datasets" title="Link to this heading">¶</a></h3>
 <p>Load example datasets and metadata, either <strong>UCP1 KO</strong> (4 cohort study) or <strong>DAKO</strong> (2 cohort study) are available.
 Metadata is automatically loaded and attached to the corresponding dataset, see Figure <a class="reference internal" href="#load-example-data-set"><span class="std std-ref">Figure 1: Load example datasets and activation of the user guide</span></a>.</p>
 <figure class="align-center" id="id2">
@@ -360,13 +357,13 @@ Metadata is automatically loaded and attached to the corresponding dataset, see 
 </figure>
 </section>
 <section id="loading-own-datasets">
-<h2>Loading own datasets<a class="headerlink" href="#loading-own-datasets" title="Link to this heading">¶</a></h2>
+<h3>Loading own datasets<a class="headerlink" href="#loading-own-datasets" title="Link to this heading">¶</a></h3>
 <p>Provision of metadata is optional. However, metadata can be added through the upload of a standardized and hierarchical
 Excel Metadata Sheet (Seep et al., 2024, Scientific Data). Since the amount of metadata encoded in raw data file headers
 (short and non-standardized section in the beginning of each data file exported from e.g. TSE Systems, etc.) is limited,
 and usually error-prone, as metadata fields have to be specified by users of the indirect calorimetry system individually,
 we recommend to provide a Metadata Sheet. Also under certain circumstances, not all of CALOR’s functionality might be
-available for users providing only raw datasets. See <a class="reference internal" href="#generate-metadata-sheet"><span class="std std-ref">Generate metadata sheet for indirect calorimetry data sets</span></a> below on how to generate
+available for users providing only raw datasets. See <a class="reference internal" href="#generate-metadata-sheet"><span class="std std-ref">Generation of metadata sheets</span></a> below on how to generate
 standardized metadata for your data set(s) with either fixed format Excel template or the Metadata converter Shiny application.</p>
 <p>To load your own dataset, left-click on the large plus symbol.</p>
 <figure class="align-center" id="id3">
@@ -389,8 +386,8 @@ The metadata for all cohorts is recorded conveniently in a single Excel sheet fo
 </figure>
 </section>
 </section>
-<section id="generate-metadata-sheet-for-indirect-calorimetry-data-sets">
-<span id="generate-metadata-sheet"></span><h1>Generate metadata sheet for indirect calorimetry data sets<a class="headerlink" href="#generate-metadata-sheet-for-indirect-calorimetry-data-sets" title="Link to this heading">¶</a></h1>
+<section id="generation-of-metadata-sheets">
+<span id="generate-metadata-sheet"></span><h2>Generation of metadata sheets<a class="headerlink" href="#generation-of-metadata-sheets" title="Link to this heading">¶</a></h2>
 <p>While this step is optional, we want to emphazise that generation of a Metadata Sheet for your cohort study has multiple
 benefits, i.e. statistical analysis of related metadata, comprehensive visualization of all collected metadata for the experiment,
 streamlined statistical analysis and visualization of datasets supported by consistent metadata with corresponding units.</p>
@@ -489,8 +486,9 @@ for each sample. Additional information, such as conditions (cold exposure vs ro
 </figure>
 <p>You can then download the metadata sheet by the download button <strong>Download metadata sheet</strong>.</p>
 </section>
-<section id="features">
-<h1>Features<a class="headerlink" href="#features" title="Link to this heading">¶</a></h1>
+</section>
+<section id="key-features">
+<h1>Key features<a class="headerlink" href="#key-features" title="Link to this heading">¶</a></h1>
 <p>On the left side the navigation panel indicates the workflow within CALOR. The workflow is implictly assumed to follwo the order from top to bottom.</p>
 <p>The individual steps for analysis within CALOR are thus:</p>
 <ol class="arabic simple">
@@ -509,8 +507,8 @@ resting metabolic rate (RMR) and raw quantities as well as fuel oxidation (from 
 <p>All plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area on the right panel,
 a menu with options will appear at the top border of the plotting area to select either PDF, PNG or SVG export.</p>
 <p>The next paragraphs will provide an overview of the individual analysis panels.</p>
-<section id="analyse-recorded-metadata">
-<h2>1: Analyse recorded metadata<a class="headerlink" href="#analyse-recorded-metadata" title="Link to this heading">¶</a></h2>
+<section id="metadata-analysis">
+<h2>1: Metadata analysis<a class="headerlink" href="#metadata-analysis" title="Link to this heading">¶</a></h2>
 <p>The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
 recorded alongside the indirect calorimetry experiment. Covariates like body weight, lean mass, fat mass can be statistically
 (with significace tests) compared and visualized via appropriate plots (boxplots, regression plots).</p>
@@ -520,7 +518,7 @@ difference between two genotype groups’, say KO and WT, body composition, i.e.
 information into account before drawing any conclusions.</p>
 </section>
 <section id="raw-measurements">
-<h2>2: Raw measurements<a class="headerlink" href="#raw-measurements" title="Link to this heading">¶</a></h2>
+<h2>2: Raw Measurements<a class="headerlink" href="#raw-measurements" title="Link to this heading">¶</a></h2>
 <p>Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
 in percentage or volume changes over time intervals (typically recording intervals in indirect calorimetry experiments are
 5 or 10 minutes, but users can interpolate to a finer or coarser time grid by using <strong>Dataset import-&gt;Import options</strong>).</p>
@@ -528,7 +526,7 @@ in percentage or volume changes over time intervals (typically recording interva
 users can pre-smooth or coarsen the raw traces too (typically not required, but depends on your use case).</p>
 </section>
 <section id="total-heat-production">
-<h2>3: Total heat production<a class="headerlink" href="#total-heat-production" title="Link to this heading">¶</a></h2>
+<h2>3: Total Heat Production<a class="headerlink" href="#total-heat-production" title="Link to this heading">¶</a></h2>
 <p>The total heat production (THP) is the sum of <span class="math notranslate nohighlight">\(THP = RMR+HP\)</span>, i.e. of resting metabolic rate and heat production (HP).
 Alternatively one can interpret the THP as total energy expenditure (TEE) such that we have the sum <span class="math notranslate nohighlight">\(TEE=RMR+EE\)</span>, which is
 defined by resting metabolic rate and heat production (including physical activity).</p>
@@ -536,7 +534,7 @@ defined by resting metabolic rate and heat production (including physical activi
 panel is available for all modalities recorded in the indirect calorimetry experiment.</p>
 </section>
 <section id="heat-production">
-<h2>4: Heat production<a class="headerlink" href="#heat-production" title="Link to this heading">¶</a></h2>
+<h2>4: Heat Production<a class="headerlink" href="#heat-production" title="Link to this heading">¶</a></h2>
 <p>Heat production (HP) is the non-RMR contribution to the THP. Same analysis methods as for THP apply for the HP panel.</p>
 </section>
 <section id="resting-metabolic-rate">
@@ -544,14 +542,14 @@ panel is available for all modalities recorded in the indirect calorimetry exper
 <p>Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same analysis methods as for THP apply for the RMR panel as well.</p>
 </section>
 <section id="fuel-oxidation">
-<h2>6: Fuel oxidation<a class="headerlink" href="#fuel-oxidation" title="Link to this heading">¶</a></h2>
+<h2>6: Fuel Oxidation<a class="headerlink" href="#fuel-oxidation" title="Link to this heading">¶</a></h2>
 <p>Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to
 visualize the utilization of glucose or lipid oxidation during heat production, similar as the RER can indicate which
 component is mainly oxidized (Raw measurements). Same analysis methods as for THP are available for the fuel oxidation panel.</p>
 </section>
 </section>
-<section id="conducting-analyses">
-<h1>Conducting analyses<a class="headerlink" href="#conducting-analyses" title="Link to this heading">¶</a></h1>
+<section id="visualization-and-statistical-data-analysis">
+<h1>Visualization and statistical data analysis<a class="headerlink" href="#visualization-and-statistical-data-analysis" title="Link to this heading">¶</a></h1>
 <section id="example-dataset-i-ucp1-ko">
 <h2>Example dataset I: UCP1 KO<a class="headerlink" href="#example-dataset-i-ucp1-ko" title="Link to this heading">¶</a></h2>
 <div class="highlight-box docutils container">
@@ -843,11 +841,11 @@ right corner in the corresponding plot, and saved as <strong>.svg</strong>, <str
 all data can be download through the <strong>Data export</strong> panel, choose the <em>.zip</em> download which downloads one
 compressed file containing all data frames and plots.</p>
 </section>
-</section>
 <section id="advanced-use-cases">
-<h1>Advanced use-cases<a class="headerlink" href="#advanced-use-cases" title="Link to this heading">¶</a></h1>
+<h2>Advanced use-cases<a class="headerlink" href="#advanced-use-cases" title="Link to this heading">¶</a></h2>
 <p>For advanced use case, e.g. locomotional analysis and budgeting as well as wavelet analysis to study ultradian rhythms,
 we refer to the supplementary material provided in the preprint [TODO: insert DOI here].</p>
+</section>
 </section>
 <section id="tutorial-videos">
 <h1>Tutorial videos<a class="headerlink" href="#tutorial-videos" title="Link to this heading">¶</a></h1>
@@ -856,8 +854,8 @@ web application: <a class="reference external" href="https://www.youtube.com/&#6
 </section>
 <section id="flow-charts">
 <h1>Flow charts<a class="headerlink" href="#flow-charts" title="Link to this heading">¶</a></h1>
-<section id="statistical-analysis">
-<h2>Statistical analysis<a class="headerlink" href="#statistical-analysis" title="Link to this heading">¶</a></h2>
+<section id="statistical-testing">
+<h2>Statistical testing<a class="headerlink" href="#statistical-testing" title="Link to this heading">¶</a></h2>
 <p>For a flow chart on how to select the appropriate statistical test, refer to
 Fig. <a class="reference internal" href="#flowchart-statistics"><span class="std std-ref">Figure 20: Flow chart for selecting appropriate statistical test</span></a> below.</p>
 <figure class="align-center" id="id27">
