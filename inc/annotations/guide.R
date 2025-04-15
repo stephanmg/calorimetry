@@ -74,13 +74,9 @@ guide <- Cicerone$
         "Choose a file name to save compiled data sets and calculated quantities. Plotting data frame can be exported as individual .csv files below as well."
     )$
     step(
-        "session_info",
+        "session_id",
         "Session information",
         "Provide information of current user session during a bug report"
-    )$
-    step("git_info",
-        "Version information",
-        "Provide information of current version during a bug report"
     )$
     step("plot",
         "Main plot",
