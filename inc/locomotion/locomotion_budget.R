@@ -15,12 +15,15 @@ library(stringr)
 #' @export
 ################################################################################
 plot_locomotion_budget <- function(file) {
+   # Sable stores data in Behaviour_List sheet in the Excel workbook
    sheet <- "Behavior_List"
+
+   # Read df and unique animal IDs
    df <- read_excel(file, sheet = sheet)
    df <- na.omit(df)
    animals <- unique(df$Animal)
 
-   # all animals
+   # create locomotor budget plot
    df <- df %>% group_by(Animal, Activity) %>% summarize(across(Durat_Sec, sum)) %>% group_by(Animal) %>% mutate(Durat_Sec = Durat_Sec / sum(Durat_Sec))
    p <- ggplot(data = df, aes(x = Animal, y = Durat_Sec, fill = Activity))
    p <- p + geom_bar(stat = "identity")
