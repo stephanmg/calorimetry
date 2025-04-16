@@ -7,7 +7,7 @@ on:
 
 jobs:
    build-docs:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04
 
       steps:
       - name: Checkout repository
@@ -29,8 +29,8 @@ jobs:
           r-version: '4.4.0'
       - name: "Install R dependencies"
         run: |
-           Rscript -e 'install.packages("Rd2md", repos="https://cran.us.r-project.org")'
-           Rscript -e 'install.packages("roxygen2", repos="https://cran.us.r-project.org")'
+           Rscript -e 'install.packages("Rd2md")'
+           Rscript -e 'install.packages("roxygen2")'
 
       - name: Build Sphinx documentation
         run: |
