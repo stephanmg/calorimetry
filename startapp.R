@@ -27,8 +27,8 @@ printSessionInfo <- TRUE
 options(shiny.host = host)
 options(shiny.port = port)
 options(shiny.maxRequestSize = maxRequestSize)
-options(shiny.trace = TRUE)
-options(shiny.fullstacktrace = TRUE)
+#options(shiny.trace = TRUE)
+#options(shiny.fullstacktrace = TRUE)
 
 ################################################################################
 # Debug session
