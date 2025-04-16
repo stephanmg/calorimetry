@@ -851,6 +851,7 @@ ui <- tagList(
   useShinyjs(),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),
+  tags$head(tags$link(rel = "shrotcut icon", href="favicon.ico")),
   navbarPage(
     id="navbar",
     header = list(use_cicerone()),
