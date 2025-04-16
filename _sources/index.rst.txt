@@ -3,15 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CALOR's documentation!
-=================================
-
 Introduction
 ============
 .. toctree::
    :maxdepth: 3
 
    intro
+
+The CALOR workflow
+==================
+.. toctree::
+   :maxdepth: 3
+
+   features
+
+
+Miscellaneous
+=============
+.. toctree::
+   :maxdepth: 3
+   
+   misc
    faq
    code
 

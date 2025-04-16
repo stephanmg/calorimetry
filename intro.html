@@ -3,14 +3,14 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Frequently Asked Questions" href="faq.html" /><link rel="prev" title="Welcome to CALOR’s documentation!" href="index.html" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Frequently Asked Questions" href="faq.html" /><link rel="prev" title="Introduction" href="index.html" />
 
-    <!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="_static/favicon.ico"/><!-- Generated with Sphinx 8.2.3 and Furo 2024.08.06 -->
         <title>What is CALOR? - CALOR documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
-    <link rel="stylesheet" type="text/css" href="_static/custom.css" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=4d4276be" />
     
     
 
@@ -190,6 +190,9 @@
       
       <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
   
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/logo.png" alt="Logo"/>
+  </div>
   
   <span class="sidebar-brand-text">CALOR  documentation</span>
   
@@ -202,10 +205,8 @@
   <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">What is CALOR?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="#getting-started">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#key-features">Key features</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#visualization-and-statistical-data-analysis">Visualization and statistical data analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#tutorial-videos">Tutorial videos</a></li>
-<li class="toctree-l1"><a class="reference internal" href="#flow-charts">Flow charts</a></li>
+</ul>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="code.html">Code availability and development</a></li>
 </ul>
@@ -487,386 +488,6 @@ for each sample. Additional information, such as conditions (cold exposure vs ro
 <p>You can then download the metadata sheet by the download button <strong>Download metadata sheet</strong>.</p>
 </section>
 </section>
-<section id="key-features">
-<h1>Key features<a class="headerlink" href="#key-features" title="Link to this heading">¶</a></h1>
-<p>On the left side the navigation panel indicates the workflow within CALOR. The workflow is implictly assumed to follwo the order from top to bottom.</p>
-<p>The individual steps for analysis within CALOR are thus:</p>
-<ol class="arabic simple">
-<li><p>Dataset import</p></li>
-<li><p>Statistics and visualization (Includes possibility to review metadata and detection of biases)</p></li>
-<li><p>Data curation (Outlier correction, selection of subjects, days, trimming of experimental times) and</p></li>
-<li><p>Result summary (For exporting of results in high quality graphics and data tables)</p></li>
-</ol>
-<p>Note that on the right panel a plot of the quantity of interest will be displayed in the tab (Main plot).
-Additional panels for <strong>Statistical testing</strong>, <strong>Details</strong> of statistical testing and <strong>Statistical model</strong> are available.
-The <strong>Explanation</strong> tab provides additional information and a description of which data is currently displayed.</p>
-<p>During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the <strong>Data curation</strong> panel.</p>
-<p>Datasets can be filtered for temperature and photoperiod over time.</p>
-<p>The section statistics and visualization provides the calculation of heat production (HP), total heat production (THP)
-resting metabolic rate (RMR) and raw quantities as well as fuel oxidation (from here on ocassionally referred to as modalities).</p>
-<p>All plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area on the right panel,
-a menu with options will appear at the top border of the plotting area to select either PDF, PNG or SVG export.</p>
-<p>The next paragraphs will provide an overview of the individual analysis panels.</p>
-<section id="metadata-analysis">
-<h2>1: Metadata analysis<a class="headerlink" href="#metadata-analysis" title="Link to this heading">¶</a></h2>
-<p>The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
-recorded alongside the indirect calorimetry experiment. Covariates like body weight, lean mass, fat mass can be statistically
-(with significace tests) compared and visualized via appropriate plots (boxplots, regression plots).</p>
-<p>Analysis of metadata should always be the starting point before conducting any analysis. Assessment of the quality and the
-distributions of recorded quantities is vital to a consistent downstream analysis. For instance if there is a significant
-difference between two genotype groups’, say KO and WT, body composition, i.e. fat mass, further analysis should take the
-information into account before drawing any conclusions.</p>
-</section>
-<section id="raw-measurements">
-<h2>2: Raw Measurements<a class="headerlink" href="#raw-measurements" title="Link to this heading">¶</a></h2>
-<p>Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
-in percentage or volume changes over time intervals (typically recording intervals in indirect calorimetry experiments are
-5 or 10 minutes, but users can interpolate to a finer or coarser time grid by using <strong>Dataset import-&gt;Import options</strong>).</p>
-<p>Derived quantities, as for instance the RER (respiratory exchange ratio) can be (re-)calculated. If desired,
-users can pre-smooth or coarsen the raw traces too (typically not required, but depends on your use case).</p>
-</section>
-<section id="total-heat-production">
-<h2>3: Total Heat Production<a class="headerlink" href="#total-heat-production" title="Link to this heading">¶</a></h2>
-<p>The total heat production (THP) is the sum of <span class="math notranslate nohighlight">\(THP = RMR+HP\)</span>, i.e. of resting metabolic rate and heat production (HP).
-Alternatively one can interpret the THP as total energy expenditure (TEE) such that we have the sum <span class="math notranslate nohighlight">\(TEE=RMR+EE\)</span>, which is
-defined by resting metabolic rate and heat production (including physical activity).</p>
-<p>Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
-panel is available for all modalities recorded in the indirect calorimetry experiment.</p>
-</section>
-<section id="heat-production">
-<h2>4: Heat Production<a class="headerlink" href="#heat-production" title="Link to this heading">¶</a></h2>
-<p>Heat production (HP) is the non-RMR contribution to the THP. Same analysis methods as for THP apply for the HP panel.</p>
-</section>
-<section id="resting-metabolic-rate">
-<h2>5: Resting Metabolic Rate<a class="headerlink" href="#resting-metabolic-rate" title="Link to this heading">¶</a></h2>
-<p>Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same analysis methods as for THP apply for the RMR panel as well.</p>
-</section>
-<section id="fuel-oxidation">
-<h2>6: Fuel Oxidation<a class="headerlink" href="#fuel-oxidation" title="Link to this heading">¶</a></h2>
-<p>Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to
-visualize the utilization of glucose or lipid oxidation during heat production, similar as the RER can indicate which
-component is mainly oxidized (Raw measurements). Same analysis methods as for THP are available for the fuel oxidation panel.</p>
-</section>
-</section>
-<section id="visualization-and-statistical-data-analysis">
-<h1>Visualization and statistical data analysis<a class="headerlink" href="#visualization-and-statistical-data-analysis" title="Link to this heading">¶</a></h1>
-<section id="example-dataset-i-ucp1-ko">
-<h2>Example dataset I: UCP1 KO<a class="headerlink" href="#example-dataset-i-ucp1-ko" title="Link to this heading">¶</a></h2>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(H_0\)</span>:
-There is no genotype-specific effect (WT vs UCP1 KO) on the total production or resting metabolic rate.</p>
-</div>
-<p>To either reject or accept the null hypothesis <span class="math notranslate nohighlight">\(H_0\)</span> we can make use of CALOR’s features.</p>
-<p>First, we do inspect the metadata recorded with this multi cohort study, to identify outliers or idiosyncrasies associated with the dataset.</p>
-<figure class="align-center" id="id7">
-<span id="ucp1-ko-metadata"></span><a class="reference internal image-reference" href="_images/metadata.png"><img alt="Metadata for multi cohort UCP1 KO data set" src="_images/metadata.png" style="width: 619.5px; height: 500.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 5: Metadata for multi cohort UCP1 KO data set</span><a class="headerlink" href="#id7" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>According to Fig. <a class="reference internal" href="#ucp1-ko-metadata"><span class="std std-ref">Figure 5: Metadata for multi cohort UCP1 KO data set</span></a> distribution numbers (n) for Genotype and Diet are balanced, there is no
-irregularities for body composition (fat and lean mass) and also no problematic changes of body composition over the
-time course of the experiment. The study entails only male samples (male) on a high fat diet (HFD). Since there are no
-obvious issues with the metadata, we can proceed by inspecting the raw measurements as recorded from the metabolic phenotyping system.</p>
-<p>Plotting the raw quantities can be a valid and important first diagnostic of consistency of the experiment.
-See Fig. <a class="reference internal" href="#ucp1-ko-rer-with-outlier"><span class="std std-ref">Figure 6: RER for UCP1 KO with outlier</span></a> in particular for the RER stratified by Genotype (WT vs KO).</p>
-<figure class="align-center" id="id8">
-<span id="ucp1-ko-rer-with-outlier"></span><a class="reference internal image-reference" href="_images/rer_with_outlier.png"><img alt="RER for UCP1 KO with outlier" src="_images/rer_with_outlier.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 6: RER for UCP1 KO with outlier</span><a class="headerlink" href="#id8" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>We identify an outlier which has an erratic RER time plot, and thus also an erratic oxygen and carbon dioxide curve,
-since the dimensionless RER is defined as: <span class="math notranslate nohighlight">\(RER=\frac{\dot{V}_{CO_{2}}}{\dot{V}_{O_{2}}} \in [0,1]\)</span>.</p>
-<p>Therefore we proceed with the <em>Data Curation</em> panel in the bottom left of the application, we remove outlier <strong>2547</strong>.
-Furthermore, to see genotype differences, we select grouping by facets for the genotype, resulting in the stratified plots
-of RER as depicted in Fig. <a class="reference internal" href="#ucp1-ko-rer-without-outlier"><span class="std std-ref">Figure 7a: RER for UCP1 KO without outlier 2547</span></a>.</p>
-<figure class="align-center" id="id9">
-<span id="ucp1-ko-rer-without-outlier"></span><a class="reference internal image-reference" href="_images/rer_without_outlier.png"><img alt="RER for UCP1 KO without outlier 2547" src="_images/rer_without_outlier.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 7a: RER for UCP1 KO without outlier 2547</span><a class="headerlink" href="#id9" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Instead of removing the outlier completely, we could trim the dataset (experimental times). From experience we know that
-at the beginning and end of an experiment we might have erratic gas exchange values recorded (as for instance samples
-are handled at the beginning and end of an experiment, metabolic cage is opened and closed, sample acclimatisation to
-the temperature-controlled environment), thus CALOR provides the <strong>Data curation</strong> panel to trim these experimental times,
-select full days, or specific days in either zeitgeber time or calender time, see Fig. <a class="reference internal" href="#trimming"><span class="std std-ref">Figure 7b: Trimming of experimental times</span></a>.</p>
-<figure class="align-center" id="id10">
-<span id="trimming"></span><a class="reference internal image-reference" href="_images/trimming.png"><img alt="Trimming of experimental times" src="_images/trimming.png" style="width: 294.5px; height: 199.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 7b: Trimming of experimental times</span><a class="headerlink" href="#id10" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Notice that there is no qualitative (significant) difference between the mean traces of RER for the two genotypes.
-Displayed are mean and standard deviation ribbons as can be configure directly below the plot in the application
-as a generalized additive model.</p>
-<p>We can confirm the visual analysis by navigating to the <em>Statistical Testing</em> panel to conduct a 1-way ANOVA on day-averaged values of RER,
-revealing no statistical significant difference for genotypes, see Fig. <a class="reference internal" href="#rer-anova"><span class="std std-ref">Figure 8: 1-way ANOVA on genotype stratifiction for RER</span></a>. We employ for this the <em>Wilcoxon-test</em>
-as a non-parametric test since we are operating in the low <em>n</em> regime, otherwise also a <em>t-test</em> could be selected by the user.</p>
-<p>Other tests for post-hoc analysis can be selected in the application directly above the plot panel. Multiple-testing corrections (Bonferonni, etc.)
-can be selected when conducting higher-order ANOVAs, which we do not require here since our only factor is the genotype with two levels for one factor.</p>
-<figure class="align-center" id="id11">
-<span id="rer-anova"></span><a class="reference internal image-reference" href="_images/1_way_anova_rer.png"><img alt="1-way ANOVA on genotype stratification for RER" src="_images/1_way_anova_rer.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 8: 1-way ANOVA on genotype stratifiction for RER</span><a class="headerlink" href="#id11" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Since outliers are now removed, we can revisit the total heat production in order to answer our null hypothesis.</p>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(Conclusion\)</span>:
-There is no genotype-specific effect (WT vs UCP1 KO) on neither THP or RMR.</p>
-</div>
-<p>Since there are no changes in THP or RMR when considering only the genotype, we
-want now to consider also the case that during the experiment recorded covariates, i.e.
-lean mass and fat mass (or changes therefore, in the following we use the terms
-delta lm and delta fm) or the whole body weight (or delta bw) are available. Their influence
-on the THP and RMR in the KO and WT genotype should be analyzed. To factor this into our
-statistical model, we will make use of 1-way ANCOVAs during our next analyses.</p>
-<p>In layman’s terms the 1-way ANCOVA model is formulated as follows, where
-the dependent variable <span class="math notranslate nohighlight">\(\text{DependentVar}\)</span>, the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span>,
-and the grouping variable <span class="math notranslate nohighlight">\(\text{Group}\)</span> appear in the model as:</p>
-<div class="math-wrapper docutils container">
-<div class="math notranslate nohighlight">
-\[\text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Covariate}_{ij} - \overline{\text{Covariate}}) + \epsilon_{ij}\]</div>
-</div>
-<p>The variables in the euqation are defined by:</p>
-<ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(\mu\)</span> is the overall mean.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\tau_i\)</span> is the effect of the <span class="math notranslate nohighlight">\(i\)</span>-th group (<span class="math notranslate nohighlight">\(\text{Group}\)</span>).</p></li>
-<li><p><span class="math notranslate nohighlight">\(\beta\)</span> is the regression coefficient for the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span>.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\text{Covariate}_{ij}\)</span> is the value of the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> for observation <span class="math notranslate nohighlight">\(j\)</span> in group <span class="math notranslate nohighlight">\(i\)</span>.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\overline{\text{Covariate}}\)</span> is the mean of the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> across all observations.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\epsilon_{ij}\)</span> is the random error term.</p></li>
-</ul>
-<p>In particular for this model:</p>
-<ul class="simple">
-<li><p>The covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> is adjusted by subtracting its mean (<span class="math notranslate nohighlight">\(\overline{\text{Covariate}}\)</span>), centering it to reduce multicollinearity.</p></li>
-<li><p>The <span class="math notranslate nohighlight">\(\beta\)</span> term measures the relationship between the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> and the dependent variable <span class="math notranslate nohighlight">\(\text{DependentVariable}\)</span>.</p></li>
-</ul>
-<p>The ANCOVA tests whether the group effects <span class="math notranslate nohighlight">\(\tau_i\)</span> are significant while controlling for the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span>.
-Whether test assumptions are met (for ANCOVA we also need homogeneity of regression slopes in addition to the usual assumptions of homoscedasticity and normality of ANOVA),
-is reported in the <strong>Details</strong> panel. Test statistics, and in particular p-values, are reported also in the <strong>Details</strong> panel. Statistical testing is configured in the homonymous panel.</p>
-<p>Thus our first null hypothesis for the RMR can be stated as:</p>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(H_0\)</span>:
-There is a genotype-specific effect (WT vs UCP1 KO) on RMR corrected for one
-of the covariates (lm, fm or bw)</p>
-</div>
-<p>Likewise an analogue null hypothesis for the THP can be stated as:</p>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(H_0\)</span>:
-There is a genotype-specific effect (WT vs UCP1 KO) on THP corrected for one
-of the covariates (lm, fm or bw)</p>
-</div>
-<p>Now, we will proceed as before, but make use of 1-way ANCOVAs for THP
-(inluding either lm, fm or bw) and RMR (including either lm, fm or bw)
-grouped by genotype KO and WT to investigate if body weight composition
-might be a confounding factor in observing the true genotype effect.</p>
-<p>For RMR see Figs. <a class="reference internal" href="#rmr-ancova"><span class="std std-ref">Figure 9: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate</span></a>, <a class="reference internal" href="#rmr-ancova-details"><span class="std std-ref">Figure 10: 1-way ANCOVA on genotype stratification for RMR lean mass as covariate with statistical details</span></a> and THP see Figs. <a class="reference internal" href="#thp-ancova"><span class="std std-ref">Figure 9: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate</span></a>, <a class="reference internal" href="#thp-ancova-details"><span class="std std-ref">Figure 10: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate with statistical details</span></a>.</p>
-<figure class="align-center" id="id12">
-<span id="thp-ancova"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_thp_details.png"><img alt="1-way ANOVA on genotype stratification for THP with lean mass as covariate" src="_images/ancova_ucp1ko_thp_details.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 9: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate</span><a class="headerlink" href="#id12" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id13">
-<span id="thp-ancova-details"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_thp.png"><img alt="1-way ANOVA on genotype stratification for THP with lean mass as covariate with statistical details" src="_images/ancova_ucp1ko_thp.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 10: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate with statistical details</span><a class="headerlink" href="#id13" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id14">
-<span id="rmr-ancova"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_rmr.png"><img alt="1-way ANOVA on genotype stratification for RMR with lean mass as covariate" src="_images/ancova_ucp1ko_rmr.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 9: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate</span><a class="headerlink" href="#id14" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id15">
-<span id="rmr-ancova-details"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_rmr_details.png"><img alt="1-way ANOVA on genotype stratification for RMR with lean mass as covariate with statistical details" src="_images/ancova_ucp1ko_rmr_details.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 10: 1-way ANCOVA on genotype stratification for RMR lean mass as covariate with statistical details</span><a class="headerlink" href="#id15" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<div class="highlight-box docutils container">
-<p><strong>Final conclusion</strong>:
-Based on our analysis we can reject all of our posed null hypotheses for the UCP1 KO cohort study.</p>
-</div>
-</section>
-<section id="example-data-set-ii-dako-ko">
-<h2>Example data set II: DAKO KO<a class="headerlink" href="#example-data-set-ii-dako-ko" title="Link to this heading">¶</a></h2>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(H_0\)</span>:
-There is a genotype-specific effect on the  production or resting metabolic rate.</p>
-</div>
-<p>We will proceed as before with the analysis of this dataset. The DAKO KO data set is a two cohort study of
-a double knockout experiment.</p>
-<p>As before we get an overview of the metadata recorded with the experiment, see Fig. <a class="reference internal" href="#dako-metadata"><span class="std std-ref">Figure 11: Metadata for 2 cohort DAKO data set</span></a> and
-enspect the raw measurement, e.g. the RER, see Fig. <a class="reference internal" href="#dako-rer"><span class="std std-ref">Figure 12: RER for DAKO data set</span></a> and detect not obvious outlier, so we
-can use all samples from this dataset.</p>
-<figure class="align-center" id="id16">
-<span id="dako-metadata"></span><a class="reference internal image-reference" href="_images/dako_metadata.png"><img alt="Metadata for 2 cohort DAKO data set" src="_images/dako_metadata.png" style="width: 619.5px; height: 500.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 11: Metadata for 2 cohort DAKO data set</span><a class="headerlink" href="#id16" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id17">
-<span id="dako-rer"></span><a class="reference internal image-reference" href="_images/dako_rer.png"><img alt="RER for DAKO data set" src="_images/dako_rer.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 12: RER for DAKO data set</span><a class="headerlink" href="#id17" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>We proceed by calculating the total heat production, see Fig. <a class="reference internal" href="#dako-thp"><span class="std std-ref">Figure 12:  production for DAKO data set</span></a> stratified by genotype.
-After inspecting of the data, no outlier seems to be present. Next, we use in the <em>Statistical testing</em>
-panel a 1-way ANOVA which detects significant changes as indicated by the Wilcoxon test p-value smaller than 0.05
-in the plot, see Fig. <a class="reference internal" href="#dako-anova"><span class="std std-ref">Figure 13: 1-way ANOVA for DAKO and  production</span></a>.</p>
-<figure class="align-center" id="id18">
-<span id="dako-thp"></span><a class="reference internal image-reference" href="_images/dako_thp.png"><img alt="production for DAKO data set" src="_images/dako_thp.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 12:  production for DAKO data set</span><a class="headerlink" href="#id18" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id19">
-<span id="dako-anova"></span><a class="reference internal image-reference" href="_images/dako_anova.png"><img alt="1-way ANOVA for DAKO and  production" src="_images/dako_anova.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 13: 1-way ANOVA for DAKO and  production</span><a class="headerlink" href="#id19" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Next we ask, where these effects could possibly be stemming from, and conduct thus multiple 1-way ANCOVA where we
-adjust for the body weight, lean mass and fat mass respectively, see Fig. <a class="reference internal" href="#dako-ancova-lean"><span class="std std-ref">Figure 15: 1-way ANCOVA for DAKO and  production adjusted for lean mass</span></a>, <a class="reference internal" href="#dako-ancova-fat"><span class="std std-ref">Figure 16: 1-way ANCOVA for DAKO and  production adjusted for fat mass</span></a>, <a class="reference internal" href="#dako-ancova-bw"><span class="std std-ref">Figure 14: 1-way ANCOVA for DAKO and  production adjusted for body weight</span></a>.</p>
-<figure class="align-center" id="id20">
-<span id="dako-ancova-bw"></span><a class="reference internal image-reference" href="_images/dako_ancova_bw.png"><img alt="_images/dako_ancova_bw.png" src="_images/dako_ancova_bw.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 14: 1-way ANCOVA for DAKO and  production adjusted for body weight</span><a class="headerlink" href="#id20" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id21">
-<span id="dako-ancova-lean"></span><a class="reference internal image-reference" href="_images/dako_ancova_lean.png"><img alt="_images/dako_ancova_lean.png" src="_images/dako_ancova_lean.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 15: 1-way ANCOVA for DAKO and  production adjusted for lean mass</span><a class="headerlink" href="#id21" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<figure class="align-center" id="id22">
-<span id="dako-ancova-fat"></span><a class="reference internal image-reference" href="_images/dako_ancova_fat.png"><img alt="_images/dako_ancova_fat.png" src="_images/dako_ancova_fat.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 16: 1-way ANCOVA for DAKO and  production adjusted for fat mass</span><a class="headerlink" href="#id22" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>We do confirm with the <em>Statistical testing</em> and <em>Details</em> panel, that in fact the
-effect seems to stem from the body composition in fat mass, see. Fig. <a class="reference internal" href="#dako-thp-details"><span class="std std-ref">Figure 17: Statistics for 1-way ANCOVA of  production adjusted for fat mass</span></a>,
-and not from the lean mass or total body weight.</p>
-<figure class="align-center" id="id23">
-<span id="dako-thp-details"></span><a class="reference internal image-reference" href="_images/ancova_thp_details.png"><img alt="Statistics for 1-way ANCOVA of  production adjusted for fat mass" src="_images/ancova_thp_details.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 17: Statistics for 1-way ANCOVA of  production adjusted for fat mass</span><a class="headerlink" href="#id23" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Thus we are able to conclude the following:</p>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(Conclusion\)</span>:
-There is a genotype-specific effect (WT vs DAKO) on the  production
-mediated by the body composition’s covariate fat mass.</p>
-</div>
-<p>Next, we will investigate the same hypothesis but now for the resting metabolic rate.</p>
-<p>We start by a 1-way ANOVA for the two genotypes, which gives us a non-significant
-difference between RMR, see Fig. <a class="reference internal" href="#dako-rmr-anova"><span class="std std-ref">Figure 18: Statistics for 1-way ANOVA of resting metabolic rate</span></a>.</p>
-<figure class="align-center" id="id24">
-<span id="dako-rmr-anova"></span><a class="reference internal image-reference" href="_images/anova_rmr_dako.png"><img alt="Statistics for 1-way ANOVA of resting metabolic rate" src="_images/anova_rmr_dako.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 18: Statistics for 1-way ANOVA of resting metabolic rate</span><a class="headerlink" href="#id24" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Also we do not see significant differences, we are prompted to investigate
-if lean, fat or body weight are confounding the analysis on RMR. As before
-we perform multiple 1-way ANCOVAs with lean, fat and body weight each as
-a covariate.</p>
-<p>We find that, genotype can be separated when chosing fat mass as a covariate,
-see Fig. <a class="reference internal" href="#dako-rmr-ancova"><span class="std std-ref">Figure 19: Statistics for 1-way ANCOVA of resting metabolic rate</span></a>.</p>
-<figure class="align-center" id="id25">
-<span id="dako-rmr-ancova"></span><a class="reference internal image-reference" href="_images/ancova_rmr_dako.png"><img alt="Statistics for 1-way ANCOVA of resting metabolic rate" src="_images/ancova_rmr_dako.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 19: Statistics for 1-way ANCOVA of resting metabolic rate</span><a class="headerlink" href="#id25" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Despite the visual separability, statistical testing reveals no significant
-difference in mean resting metabolic rates, see Fig. <a class="reference internal" href="#dako-rmr-ancova-details"><span class="std std-ref">Figure 20: Statistics for 1-way ANCOVA of resting metabolic rate</span></a>.</p>
-<figure class="align-center" id="id26">
-<span id="dako-rmr-ancova-details"></span><a class="reference internal image-reference" href="_images/ancova_rmr_dako_details.png"><img alt="Statistics for 1-way ANCOVA of resting metabolic rate" src="_images/ancova_rmr_dako_details.png" style="width: 619.5px; height: 200.0px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 20: Statistics for 1-way ANCOVA of resting metabolic rate</span><a class="headerlink" href="#id26" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-<p>Thus we are able to conclude the following:</p>
-<div class="highlight-box docutils container">
-<p><span class="math notranslate nohighlight">\(Conclusion\)</span>:
-There is no genotype-specific effect (WT vs DAKO) on the resting metabolic rate.</p>
-</div>
-</section>
-<section id="custom-data-sets">
-<h2>Custom data sets<a class="headerlink" href="#custom-data-sets" title="Link to this heading">¶</a></h2>
-<p>For own dataset or studies, users can make of the workflows as detailed in the
-two use cases for the example datasets from above.</p>
-<p>In general, at the very beginning hypotheses should be posed for the experiment,
-then consistency checks (metadata and raw data should be inspected,
-and outliers be removed) should be applied. Afterwards quantities should be visualized
-and analyzed, in the suggested order: TotalHeatProduction, RestingMetabolicRate,
-HeatProduction and FuelOxidation.</p>
-<p>All data frames calculated in CALOR can be downloaded as a single compressed <strong>.zip</strong> file
-in the <em>Export Data</em> section. Indidivual plots can be downloaded directly from the top
-right corner in the corresponding plot, and saved as <strong>.svg</strong>, <strong>.pdf</strong> or <strong>.png</strong>.</p>
-</section>
-<section id="data-export">
-<h2>Data export<a class="headerlink" href="#data-export" title="Link to this heading">¶</a></h2>
-<p>To export combined datasets for all cohorts, data frames for plotting of results, and calculated quantities,
-all data can be download through the <strong>Data export</strong> panel, choose the <em>.zip</em> download which downloads one
-compressed file containing all data frames and plots.</p>
-</section>
-<section id="advanced-use-cases">
-<h2>Advanced use-cases<a class="headerlink" href="#advanced-use-cases" title="Link to this heading">¶</a></h2>
-<p>For advanced use case, e.g. locomotional analysis and budgeting as well as wavelet analysis to study ultradian rhythms,
-we refer to the supplementary material provided in the preprint [TODO: insert DOI here].</p>
-</section>
-</section>
-<section id="tutorial-videos">
-<h1>Tutorial videos<a class="headerlink" href="#tutorial-videos" title="Link to this heading">¶</a></h1>
-<p>Workflow and use-cases are documented in a series of short instructional YouTube videos demonstrating the features of the
-web application: <a class="reference external" href="https://www.youtube.com/&#64;CALOR-APP">&#64;CALOR-APP</a>.</p>
-</section>
-<section id="flow-charts">
-<h1>Flow charts<a class="headerlink" href="#flow-charts" title="Link to this heading">¶</a></h1>
-<section id="statistical-testing">
-<h2>Statistical testing<a class="headerlink" href="#statistical-testing" title="Link to this heading">¶</a></h2>
-<p>For a flow chart on how to select the appropriate statistical test, refer to
-Fig. <a class="reference internal" href="#flowchart-statistics"><span class="std std-ref">Figure 20: Flow chart for selecting appropriate statistical test</span></a> below.</p>
-<figure class="align-center" id="id27">
-<span id="flowchart-statistics"></span><a class="reference internal image-reference" href="_images/statistics_flowchart.png"><img alt="Flow chart for selecting appropriate statistical test" src="_images/statistics_flowchart.png" style="width: 410.5px; height: 431.5px;" />
-</a>
-<figcaption>
-<p><span class="caption-text">Figure 20: Flow chart for selecting appropriate statistical test</span><a class="headerlink" href="#id27" title="Link to this image">¶</a></p>
-</figcaption>
-</figure>
-</section>
-</section>
 
         </article>
       </div>
@@ -921,6 +542,5 @@ Fig. <a class="reference internal" href="#flowchart-statistics"><span class="std
     <script src="_static/doctools.js?v=9bcbadda"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     </body>
 </html>
