@@ -92,7 +92,7 @@ source("inc/visualizations/estimate_rmr_for_cosmed.R") # for COSMED-based RMR es
 source("inc/visualizations/body_composition.R") # for body composition
 
 ################################################################################
-# Selection of calendrical dates, currently not implemented/thus obsolete
+# Selection of calendrical dates
 ################################################################################
 time_start_end <- NULL
 start_date <- "1970-01-01"
@@ -248,6 +248,7 @@ load_data <- function(file, input, exclusion, output, session) {
       }
       file <- tmp_file
       toSkip <- detectData(file)
+      # For COSMED need to scale to minutes
       scaleFactor <- 60
    }
 
@@ -330,8 +331,6 @@ load_data <- function(file, input, exclusion, output, session) {
    C1$hour <- hour(C1$Datetime2)
    C1$minutes <- minute(C1$Datetime2)
 
-
-
    if (!is.null(time_start_end)) {
       start_date <<- time_start_end$date_start
       end_date <<- time_start_end$date_end
@@ -341,7 +340,6 @@ load_data <- function(file, input, exclusion, output, session) {
       start_date <<- "1970-01-01"
       end_date <<- Sys.Date()
    }
-
 
    C1 <- C1 %>%
    group_by(`Animal No._NA`) %>%
@@ -390,7 +388,6 @@ load_data <- function(file, input, exclusion, output, session) {
      C1$RER_NA = C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`
    }
 
-
    #############################################################################
    # Consistency check: Negative values
    #############################################################################
@@ -424,6 +421,7 @@ load_data <- function(file, input, exclusion, output, session) {
       }
    }
 
+   # Optional running average calculation
    # Step #9 - define 1/n-hours steps
    if (input$averaging == 10) { # 1/6 hours
       C1 <- C1 %>%
@@ -503,15 +501,14 @@ load_data <- function(file, input, exclusion, output, session) {
       numeric_cols <- names(C1)[sapply(C1, is.numeric) & names(C1) != "running_total.sec" & names(C1) != "Animal No._NA"]
       other_cols <- setdiff(names(C1), c("running_total.sec", "Animal No._NA", numeric_cols))
 
-      # TODO: approx may fail, if there is duplicated values in running_total.sec - should actually never be the case...
-      # however, to be sure, average duplicated running_total.sec values per Animal No._NA
+      # Note: approx may fail, if there is duplicated values in running_total.sec - should actually never be the case...
+      # however, to be sure, average duplicated running_total.sec values per Animal No._NA in the next lines
       C1 <- C1 %>% group_by(`Animal No._NA`) %>% complete(running_total.sec = seq(min(running_total.sec), max(running_total.sec), by = interpolate_to * 60)) %>%
       arrange(`Animal No._NA`, running_total.sec) %>%
       mutate(across(all_of(numeric_cols), ~ approx(running_total.sec, .x, xout=running_total.sec, rule=2)$y)) %>%
       fill(all_of(other_cols), .direction = "downup") %>%
       ungroup()
    }
-
 
    # exclude animals (outliers) from data sets
    if (! is.null(exclusion)) {
@@ -535,22 +532,18 @@ load_data <- function(file, input, exclusion, output, session) {
       C1 <- C1 %>% select(all_of(current_data_cols))
    }
 
-
-
    # add interval info for each data frame / cohort separately
    interval_length_list[[paste0("Cohort #", i)]] <- list(values=c(unique(C1$`Animal No._NA`)), interval_length=get_time_diff(C1, 2, 3, input$detect_nonconstant_measurement_intervals))
 
-
    if (input$common_columns_only) {
       if (!is.null(finalC1)) {
-        finalC1 <- finalC1 %>% select(all_of(current_data_cols))
+         finalC1 <- finalC1 %>% select(all_of(current_data_cols))
       }
 
-     if (!is.null(C1)) {
-      C1 <- C1 %>% select(all_of(current_data_cols))
+      if (!is.null(C1)) {
+         C1 <- C1 %>% select(all_of(current_data_cols))
       }
    }
-
    finalC1 <- rbind(C1, finalC1)
    common_cols <- intersect(colnames(finalC1meta), colnames(C1meta))
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
@@ -570,7 +563,7 @@ load_data <- function(file, input, exclusion, output, session) {
       finalC1 <- remove_zero_values(finalC1, input$eps)
    }
 
-   # step 13 (debugging: save all cohort means)
+   # assign metadata 
    C1meta <- finalC1meta
 
    # rescale to kcal from kj
@@ -1331,8 +1324,6 @@ server <- function(input, output, session) {
                   group_by(Animal) %>%
                   na.omit() %>%
                   summarize(Value = HP, cgroups = c(Animal), Days=floor(running_total.sec / (3600*24))+1)
-                  # summarize(Value = min(HP), cgroups = c(Animal))
-               write.csv2(df_filtered, "rmr.csv")
                storeSession(session$token, "RMR", df_filtered, global_data)
 
                df <- real_data$data
@@ -1359,15 +1350,6 @@ server <- function(input, output, session) {
 
             # if we have metadata, check time diff again to be consistent with metadata sheet
             time_diff <- getSession(session$token, global_data)[["time_diff"]]
-            #df_diff <- read.csv2("finalC1.csv")
-            #if (input$havemetadata) {
-            #   names(df_diff)[names(df_diff) == "Animal.No._NA"] <- "Animal No._NA"
-            #   time_diff <- get_time_diff(df_diff, 1, 3, input$detect_nonconstant_measurement_intervals)
-            #   if (time_diff == 0) {
-            #      time_diff <- 5
-            #   }
-            #   storeSession(session$token, "time_diff", time_diff, global_data)
-            #}
 
             df1 <- getSession(session$token, global_data)[["RMR"]]
             df2 <- getSession(session$token, global_data)[["TEE"]]
@@ -1388,10 +1370,6 @@ server <- function(input, output, session) {
             write.csv2(df1, "only_df1.csv")
             write.csv2(df2, "only_df2.csv")
 
-            # TODO: Here RMR and EE get averaged per day already... need to change this if required.
-            # time interval is determined by diff_time from data (not always fixed time interval in TSE systems)
-            # Note: TEE over day might contain NANs in case we have not only FULL days in recordings of calorimetry data
-            ## This also creates the bar plots, we need to create grouped by day bar plots here instead? or we need to add the option
             df1 <- df1 %>% group_by(Animals) %>% summarize(EE = sum(Value, na.rm = TRUE)) %>% arrange(Animals)
             df2 <- df2 %>% filter(Equation == input$variable1) %>% group_by(Animals) %>% summarize(EE = sum(TEE, na.rm = TRUE)) %>% arrange(Animals)
 
@@ -1416,14 +1394,12 @@ server <- function(input, output, session) {
             combined_df <- inner_join(df1, df2, by = "Animals", suffix = c("_a", "_b"))
             combined_df <- combined_df %>% mutate(EE = EE_b - EE_a)
             combined_df$EE <- pmax(combined_df$EE, 0) # zeros instead for RMR (might be due to RMR method not estimating as good, thus overestimating...)
-            write.csv2(combined_df, "combined_fine_df.csv")
 
             df_total <- rbind(df1, df2)
             df_total$Animals <- as.factor(df_total$Animals)
             df_total$TEE <- factor(df_total$TEE, levels=c("non-RMR", "RMR"))
 
             combined_df <- combined_df %>% select(Animals, EE_a, EE, unique_days_a) %>% pivot_longer(cols=c(EE_a, EE), names_to="TEE", values_to="EE") %>% mutate(TEE = recode(TEE, "EE_a" = "non-RMR", "EE"="RMR", "unique_days_a"="Days"))
-            write.csv2(df_total, "df_total_verify_plot.csv")
             df_total <- combined_df
             p2 <- ggplot(data = df_total, aes(factor(Animals), EE, fill = TEE)) + geom_bar(stat = "identity")
             p2 <- p2 + xlab("Animal") + ylab(paste("EE [", input$kj_or_kcal, "/day]"))
@@ -1434,7 +1410,6 @@ server <- function(input, output, session) {
             )
             
             storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
-            write.csv2(df_total, "test_for_rmr.csv")
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
             # TODO: refactor this, because this is what we usually want (only for the bar plot above we want to average)
@@ -1454,7 +1429,6 @@ server <- function(input, output, session) {
                df_total$Animals <- as.factor(df_total$Animals)
                storeSession(session$token, "TEE_and_RMR", df_total, global_data)
                df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
-               write.csv2(df_total, "new_rmr_and_tee_df.csv")
             }
 
             data_and_metadata <- enrich_with_metadata(df_total, real_data$metadata, input$havemetadata, metadatafile)
@@ -1472,7 +1446,6 @@ server <- function(input, output, session) {
             RMR_for_model <- RMR_for_model %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(RMR=EE)
             if (!is.null(RMR_for_model)) {
                RMR_for_model <- RMR_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
-               write.csv2(RMR_for_model, "tee_before_lme_model.csv")
                create_lme_model_ui(input, output, true_metadata, RMR_for_model, "RMR", session, global_data)
             }
           } else if (input$plot_type == "CompareHeatProductionFormulas") {
@@ -1538,25 +1511,24 @@ server <- function(input, output, session) {
          )
              
              output$explanation <- renderUI({
-            str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
-            str2 <- "Chose one of the established heat equations for calculating of heat production respectively energy expenditure. Note that the abbreviations HP and HP2 refer to Heldmaier's equations as reported in the publication <i>J Comp Physiol B 102, 115–122 (1975)</i>."
-            str3 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
-            str4 <- "Note that in case no metadata available to specify day and night, a single violin plot will be displayed per animal ID."
-            str5 <- "Cohorts are usually stratified by animal ID by default"
-            str6 <- "<hr/>"
-            str7 <- "<h3> References </h3>"
-            str8 <- "[1] G. Heldmaier and S. Steinlechner. Seasonal pattern and energetics of short daily torpor in the djungarian hamster, phodopus sungorus. Oecologia, 48:265––270, 1981."
-            str9 <- "[2] J. B. d. V. Weir. New methods for calculating metabolic rate with special reference to protein metabolism. The Journal of Physiology, 109(1-2):1–9, 194"
-            str10 <- "[3] E. Ferrannini. The theoretical bases of indirect calorimetry: A review. Metabolism, 37(3):287–301, 1988"
-            str11 <- "[4] G. Lusk. The Elements of the Science of Nutrition. Sanders, Philadelphia, PA, 1928."
-            str12 <- "[5] M. Elia and G. Livesey. Energy Expenditure and Fuel Selection in Biological Systems: The Theory and Practice of Calculations Based on Indirect Calorimetry and Tracer Methods. In Metabolic Control of Eating, Energy Expenditure and the Bioenergetics of Obesity. S.Karger AG, 09 1992."
-            str13 <- "[6] E. Brouwer. Report of sub-committee on constant and factors. Energy metabolism, 11:441–443, 1965"
-            str14 <- "[7] Seep, L., Grein, S., Splichalova, I. et al. From Planning Stage Towards FAIR Data: A Practical Metadatasheet For Biomedical Scientists. Sci Data 11, 524 (2024). https://doi.org/10.1038/s41597-024-03349-2"
-            str15 <- "<h3> Workflow of indirect calorimetry analysis </h3>"
-            str16 <- "<ol> <li> First inspect raw data (O2, CO2 and RER) for inconsistencies </li> <li> Calculate energy expenditures according to a heat production equation from the drop-down menu </li> <li> Calculate the total energy expenditure (TEE) and resting metabolic rate (RMR) and contrast genotype and or diet effects between or within TEE respectively RMR. </li> <li> (Optional) Analyse recorded locomotional data, e.g. compare budgets and probability density maps. </li> <li> Export compiled data sets and calculated quantities into Excel or CalR-compatible files </li> <li> Export figures as publication-ready vector or raster graphics </li></ol>" 
-            str17 <- "Note The default indirect calorimetry functions should be enough for most analysis, if working with COSMED platform or the Sable/Promethion chose accordingly for additional plotting functions."
-
-                withMathJax(HTML(paste(str1, str2, str3, str4, str5, str6, table_html, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, sep = "<br/>")))
+               str1 <- "<h3> Caloric Equivalent / heat production over time </h3>"
+               str2 <- "Chose one of the established heat equations for calculating of heat production respectively energy expenditure. Note that the abbreviations HP and HP2 refer to Heldmaier's equations as reported in the publication <i>J Comp Physiol B 102, 115–122 (1975)</i>."
+               str3 <- "According to a heat production formula the energy expenditure is calculated from indirect calorimetry data"
+               str4 <- "Note that in case no metadata available to specify day and night, a single violin plot will be displayed per animal ID."
+               str5 <- "Cohorts are usually stratified by animal ID by default"
+               str6 <- "<hr/>"
+               str7 <- "<h3> References </h3>"
+               str8 <- "[1] G. Heldmaier and S. Steinlechner. Seasonal pattern and energetics of short daily torpor in the djungarian hamster, phodopus sungorus. Oecologia, 48:265––270, 1981."
+               str9 <- "[2] J. B. d. V. Weir. New methods for calculating metabolic rate with special reference to protein metabolism. The Journal of Physiology, 109(1-2):1–9, 194"
+               str10 <- "[3] E. Ferrannini. The theoretical bases of indirect calorimetry: A review. Metabolism, 37(3):287–301, 1988"
+               str11 <- "[4] G. Lusk. The Elements of the Science of Nutrition. Sanders, Philadelphia, PA, 1928."
+               str12 <- "[5] M. Elia and G. Livesey. Energy Expenditure and Fuel Selection in Biological Systems: The Theory and Practice of Calculations Based on Indirect Calorimetry and Tracer Methods. In Metabolic Control of Eating, Energy Expenditure and the Bioenergetics of Obesity. S.Karger AG, 09 1992."
+               str13 <- "[6] E. Brouwer. Report of sub-committee on constant and factors. Energy metabolism, 11:441–443, 1965"
+               str14 <- "[7] Seep, L., Grein, S., Splichalova, I. et al. From Planning Stage Towards FAIR Data: A Practical Metadatasheet For Biomedical Scientists. Sci Data 11, 524 (2024). https://doi.org/10.1038/s41597-024-03349-2"
+               str15 <- "<h3> Workflow of indirect calorimetry analysis </h3>"
+               str16 <- "<ol> <li> First inspect raw data (O2, CO2 and RER) for inconsistencies </li> <li> Calculate energy expenditures according to a heat production equation from the drop-down menu </li> <li> Calculate the total energy expenditure (TEE) and resting metabolic rate (RMR) and contrast genotype and or diet effects between or within TEE respectively RMR. </li> <li> (Optional) Analyse recorded locomotional data, e.g. compare budgets and probability density maps. </li> <li> Export compiled data sets and calculated quantities into Excel or CalR-compatible files </li> <li> Export figures as publication-ready vector or raster graphics </li></ol>" 
+               str17 <- "Note The default indirect calorimetry functions should be enough for most analysis, if working with COSMED platform or the Sable/Promethion chose accordingly for additional plotting functions."
+               withMathJax(HTML(paste(str1, str2, str3, str4, str5, str6, table_html, str8, str9, str10, str11, str12, str13, str14, str15, str16, str17, sep = "<br/>")))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
@@ -1667,10 +1639,6 @@ server <- function(input, output, session) {
                      )
                   )
                )
-              # str1 <- "<h3> RawMeasurement measurements and derived quantities </h3>"
-              # str2 <- "The values of the raw measurement recorded over time during an indirect calorimetry experiment are displayed. Each line graphs respresents the raw measurement for an animal identified through either the ID reported in the metadata sheet, lab book or in the header of the raw data files. <hr/>"
-              # str3 <- "Note that oxygen consumption, carbon dioxide production as well as derived quantities like the RER (respiratory exchange ratio) can be plotted by selection the corresponding label in the the drop-down menu on the left-hand side window."
-            #HTML(paste(str1, str2, str3, sep = "<br/>"))
             })
                hideTab(inputId = "additional_content", target = "Summary statistics")
                showTab(inputId = "additional_content", target = "Statistical testing")
@@ -1723,7 +1691,6 @@ server <- function(input, output, session) {
          )
       }
    )
-
 
    #############################################################################
    # Hide certain components on startup
@@ -1798,12 +1765,6 @@ server <- function(input, output, session) {
    #############################################################################
    # Observe select_day input
    #############################################################################
-   #observeEvent(input$select_day, {
-   #   click("plotting")
-   #   selected_days <<- input$select_day
-   #   storeSession(session$token, "selected_days", input$select_day, global_data)
-   #})
-
    observeEvent(input$apply_selection, {
       click("plotting")
       selected_days <<- input$select_day
@@ -1811,17 +1772,6 @@ server <- function(input, output, session) {
       storeSession(session$token, "selected_days", input$select_day, global_data)
       storeSession(session$token, "selected_animals", input$select_animal, global_data)
    })
-
-
-
-   #############################################################################
-   # Observe select_animal input
-   #############################################################################
-   #observeEvent(input$select_animal, {
-   #   click("plotting")
-   #   selected_animals <<- input$select_animal
-   #   storeSession(session$token, "selected_animals", input$select_animal, global_data)
-   #})
 
    #############################################################################
    # Refresh
@@ -1834,7 +1784,6 @@ server <- function(input, output, session) {
             return()
          }
       }
-
       storeSession(session$token, "data_loaded", NULL, global_data)
       storeSession(session$token, "is_FuelOxidation_calculated", NULL, global_data)
       click("plotting")
@@ -1897,11 +1846,8 @@ server <- function(input, output, session) {
          shinyjs::removeClass(link, "active-button")
       }
 
-
       shinyjs::show("sectionA_example")
       shinyjs::addClass("toggleA_example", "active-button")
-
-
 
    lapply(
       X = c("sectionA_preprocessing", "sectionA_equation", "sectionA_custom", "sectionA_example", "sectionC_data_curation", "sectionC_data_curation_selection", "sectionD", "sectionE", "sectionB_control", "sectionB_variable_selection", "sectionB_groups", "sectionB_experimental_times", "sectionB_advanced_options"),
@@ -1949,7 +1895,6 @@ server <- function(input, output, session) {
       updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
    })
 
-
    observeEvent(input$select_temperature, {
       df <- getSession(session$token, global_data)[["finalC1"]]
 
@@ -1976,8 +1921,5 @@ server <- function(input, output, session) {
       updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
       updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
    })
-
-
-
 }
 
