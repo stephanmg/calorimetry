@@ -212,7 +212,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	}
 
 	# add trend lines: 
-	# TODO: can also be factored out to remove code duplication
+	# TODO: Should also be factored out to remove code duplication
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {

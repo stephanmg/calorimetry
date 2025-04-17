@@ -1412,7 +1412,7 @@ server <- function(input, output, session) {
             storeSession(session$token, "TEE_and_RMR", df_total %>% rename(Days=unique_days_a), global_data)
             df_total <- df_total %>% filter(TEE == "RMR") %>% select(-TEE) %>% rename(TEE=EE)
 
-            # TODO: refactor this, because this is what we usually want (only for the bar plot above we want to average)
+            # TODO: Refactor this code, which is really messy currently.
             no_averages_required_for_RMR_and_TEE = TRUE
             if (no_averages_required_for_RMR_and_TEE == TRUE) {
                df1 <- read.csv2("only_df1.csv")

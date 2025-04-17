@@ -98,7 +98,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   if (dep_var == "HP") {
     df <- df %>% select(-Days)
-    # TODO: for DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed to a generic name, e.g. group2
+    # TODO: For DayNight activity, 2nd grouping variable Genotype or Diet renamed to Days, needs to be changed to a generic name, e.g. group2
     names(df)[names(df) == group2] <- "Days"
   }
 
@@ -305,7 +305,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # Check test assumptions met in general
   model.metrics <- augment(model)
-  # FIXME: shapiro can only handle 5000 samples max
+  # FIXME: Shapiro can only handle 5000 samples max
   shapiro <- shapiro_test(model.metrics$.resid[0:5000])
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
@@ -362,7 +362,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # for ANOVAs report statistics directly in panel Statistical Testing, no Details section required.
   if (test_type == "1-way ANOVA") {
-    # FIXME: plotly does not support comparisons=pairs in stat_compare_means()
+    # FIXME: Plotly does not support comparisons=pairs in stat_compare_means()
     #df$group <- as.character(df$group)
     #pairs <- combn(unique(df$group), 2, simplify=FALSE)
     p2 <- ggplot(df, aes(x = group, y = TEE, color = group)) + geom_boxplot(outlier.shape=15, outlier.size=0, outlier.color="red") # outlier.shape=NA)  

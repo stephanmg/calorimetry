@@ -94,7 +94,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
       }
       p_statistic_details <- add_windowed_plot_statistics(data, input, total_length, variable)
 
-		#  TODO: need to left join the averages plot to get Genotype for facets
+		#  TODO: Need to left join the averages plot to get Genotype for facets
 		# Group by Animals, Days, interval, and sub_interval, then calculate mean(Meas)
 		averages <- data %>%
 		dplyr::group_by(DayCount, Animals, interval, sub_interval) %>%
@@ -103,7 +103,7 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		averages <- averages %>% rename(Days=DayCount)
 
 		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
-      # TODO: this adds always the "Raw" panel which works currently, but legends are wrong then, need to fix this.
+      # TODO: This adds always the "Raw" panel which works currently, but legends are wrong then, need to fix this.
       # use the same way to add anova_Ancova_panel as in inc/visualization/*.R files.
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, averages, metadatafile, mylabel, "Raw")
 
@@ -383,7 +383,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 
-      # TODO: this works only for ANOVA and the outliers in the boxplot, think about how to improve this
+      # TODO: This works only for ANOVA and the outliers in the boxplot, think about how to improve this
 		if (input$test_statistic != '1-way ANCOVA' && input$test_statistic != '2-way ANCOVA') {
       # Note: Data frame contains as dep var always TEE, so we need to modify this. 
       # TODO: Better: Construct data frame always with the correct dependent variable

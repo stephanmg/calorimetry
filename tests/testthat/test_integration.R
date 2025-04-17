@@ -1,6 +1,7 @@
 library(shinytest2)
 library(jsonlite)
-# TODO: tests need to be refactored for new plot_type names
+
+# TODO: Tests need to be refactored for new plot_type names (after UI redesign)
 
 #################################################################################
 #### Raw
