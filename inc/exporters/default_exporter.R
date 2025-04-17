@@ -22,7 +22,7 @@ prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
 ################################################################################
 #' do_export_all_data
 #' 
-#' This function exports all data calculated during the app usage as an archive
+#' This function exports all data calculated during the app usage as a .zip file
 #' @param input shiny input
 #' @param output shiny output
 #' @param session shiny session
@@ -51,25 +51,30 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    if (!is.null(day_night)) { 
       write.csv2(day_night, file = df_day_night)
    }
+
    # TEE and RMR 
    if (!is.null(TEE_and_RMR)) { 
       write.csv2(TEE_and_RMR, file = df_tee_and_rmr)
    }
-   # GoxLox 
+
+   # GoxLox / FuelOxidation
    if (!is.null(goxlox)) {
       write.csv2(goxlox, file = df_gox_lox)
    }
-   # Raw
+
+   # Raw measurements
    if (!is.null(raw)) { 
       raw <- raw %>% rename(Raw=TEE)
       write.csv2(raw, file = df_raw) 
    }
+
    # Total output data frame
    if (!is.null(df)) { 
       df_calc <- df %>% select(c(HP, HP2)) %>% rename("Energy Expenditure #1"=HP, "Energy Expenditure #2"=HP2)
       df_calc <- df_calc %>% rename(Animals=`Animal No._NA`)
       write.csv2(df_calc, file = df_df_output) 
    }
+
    # Total input data frame
    if (!is.null(df)) {
       print(head(df))
@@ -143,7 +148,6 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
          time_trace_plot <- c(time_trace_plots, plot_for_tee_window_input)
       }
    }
-
 
    is_EE_window_calculated <- getSession(session$token, global_data)[["is_EE_window_calculated"]]
    if (!is.null(is_EE_window_calculated)) {
@@ -231,7 +235,7 @@ do_export_alternative <- function(format, input, output, session, file_output, d
          real_data <- do_plotting(file$datapath, input, input$sick, output, session)
          h <- hash()
          # Specific mapping of column names from TSE to CalR to produce
-         # a compatible .csv file
+         # a compatible .csv file to be re-used in downstream analysis
          h[["Datetime"]] <- "Date_Time"
          h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
          h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"
@@ -280,7 +284,7 @@ do_export <- function(format, input, output, session, do_plotting) {
          h <- hash()
 
          # Specific mapping of column names from TSE to CalR to produce
-         # a compatible .csv file
+         # a compatible .csv file to be re-used in downstream analysis
          h[["Datetime"]] <- "Date_Time"
          h[["VCO2(3)_[ml/h]"]] <- "RT_VCO2_3"
          h[["VO2(3)_[ml/h]"]] <- "RT_VO2_3"

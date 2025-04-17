@@ -81,8 +81,7 @@ get_covariates_and_units <- function(file) {
    units_values$`1` <- NULL
    units_values <- units_values[!is.na(units_values)]
 
-   # miraculously this does not fail locally as it should, server R version seems 
-   # to be more strict, will throw zero length vector error with undefined type set
+   # check for empty metadata
    df_meta <- data.frame()
    if ( ! ( (length(covariates) == 0) || (length(units_values) == 0))) {
       df_meta <- data.frame(covariates, units_values)            
@@ -139,6 +138,7 @@ get_true_metadata <- function(file, load_example_data) {
 
    df <- df %>% slice(from_index:to_index[1])
 
+   # indices of metadata from sheet
    lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lm_start"))) %>% pull(ind)
    lean_index_end <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lm_end"))) %>% pull(ind)
    fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fm_start"))) %>% pull(ind)
@@ -226,5 +226,4 @@ get_true_metadata <- function(file, load_example_data) {
 
    # return the compiled metadata
    return(df_meta)
-
 }

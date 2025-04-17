@@ -31,8 +31,8 @@ import_cosmed  <- function(file, file_out) {
    data <- df[seq(3, nrow(df)),seq(10, ncol(df))]
    units <- df[1, seq(10, ncol(df))]
 
-   id <- 1
-   bmi <- 25
+   id <- 1 # only one subject per file always
+   bmi <- 25 # dummy, data cannot be disclosed
    date <- colnames(df[1, 5])
    date <- gsub('\\.', '/', date)
 

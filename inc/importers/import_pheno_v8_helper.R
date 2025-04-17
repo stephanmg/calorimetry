@@ -81,7 +81,7 @@ import_pheno_v8 <- function(file, file_out) {
       df_selected <<- df_selected[!grepl("-", `$`(df_selected, additional_field)), ]
    }
 
-   # 9
+   # 9 fields
    header <- data.frame(matrix(ncol = length(colnames(df_selected)), nrow = 0))
    colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "WeightBody", additional_fields)
    colnames(header) <- colnames(df_selected)

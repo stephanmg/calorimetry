@@ -1,7 +1,7 @@
 ################################################################################
 #' add_visualization_type
 #' 
-#' This function adds the visualization shape (geom shape)
+#' This function adds the visualization shape (geom shape) to time plots
 #' @param p plot object
 #' @param type geom shape type
 #' @param with_point overlay with geom_point as well or not
