@@ -76,14 +76,10 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		Values2 = finalC1$HP)
 
 	df_new <- partition(df)
-	write.csv2(df_new, "df_new_before.csv")
 	# Note that this might introduce NAs by coercion through cv(...) method.
 	## This is correct, since the time length of recordings per sample are not identical typically
 	df_new <- cv(df_new, input$window)
-	write.csv2(df_new, "df_new_after.csv")
 	df_new <- reformat(df_new) %>% na.omit()
-	write.csv2(df_new, "df_new_after_reformat.csv")
-	write.csv2(df_new, "df_new.csv")
 
 	# second component, typically CO2
 	df2 <- data.frame(Values = finalC1[[component2]],
@@ -101,32 +97,24 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	# thus we need to make sure to always take the minimum of these three dataframes or pad accordingly the df_new and df_new2 data frames for each sample
 	## Note that this happens when input$window 
 	do_select_n <- min(nrow(finalC1), nrow(df_new), nrow(df_new2))
-	#to_pad <- nrow(finalC1) - nrow(df_new) # difference between energy expenditure data frame and RMR
-	#df_new <- padding_helper(df_new) # pads by replicating the last value for each sample in timeline and inserting a new row after the last row for each sample
-	#df_new2 <- padding_helper(df_new2) # pads by replicting the last value for each sample in timeline and inserting a new row after the last row for each sample
-	write.csv2(df_new, "df_new_after_padding_before_join.csv")
 
 	finalC1 <- finalC1 %>% ungroup() %>% slice(1:do_select_n) %>% group_by(`Animal No._NA`)
 	df_new <- df_new %>% slice(1:nrow(finalC1))
 	df_new2 <- df_new2 %>% slice(1:nrow(finalC1))
 
-	#df_to_plot <- cbind(df_new, `$`(finalC1, "running_total.hrs.halfhour"))
 	my_order <- unique(df_new$Group)
 	df_sorted <- finalC1
 	df_sorted$`Animal No._NA` = as.factor(df_sorted$`Animal No._NA`)
 	df_sorted$`Animal No._NA` = factor(df_sorted$`Animal No._NA`, levels=my_order)
 	df_sorted <- df_sorted %>% arrange(`Animal No._NA`)
-	write.csv2(apply(df_sorted, 2, as.character), "df_sorted_new.csv")
 	df_to_plot <- cbind(df_new, `$`(df_sorted, "running_total.hrs.halfhour"), `$`(df_sorted, "Animal No._NA"))
 
 	df_to_plot2 <- cbind(df_new2, `$`(finalC1, "running_total.hrs.halfhour"))
 	df_to_plot$Group <- as.factor(df_to_plot$Group)
 	df_to_plot2$Group <- as.factor(df_to_plot$Group)
 
-	write.csv2(df_new, file = "df_new.csv")
 	colnames(df_to_plot) <- c("RestingMetabolicRate", "Animal", "Time")
 	colnames(df_to_plot2) <- c("RestingMetabolicRate2", "Animal", "Time")
-	write.csv2(df_to_plot, file = "df_to_plot.csv")
 
 	df_for_cov_analysis <- cbind(df_to_plot, `$`(finalC1, "VO2(3)_[ml/h]"),
 		`$`(finalC1, "VCO2(3)_[ml/h]"), `$`(finalC1, "HP"),
@@ -138,13 +126,11 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	# TODO: Check RMR params: mean interval length of cohorts, 1, 1, 5, seems to be a robust choice
 	# to reconstruct reliably RMR, but needs to be validated with additional analysis, e.g. BA analysis
 	interval_length_list <- getSession(session$token, global_data)[["interval_length_list"]]
-	print(interval_length_list)
 	AVERAGE_INTERVAL_LENGTH <- mean(sapply(interval_length_list, function(x) x$interval_length))
 	SLIDING_WINDOW_SIZE_M <- input$window
 	PERCENTAGE_BEST <- input$percentage_best
 	AVERAGING_WIDTH <- input$rmr_averaging
 	df_plot_total <- extract_rmr_helper(AVERAGE_INTERVAL_LENGTH, PERCENTAGE_BEST, AVERAGING_WIDTH)
-	write.csv2(df_plot_total, file = "df_for_comparison_with_calimera.csv")
 	df_plot_total$HP <- as.numeric(df_plot_total$HP) 
 	df_plot_total$Time <- as.numeric(df_plot_total$Time)
 	df_plot_total$Type <- sapply(df_plot_total$Animal, lookup_interval_length, interval_length_list_per_cohort_and_animals=interval_length_list)
@@ -158,7 +144,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	with_metadata <- enrich_with_metadata(df_plot_total, finalC1meta, input$havemetadata, metadatafile)
 	df_plot_total <- with_metadata$data %>% na.omit()
 	true_metadata <- with_metadata$metadata
-	write.csv2(df_plot_total, "after_enriching_again.csv")
 
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
@@ -175,8 +160,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		}
 	}
 
-	# we have O2 and CO2 components, but as  they are pretty similar we instead color RMR traces of samples by membership in cohorts
-	# p <- ggplot(data = df_plot_total, aes(x = Time, y = HP, group = Component, color = Component)) + geom_line() + facet_wrap(~Animal)
 	p <- NULL 
 
 	df_plot_total$running_total.hrs.halfhour = df_plot_total$Time
@@ -278,7 +261,6 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 		df_plot_total$running_total.sec = df_plot_total$Time * 60
 		df_plot_total$DayCount = ceiling(df_plot_total$running_total.sec / (3600*24))
 
-		write.csv2(df_plot_total, "for_windowed_RMR_plot.csv")
 		# windowed time trace plot
 		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_plot_total, "HP", offset, "HP")
 
@@ -291,9 +273,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	# add light cycle annotation
 	lights <- data.frame(x = df_plot_total$Time, y = df_plot_total$HP)
 	colnames(lights) <- c("x", "y")
-	write.csv2(df_plot_total, "before_anno_rmr.csv")
 	df_annos <- annotate_rmr_days(df_plot_total) %>% na.omit()
-	write.csv2(df_annos, "before_annos.csv")
 	p <- p + geom_text(data = df_annos, aes(x=Time, y = min(df_plot_total$HP, na.rm=TRUE), label = Label), vjust = 1.5, hjust = 0.5, size = 3, color='black')
 
 	day_length <- 24
@@ -303,11 +283,7 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	}
 
 	light_offset <- 0
-	print(max(df_plot_total$Time))
-	print(day_length*60)
-	# We need to take the max over max time in df_plot_total and day length, because we might have varying measurement intervals
-	# in a single cohort already... leading to shorter total time, we assume all measurements are taken at fixed spaced time intervals!
-	# TODO: in the case of uneven measurement intervals, this might be not as precise, and uneven measurement intervals als oproblematic when other averging during data import is used...
+	first_night_start <- 0
 	p <- p + geom_vline(xintercept = as.numeric(seq(day_length*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="black")
 	p <- p + geom_vline(xintercept = as.numeric(seq((day_length/2)*60, max(max(df_plot_total$Time, na.rm = TRUE), day_length*60), day_length*60)), linetype="dashed", color="gray")
 

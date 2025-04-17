@@ -198,7 +198,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 		annotations_window_plot <<- window_plot$annotations
 	}
 
-
 	# add smoothing
 	gam_model <- NULL
 	grouped_gam <- NULL
@@ -230,7 +229,6 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 			df_to_plot <- df_to_plot %>% mutate(fit=pred$fit, upper = fit + input$averaging_method_with_facets_confidence_levels * pred$se.fit, lower = fit - input$averaging_method_with_facets_confidence_levels * pred$se.fit)
 		}
 	}
-
 	
 	p <- ggplot(data = df_to_plot, aes_string(y = "GoxLox", x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 
@@ -330,6 +328,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 
 	# with zeitgeber zeit, the offset is always 0
 	light_offset <- -12
+	first_night_start <- 0
 	# add day annotations and indicators vertical lines
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2, y = min(df_to_plot$GoxLox)+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
 	# indicate new day

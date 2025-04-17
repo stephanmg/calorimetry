@@ -57,8 +57,9 @@ estimate_rmr_for_cosmed <- function(finalC1, finalC1meta, input, output, session
 		min_vo2 <- min(df_to_plot[c(indices_to_discard, indices_to_keep), "VO2(3)_[ml/h]"])
 	}
 
-	# weir formula (for test with COSMED data)
+	# weir formula (COSMED studies use Weir formular as default always)
 	rmr <- 1440 * (3.9 * min_vo2 / 1000 + 1.1 * min_vco2 / 1000)
+	
 	# plot RMR as histogram
 	df <- data.frame(c(rmr))
 	names(df) <- rmr

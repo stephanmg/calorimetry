@@ -107,7 +107,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 
 	df_to_plot <- finalC1
 
-	write.csv2(apply(finalC1, 2, as.character), "before_scaling_finalC1.csv")
 	finalC1 <- finalC1 %>% mutate(HP = (HP/60) * CohortTimeDiff)
 	finalC1 <- finalC1 %>% mutate(HP2 = (HP2/60) * CohortTimeDiff)
 	finalC1$Datetime <- day(dmy(lapply(finalC1$Datetime, convert)))
@@ -132,7 +131,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			TEE$Facet <- as.factor(TEE$Facet)
 		}
 	}
-	write.csv2(TEE, "tee.csv")
 	storeSession(session$token, "TEE", TEE, global_data)
 	TEE <- TEE %>% filter(Equation == input$variable1)
 
@@ -177,7 +175,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	TEE_for_model <- getSession(session$token, global_data)[["TEE"]]
 	if (!is.null(TEE_for_model)) {
 		TEE_for_model <- TEE_for_model %>% full_join(y = true_metadata, by = c("Animals")) %>% na.omit() 
-		write.csv2(TEE_for_model, "tee_before_lme_model.csv")
 		create_lme_model_ui(input, output, true_metadata, TEE_for_model, "TEE", session, global_data)
 	}
 
@@ -186,8 +183,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 	rmr_time_trace <- getSession(session$token, global_data)[["RMR_time_trace"]]
 	p3 <- NULL
 	if (!is.null(rmr_time_trace)) {
-		# TODO: has no grouping by facet genotype rmr_time_trace needs to be joined with metadata first,
-		# this will allow to have facets for the rmr time trace plot
 		rmr_time_trace$Time <- rmr_time_trace$Time / 60
 		rmr_time_trace <- rmr_time_trace %>% filter(Component == "CO2")
 		df_to_plot$Time <- df_to_plot$running_total.hrs.halfhour
@@ -220,7 +215,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 			if (input$with_facets) {
 				if (!is.null(input$facets_by_data_one)) {
 					if (input$orientation == "Horizontal") {
-						#p2 <- p2 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
 						if (!is.null(input$facet_medians)) {
 							if (!input$facet_medians) {
 								p3 <- p3 + facet_grid(as.formula(paste(".~", input$facets_by_data_one)), scales="free_x")
@@ -233,7 +227,6 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 							}
 						}
 					} else {
-						#p2 <- p2 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")
 						if (!is.null(input$facet_medians)) {
 							if (!input$facet_medians) {
 								p3 <- p3 + facet_grid(as.formula(paste(input$facets_by_data_one, "~.")), scales="free_y")

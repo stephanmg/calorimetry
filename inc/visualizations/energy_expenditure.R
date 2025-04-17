@@ -31,9 +31,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 		storeSession(session$token, "EE_df", data_and_metadata, global_data)
 	}
 
-	print("nan count 1:")
-	print(colSums(is.na(finalC1)))
-
 	# Select sexes
 	if (!is.null(input$checkboxgroup_gender)) {
 		if ("Sex" %in% names(finalC1)) {
@@ -90,8 +87,8 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	colors <- as.factor(`$`(finalC1, "Animal No._NA"))
 	finalC1$Animals <- colors
 
-	# already shifted by zeitgeber zeit above, so light_on is now 0
-	# TODO: bug here if beginning of measurement misses... try to fix for TE.
+	# FIXME: Is this correct if beginning of measurement is excluded for temperature selection?
+	# Should be correct, as temperature is selected afterwards!
 	day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, "HP2", input$with_facets)
 	finalC1 <- day_annotations$df_annotated
 
@@ -169,8 +166,6 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 	gam_model <- NULL
 	grouped_gam <- NULL
 	df_to_plot <- finalC1
-	print("nan count:")
-	print(colSums(is.na(finalC1)))
 	if (input$add_average_with_se) {
 		if (input$with_facets) {
 			if (!is.null(input$facets_by_data_one)) {

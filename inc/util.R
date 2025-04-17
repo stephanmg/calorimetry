@@ -2,7 +2,6 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
-
 ################################################################################
 #' add_windowed_plot_statistics
 #' 
@@ -146,7 +145,6 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 			# Create the plot
 			p2 <- ggplot(plot_data, aes(x = time, y = avg_meas, color = Animals, group = Animals)) +
 			geom_line(size = 1) +  # Line plot for averages
-			#geom_point(size = 3) +  # Points at each interval
 			geom_errorbar(aes(ymin = avg_meas - sem, ymax = avg_meas + sem), width = 0.2) +  # Error bars
 			labs(
 				title = "Average measurement with SEM over intervals",
@@ -305,9 +303,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			))
 		})
 
-
 	output$plot_statistics_details <- renderPlotly({
-
       if (!is.null(input$average_days)) {
             if (input$average_days == TRUE) {
                if (dep_var == "RMR") {
@@ -956,7 +952,6 @@ detect_day_night <- function(df, offset) {
 #' @param df 
 ################################################################################
 get_global_offset_for_day_night <- function(df) {
-   write.csv2(df, "before_getting_global_offset.csv")
    # Note: if this method or the method below is applied again to a filtered or
    # day/night selected data frame, we might not have any row with running_total.sec == 0.
    # thus, care if required when applying this method, make sure to shift the data frame
@@ -979,9 +974,8 @@ get_global_offset_for_day_night <- function(df) {
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
    # TODO: v0.5.0 - this needs to be revised, if one want to select indvidual calendrical days,
-   # because running_total.sec == 0 will not be foun, also for RMR the following df
+   # because running_total.sec == 0 will not be found, also for RMR the following df
    # is grouped and needs to be converted before writing. Why?
-   write.csv2(apply(df, 2, as.character), "directly_before_offsets.csv")
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
    offsets$`offset`  <- as.numeric(offsets$`offset`)
@@ -1071,7 +1065,6 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
    df_annotated <- df %>% mutate(Datetime4 = as.POSIXct(Datetime, format = "%d/%m/%Y %H:%M")) %>% mutate(Datetime4 = as.Date(Datetime4)) %>% group_by(`Animal No._NA`) %>% mutate(DayCount = dense_rank(Datetime4)) %>% ungroup()
    day_counts <- df_annotated %>% select(`Animal No._NA`, DayCount) %>% unique() %>% na.omit()
 
-   print("there?")
    # we set for animals no ID since we are not interested for now only in the total days of recordings and want to select consecutive 3 days for instance
    annotations <- NULL
    # specify if we wish to use facets or not during annotation
@@ -1085,7 +1078,6 @@ annotate_zeitgeber_zeit <- function(df, light_on, input_var, with_facets=FALSE) 
    } else {
       annotations = data.frame(Animals = rep(NA, length(sort(unique(day_counts$DayCount)))), x = seq(12+light_on,length(unique(day_counts$DayCount))*24, by=24), y=min(df[[input_var]], na.rm = TRUE), label = sapply(sort(unique(day_counts$DayCount)), function(x) paste0("Day #", x)))
    }
-   print("here")
    return(list(df_annotated=df_annotated, annotations=annotations))
 }
 

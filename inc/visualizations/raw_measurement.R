@@ -69,9 +69,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		light_off <- input$light_cycle_stop
 	}
 
-	# display zeitgeber zeit
-	write.csv2(finalC1, "before_to_zeitgeber.csv")
-
 	convert <- function(x) {
 		splitted <- strsplit(as.character(x), " ")
 		paste(splitted[[1]][2], ":00", sep = "")
@@ -81,8 +78,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$use_zeitgeber_time) {
 		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
-		print("max:")
-		print(max(finalC1$running_total.hrs.halfhour) / 24)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} 
@@ -189,9 +184,6 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 			finalC1 <- finalC1[finalC1$`Temp_[°C]` >= (input$temperature_mean-input$temperature_deviation) & finalC1$`Temp_[°C]` <= (input$temperature_mean+input$temperature_deviation), ]
 		}
 	}
-
-	print("after temperature selection:")
-	print(finalC1)
 
 	df_to_plot <- finalC1
 
