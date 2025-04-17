@@ -94,12 +94,12 @@ extract_rmr <- function(data, M = 5, PERCENTAGE = 5, interval_length = 15) {
    df <- data
    df_plot_O2 <- create_df(df, "O2", M, N, PERCENTAGE, interval_length)
    df_plot_CO2 <- create_df(df, "CO2", M, N, PERCENTAGE, interval_length)
-   df_foo <- data.frame(df$HP, seq(1, N))
-   colnames(df_foo) <- c("HP", "Time")
-   df_foo$HP <- df_foo$HP / 24 # Note normalize over day (24 hours)
-   df_foo$Time <- df_foo$Time
+   df_temp <- data.frame(df$HP, seq(1, N))
+   colnames(df_temp) <- c("HP", "Time")
+   df_temp$HP <- df_temp$HP / 24 # Note normalize over day (24 hours)
+   df_temp$Time <- df_temp$Time
    df_plot_total <- rbind(df_plot_O2, df_plot_CO2)
    df_plot_total$Component <- c(rep("O2", nrow(df_plot_O2)),
       rep("CO2", nrow(df_plot_CO2)))
-   return(list("df_plot_total" = df_plot_total, "df_foo" = df_foo))
+   return(list("df_plot_total" = df_plot_total, "df_temp" = df_temp))
 }

@@ -198,7 +198,6 @@ create_lme_model_ui <- function(input, output, true_metadata, df_to_plot, my_dep
 		}
 	})
 
-
 	observe({
 		if (!is.null(input$how_many_fixed_effects)) {
 			lapply(1:input$how_many_fixed_effects, function(i) {

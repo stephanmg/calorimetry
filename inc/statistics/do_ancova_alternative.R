@@ -59,8 +59,6 @@ calculate_statistic <- function(data, method) {
 # TODO: Add possibility to let the user choose the glm family and link function 
 # via the inputs (input$glm_family and input$link_function) - not only defaults
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE, sort_factors_alphabetically_decreasing=TRUE) {
-  print("dataframe:")
-  print(df_data)
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might not be necessary, does no harm, can be removed if no adverse effects revealed during testing
   if (! "Genotype" %in% names(df)) {
@@ -205,7 +203,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     p2 <- ggscatter(df, x = "Weight", y = dep_var, color = "group", add = "reg.line", alpha=0)
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=label_y, label.x=label_x, geom="text", output.type = "text", parse=FALSE)
     if (dep_var == "RMR" || dep_var == "EE") {
-      # TODO: RMR and EE comes already averaged per Days
+      # Note: RMR and EE comes already averaged per Days
       p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals), color=group), label = "", alpha=1)
     } else {
       p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
@@ -216,7 +214,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       p3 <- ggscatter(df, x = "Weight2", y = dep_var, color = "group", add = "reg.line")
       p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE), max(df$TEE)), label.x=c(min(df$Weight2), min(df$Weight2)+1.0), geom="text", output.type = "text", parse=FALSE)
      if (dep_var == "RMR" || dep_var == "EE") {
-        # TODO: RMR and EE comes already averaged per Days
+        # Note: RMR and EE comes already averaged per Days
       p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals), color=group), label = "", alpha=1)
      } else {
       p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", Days), color=group), label = "", alpha=1)
@@ -292,9 +290,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
   model <- lm(TEE ~ Weight + group, data = df)
 
   ##############################################################################
-  ### TODO: Code below is obsolete
-  # TODO: adjust to use both covariates if using ANCOVA,
-  # and then also both covariates for repeated measurement anova
+  # TODO: Refactor this
   if (test_type == "2-way ANCOVA") {
      model <- lm(TEE ~ Weight + group * Days, data = df)
   }
@@ -305,12 +301,12 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       model <- lm(TEE ~ group * Days, data = df)
     }
   }
-  ### TODO: Code above is obsolete
   ##############################################################################
 
   # Check test assumptions met in general
   model.metrics <- augment(model)
-  shapiro <- shapiro_test(model.metrics$.resid[0:5000]) # FIXME: shapiro can only handle 5000 samples max
+  # FIXME: shapiro can only handle 5000 samples max
+  shapiro <- shapiro_test(model.metrics$.resid[0:5000])
   levene <- model.metrics %>% levene_test(.resid ~ group)
 
   if (test_type == "2-way ANOVA" || test_type == "2-way ANCOVA") {
@@ -349,11 +345,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
       p <- ggplot(emm_df, aes(x=Days, y=emmean, group=group, color=group)) + geom_line() + geom_point()
       p <- p + geom_errorbar(aes(ymin=emmean-SE, ymax=emmean+SE), width=0.2) 
 
-      # TODO: add selection of first or second grouping variable
-      # if (input$first_or_second_factor_for_2_way_analysis) {
-      # by="group" and rename(group2=group) instead of
-      # by="Days" and rename(group2=Days) below
-      # }
       pairwise_raw <- contrast(emm, method="pairwise", by="Days") %>% as.data.frame()
       pairwise <- contrast(emm, method="pairwise", by="Days", adjust="tukey") %>% as.data.frame() %>% mutate(
         significance=case_when(

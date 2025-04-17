@@ -58,6 +58,7 @@ lookup_cohort_belonging <- function(interval_length_list_per_cohort_and_animals,
 #' @param M subintervals
 ################################################################################
 extract_rmr_helper <- function(interval_length = 15, percentage_best = 1, M = 1) {
+   # TODO: Refactor this
    df <- read.csv2("df_for_cov_analysis.csv")
    res <- df %>%
       group_by(Animal) %>%
