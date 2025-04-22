@@ -187,9 +187,10 @@ total_energy_expenditure <- function(finalC1, C1meta, finalC1meta, input, output
 		rmr_time_trace <- rmr_time_trace %>% filter(Component == "CO2")
 		df_to_plot$Time <- df_to_plot$running_total.hrs.halfhour
 		df_to_plot$Time <- df_to_plot$Time - (min(df_to_plot$Time))
+		df <- apply(df_to_plot,2,as.character)
 		result <- rmr_time_trace %>%
 		rename(Time1 = Time, Meas1 = HP) %>%
-		inner_join(df_to_plot %>% rename(Time2 = Time, Meas2 = HP), by = "Animals") %>%
+		inner_join(df_to_plot %>% rename(Time2 = Time, Meas2 = HP), by = c("running_total.sec","Animals")) %>%
 		mutate(TimeDiff = abs(Time1 - Time2)) %>%  # Compute time differences
 		group_by(Animals, Time1) %>%
 		filter(TimeDiff == min(TimeDiff)) %>%     # Keep only the smallest time difference
