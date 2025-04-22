@@ -863,5 +863,6 @@ ui <- tagList(
     tabPanel("Documentation"),
     documentation,
     contact
-  )
+  ),
+  # tags$div(style="display: none;", textOutput("keepAlive"))
 )
