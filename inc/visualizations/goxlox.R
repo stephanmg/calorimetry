@@ -194,7 +194,7 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 		# windowed time trace plot
 		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "FuelOxidation", offset, "GoxLox")
 		p2 <- window_plot$plot
-		p2 <- p2 + ggtitle(paste0("Average ", input$goxlox, "in window")) + ylab(paste(input$goxlox, "[ml/h]", sep = " "))
+		p2 <- p2 + ggtitle(paste0("Average ", input$goxlox, " in window")) + ylab(paste(input$goxlox, "[ml/h]", sep = " "))
 		annotations_window_plot <<- window_plot$annotations
 	}
 
