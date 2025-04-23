@@ -1,7 +1,7 @@
 # Shiny-Calorie: A context-aware application for indirect calorimetry data analysis and visualization using R
 
 <img src="https://github.com/stephanmg/calorimetry/blob/data/shiny_logo.png?raw=true" align="left" width="50" height="70"> 
-CALOR is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
+Shiny-Calorie is a holistic web application for data integration, visualization and statistical analysis of indirect calorimetry measurements which can be acquired by various platforms during for indirect calorimetry experiments in the wet lab to the end of metabolic phenotyping. 
 
 <br clear="left"/>
 <hr/>
