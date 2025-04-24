@@ -6,8 +6,8 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'CALOR'
-copyright = '2024, Stephan Grein'
+project = 'Shiny-Calorie'
+copyright = '2025, Stephan Grein'
 author = 'Stephan Grein'
 
 # -- General configuration ---------------------------------------------------
