@@ -29,7 +29,7 @@ server {
 
 # app setup, forwards and redirects, SSL configuration
 server {
-   location /CALOR {
+   location /Shiny-Calorie {
     proxy_pass http://127.0.0.1:3839/;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;

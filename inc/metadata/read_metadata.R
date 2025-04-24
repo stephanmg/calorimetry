@@ -14,7 +14,7 @@ library(shinyalert)
 #' Note: If more metadata is relevant, these have to be extracted here.
 #' We can in theory pull all information from a fully filled metadata sheet,
 #' or from the expected/specified fields from the metadata converter which
-#' writes an abridged, thus not full, metadata sheet for usage in CALOR
+#' writes an abridged, thus not full, metadata sheet for usage in the app
 #' @param file input file
 #' @examples 
 #' get_study_description_from_metadata(input_file)

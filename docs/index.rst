@@ -11,7 +11,7 @@ Introduction
    intro
 
 The Shiny-Calorie workflow
-==================
+==========================
 .. toctree::
    :maxdepth: 3
 

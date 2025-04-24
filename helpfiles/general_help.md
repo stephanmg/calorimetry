@@ -1,19 +1,19 @@
-# General help for CALOR
+# General help for Shiny-Calorie
 
-`Welcome to CALOR, an application for the visualization and analysis of indirect calorimetry data`.
+`Welcome to Shiny-Calorie, an application for the visualization and analysis of indirect Shiny-Calorieimetry data`.
 <img src="../www/logo_shiny.svg" align="left" width="50" height="70" style="padding-right: 10px">
-Please have a look at the overview of functions currently implemented in CALOR on the main page,
+Please have a look at the overview of functions currently implemented in Shiny-Calorie on the main page,
 i.e. navigate to the landing page `Introduction and Features` in the top navigation panel.
 <br clear="left"/>
 <hr style="width: 75%;"/>
 
-Below we detail in a nutshell how to use the CALOR application. If you need technical
+Below we detail in a nutshell how to use the Shiny-Calorie application. If you need technical
 assistance, found bugs or have feature requests, feel free to reach out by email,
 see the `Contact` panel.
 
 ## Input data
 
-CALOR supports a variety of input data from different metabolic phenotyping platforms, 
+Shiny-Calorie supports a variety of input data from different metabolic phenotyping platforms, 
 e.g. Promethion (Live) by Sable Systems,
 TSE PhenoMaster/LabMaster from TSE Systems and COSMED data. Supported file types:
 

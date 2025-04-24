@@ -8,9 +8,9 @@ library(shinyjs)
 library(colourpicker)
 library(cicerone)
 
-################################################################################
-# Introduction and Features panel (Landing page of the CALOR web application)
-################################################################################
+#####################################################################################
+# Introduction and Features panel (Landing page of the Shiny-calorie web application)
+#####################################################################################
 intro_panel <- tabPanel(
   "Home",
   div(class="tile_upper_landing_page",
@@ -30,11 +30,11 @@ intro_panel <- tabPanel(
   ),
   div(class="flex-container",
   div(class="flex-div-right",
-    span("CALOR - A web application for general indirect calorimetry", style = "font-size: 12px; visibility: visible;"),
+    span("Shiny-Calorie: A context-aware application for indirect calorimetry data analysis and visualization using R", style = "font-size: 12px; visibility: visible;"),
     tags$a(id = "contact_me", href = "", icon("fa-solid fa-square-envelope", "fa-1x"), style = "display:inline; "),
-    tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-1x")),
+    tags$a(href = "http://github.com/stephanmg/calorimetry", icon("fa-brands fa-square-github", "fa-1x")),
     tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-x-twitter", "fa-1x")),
-    tags$a(href = "http://youtube.com/@CALOR-APP", icon("fa-brands fa-square-youtube", "fa-1x"))
+    tags$a(href = "http://youtube.com/@Shiny-Calorie", icon("fa-brands fa-square-youtube", "fa-1x"))
    ))
 )
 
@@ -760,7 +760,7 @@ validation <- tabPanel(
 documentation <- tabPanel(
       "Help",
       style = "text-align: center",
-      titlePanel("Getting general help for CALOR:"),
+      titlePanel("Getting general help for Shiny-Calorie:"),
       div(style = "width: 50%",
       helpText("", style = "text-align: right; padding-right: 20px") %>% helper(
          type = "markdown",
@@ -825,20 +825,20 @@ contact <- tabPanel(
       br(),
       p("LIMES/HCM, University of Bonn"),
       tags$script(HTML(
-         "var encMail = 'c21nLmlydUBnbWFpbC5jb20K'; const form = document.getElementById('contact_me'); form.setAttribute('href', 'mailto:'.concat(atob(encMail)).concat('?subject=CALOR Shiny app'));"
+         "var encMail = 'c21nLmlydUBnbWFpbC5jb20K'; const form = document.getElementById('contact_me'); form.setAttribute('href', 'mailto:'.concat(atob(encMail)).concat('?subject=Shiny-Calorie'));"
       ))
    ),
    h2("Follow updates on our socials"),
    tags$table(class = "contact", style = "margin-left: auto; margin-right: auto",
       tags$tr(
-         tags$td(tags$a(href = "http://github.com/stephanmg/CALOR", icon("fa-brands fa-square-github", "fa-3x"))),
+         tags$td(tags$a(href = "http://github.com/stephanmg/calorimetry", icon("fa-brands fa-square-github", "fa-3x"))),
          tags$td(tags$a(href = "http://twitter.com/smgrein", icon("fa-brands fa-square-twitter", "fa-3x"))),
       )
    ),
    h2("Documentation and tutorial videos"),
    tags$table(class = "contact", style = "margin-left: auto; margin-right: auto",
       tags$tr(
-         tags$td(tags$a(href = "http://youtube.com/@CALOR-APP", icon("fa-brands fa-square-youtube", "fa-3x")))
+         tags$td(tags$a(href = "http://youtube.com/@Shiny-Calorie", icon("fa-brands fa-square-youtube", "fa-3x")))
       )
    )
 )
@@ -847,7 +847,7 @@ contact <- tabPanel(
 # main navigation bar (top)
 ################################################################################
 ui <- tagList(
-  tags$head(tags$title("CALOR - A web application for general indirect calorimetry analysis")),
+  tags$head(tags$title("Shiny-Calorie: A context-aware application for indirect calorimetry data analysis and visualization using R")),
   useShinyjs(),
   tags$head(tags$script(type = "text/javascript", src = "code.js")),
   tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "style.css")),

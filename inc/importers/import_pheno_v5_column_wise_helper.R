@@ -14,7 +14,7 @@ library(stringr)
 #############################################################################
 import_pheno_v5 <- function(file, file_out) {
   # Define header
-  header <- "TSE study converted by CALOR v0.4.0;;;;;;;;;;;;;;;;\nTSE PhenoMaster V5.3.3 (2015-4474);;;;;;;;;;;;;;;"
+  header <- "TSE study converted by Shiny-Calorie v0.4.0;;;;;;;;;;;;;;;;\nTSE PhenoMaster V5.3.3 (2015-4474);;;;;;;;;;;;;;;"
 
   # Find number of rows to skip
   file_path <- file$datapath
