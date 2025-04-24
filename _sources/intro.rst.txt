@@ -1,5 +1,5 @@
 What is Shiny-Calorie?
-==============
+======================
 
 Shiny-Calorie is a web application based on Shiny for GNU R to allow for a streamlined and comprehensive analysis of 
 indirect Shiny-Calorieimetry data. Shiny-Calorie supports most of the major indirect Shiny-Calorieimetry systems, i.e. TSE Systems, Sable Systems and
@@ -34,7 +34,7 @@ button from the navigation bar.
 
 .. _Shiny-Calorie_landing:
 
-.. figure:: img/Shiny-Calorie_landing.png
+.. figure:: img/shiny_calorie_landing.png
    :align: center
    :alt: Shiny-Calorie landing page
    :scale: 50%
