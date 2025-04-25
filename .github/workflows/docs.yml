@@ -31,6 +31,7 @@ jobs:
         run: |
            Rscript -e 'install.packages("Rd2md")'
            Rscript -e 'install.packages("roxygen2")'
+           Rscript -e 'install.packages("patchwork")'
 
       - name: Build Sphinx documentation
         run: |
