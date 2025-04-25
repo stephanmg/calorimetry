@@ -1,0 +1,764 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="Tutorial videos" href="misc.html" /><link rel="prev" title="What is Shiny-Calorie?" href="intro.html" />
+
+    <link rel="shortcut icon" href="_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>Key features - Shiny-Calorie documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
+    <link rel="stylesheet" type="text/css" href="_static/custom.css?v=4d4276be" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Shiny-Calorie  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/logo.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">Shiny-Calorie  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">What is Shiny-Calorie?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html#getting-started">Getting started</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Key features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#visualization-and-statistical-data-analysis">Visualization and statistical data analysis</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Tutorial videos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html#flow-charts">Flow charts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code.html">Code availability and development</a></li>
+</ul>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="rst/remove_z_score_outliers.html">remove_z_score_outliers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/model_effects.html">model_effects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_true_metadata.html">get_true_metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/generate_statistical_table.html">generate_statistical_table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/import_promethion.html">import_promethion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/style_plot.html">style_plot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/enrich_with_metadata.html">enrich_with_metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_git_information_from_repository.html">get_git_info_from_repository</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/coarsen_data_sets.html">coarsen_data_sets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/import_cosmed.html">import_cosmed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_covariates_and_units.html">get_covariates_and_units</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/annotate_rmr_days.html">annotate_rmr_days</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/create_df.html">create_df</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/goxlox.html">goxlox</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/padding_helper.html">padding_helper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_r_squared_clean.html">get_r_squared_clean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_time_diff.html">get_time_diff</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/calculate_statistic.html">calculate_statistic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_constants.html">get_constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/plot_locomotion.html">plot_locomotion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/raw_measurement.html">raw_measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/add_stylize_plot_plotting_control.html">add_stylize_plot_plotting_control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/prepare_data_frame_for_export.html">prepare_data_frame_for_export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/check_for_cosmed.html">check_for_cosmed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/visualize_model_effects.html">visualize_model_effects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/remove_zero_values.html">remove_zero_values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/cv.html">cv</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/reformat_time_for_cosmed.html">reformat_time_for_cosmed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/create_lme_model_ui.html">create_lme_model_ui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_date_range.html">get_date_range</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/import_pheno_v8.html">import_pheno_v8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/reformat.html">reformat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/lookup_cohort_belonging.html">lookup_cohort_belonging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/resting_metabolic_rate.html">resting_metabolic_rate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/extract_rmr_helper.html">extract_rmr_helper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/partition.html">partition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/zeitgeber_zeit.html">zeitgeber_zeit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/pretty_print_interval_length_list.html">pretty_print_interval_length_list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/draw_day_night_rectangles.html">draw_day_night_rectangles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/extract_rmr.html">extract_rmr</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/do_extract.html">do_extract</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/do_ancova_alternative.html">do_ancova_alternative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/process_return_value_for_statistic.html">process_return_value_for_statistic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/body_composition.html">body_composition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/energy_expenditure.html">energy_expenditure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_new_download_buttons.html">get_new_download_buttons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/get_study_description_from_metadata.html">get_study_description_from_metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/indicate_plot_rendered.html">indicate_plot_rendered</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/lookup_interval_length.html">lookup_interval_length</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/total_energy_expenditure.html">total_energy_expenditure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/do_export_all_data.html">do_export_all_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/guide.html">guide</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rst/plot_locomotion_budget.html">plot_locomotion_budget</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/features.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="key-features">
+<h1>Key features<a class="headerlink" href="#key-features" title="Link to this heading">¶</a></h1>
+<p>On the left side the navigation panel indicates the workflow within Shiny-Calorie. The workflow is implictly assumed to follwo the order from top to bottom.</p>
+<p>The individual steps for analysis within Shiny-Calorie are thus:</p>
+<ol class="arabic simple">
+<li><p>Dataset import</p></li>
+<li><p>Statistics and visualization (Includes possibility to review metadata and detection of biases)</p></li>
+<li><p>Data curation (Outlier correction, selection of subjects, days, trimming of experimental times) and</p></li>
+<li><p>Result summary (For exporting of results in high quality graphics and data tables)</p></li>
+</ol>
+<p>Note that on the right panel a plot of the quantity of interest will be displayed in the tab (Main plot).
+Additional panels for <strong>Statistical testing</strong>, <strong>Details</strong> of statistical testing and <strong>Statistical model</strong> are available.
+The <strong>Explanation</strong> tab provides additional information and a description of which data is currently displayed.</p>
+<p>During analysis, data might need further curation, e.g. exclusion of animals or recorded days. Use the <strong>Data curation</strong> panel.</p>
+<p>Datasets can be filtered for temperature and photoperiod over time.</p>
+<p>The section statistics and visualization provides the calculation of heat production (HP), total heat production (THP)
+resting metabolic rate (RMR) and raw quantities as well as fuel oxidation (from here on ocassionally referred to as modalities).</p>
+<p>All plots can be downloaded as high resolution vector or bitmap graphics by hovering over the plotting area on the right panel,
+a menu with options will appear at the top border of the plotting area to select either PDF, PNG or SVG export.</p>
+<p>The next paragraphs will provide an overview of the individual analysis panels.</p>
+<section id="metadata-analysis">
+<h2>1: Metadata analysis<a class="headerlink" href="#metadata-analysis" title="Link to this heading">¶</a></h2>
+<p>The metadata panel allows users to get an overview of the metadata and summary statistics thereof which have been
+recorded alongside the indirect Shiny-Calorieimetry experiment. Covariates like body weight, lean mass, fat mass can be statistically
+(with significace tests) compared and visualized via appropriate plots (boxplots, regression plots).</p>
+<p>Analysis of metadata should always be the starting point before conducting any analysis. Assessment of the quality and the
+distributions of recorded quantities is vital to a consistent downstream analysis. For instance if there is a significant
+difference between two genotype groups’, say KO and WT, body composition, i.e. fat mass, further analysis should take the
+information into account before drawing any conclusions.</p>
+</section>
+<section id="raw-measurements">
+<h2>2: Raw Measurements<a class="headerlink" href="#raw-measurements" title="Link to this heading">¶</a></h2>
+<p>Raw measurement panel visualize the raw measurements of the respiratory gases oxygen and carbon dioxide, in either saturation
+in percentage or volume changes over time intervals (typically recording intervals in indirect Shiny-Calorieimetry experiments are
+5 or 10 minutes, but users can interpolate to a finer or coarser time grid by using <strong>Dataset import-&gt;Import options</strong>).</p>
+<p>Derived quantities, as for instance the RER (respiratory exchange ratio) can be (re-)calculated. If desired,
+users can pre-smooth or coarsen the raw traces too (typically not required, but depends on your use case).</p>
+</section>
+<section id="total-heat-production">
+<h2>3: Total Heat Production<a class="headerlink" href="#total-heat-production" title="Link to this heading">¶</a></h2>
+<p>The total heat production (THP) is the sum of <span class="math notranslate nohighlight">\(THP = RMR+HP\)</span>, i.e. of resting metabolic rate and heat production (HP).
+Alternatively one can interpret the THP as total energy expenditure (TEE) such that we have the sum <span class="math notranslate nohighlight">\(TEE=RMR+EE\)</span>, which is
+defined by resting metabolic rate and heat production (including physical activity).</p>
+<p>Time traces, facetted (grouped) plots, ANOVA and ANCOVA analysis, and modelling of the dependent variable via linear-mixed effect model (LME)
+panel is available for all modalities recorded in the indirect Shiny-Calorieimetry experiment.</p>
+</section>
+<section id="heat-production">
+<h2>4: Heat Production<a class="headerlink" href="#heat-production" title="Link to this heading">¶</a></h2>
+<p>Heat production (HP) is the non-RMR contribution to the THP. Same analysis methods as for THP apply for the HP panel.</p>
+</section>
+<section id="resting-metabolic-rate">
+<h2>5: Resting Metabolic Rate<a class="headerlink" href="#resting-metabolic-rate" title="Link to this heading">¶</a></h2>
+<p>Resting metabolic rate (RMR) is the non-activity contribution to the THP. Same analysis methods as for THP apply for the RMR panel as well.</p>
+</section>
+<section id="fuel-oxidation">
+<h2>6: Fuel Oxidation<a class="headerlink" href="#fuel-oxidation" title="Link to this heading">¶</a></h2>
+<p>Glucose and lipid oxidation are regarded under the umbrella term fuel oxidation. Fuel oxidation is an alternative way to
+visualize the utilization of glucose or lipid oxidation during heat production, similar as the RER can indicate which
+component is mainly oxidized (Raw measurements). Same analysis methods as for THP are available for the fuel oxidation panel.</p>
+</section>
+</section>
+<section id="visualization-and-statistical-data-analysis">
+<h1>Visualization and statistical data analysis<a class="headerlink" href="#visualization-and-statistical-data-analysis" title="Link to this heading">¶</a></h1>
+<section id="example-dataset-i-ucp1-ko">
+<h2>Example dataset I: UCP1 KO<a class="headerlink" href="#example-dataset-i-ucp1-ko" title="Link to this heading">¶</a></h2>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(H_0\)</span>:
+There is no genotype-specific effect (WT vs UCP1 KO) on the total production or resting metabolic rate.</p>
+</div>
+<p>To either reject or accept the null hypothesis <span class="math notranslate nohighlight">\(H_0\)</span> we can make use of Shiny-Calorie’s features.</p>
+<p>First, we do inspect the metadata recorded with this multi cohort study, to identify outliers or idiosyncrasies associated with the dataset.</p>
+<figure class="align-center" id="id1">
+<span id="ucp1-ko-metadata"></span><a class="reference internal image-reference" href="_images/metadata.png"><img alt="Metadata for multi cohort UCP1 KO data set" src="_images/metadata.png" style="width: 619.5px; height: 500.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 5: Metadata for multi cohort UCP1 KO data set</span><a class="headerlink" href="#id1" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>According to Fig. <a class="reference internal" href="#ucp1-ko-metadata"><span class="std std-ref">Figure 5: Metadata for multi cohort UCP1 KO data set</span></a> distribution numbers (n) for Genotype and Diet are balanced, there is no
+irregularities for body composition (fat and lean mass) and also no problematic changes of body composition over the
+time course of the experiment. The study entails only male samples (male) on a high fat diet (HFD). Since there are no
+obvious issues with the metadata, we can proceed by inspecting the raw measurements as recorded from the metabolic phenotyping system.</p>
+<p>Plotting the raw quantities can be a valid and important first diagnostic of consistency of the experiment.
+See Fig. <a class="reference internal" href="#ucp1-ko-rer-with-outlier"><span class="std std-ref">Figure 6: RER for UCP1 KO with outlier</span></a> in particular for the RER stratified by Genotype (WT vs KO).</p>
+<figure class="align-center" id="id2">
+<span id="ucp1-ko-rer-with-outlier"></span><a class="reference internal image-reference" href="_images/rer_with_outlier.png"><img alt="RER for UCP1 KO with outlier" src="_images/rer_with_outlier.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 6: RER for UCP1 KO with outlier</span><a class="headerlink" href="#id2" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>We identify an outlier which has an erratic RER time plot, and thus also an erratic oxygen and carbon dioxide curve,
+since the dimensionless RER is defined as: <span class="math notranslate nohighlight">\(RER=\frac{\dot{V}_{CO_{2}}}{\dot{V}_{O_{2}}} \in [0,1]\)</span>.</p>
+<p>Therefore we proceed with the <em>Data Curation</em> panel in the bottom left of the application, we remove outlier <strong>2547</strong>.
+Furthermore, to see genotype differences, we select grouping by facets for the genotype, resulting in the stratified plots
+of RER as depicted in Fig. <a class="reference internal" href="#ucp1-ko-rer-without-outlier"><span class="std std-ref">Figure 7a: RER for UCP1 KO without outlier 2547</span></a>.</p>
+<figure class="align-center" id="id3">
+<span id="ucp1-ko-rer-without-outlier"></span><a class="reference internal image-reference" href="_images/rer_without_outlier.png"><img alt="RER for UCP1 KO without outlier 2547" src="_images/rer_without_outlier.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 7a: RER for UCP1 KO without outlier 2547</span><a class="headerlink" href="#id3" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Instead of removing the outlier completely, we could trim the dataset (experimental times). From experience we know that
+at the beginning and end of an experiment we might have erratic gas exchange values recorded (as for instance samples
+are handled at the beginning and end of an experiment, metabolic cage is opened and closed, sample acclimatisation to
+the temperature-controlled environment), thus Shiny-Calorie provides the <strong>Data curation</strong> panel to trim these experimental times,
+select full days, or specific days in either zeitgeber time or calender time, see Fig. <a class="reference internal" href="#trimming"><span class="std std-ref">Figure 7b: Trimming of experimental times</span></a>.</p>
+<figure class="align-center" id="id4">
+<span id="trimming"></span><a class="reference internal image-reference" href="_images/trimming.png"><img alt="Trimming of experimental times" src="_images/trimming.png" style="width: 294.5px; height: 199.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 7b: Trimming of experimental times</span><a class="headerlink" href="#id4" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Notice that there is no qualitative (significant) difference between the mean traces of RER for the two genotypes.
+Displayed are mean and standard deviation ribbons as can be configure directly below the plot in the application
+as a generalized additive model.</p>
+<p>We can confirm the visual analysis by navigating to the <em>Statistical Testing</em> panel to conduct a 1-way ANOVA on day-averaged values of RER,
+revealing no statistical significant difference for genotypes, see Fig. <a class="reference internal" href="#rer-anova"><span class="std std-ref">Figure 8: 1-way ANOVA on genotype stratifiction for RER</span></a>. We employ for this the <em>Wilcoxon-test</em>
+as a non-parametric test since we are operating in the low <em>n</em> regime, otherwise also a <em>t-test</em> could be selected by the user.</p>
+<p>Other tests for post-hoc analysis can be selected in the application directly above the plot panel. Multiple-testing corrections (Bonferonni, etc.)
+can be selected when conducting higher-order ANOVAs, which we do not require here since our only factor is the genotype with two levels for one factor.</p>
+<figure class="align-center" id="id5">
+<span id="rer-anova"></span><a class="reference internal image-reference" href="_images/1_way_anova_rer.png"><img alt="1-way ANOVA on genotype stratification for RER" src="_images/1_way_anova_rer.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 8: 1-way ANOVA on genotype stratifiction for RER</span><a class="headerlink" href="#id5" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Since outliers are now removed, we can revisit the total heat production in order to answer our null hypothesis.</p>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(Conclusion\)</span>:
+There is no genotype-specific effect (WT vs UCP1 KO) on neither THP or RMR.</p>
+</div>
+<p>Since there are no changes in THP or RMR when considering only the genotype, we
+want now to consider also the case that during the experiment recorded covariates, i.e.
+lean mass and fat mass (or changes therefore, in the following we use the terms
+delta lm and delta fm) or the whole body weight (or delta bw) are available. Their influence
+on the THP and RMR in the KO and WT genotype should be analyzed. To factor this into our
+statistical model, we will make use of 1-way ANCOVAs during our next analyses.</p>
+<p>In layman’s terms the 1-way ANCOVA model is formulated as follows, where
+the dependent variable <span class="math notranslate nohighlight">\(\text{DependentVar}\)</span>, the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span>,
+and the grouping variable <span class="math notranslate nohighlight">\(\text{Group}\)</span> appear in the model as:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{DependentVariable}_{ij} = \mu + \tau_i + \beta (\text{Covariate}_{ij} - \overline{\text{Covariate}}) + \epsilon_{ij}\]</div>
+</div>
+<p>The variables in the euqation are defined by:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mu\)</span> is the overall mean.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\tau_i\)</span> is the effect of the <span class="math notranslate nohighlight">\(i\)</span>-th group (<span class="math notranslate nohighlight">\(\text{Group}\)</span>).</p></li>
+<li><p><span class="math notranslate nohighlight">\(\beta\)</span> is the regression coefficient for the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{Covariate}_{ij}\)</span> is the value of the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> for observation <span class="math notranslate nohighlight">\(j\)</span> in group <span class="math notranslate nohighlight">\(i\)</span>.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\overline{\text{Covariate}}\)</span> is the mean of the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> across all observations.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\epsilon_{ij}\)</span> is the random error term.</p></li>
+</ul>
+<p>In particular for this model:</p>
+<ul class="simple">
+<li><p>The covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> is adjusted by subtracting its mean (<span class="math notranslate nohighlight">\(\overline{\text{Covariate}}\)</span>), centering it to reduce multicollinearity.</p></li>
+<li><p>The <span class="math notranslate nohighlight">\(\beta\)</span> term measures the relationship between the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span> and the dependent variable <span class="math notranslate nohighlight">\(\text{DependentVariable}\)</span>.</p></li>
+</ul>
+<p>The ANCOVA tests whether the group effects <span class="math notranslate nohighlight">\(\tau_i\)</span> are significant while controlling for the covariate <span class="math notranslate nohighlight">\(\text{Covariate}\)</span>.
+Whether test assumptions are met (for ANCOVA we also need homogeneity of regression slopes in addition to the usual assumptions of homoscedasticity and normality of ANOVA),
+is reported in the <strong>Details</strong> panel. Test statistics, and in particular p-values, are reported also in the <strong>Details</strong> panel. Statistical testing is configured in the homonymous panel.</p>
+<p>Thus our first null hypothesis for the RMR can be stated as:</p>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(H_0\)</span>:
+There is a genotype-specific effect (WT vs UCP1 KO) on RMR corrected for one
+of the covariates (lm, fm or bw)</p>
+</div>
+<p>Likewise an analogue null hypothesis for the THP can be stated as:</p>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(H_0\)</span>:
+There is a genotype-specific effect (WT vs UCP1 KO) on THP corrected for one
+of the covariates (lm, fm or bw)</p>
+</div>
+<p>Now, we will proceed as before, but make use of 1-way ANCOVAs for THP
+(inluding either lm, fm or bw) and RMR (including either lm, fm or bw)
+grouped by genotype KO and WT to investigate if body weight composition
+might be a confounding factor in observing the true genotype effect.</p>
+<p>For RMR see Figs. <a class="reference internal" href="#rmr-ancova"><span class="std std-ref">Figure 9: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate</span></a>, <a class="reference internal" href="#rmr-ancova-details"><span class="std std-ref">Figure 10: 1-way ANCOVA on genotype stratification for RMR lean mass as covariate with statistical details</span></a> and THP see Figs. <a class="reference internal" href="#thp-ancova"><span class="std std-ref">Figure 9: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate</span></a>, <a class="reference internal" href="#thp-ancova-details"><span class="std std-ref">Figure 10: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate with statistical details</span></a>.</p>
+<figure class="align-center" id="id6">
+<span id="thp-ancova"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_thp_details.png"><img alt="1-way ANOVA on genotype stratification for THP with lean mass as covariate" src="_images/ancova_ucp1ko_thp_details.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 9: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate</span><a class="headerlink" href="#id6" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id7">
+<span id="thp-ancova-details"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_thp.png"><img alt="1-way ANOVA on genotype stratification for THP with lean mass as covariate with statistical details" src="_images/ancova_ucp1ko_thp.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 10: 1-way ANCOVA on genotype stratifiction for THP lean mass as covariate with statistical details</span><a class="headerlink" href="#id7" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id8">
+<span id="rmr-ancova"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_rmr.png"><img alt="1-way ANOVA on genotype stratification for RMR with lean mass as covariate" src="_images/ancova_ucp1ko_rmr.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 9: 1-way ANCOVA on genotype stratifiction for RMR lean mass as covariate</span><a class="headerlink" href="#id8" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id9">
+<span id="rmr-ancova-details"></span><a class="reference internal image-reference" href="_images/ancova_ucp1ko_rmr_details.png"><img alt="1-way ANOVA on genotype stratification for RMR with lean mass as covariate with statistical details" src="_images/ancova_ucp1ko_rmr_details.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 10: 1-way ANCOVA on genotype stratification for RMR lean mass as covariate with statistical details</span><a class="headerlink" href="#id9" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<div class="highlight-box docutils container">
+<p><strong>Final conclusion</strong>:
+Based on our analysis we can reject all of our posed null hypotheses for the UCP1 KO cohort study.</p>
+</div>
+</section>
+<section id="example-data-set-ii-dako-ko">
+<h2>Example data set II: DAKO KO<a class="headerlink" href="#example-data-set-ii-dako-ko" title="Link to this heading">¶</a></h2>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(H_0\)</span>:
+There is a genotype-specific effect on the  production or resting metabolic rate.</p>
+</div>
+<p>We will proceed as before with the analysis of this dataset. The DAKO KO data set is a two cohort study of
+a double knockout experiment.</p>
+<p>As before we get an overview of the metadata recorded with the experiment, see Fig. <a class="reference internal" href="#dako-metadata"><span class="std std-ref">Figure 11: Metadata for 2 cohort DAKO data set</span></a> and
+enspect the raw measurement, e.g. the RER, see Fig. <a class="reference internal" href="#dako-rer"><span class="std std-ref">Figure 12: RER for DAKO data set</span></a> and detect not obvious outlier, so we
+can use all samples from this dataset.</p>
+<figure class="align-center" id="id10">
+<span id="dako-metadata"></span><a class="reference internal image-reference" href="_images/dako_metadata.png"><img alt="Metadata for 2 cohort DAKO data set" src="_images/dako_metadata.png" style="width: 619.5px; height: 500.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 11: Metadata for 2 cohort DAKO data set</span><a class="headerlink" href="#id10" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id11">
+<span id="dako-rer"></span><a class="reference internal image-reference" href="_images/dako_rer.png"><img alt="RER for DAKO data set" src="_images/dako_rer.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 12: RER for DAKO data set</span><a class="headerlink" href="#id11" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>We proceed by calculating the total heat production, see Fig. <a class="reference internal" href="#dako-thp"><span class="std std-ref">Figure 12:  production for DAKO data set</span></a> stratified by genotype.
+After inspecting of the data, no outlier seems to be present. Next, we use in the <em>Statistical testing</em>
+panel a 1-way ANOVA which detects significant changes as indicated by the Wilcoxon test p-value smaller than 0.05
+in the plot, see Fig. <a class="reference internal" href="#dako-anova"><span class="std std-ref">Figure 13: 1-way ANOVA for DAKO and  production</span></a>.</p>
+<figure class="align-center" id="id12">
+<span id="dako-thp"></span><a class="reference internal image-reference" href="_images/dako_thp.png"><img alt="production for DAKO data set" src="_images/dako_thp.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 12:  production for DAKO data set</span><a class="headerlink" href="#id12" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id13">
+<span id="dako-anova"></span><a class="reference internal image-reference" href="_images/dako_anova.png"><img alt="1-way ANOVA for DAKO and  production" src="_images/dako_anova.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 13: 1-way ANOVA for DAKO and  production</span><a class="headerlink" href="#id13" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Next we ask, where these effects could possibly be stemming from, and conduct thus multiple 1-way ANCOVA where we
+adjust for the body weight, lean mass and fat mass respectively, see Fig. <a class="reference internal" href="#dako-ancova-lean"><span class="std std-ref">Figure 15: 1-way ANCOVA for DAKO and  production adjusted for lean mass</span></a>, <a class="reference internal" href="#dako-ancova-fat"><span class="std std-ref">Figure 16: 1-way ANCOVA for DAKO and  production adjusted for fat mass</span></a>, <a class="reference internal" href="#dako-ancova-bw"><span class="std std-ref">Figure 14: 1-way ANCOVA for DAKO and  production adjusted for body weight</span></a>.</p>
+<figure class="align-center" id="id14">
+<span id="dako-ancova-bw"></span><a class="reference internal image-reference" href="_images/dako_ancova_bw.png"><img alt="_images/dako_ancova_bw.png" src="_images/dako_ancova_bw.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 14: 1-way ANCOVA for DAKO and  production adjusted for body weight</span><a class="headerlink" href="#id14" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id15">
+<span id="dako-ancova-lean"></span><a class="reference internal image-reference" href="_images/dako_ancova_lean.png"><img alt="_images/dako_ancova_lean.png" src="_images/dako_ancova_lean.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 15: 1-way ANCOVA for DAKO and  production adjusted for lean mass</span><a class="headerlink" href="#id15" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<figure class="align-center" id="id16">
+<span id="dako-ancova-fat"></span><a class="reference internal image-reference" href="_images/dako_ancova_fat.png"><img alt="_images/dako_ancova_fat.png" src="_images/dako_ancova_fat.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 16: 1-way ANCOVA for DAKO and  production adjusted for fat mass</span><a class="headerlink" href="#id16" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>We do confirm with the <em>Statistical testing</em> and <em>Details</em> panel, that in fact the
+effect seems to stem from the body composition in fat mass, see. Fig. <a class="reference internal" href="#dako-thp-details"><span class="std std-ref">Figure 17: Statistics for 1-way ANCOVA of  production adjusted for fat mass</span></a>,
+and not from the lean mass or total body weight.</p>
+<figure class="align-center" id="id17">
+<span id="dako-thp-details"></span><a class="reference internal image-reference" href="_images/ancova_thp_details.png"><img alt="Statistics for 1-way ANCOVA of  production adjusted for fat mass" src="_images/ancova_thp_details.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 17: Statistics for 1-way ANCOVA of  production adjusted for fat mass</span><a class="headerlink" href="#id17" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Thus we are able to conclude the following:</p>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(Conclusion\)</span>:
+There is a genotype-specific effect (WT vs DAKO) on the  production
+mediated by the body composition’s covariate fat mass.</p>
+</div>
+<p>Next, we will investigate the same hypothesis but now for the resting metabolic rate.</p>
+<p>We start by a 1-way ANOVA for the two genotypes, which gives us a non-significant
+difference between RMR, see Fig. <a class="reference internal" href="#dako-rmr-anova"><span class="std std-ref">Figure 18: Statistics for 1-way ANOVA of resting metabolic rate</span></a>.</p>
+<figure class="align-center" id="id18">
+<span id="dako-rmr-anova"></span><a class="reference internal image-reference" href="_images/anova_rmr_dako.png"><img alt="Statistics for 1-way ANOVA of resting metabolic rate" src="_images/anova_rmr_dako.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 18: Statistics for 1-way ANOVA of resting metabolic rate</span><a class="headerlink" href="#id18" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Also we do not see significant differences, we are prompted to investigate
+if lean, fat or body weight are confounding the analysis on RMR. As before
+we perform multiple 1-way ANCOVAs with lean, fat and body weight each as
+a covariate.</p>
+<p>We find that, genotype can be separated when chosing fat mass as a covariate,
+see Fig. <a class="reference internal" href="#dako-rmr-ancova"><span class="std std-ref">Figure 19: Statistics for 1-way ANCOVA of resting metabolic rate</span></a>.</p>
+<figure class="align-center" id="id19">
+<span id="dako-rmr-ancova"></span><a class="reference internal image-reference" href="_images/ancova_rmr_dako.png"><img alt="Statistics for 1-way ANCOVA of resting metabolic rate" src="_images/ancova_rmr_dako.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 19: Statistics for 1-way ANCOVA of resting metabolic rate</span><a class="headerlink" href="#id19" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Despite the visual separability, statistical testing reveals no significant
+difference in mean resting metabolic rates, see Fig. <a class="reference internal" href="#dako-rmr-ancova-details"><span class="std std-ref">Figure 20: Statistics for 1-way ANCOVA of resting metabolic rate</span></a>.</p>
+<figure class="align-center" id="id20">
+<span id="dako-rmr-ancova-details"></span><a class="reference internal image-reference" href="_images/ancova_rmr_dako_details.png"><img alt="Statistics for 1-way ANCOVA of resting metabolic rate" src="_images/ancova_rmr_dako_details.png" style="width: 619.5px; height: 200.0px;" />
+</a>
+<figcaption>
+<p><span class="caption-text">Figure 20: Statistics for 1-way ANCOVA of resting metabolic rate</span><a class="headerlink" href="#id20" title="Link to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>Thus we are able to conclude the following:</p>
+<div class="highlight-box docutils container">
+<p><span class="math notranslate nohighlight">\(Conclusion\)</span>:
+There is no genotype-specific effect (WT vs DAKO) on the resting metabolic rate.</p>
+</div>
+</section>
+<section id="custom-data-sets">
+<h2>Custom data sets<a class="headerlink" href="#custom-data-sets" title="Link to this heading">¶</a></h2>
+<p>For own dataset or studies, users can make of the workflows as detailed in the
+two use cases for the example datasets from above.</p>
+<p>In general, at the very beginning hypotheses should be posed for the experiment,
+then consistency checks (metadata and raw data should be inspected,
+and outliers be removed) should be applied. Afterwards quantities should be visualized
+and analyzed, in the suggested order: TotalHeatProduction, RestingMetabolicRate,
+HeatProduction and FuelOxidation.</p>
+<p>All data frames calculated in Shiny-Calorie can be downloaded as a single compressed <strong>.zip</strong> file
+in the <em>Export Data</em> section. Indidivual plots can be downloaded directly from the top
+right corner in the corresponding plot, and saved as <strong>.svg</strong>, <strong>.pdf</strong> or <strong>.png</strong>.</p>
+</section>
+<section id="data-export">
+<h2>Data export<a class="headerlink" href="#data-export" title="Link to this heading">¶</a></h2>
+<p>To export combined datasets for all cohorts, data frames for plotting of results, and calculated quantities,
+all data can be download through the <strong>Data export</strong> panel, choose the <em>.zip</em> download which downloads one
+compressed file containing all data frames and plots.</p>
+</section>
+<section id="advanced-use-cases">
+<h2>Advanced use-cases<a class="headerlink" href="#advanced-use-cases" title="Link to this heading">¶</a></h2>
+<p>For advanced use case, e.g. locomotional analysis and budgeting as well as wavelet analysis to study ultradian rhythms,
+we refer to the supplementary material provided in the preprint [TODO: insert DOI here].</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="misc.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Tutorial videos</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="intro.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">What is Shiny-Calorie?</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, Stephan Grein
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Key features</a><ul>
+<li><a class="reference internal" href="#metadata-analysis">1: Metadata analysis</a></li>
+<li><a class="reference internal" href="#raw-measurements">2: Raw Measurements</a></li>
+<li><a class="reference internal" href="#total-heat-production">3: Total Heat Production</a></li>
+<li><a class="reference internal" href="#heat-production">4: Heat Production</a></li>
+<li><a class="reference internal" href="#resting-metabolic-rate">5: Resting Metabolic Rate</a></li>
+<li><a class="reference internal" href="#fuel-oxidation">6: Fuel Oxidation</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#visualization-and-statistical-data-analysis">Visualization and statistical data analysis</a><ul>
+<li><a class="reference internal" href="#example-dataset-i-ucp1-ko">Example dataset I: UCP1 KO</a></li>
+<li><a class="reference internal" href="#example-data-set-ii-dako-ko">Example data set II: DAKO KO</a></li>
+<li><a class="reference internal" href="#custom-data-sets">Custom data sets</a></li>
+<li><a class="reference internal" href="#data-export">Data export</a></li>
+<li><a class="reference internal" href="#advanced-use-cases">Advanced use-cases</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>
