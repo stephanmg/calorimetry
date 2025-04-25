@@ -217,7 +217,7 @@ calc_heat_production <- function(choice, C1, variable, scaleFactor) {
          df[[variable]] <- 15.79 * scaleFactor * C1$`VO2(3)_[ml/h]` / 1000 + 5.09 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) / 1000
       },
       Heldmaier1 = {
-         df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)  + 15.3) * 0.278 / 1000 * (3600 / 1000)
+         df[[variable]] <- scaleFactor * C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) + 15.3) * 0.278 / 1000 * (3600 / 1000)
       },
       Heldmaier2 = {
          df[[variable]] <- (4.44 + 1.43 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * scaleFactor * C1$`VO2(3)_[ml/h]` * (3600 / 1000) / 1000

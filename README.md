@@ -1,15 +1,15 @@
 # Shiny-Calorie: A package for <ins>C</ins>alorimetric <ins>A</ins>nalysis to <ins>L</ins>everage <ins>O</ins>rderly data visualization using Shiny <ins>R</ins> 
 
 
-<img src="https://github.com/stephanmg/Shiny-Calorieimetry/blob/data/shiny_logo.png?raw=true" align="left" width="70" height="70"> 
-Shiny-Calorie is a Shiny/R web application for data and metadata integration, visualization and comprehensive statistical analysis of indirect Shiny-Calorieimetry data sets. Shiny-Calorie ingests data sets originating from common metabolic phenotyping platforms, i.e. Sable, TSE Systems and COSMED. Metadata is provided through a standardized metadata sheet (Excel) and as a fallback through the metadata headers in raw data sets. For more details please refer to the documentation for users from the section below or the supplementary material of the Shiny-Calorie preprint (see references below).
+<img src="https://github.com/stephanmg/calorimetry/blob/data/shiny_logo.png?raw=true" align="left" width="70" height="70"> 
+Shiny-Calorie is a Shiny/R web application for data and metadata integration, visualization and comprehensive statistical analysis of indirect calorimetry data sets. Shiny-Calorie ingests data sets originating from common metabolic phenotyping platforms, i.e. Sable, TSE Systems and COSMED. Metadata is provided through a standardized metadata sheet (Excel) and as a fallback through the metadata headers in raw data sets. For more details please refer to the documentation for users from the section below or the supplementary material of the Shiny-Calorie preprint (see references below).
 
 <br clear="left"/>
 <hr/>
 
-[![Docker.io](https://github.com/stephanmg/Shiny-Calorieimetry/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/stephanmg/Shiny-Calorieimetry/actions/workflows/publish-docker.yml)
-[![Docs](https://github.com/stephanmg/Shiny-Calorieimetry/actions/workflows/docs.yml/badge.svg?branch=develop)](https://github.com/stephanmg/Shiny-Calorieimetry/actions/workflows/docs.yml)
-[![Tests](https://github.com/stephanmg/Shiny-Calorieimetry/actions/workflows/test-shiny.yml/badge.svg?branch=fix-annotation)](https://github.com/stephanmg/Shiny-Calorieimetry/actions/workflows/test-shiny.yml)
+[![Docker.io](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml/badge.svg)](https://github.com/stephanmg/calorimetry/actions/workflows/publish-docker.yml)
+[![Docs](https://github.com/stephanmg/calorimetry/actions/workflows/docs.yml/badge.svg?branch=develop)](https://github.com/stephanmg/calorimetry/actions/workflows/docs.yml)
+[![Tests](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml/badge.svg?branch=fix-annotation)](https://github.com/stephanmg/calorimetry/actions/workflows/test-shiny.yml)
 [![R](https://img.shields.io/badge/R%3E%3D-4.2.0-6666ff.svg)](https://cran.r-project.org/)
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 [![Code style](https://img.shields.io/badge/code%20style-black-000000.svg)]()
@@ -20,15 +20,15 @@ Shiny-Calorie is a Shiny/R web application for data and metadata integration, vi
 # For users
 
 ## Documentation
-Documentation available through Github Pages: https://stephanmg.github.io/Shiny-Calorieimetry
+Documentation available through Github Pages: https://stephanmg.github.io/calorimetry
 
 The app is available on the following web sites: 
-- [Shiny-Calorie in ShinyApps](https://Shiny-Calorieimetry.shinyapps.io/Shiny-Calorieimetry/) or 
-- [Shiny-Calorie on on-premise Uni Bonn](https://shinys.iaas.uni-bonn.de/Calo).
+- [Shiny-Calorie in ShinyApps](https://calorimetry.shinyapps.io/calorimetry/) or 
+- [Shiny-Calorie on on-premise Uni Bonn](https://shinys.iaas.uni-bonn.de/Shiny-Calorie).
 
 Please refer also to the supplementary material from Shiny-Calorie preprint [1].
 
-Tutorial videos are available on YouTube: [Tutorials](http://youtube.com/@Shiny-Calorie-APP).
+Tutorial videos are available on YouTube: [Tutorials](http://youtube.com/@Shiny-Calorie).
 
 ## Standalone Desktop apps
 
