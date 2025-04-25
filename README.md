@@ -84,7 +84,7 @@ structure after docs have been generated.
 
 ## References
 
-- [1] Add reference to Shiny-Calorie
-- [2] Add reference to Metadata Sheet
+- [1] Grein et al., Shiny-Calorie: A context-aware application for indirect calorimetry data analysis and visualization using R, https://doi.org/10.1101/2025.04.24.648116
+- [2] Seep et al., From Planning Stage Towards FAIR Data: A Practical Metadatasheet For Biomedical Scientists, https://doi.org/10.1038/s41597-024-03349-2
 
 The Shiny-Calorie image was created with the assistance of the AI tool DALL-E 2.
