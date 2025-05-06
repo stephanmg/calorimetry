@@ -4,56 +4,56 @@ API Documentation
 .. toctree::
    :maxdepth: 1
 
-   rst/remove_z_score_outliers
-   rst/model_effects
-   rst/get_true_metadata
-   rst/generate_statistical_table
-   rst/import_promethion
-   rst/style_plot
-   rst/enrich_with_metadata
-   rst/get_git_information_from_repository
-   rst/coarsen_data_sets
    rst/import_cosmed
-   rst/get_covariates_and_units
    rst/annotate_rmr_days
-   rst/create_df
-   rst/goxlox
-   rst/padding_helper
-   rst/get_r_squared_clean
-   rst/get_time_diff
-   rst/calculate_statistic
-   rst/get_constants
-   rst/plot_locomotion
-   rst/raw_measurement
-   rst/add_stylize_plot_plotting_control
-   rst/prepare_data_frame_for_export
-   rst/check_for_cosmed
-   rst/visualize_model_effects
-   rst/remove_zero_values
-   rst/cv
-   rst/reformat_time_for_cosmed
-   rst/create_lme_model_ui
-   rst/get_date_range
-   rst/import_pheno_v8
-   rst/reformat
-   rst/lookup_cohort_belonging
-   rst/resting_metabolic_rate
-   rst/extract_rmr_helper
    rst/partition
+   rst/get_new_download_buttons
+   rst/indicate_plot_rendered
+   rst/cv
+   rst/import_promethion
+   rst/coarsen_data_sets
+   rst/plot_locomotion_budget
+   rst/padding_helper
+   rst/get_git_information_from_repository
+   rst/get_constants
    rst/zeitgeber_zeit
-   rst/pretty_print_interval_length_list
-   rst/draw_day_night_rectangles
-   rst/extract_rmr
-   rst/do_extract
+   rst/reformat
+   rst/get_true_metadata
+   rst/guide
    rst/do_ancova_alternative
-   rst/process_return_value_for_statistic
+   rst/get_study_description_from_metadata
+   rst/import_pheno_v8
+   rst/get_time_diff
+   rst/plot_locomotion
+   rst/extract_rmr_helper
+   rst/remove_zero_values
+   rst/get_r_squared_clean
+   rst/pretty_print_interval_length_list
+   rst/get_date_range
+   rst/do_extract
+   rst/calculate_statistic
+   rst/goxlox
+   rst/extract_rmr
+   rst/model_effects
+   rst/create_df
+   rst/visualize_model_effects
+   rst/total_energy_expenditure
+   rst/check_for_cosmed
+   rst/enrich_with_metadata
+   rst/lookup_interval_length
+   rst/get_covariates_and_units
+   rst/style_plot
    rst/body_composition
    rst/energy_expenditure
-   rst/get_new_download_buttons
-   rst/get_study_description_from_metadata
-   rst/indicate_plot_rendered
-   rst/lookup_interval_length
-   rst/total_energy_expenditure
+   rst/lookup_cohort_belonging
+   rst/raw_measurement
+   rst/resting_metabolic_rate
+   rst/prepare_data_frame_for_export
+   rst/draw_day_night_rectangles
+   rst/add_stylize_plot_plotting_control
+   rst/create_lme_model_ui
+   rst/generate_statistical_table
    rst/do_export_all_data
-   rst/guide
-   rst/plot_locomotion_budget
+   rst/remove_z_score_outliers
+   rst/process_return_value_for_statistic
+   rst/reformat_time_for_cosmed
