@@ -233,7 +233,7 @@ energy_expenditure <- function(finalC1, finalC1meta, input, output, session, glo
 			# windowed time trace plot
 			window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "EE", offset, "HP")
 			p2 <- window_plot$plot
-			p2 <- p2 + ggtitle("Average heat production in window") + xlab(paste0("Heat production [", input$kj_or_kcal, "/day"))
+			p2 <- p2 + ggtitle("Average heat production in window [kJ/day]") + xlab(paste0("Zeitgeber time [h]"))
 			annotations_window_plot <<- window_plot$annotations
 		}
 	}

@@ -460,6 +460,9 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	if (input$boxplots_or_sem_plots == FALSE) {
 		p2 <- p2 + scale_x_continuous(expand = c(0, 0), limits = c(min(finalC1$running_total.hrs.halfhour), max(finalC1$running_total.hrs.halfhour)))
 	}
+	# scale y axis to range 
+	y_range <- range(df_to_plot[[input$myr]], na.rm = TRUE)
+	p <- p + scale_y_continuous(limits=y_range)
 
 	p2 <- p2 + annotations_window_plot
 	# toggle outliers
