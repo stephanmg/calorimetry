@@ -325,7 +325,9 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                   if (input$windowed_plot == TRUE) {
                      input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days) / n_distinct(interval), Days=n_distinct(Days))
                   } else {
-                     input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
+                     print("here?")
+                     input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(group2), Days=n_distinct(Days))
+                     print("error?")
                   }
                }
             } else {
@@ -338,6 +340,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing)
       p <- ret$plot_summary
       df <- ret$df
+
+      print("FOOBAR FOOBAR")
 
 		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
          if (input$test_statistic == '2-way ANOVA') {
@@ -353,10 +357,10 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
          }
 			if (input$test_statistic == '1-way ANOVA') {
 			} else {
-				p <- p + facet_wrap(as.formula(paste("~", input$indep_var2)))
+				p <- p + facet_wrap(as.formula(paste("~", "group2")))
 			}
 		} else {
-            showTab(inputId = "additional_content", target = "Details")
+         showTab(inputId = "additional_content", target = "Details")
 			p <- p + xlab(pretty_print_label(input$covar, metadatafile)) + ylab(pretty_print_variable(mylabel, metadatafile))
 		}
 
@@ -376,6 +380,12 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			}
 		}
 
+
+      print("FOOBAR2 FOOBAR2")
+
+      ggsave("my_plot2.png", plot=p)
+
+
 		p <- p + ggtitle(input$study_description) 
 		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
@@ -383,6 +393,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 
+        print("are we here?")
       # TODO: This works only for ANOVA and the outliers in the boxplot, think about how to improve this
 		if (input$test_statistic != '1-way ANCOVA' && input$test_statistic != '2-way ANCOVA') {
       # Note: Data frame contains as dep var always TEE, so we need to modify this. 
@@ -400,6 +411,9 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
         }
       }
+
+
+      print("or already here?")
 
       # plotly does not respect outlier aesthetics from geom_boxplot:
       # per default get rid of the outlier marks by geom_boxplot.
@@ -429,6 +443,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
       }
       }
       }
+      print("maybe there?")
       # Use plotlyProxy(...) for the plot, and apply plotlyProxyInvoke("restyle", y=modified_y_values_without_value_33)
       # p$x$data <- p$x$data
       p
