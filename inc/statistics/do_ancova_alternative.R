@@ -439,5 +439,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     "shapiro" = shapiro, # ...
     "levene" = levene, # ...
     "regression_slopes" = regression_slopes, ### Statistics table below Details plot
-    "df"=df))
+    "df"=df, # data frame
+    "dep_var"=dep_var))
 }

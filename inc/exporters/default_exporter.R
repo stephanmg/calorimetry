@@ -47,25 +47,32 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    raw <- getSession(session$token, global_data)[["df_raw"]]
    df <- getSession(session$token, global_data)[["finalC1"]]
 
+   # to store in zip archive
+   filenames <- c()
+
    # Day and Night Activity
    if (!is.null(day_night)) { 
       write.csv2(day_night, file = df_day_night)
+      filenames <- c(filenames, df_day_night)
    }
 
    # TEE and RMR 
    if (!is.null(TEE_and_RMR)) { 
       write.csv2(TEE_and_RMR, file = df_tee_and_rmr)
+      filenames <- c(filenames, df_tee_and_rmr)
    }
 
    # GoxLox / FuelOxidation
    if (!is.null(goxlox)) {
       write.csv2(goxlox, file = df_gox_lox)
+      filenames <- c(filenames, df_gox_lox)
    }
 
    # Raw measurements
    if (!is.null(raw)) { 
       raw <- raw %>% rename(Raw=TEE)
       write.csv2(raw, file = df_raw) 
+      filenames <- c(filenames, df_raw)
    }
 
    # Total output data frame
@@ -73,6 +80,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       df_calc <- df %>% select(c(HP, HP2)) %>% rename("Energy Expenditure #1"=HP, "Energy Expenditure #2"=HP2)
       df_calc <- df_calc %>% rename(Animals=`Animal No._NA`)
       write.csv2(df_calc, file = df_df_output) 
+      filenames <- c(filenames, df_df_output)
    }
 
    # Total input data frame
@@ -80,6 +88,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       print(head(df))
       df <- df %>% select(-c(HP, HP2))
       write.csv2(df, file=df_df_input)
+      filenames <- c(filenames, df_df_input)
    }
 
    #############################################################################
@@ -89,36 +98,42 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    plot_for_raw <- getSession(session$token, global_data)[["plot_for_raw"]]
    if (!is.null(plot_for_raw)) {
       htmlwidgets::saveWidget(plot_for_raw, plot_for_raw_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_raw_input)
    }
 
    plot_for_tee_input <- file.path(tempdir(), "tee_plot.html")
    plot_for_tee <- getSession(session$token, global_data)[["plot_for_tee"]]
    if (!is.null(plot_for_tee)) {
       htmlwidgets::saveWidget(plot_for_tee, plot_for_tee_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_tee_input)
    }
 
    plot_for_ee_input <- file.path(tempdir(), "ee_plot.html")
    plot_for_ee <- getSession(session$token, global_data)[["plot_for_ee"]]
    if (!is.null(plot_for_ee)) {
       htmlwidgets::saveWidget(plot_for_ee, plot_for_ee_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_ee_input)
    }
 
    plot_for_GoxLox_input <- file.path(tempdir(), "GoxLox_plot.html")
    plot_for_GoxLox <- getSession(session$token, global_data)[["plot_for_GoxLox"]]
    if (!is.null(plot_for_GoxLox)) {
       htmlwidgets::saveWidget(plot_for_GoxLox, plot_for_GoxLox_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_GoxLox_input)
    }
 
    plot_for_metadata_input <- file.path(tempdir(), "metadata_plot.html")
    plot_for_metadata <- getSession(session$token, global_data)[["plot_for_metadata"]]
    if (!is.null(plot_for_metadata)) {
       htmlwidgets::saveWidget(plot_for_metadata, plot_for_metadata_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_metadata_input)
    }
 
    plot_for_RMR_input <- file.path(tempdir(), "RMR_plot.html")
    plot_for_RMR <- getSession(session$token, global_data)[["plot_for_RMR"]]
    if (!is.null(plot_for_RMR)) {
       htmlwidgets::saveWidget(plot_for_RMR, plot_for_RMR_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_RMR_input)
    }
 
    #############################################################################
@@ -134,6 +149,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
          htmlwidgets::saveWidget(plot_for_raw_window, plot_for_raw_window_input, selfcontained=TRUE)
          }
          time_trace_plot <- c(time_trace_plots, plot_for_raw_window_input)
+         filenames <- c(filenames, plot_for_raw_window_input)
       }
    }
 
@@ -146,6 +162,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
             htmlwidgets::saveWidget(plot_for_tee_window, plot_for_tee_window_input, selfcontained=TRUE)
          }
          time_trace_plot <- c(time_trace_plots, plot_for_tee_window_input)
+         filenames <- c(filenames, plot_for_tee_window_input)
       }
    }
 
@@ -158,6 +175,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
             htmlwidgets::saveWidget(plot_for_ee_window, plot_for_ee_window_input, selfcontained=TRUE)
          }
          time_trace_plot <- c(time_trace_plots, plot_for_ee_window_input)
+         filenames <- c(filenames, plot_for_ee_window_input)
       }
    }
 
@@ -170,6 +188,7 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
             htmlwidgets::saveWidget(plot_for_ee_window, plot_for_ee_window_input, selfcontained=TRUE)
          }
          time_trace_plot <- c(time_trace_plots, plot_for_ee_window_input)
+         filenames <- c(filenames, plot_for_ee_window_input)
       }
    }
 
@@ -182,12 +201,24 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
             htmlwidgets::saveWidget(plot_for_rmr_window, plot_for_rmr_window_input, selfcontained=TRUE)
          }
          time_trace_plot <- c(time_trace_plots, plot_for_rmr_window_input)
+         filenames <- c(filenames, plot_for_rmr_window_input)
       }
    }
 
+   #filenames <- c()
+   statistics_tables <- getSession(session$token, global_data)[["statistics_table"]]
+   for (i in seq_along(statistics_tables)) {
+      statistics_table_output <- file.path(tempdir(), sprintf("statistics_table_%d_%s.csv", i, statistics_tables[[i]]$quantity))
+      write.csv(statistics_tables[[i]], file = statistics_table_output)
+      filenames <- c(filenames, statistics_table_output)
+   }
+
+
    # Create zip file of all files
    zip_file <- file.path(tempdir(), "all_data.zip")
-   zip(zipfile=zip_file, files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input, plot_for_tee_input, plot_for_ee_input, plot_for_GoxLox_input, plot_for_metadata_input, plot_for_RMR_input, time_trace_plots))
+   #files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input, plot_for_tee_input, plot_for_ee_input, plot_for_GoxLox_input, plot_for_metadata_input, plot_for_RMR_input, time_trace_plots, filenames)
+   files = filenames
+   zip(zipfile=zip_file, files=files)
    return(zip_file)
 
 }

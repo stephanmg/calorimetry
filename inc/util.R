@@ -528,7 +528,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 					)
 				),
 				tags$tbody(
-					generate_statistical_table(results)
+					generate_statistical_table(results, session, global_data)
 				)
 			),
 			h4("Test assumptions"),
@@ -711,10 +711,24 @@ indicate_plot_rendered <- function(p, output) {
 #' This function generate statistical table in case we have multiple comparisons
 #' @param results
 ################################################################################
-generate_statistical_table <- function(results) {
+generate_statistical_table <- function(results, session, global_data) {
    group_info <- results$statistics
    group_info <- group_info %>% mutate(comparison = paste0("(", group1, ", ", group2, ")"))
    if (length(results$statistics$p) == 1) { # only one comparison, e.g. WT vs KO, i.e. only one row in table
+      df_to_save <- data.frame(list(
+         p=process_return_value_for_statistic(results$statistics$p, FALSE),
+         padj=process_return_value_for_statistic(results$statistics$p.adj, FALSE),
+         padjsignif=process_return_value_for_statistic(results$statistics$p.adj.signif, FALSE),
+         df=process_return_value_for_statistic(results$statistics$df, FALSE),
+         statistic=process_return_value_for_statistic(results$statistics$statistic, FALSE),
+         comparison_groups=group_info$comparison,
+         quantity=results$dep_var
+         ), stringsAsFactors=FALSE)
+         stored_tables <- getSession(session$token, global_data)[["statistics_table"]]
+         if (is.null(stored_tables)) {
+            stored_tables <- list()
+         }
+	      storeSession(session$token, "statistics_table", append(stored_tables, list(df_to_save)), global_data)
       return(tags$tr(
       tags$td(process_return_value_for_statistic(results$statistics$p, FALSE), style="width: 100px"),
       tags$td(process_return_value_for_statistic(results$statistics$p.adj, FALSE), style="width: 100px"),
@@ -736,6 +750,7 @@ generate_statistical_table <- function(results) {
          )
       })
       return(rows_p_value)
+
    }
 }
 
