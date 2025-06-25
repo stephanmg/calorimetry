@@ -749,6 +749,7 @@ generate_statistical_table <- function(results, session, global_data) {
             tags$td(paste0("(", results$statistics$group1[i], ", ", results$statistics$group2[i], ")"))
          )
       })
+      # TODO: Implement statistics export for multiple testing
       return(rows_p_value)
 
    }
