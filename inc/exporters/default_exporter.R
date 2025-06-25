@@ -207,11 +207,20 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
 
    #filenames <- c()
    statistics_tables <- getSession(session$token, global_data)[["statistics_table"]]
+   print("before exporting:")
+   print(statistics_tables)
+   print("num tables:")
+   print(length(statistics_tables))
    for (i in seq_along(statistics_tables)) {
-      statistics_table_output <- file.path(tempdir(), sprintf("statistics_table_%d_%s.csv", i, statistics_tables[[i]]$quantity))
+      print("table i:")
+      print(statistics_tables[[i]])
+      statistics_table_output <- file.path(tempdir(), sprintf("statistics_table_%d_%s.csv", i, unique(statistics_tables[[i]]$quantity)))
+      print("filename:")
+      print(statistics_table_output)
       write.csv(statistics_tables[[i]], file = statistics_table_output)
       filenames <- c(filenames, statistics_table_output)
    }
+   print("after for loop")
 
 
    # Create zip file of all files

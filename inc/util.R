@@ -749,7 +749,32 @@ generate_statistical_table <- function(results, session, global_data) {
             tags$td(paste0("(", results$statistics$group1[i], ", ", results$statistics$group2[i], ")"))
          )
       })
-      # TODO: Implement statistics export for multiple testing
+
+      print("here:")
+      df_to_save <- lapply(seq_along(results$statistics$p), function(i) { 
+         data.frame(list(
+            p=process_return_value_for_statistic(results$statistics$p[i], FALSE),
+            padj=process_return_value_for_statistic(results$statistics$p.adj[i], FALSE),
+            padjsignif=process_return_value_for_statistic(results$statistics$p.adj.signif[i], FALSE),
+            df=process_return_value_for_statistic(results$statistics$df[i], FALSE),
+            statistic=process_return_value_for_statistic(results$statistics$statistic[i], FALSE),
+            comparison_groups=paste0("(", results$statistics$group1[i], ", ", results$statistics$group2[i], ")"),
+            quantity=results$dep_var
+         ), stringsAsFactors=FALSE)
+      })
+
+
+      stored_tables <- getSession(session$token, global_data)[["statistics_table"]]
+      print("stored_tables:")
+      print(stored_tables)
+      if (is.null(stored_tables)) {
+         stored_tables <- list()
+      }
+      df_to_save = do.call(rbind, df_to_save)
+      print("df_to_save:")
+      print(df_to_save)
+      storeSession(session$token, "statistics_table", append(stored_tables, list(df_to_save)), global_data)
+
       return(rows_p_value)
 
    }

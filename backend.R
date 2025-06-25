@@ -935,6 +935,7 @@ server <- function(input, output, session) {
          },
          content = function(file) {
             zip_file = do_export_all_data(input, output, session, file, do_plotting, global_data)
+            print("before copy")
             file.copy(zip_file, file)
          }
     )
