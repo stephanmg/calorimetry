@@ -322,7 +322,8 @@ load_data <- function(file, input, exclusion, output, session) {
          c(Date_NA, Time_NA), # columns to be combined
          sep = " ") # separator set to blank
    C1$Datetime <- gsub(".", "/", C1$Datetime, fixed = TRUE)
-   # transform into time format appropriate to experimenters
+   # if we expect a clock change due to daylight saving time, we need to account 
+   # for this by converting into a timezone without daylight saving time (Etc/GMT-1)
    if (input$correct_clock_change) {
      C1$Datetime2 <- as.POSIXct(C1$Datetime, format = "%d/%m/%Y %H:%M", tz="Etc/GMT-1")
    } else {
@@ -935,7 +936,6 @@ server <- function(input, output, session) {
          },
          content = function(file) {
             zip_file = do_export_all_data(input, output, session, file, do_plotting, global_data)
-            print("before copy")
             file.copy(zip_file, file)
          }
     )
