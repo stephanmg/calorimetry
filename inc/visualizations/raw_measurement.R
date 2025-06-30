@@ -300,6 +300,33 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	p <- ggplot(data = df_to_plot, aes_string(y = input$myr, x = "running_total.hrs.halfhour", color = "Animals", group = "Animals")) + geom_line()
 	mylabel <- gsub("_", " ", mylabel)
 
+	# Add trend for ungrouped data
+	if (input$add_trend_line) {
+		if (!input$with_facets) {
+			summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+			p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean), color = "blue", inherit.aes=FALSE) 
+			p <- p + geom_ribbon(data=summary_df, aes(x=running_total.hrs.halfhour, ymin=mean-input$add_trend_line_sd*sd, ymax=mean+input$add_trend_line_sd*sd), fill = "lightblue", alpha=0.6, inherit.aes=FALSE)
+		} else {
+			if (!is.null(input$facets_by_data_one)) {
+				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+				print(summary_df)
+				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
+				p <- p + geom_ribbon(
+ 		 	   		data = summary_df,
+						aes(
+						x = running_total.hrs.halfhour,
+						ymin = mean - input$add_trend_line_sd*sd,
+						ymax = mean + input$add_trend_line_sd*sd,
+						fill = .data[[input$facets_by_data_one]],
+						group = .data[[input$facets_by_data_one]]
+						),
+						alpha = 0.6,
+						inherit.aes = FALSE
+					)
+			}
+		}
+	}
+
 	# annotate timeline
 	lights <- data.frame(x = df_to_plot["running_total.hrs.halfhour"], y = df_to_plot[input$myr])
 	colnames(lights) <- c("x", "y")
@@ -433,6 +460,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		} else {
 				p <- p + geom_ribbon(aes(ymin=lower, ymax=upper), alpha=input$averaging_method_with_facets_alpha_level, fill=input$averaging_method_with_facets_color)
 		}
+	}
+
+	if (input$add_trend_line_one_plot) {
+ 	 	p <- p + facet_null()
 	}
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
