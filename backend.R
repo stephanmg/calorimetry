@@ -844,12 +844,6 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 # Create server
 #####################################################################################################################
 server <- function(input, output, session) {
-   # keep alive
-   #output$keepAlive <- renderText({
-   #   invalidateLater(15000, session)
-   #   Sys.time()
-   #})
-
    # stylize plot
    output$stylize_plot_plotting_control <- renderUI({
        if (input$stylize_plot) {

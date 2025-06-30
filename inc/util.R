@@ -252,13 +252,13 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			conditionalPanel("input.test_statistic == '2-way ANCOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
 			conditionalPanel("input.test_statistic == '2-way ANOVA'", checkboxInput("connected_or_independent_ancova", "Interaction term", value = FALSE)),
 			conditionalPanel("input.num_covariates == '2'", selectInput("covar2", "Covariate #2", choices = get_non_factor_columns(true_metadata), selected = "lean_mass")),
-			conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
+			#conditionalPanel("input.test_statistic == '1-way ANCOVA' || input.test_statistic == '1-way ANOVA'",
 			hr(style = "width: 50%"),
 			h4("Advanced"),
 			#checkboxInput("add_points_to_anova_or_ancova", "Add points"),
 			selectInput("post_hoc_test", "Post-hoc test", choices = c("Bonferonni", "Tukey", "Sidak", "Spearman"), selected = "Sidak"),
 			sliderInput("alpha_level", "Alpha-level", 0.001, 0.05, 0.05, step = 0.001),
-			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE)),
+			checkboxInput("check_test_assumptions", "Check test assumptions?", value = TRUE),#),
 			hr(style = "width: 75%"),
 			# here we fill the plot below with data
          h4("Raw data inspection"),
@@ -341,8 +341,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
       p <- ret$plot_summary
       df <- ret$df
 
-      print("FOOBAR FOOBAR")
-
 		if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '2-way ANOVA') {
          if (input$test_statistic == '2-way ANOVA') {
             showTab(inputId = "additional_content", target = "Details")
@@ -380,12 +378,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			}
 		}
 
-
-      print("FOOBAR2 FOOBAR2")
-
-      ggsave("my_plot2.png", plot=p)
-
-
 		p <- p + ggtitle(input$study_description) 
 		p <- ggplotly(p) %>% config(displaylogo = FALSE, 
 				modeBarButtons = list(c("toImage", get_new_download_buttons("plot_statistics_details")), 
@@ -393,7 +385,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 				list("hoverClosestCartesian", "hoverCompareCartesian")))
 
 
-        print("are we here?")
       # TODO: This works only for ANOVA and the outliers in the boxplot, think about how to improve this
 		if (input$test_statistic != '1-way ANCOVA' && input$test_statistic != '2-way ANCOVA') {
       # Note: Data frame contains as dep var always TEE, so we need to modify this. 
@@ -412,8 +403,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
         }
       }
 
-
-      print("or already here?")
 
       # plotly does not respect outlier aesthetics from geom_boxplot:
       # per default get rid of the outlier marks by geom_boxplot.
@@ -443,7 +432,6 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
       }
       }
       }
-      print("maybe there?")
       # Use plotlyProxy(...) for the plot, and apply plotlyProxyInvoke("restyle", y=modified_y_values_without_value_33)
       # p$x$data <- p$x$data
       p
@@ -687,6 +675,24 @@ style_plot <- function(p, input) {
          p <- p %>% layout(title = list(text=input$stylize_plot_theme_and_title_title_label, font = list(input$stylize_plot_theme_and_title_title_font_size, color=input$stylize_plot_theme_and_title_title_color)))
          p <- p %>% layout(font = list(family=input$stylize_plot_general_font_family, size=input$stylize_plot_theme_and_title_font_size))
          p <- p %>% layout(width = input$stylize_plot_general_width, height=input$stylize_plot_general_height)
+
+         if (!is.null(input$stylize_plot_axes_ticks_disable_ticks)) {
+            if (input$stylize_plot_axes_ticks_disable_ticks == TRUE) {
+               all_x <- unlist(lapply(p$x$data, function(trace) trace$x))
+               all_y <- unlist(lapply(p$x$data, function(trace) trace$y))
+
+               x_range <- range(all_x, na.rm = TRUE)
+               y_range <- range(all_y, na.rm = TRUE)
+
+               x_breaks <- pretty(x_range, n = input$stylize_plot_axes_ticks_x_ticks)
+               y_breaks <- pretty(y_range, n = input$stylize_plot_axes_ticks_y_ticks)
+
+               p <- p %>% layout(
+                  xaxis = list(tickmode = "array", tickvals = x_breaks, range=x_range, ticktext = x_breaks, ticklen=input$stylize_plot_axes_x_ticks_length, tickfont=list(size = input$stylize_plot_axes_x_axis_font_size)),
+                  yaxis = list(tickmode = "array", tickvals = y_breaks, range=y_range, ticktext = y_breaks, ticklen=input$stylize_plot_axes_y_ticks_length, tickfont=list(size = input$stylize_plot_axes_y_axis_font_size))
+               ) 
+            }
+         }
       }
       return(p)
 }
