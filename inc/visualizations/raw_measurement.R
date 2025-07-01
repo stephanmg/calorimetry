@@ -303,7 +303,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# Add trend for ungrouped data
 	if (input$add_trend_line) {
 		if (!input$with_facets) {
-			summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+			summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE), .groups="drop")
 			p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean), color = "blue", inherit.aes=FALSE) 
 			p <- p + geom_ribbon(data=summary_df, aes(x=running_total.hrs.halfhour, ymin=mean-input$add_trend_line_sd*sd, ymax=mean+input$add_trend_line_sd*sd), fill = "lightblue", alpha=0.6, inherit.aes=FALSE)
 		} else {

@@ -51,10 +51,11 @@ results <- data %>%
   group_split() %>%
   purrr::map_df(~ test_interval(.x) %>% mutate(interval = .x$interval[1]))
 
+
 results <- results %>%
 	mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
 
-   results <- results %>% mutate(adjusted_p = p.adjust(p_value, method="BH"), significant = ifelse(adjusted_p < 0.001, "*", NA))
+   results <- results %>% mutate(adjusted_p = p.adjust(p_value, method=input$add_windowed_plot_statistics_multiple_testing), significant = ifelse(adjusted_p < 0.001, "*", NA))
 
    return(results)
 }
@@ -112,7 +113,8 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 		group_by(Days, Animals, interval) %>%
 		summarise(
 			avg_meas = median(TEE, na.rm = TRUE),
-			sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
+         sem = sd(TEE, na.rm = TRUE),
+			#sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
 			.groups = "drop"
 		) %>%
 		mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours
@@ -125,7 +127,8 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
             group_by(Days, !!sym(input$facets_by_data_one), interval) %>%
             summarise(
                avg_meas = median(TEE, na.rm = TRUE),
-               sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
+               sem = sd(TEE, na.rm = TRUE),
+               #sem = sd(TEE, na.rm = TRUE) / sqrt(n()),
                .groups = "drop"
             ) %>%
             mutate(time=((interval-1)*total_length+total_length/2)/60) # back to hours

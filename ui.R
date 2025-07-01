@@ -101,6 +101,7 @@ main_content <- mainPanel(
             conditionalPanel("input.windowed_plot == true", checkboxInput("boxplots_or_sem_plots", "Time boxplot", value=FALSE)),
             conditionalPanel("input.windowed_plot == true && input.connect_medians_of_boxplots != true && input.with_facets == true", checkboxInput("facet_medians", "Display only facet medians", value=FALSE)),
             conditionalPanel("input.windowed_plot == true && input.connect_medians_of_boxplots != true && input.with_facets == true", checkboxInput("facet_medians_statistics", "Display test statistics", value=FALSE)),
+            conditionalPanel("input.windowed_plot == true && input.facet_medians_statistics == true", selectInput("add_windowed_plot_statistics_multiple_testing", "Multiple testing correction", choices=c("BH", "bonferroni", "holm", "hochberg", "BY", "fdr", "none", "hommel"), selected="BH")),
             conditionalPanel("input.facet_medians == true", checkboxInput("facet_medians_in_one_plot", "One plot", value=TRUE)),
             conditionalPanel("input.windowed_plot == true && input.boxplots_or_sem_plots == true", checkboxInput("connect_medians_of_boxplots", "Connect individual medians", value=FALSE))
          )
