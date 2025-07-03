@@ -521,6 +521,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	storeSession(session$token, "plot_for_raw_window", p2, global_data)
 	storeSession(session$token, "is_Raw_calculated", TRUE, global_data)
 	storeSession(session$token, "is_Raw_window_calculated", length(p2) > 0, global_data)
+	storeSession(session$token, "raw_variable", input$myr, global_data)
 
 	# return current plot of raw measurements
 	return(list("window_plot"=p2, "plot"=p))

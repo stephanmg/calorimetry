@@ -748,7 +748,8 @@ generate_statistical_table <- function(results, session, global_data) {
          df=process_return_value_for_statistic(results$statistics$df, FALSE),
          statistic=process_return_value_for_statistic(results$statistics$statistic, FALSE),
          comparison_groups=group_info$comparison,
-         quantity=results$dep_var
+         quantity=results$dep_var,
+         variable=getSession(session$token, global_data)[["raw_variable"]]
          ), stringsAsFactors=FALSE)
          stored_tables <- getSession(session$token, global_data)[["statistics_table"]]
          if (is.null(stored_tables)) {
@@ -785,7 +786,8 @@ generate_statistical_table <- function(results, session, global_data) {
             df=process_return_value_for_statistic(results$statistics$df[i], FALSE),
             statistic=process_return_value_for_statistic(results$statistics$statistic[i], FALSE),
             comparison_groups=paste0("(", results$statistics$group1[i], ", ", results$statistics$group2[i], ")"),
-            quantity=results$dep_var
+            quantity=results$dep_var,
+            variable=getSession(session$token, global_data)[["raw_variable"]]
          ), stringsAsFactors=FALSE)
       })
 

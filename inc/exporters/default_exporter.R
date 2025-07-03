@@ -214,7 +214,15 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
    for (i in seq_along(statistics_tables)) {
       print("table i:")
       print(statistics_tables[[i]])
-      statistics_table_output <- file.path(tempdir(), sprintf("statistics_table_%d_%s.csv", i, unique(statistics_tables[[i]]$quantity)))
+      used_variable <- unique(statistics_tables[[i]]$variable)
+      used_quantity <- unique(statistics_tables[[i]]$quantity)
+      if (used_quantity == "Raw") {
+        if (!is.null(used_variable)) {
+           statistics_table_output <- file.path(tempdir(), sprintf("statistics_table_%d_%s_%s.csv", i, unique(statistics_tables[[i]]$quantity), used_variable))
+         } 
+      } else {
+        statistics_table_output <- file.path(tempdir(), sprintf("statistics_table_%d_%s.csv", i, unique(statistics_tables[[i]]$quantity)))
+      }
       print("filename:")
       print(statistics_table_output)
       write.csv(statistics_tables[[i]], file = statistics_table_output)
