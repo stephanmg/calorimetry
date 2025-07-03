@@ -680,7 +680,7 @@ style_plot <- function(p, input) {
          p <- p %>% layout(width = input$stylize_plot_general_width, height=input$stylize_plot_general_height)
 
          if (!is.null(input$stylize_plot_axes_ticks_disable_ticks)) {
-            if (input$stylize_plot_axes_ticks_disable_ticks == TRUE) {
+            if (input$stylize_plot_axes_ticks_disable_ticks == FALSE) {
                all_x <- unlist(lapply(p$x$data, function(trace) trace$x))
                all_y <- unlist(lapply(p$x$data, function(trace) trace$y))
 
@@ -694,6 +694,23 @@ style_plot <- function(p, input) {
                   xaxis = list(tickmode = "array", tickvals = x_breaks, range=x_range, ticktext = x_breaks, ticklen=input$stylize_plot_axes_x_ticks_length, tickfont=list(size = input$stylize_plot_axes_x_axis_font_size)),
                   yaxis = list(tickmode = "array", tickvals = y_breaks, range=y_range, ticktext = y_breaks, ticklen=input$stylize_plot_axes_y_ticks_length, tickfont=list(size = input$stylize_plot_axes_y_axis_font_size))
                ) 
+            } else {
+               all_x <- unlist(lapply(p$x$data, function(trace) trace$x))
+               all_y <- unlist(lapply(p$x$data, function(trace) trace$y))
+
+               x_range <- range(all_x, na.rm = TRUE)
+               y_range <- range(all_y, na.rm = TRUE)
+
+               x_breaks <- seq(from=0, to=max(all_x, na.rm=TRUE), by=input$stylize_plot_axes_ticks_x_ticks)
+               y_breaks <- seq(from=0, to=max(all_y, na.rm=TRUE), by=input$stylize_plot_axes_ticks_y_ticks)
+
+               p <- p %>% layout(
+                  xaxis = list(tickmode = "array", tickvals = x_breaks, range=x_range, ticktext = x_breaks, ticklen=input$stylize_plot_axes_x_ticks_length, tickfont=list(size = input$stylize_plot_axes_x_axis_font_size)),
+                  yaxis = list(tickmode = "array", tickvals = y_breaks, range=y_range, ticktext = y_breaks, ticklen=input$stylize_plot_axes_y_ticks_length, tickfont=list(size = input$stylize_plot_axes_y_axis_font_size))
+               ) 
+                 
+
+
             }
          }
       }

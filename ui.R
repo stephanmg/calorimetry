@@ -80,6 +80,7 @@ main_content <- mainPanel(
             plotlyOutput("plot"),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
+            conditionalPanel("input.plot_type != 'Metadata'", h4("Advanced options")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_average_with_se", "Model mean trace")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_trend_line", "Add trend line")),
             conditionalPanel("input.add_trend_line == true", numericInput("add_trend_line_sd", "sd", min=1, max=4, value=1)),
