@@ -4,56 +4,56 @@ API Documentation
 .. toctree::
    :maxdepth: 1
 
-   rst/do_export_all_data
-   rst/padding_helper
-   rst/import_cosmed
-   rst/create_lme_model_ui
-   rst/import_pheno_v8
-   rst/get_constants
-   rst/get_git_information_from_repository
-   rst/coarsen_data_sets
-   rst/check_for_cosmed
-   rst/annotate_rmr_days
+   rst/energy_expenditure
+   rst/reformat_time_for_cosmed
+   rst/reformat
+   rst/goxlox
+   rst/enrich_with_metadata
+   rst/get_study_description_from_metadata
    rst/remove_z_score_outliers
    rst/guide
-   rst/calculate_statistic
+   rst/annotate_rmr_days
    rst/model_effects
-   rst/energy_expenditure
-   rst/lookup_interval_length
    rst/get_new_download_buttons
-   rst/visualize_model_effects
-   rst/generate_statistical_table
-   rst/reformat_time_for_cosmed
-   rst/extract_rmr
-   rst/raw_measurement
-   rst/import_promethion
-   rst/plot_locomotion
-   rst/indicate_plot_rendered
-   rst/style_plot
-   rst/do_extract
-   rst/resting_metabolic_rate
-   rst/get_covariates_and_units
-   rst/total_energy_expenditure
-   rst/get_date_range
-   rst/process_return_value_for_statistic
-   rst/reformat
-   rst/partition
-   rst/cv
-   rst/lookup_cohort_belonging
    rst/get_true_metadata
-   rst/draw_day_night_rectangles
-   rst/enrich_with_metadata
-   rst/get_time_diff
-   rst/zeitgeber_zeit
-   rst/plot_locomotion_budget
-   rst/do_ancova_alternative
-   rst/prepare_data_frame_for_export
-   rst/remove_zero_values
+   rst/resting_metabolic_rate
+   rst/style_plot
+   rst/get_constants
    rst/get_r_squared_clean
    rst/add_stylize_plot_plotting_control
-   rst/pretty_print_interval_length_list
-   rst/body_composition
-   rst/goxlox
+   rst/raw_measurement
    rst/create_df
-   rst/get_study_description_from_metadata
+   rst/get_time_diff
+   rst/process_return_value_for_statistic
+   rst/get_covariates_and_units
+   rst/draw_day_night_rectangles
+   rst/plot_locomotion
+   rst/lookup_interval_length
+   rst/calculate_statistic
+   rst/import_pheno_v8
+   rst/remove_zero_values
+   rst/cv
+   rst/do_export_all_data
+   rst/total_energy_expenditure
+   rst/body_composition
+   rst/zeitgeber_zeit
+   rst/plot_locomotion_budget
+   rst/partition
+   rst/do_ancova_alternative
+   rst/check_for_cosmed
+   rst/prepare_data_frame_for_export
+   rst/generate_statistical_table
+   rst/get_date_range
+   rst/get_git_information_from_repository
+   rst/import_cosmed
+   rst/lookup_cohort_belonging
+   rst/indicate_plot_rendered
+   rst/pretty_print_interval_length_list
+   rst/create_lme_model_ui
+   rst/import_promethion
+   rst/visualize_model_effects
+   rst/do_extract
    rst/extract_rmr_helper
+   rst/extract_rmr
+   rst/coarsen_data_sets
+   rst/padding_helper
