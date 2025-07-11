@@ -329,7 +329,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
                      input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days) / n_distinct(interval), Days=n_distinct(Days))
                   } else {
                      print("here?")
-                     input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(group2), Days=n_distinct(Days))
+                     print(input_df)
+                     input_df <- input_df %>% group_by(Animals) %>% summarize(TEE=sum(TEE) / n_distinct(Days), Days=n_distinct(Days))
                      print("error?")
                   }
                }
