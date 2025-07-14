@@ -58,7 +58,7 @@ calculate_statistic <- function(data, method) {
 ################################################################################
 # TODO: Add possibility to let the user choose the glm family and link function 
 # via the inputs (input$glm_family and input$link_function) - not only defaults
-do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE, sort_factors_alphabetically_decreasing=TRUE) {
+do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE, sort_factors_alphabetically_decreasing=TRUE, sort_factors_by_custom_sorting=NULL) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
   # Might not be necessary, does no harm, can be removed if no adverse effects revealed during testing
   if (! "Genotype" %in% names(df)) {
@@ -180,14 +180,24 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
     }
   }
 
+   
+
   # sort factors decreasing or not
-  if (!sort_factors_alphabetically_decreasing) {
-    df$group <- factor(df$group, levels=sort(unique(df$group), decreasing=TRUE))
+  if (sort_factors_alphabetically_decreasing == TRUE) {
+    df$group <- factor(df$group, levels=sort(unique(df$group), decreasing=FALSE))
+  } else {
+     if (!is.null(sort_factors_by_custom_sorting)) {
+      print("not sorting alphabetically!")
+      print("sorting with custom sorting!")
+      df$group <- factor(df$group, levels=sort_factors_by_custom_sorting)
+     }
+     #df$group <- factor(df$group, levels=input$factors_custom_sorting)
   }
 
   p2 <- NULL
   p3 <- NULL
   if (dep_var == "TEE") {
+
     p2 <- ggscatter(df, x = "Weight", y = "TEE", color = "group", add = "reg.line", alpha=0) 
     p2 <- p2 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE), max(df$TEE)), label.x=c(min(df$Weight), min(df$Weight)+1), geom="text", output.type = "text", parse=FALSE)
     p2 <- p2 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", group2), color=group), label = "", alpha=1)
@@ -430,6 +440,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   regression_slopes <- summary(aov(TEE ~ Weight:group, data = df))
   regression_slopes <- regression_slopes[[1]]["Weight:group", "Pr(>F)"]
+
 
   return(list(
     "plot_details" = p, # Details plot

@@ -235,6 +235,11 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 add_anova_ancova_panel <- function(input, output, session, global_data, true_metadata, input_df, metadatafile, mylabel, dep_var) {
    # cohort information
 	choices = c(get_columns_with_at_least_two_levels(true_metadata), has_cohorts(input_df))
+
+   print("***************************************+")
+   print(levels(true_metadata[[getSession(session$token, global_data)[["selected_indep_var"]]]]))
+   print("***************************************+")
+
    # statistics start
 	output$test <- renderUI({
 		tagList(
@@ -270,6 +275,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 			hr(style = "width: 50%"),
 			h4("Plotting control"),
          checkboxInput("sort_factors_alphabetically_decreasing", "Sort factors alphabetically", value = TRUE),
+         conditionalPanel("input.sort_factors_alphabetically_decreasing != true", selectInput("sort_factors_by_custom_sorting", "Custom sorting", choices = levels(true_metadata[[getSession(session$token, global_data)[["selected_indep_var"]]]]), multiple=TRUE, selected=levels(true_metadata[[getSession(session$token, global_data)[["selected_indep_var"]]]]))),
 			fluidRow(
 				column(6,
 				h5("x-axis limits"),
@@ -341,7 +347,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
             }
          }
 
-		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing)
+		ret <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)
       p <- ret$plot_summary
       df <- ret$df
 
@@ -448,7 +454,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	})
 
 	output$plot_statistics_details2 <- renderPlotly({
-		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing)$plot_summary2 
+		p <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)$plot_summary2 
       p <- p + xlab(pretty_print_label(input$covar2, input$metadatafile)) 
       p <- p + ylab(pretty_print_variable(mylabel, input$metadatafile)) 
 		p <- p + ggtitle(input$study_description)
@@ -500,7 +506,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 	})
 
 	output$details <- renderUI({
-		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova)
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, 1, FALSE, FALSE, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)
 		tagList(
 			h3("Post-hoc analysis"),
 			plotlyOutput("post_hoc_plot"),
@@ -582,7 +588,7 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 	# FIXME: Optimization - results is calculated multiple times, in fact only once should be necessary... optimize this.
 	output$post_hoc_plot <- renderPlotly({
-		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected)
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, 1, FALSE, FALSE, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)
 		p <- results$plot_details + xlab(input$indep_var2) + ylab("estimated marginal mean") + labs(colour=input$indep_var)
       if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '1-way ANCOVA') {
          p <- p + xlab(input$indep_var)
