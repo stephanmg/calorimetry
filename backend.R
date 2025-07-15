@@ -316,6 +316,9 @@ load_data <- function(file, input, exclusion, output, session) {
                         sep = sep, # separator for columns
                         dec = dec) # decimal separator
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
+
+   print("df our:")
+   print(C1)
    # unite data sets
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
