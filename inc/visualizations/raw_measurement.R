@@ -575,10 +575,12 @@ df <- data.frame(
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
-	# indicate new day
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
-	# indicate night start
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	if (!input$ic_system == "COSMED QNRG") { # COSMED QNRG has always measurements below 1h!
+		# indicate new day
+		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+		# indicate night start
+		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	}
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
@@ -591,6 +593,12 @@ df <- data.frame(
 	# scale y axis to range 
 	y_range <- range(df_to_plot[[input$myr]], na.rm = TRUE)
 	p <- p + scale_y_continuous(limits=y_range)
+
+	# FIXME: currently a hack: re-label mis-detected hour intervals into minutes. -> time needs to be read-in similar as in CALOBOX, we assume HH:MM but we need HH:MM:SS also for COSMED
+	if (input$ic_system == "COSMED QNRG") {
+		p <- p + xlab("Time [min]")
+		p <- p + ylab(paste(mylabel, "[ml/min/kg]"))
+	}
 
 	p2 <- p2 + annotations_window_plot
 	# toggle outliers
