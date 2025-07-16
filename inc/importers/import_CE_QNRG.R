@@ -22,6 +22,22 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
 
    all_data <- read.csv2(file_path, stringsAsFactors = FALSE)
 
+   # Find the row index
+row_idx <- which(all_data[[1]] %in% c("Gewicht (kg)", "Weight (kg)"))
+
+print(row_idx)
+
+# Find the column index in that row
+# This assumes the headings are in first row; `df[row_idx, ]` is character.
+col_idx <- which(!is.na(all_data[row_idx, ]))
+
+print(col_idx)
+
+target_col <- col_idx[1] + 1
+
+# Extract the value (assuming you're only interested in the first matching row/col)
+value_found <- all_data[row_idx[1], target_col]
+
    # Define the columns you want to keep
    cols_to_keep <- c("Time", "VP", "VO2", "VCO2", "EE",
                      "FeO2", "FeCO2", "FiO2", "FiCO2", "Battery")
@@ -57,7 +73,7 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
 
    fileinfo <- c(file_path, rep("", 13))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 12))
-   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Treatment", "Intervention", rep("", 9))
+   boxInfo <- c("Box", "Animal No.", "Weight [kg]", "Treatment", "Intervention", rep("", 9))
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -74,7 +90,7 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
    print("b")
    header[nrow(header) + 1, ] <- boxInfo
    print("c")
-   header[nrow(header) + 1, ] <- c(id, id, 0, treatment, intervention, rep("", 9))
+   header[nrow(header) + 1, ] <- c(id, id, value_found, treatment, intervention, rep("", 9))
    print("foo:")
 
    units <- c("", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/day]", "[%]", "[%]", "[%]", "[%]", "[%]", rep("", 5))
