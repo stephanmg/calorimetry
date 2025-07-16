@@ -263,7 +263,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
          storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
-         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], i)
+         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], i, input$normalize_to_body_weight)
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
@@ -968,6 +968,7 @@ server <- function(input, output, session) {
    observeEvent(input$nFiles, {
       output$fileInputs <- renderUI({
          html_ui <- " "
+         html_ui <- paste0(html_ui, checkboxInput("normalize_to_body_weight", "Normalize with body weight"))
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
             label = paste0("Cohort #", i)))
@@ -1284,7 +1285,7 @@ server <- function(input, output, session) {
             }
 
             #############################################################################
-            # Facets
+            # Facets (First grouping)
             #############################################################################
             if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
                if (input$havemetadata) {
@@ -1302,6 +1303,29 @@ server <- function(input, output, session) {
 
                   output$facets_by_data_one <- renderUI(
                      selectInput(inputId = "facets_by_data_one", label = "Chosen facet",
+                     selected = "Animals", choices = our_group_names))
+                  }
+             }  
+
+            #############################################################################
+            # Facets (Second grouping) -> use currently only for AUC
+            #############################################################################
+            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_two)) {
+               if (input$havemetadata) {
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile)
+                  output$facets_by_data_two <- renderUI(
+                  selectInput(inputId = "facets_by_data_two", label = "Chosen second facet",
+                  selected = "Animals", choices = colnames(true_metadata)))
+                } else {
+                  df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
+                  df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
+                  df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
+                  colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
+                  our_group_names <- unique(colnames(df_filtered))
+
+                  output$facets_by_data_two <- renderUI(
+                     selectInput(inputId = "facets_by_data_two", label = "Chosen second facet",
                      selected = "Animals", choices = our_group_names))
                   }
              }  

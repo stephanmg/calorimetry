@@ -417,7 +417,11 @@ result <- df %>%
 	result_mean <- NULL
 	if (input$with_facets) {
 		if (!is.null(input$facets_by_data_one)) {
-			result <- compute_auc_with_group(df_to_plot, "running_total.hrs.halfhour", input$myr, "Animal No._NA", input$facets_by_data_one)
+			if (!is.null(input$facets_by_data_one)) {
+				result <- compute_auc_with_group(df_to_plot, "running_total.hrs.halfhour", input$myr, "Animal No._NA", input$facets_by_data_one, input$facets_by_data_two)
+			} else {
+				result <- compute_auc_with_group(df_to_plot, "running_total.hrs.halfhour", input$myr, "Animal No._NA", input$facets_by_data_one, NULL)
+			}
 			print("with facets result:")
 			print(result)
 			result_mean <- result %>% group_by(input$facets_by_data_one) %>% mutate(MeanAUC=mean(AUC, na.rm=TRUE)) %>% ungroup()
@@ -433,9 +437,28 @@ result <- df %>%
 		p4 <- ggplot() + geom_col(data=result_mean, aes_string(x=input$facets_by_data_one, y="MeanAUC"), width=0.4, fill="lightgray") +
 		geom_point(data=result, aes_string(x = input$facets_by_data_one, y = "AUC", color = input$facets_by_data_one))
 		#p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "MeanAUC", fill=input$facets_by_data_one)) + geom_col(alpha=0.5) + geom_point() + ylab("AUC")
-		p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "AUC", fill = input$facets_by_data_one)) +
-  stat_summary(geom = "col", fun = mean, width = 0.4, alpha = 0.5) +
-  geom_jitter(width = 0.1, size = 2, alpha = 0.8, color = "black") +
+		facet_two = input$facets_by_data_one
+		if (!is.null(input$facets_by_data_two)) {
+			facet_two = input$facets_by_data_two
+		}
+		p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "AUC", fill = facet_two)) +
+  stat_summary(geom = "col", fun = mean, width = 0.4, alpha = 0.5, position = position_dodge(width = 0.8)) +
+  #geom_jitter(width = 0.1, size = 2, alpha = 0.8, color = "black") +
+   geom_jitter(
+    aes_string(color = input$facets_by_data_two, group = input$facets_by_data_two),
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.8
+    ),
+    size = 2, alpha = 0.8
+  ) +
+  labs(
+    x = input$facets_by_data_one,
+    y = "Mean AUC",
+    fill = input$facets_by_data_two,
+    color = input$facets_by_data_two,
+    title = paste("AUC by", input$facets_by_data_one, "and", input$facets_by_data_two)
+  ) +
   labs(x = "Group", y = "Mean AUC", title = "Mean AUC per Group with Individual Values") +
   theme_minimal() +
   theme(legend.position = "none")

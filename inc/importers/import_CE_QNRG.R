@@ -10,7 +10,7 @@ check_for_cosmed_QNRG <- function(file) {
 file_path <- "/home/stephan/Downloads/Daten Alex/ID1_CE_QNRG_pre_2.csv"
 file_out <- "test.csv"
 
-import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id) {
+import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id, normalize_to_body_weight) {
    reformat_time_for_cosmed <- function(time) {
       td <- seconds_to_period(time)
       sprintf("%02d:%02d", minute(td), second(td))
@@ -53,6 +53,22 @@ value_found <- all_data[row_idx[1], target_col]
 
    df <- df %>% rename("VO2(3)" = "VO2")
    df <- df %>% rename("VCO2(3)" = "VCO2")
+
+   if (normalize_to_body_weight) {
+      df$`VO2(3)` <- as.numeric(df$`VO2(3)`)
+      df$`VO2(3)` <- df$`VO2(3)` / as.numeric(value_found)
+      df$`VO2(3)` <- tidyr::replace_na(df$`VO2(3)`, 0)
+      df$`VO2(3)` <- format(df$`VO2(3)`, decimal.mark=",", nsmall=6)
+      df$`VO2(3)` <- as.character(df$`VO2(3)`)
+
+      df$`VCO2(3)` <- as.numeric(df$`VCO2(3)`)
+      df$`VCO2(3)` <- df$`VCO2(3)` / as.numeric(value_found)
+      df$`VCO2(3)` <- tidyr::replace_na(df$`VCO2(3)`, 0)
+      df$`VCO2(3)` <- format(df$`VCO2(3)`, decimal.mark=",", nsmall=6)
+      df$`VCO2(3)` <- as.character(df$`VCO2(3)`)
+   }
+
+
 
    cols_to_keep <- c("Time", "VP", "VO2(3)", "VCO2(3)", "EE",
                      "FeO2", "FeCO2", "FiO2", "FiCO2", "Battery")
@@ -117,4 +133,4 @@ value_found <- all_data[row_idx[1], target_col]
 }
 
 
-# import_cosmed_QNRG(file_path, file_out, 1, 2, 3)
+import_cosmed_QNRG(file_path, file_out, 1, 2, 3, FALSE)
