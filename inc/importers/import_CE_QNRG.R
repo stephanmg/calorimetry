@@ -57,7 +57,7 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
 
    fileinfo <- c(file_path, rep("", 13))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 12))
-   boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", 11))
+   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Treatment", "Intervention", rep("", 9))
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -74,7 +74,7 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
    print("b")
    header[nrow(header) + 1, ] <- boxInfo
    print("c")
-   header[nrow(header) + 1, ] <- c(id, id, 0, rep("", 11))
+   header[nrow(header) + 1, ] <- c(id, id, 0, treatment, intervention, rep("", 9))
    print("foo:")
 
    units <- c("", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/day]", "[%]", "[%]", "[%]", "[%]", "[%]", rep("", 5))
