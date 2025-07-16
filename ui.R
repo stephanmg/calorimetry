@@ -109,7 +109,7 @@ main_content <- mainPanel(
             conditionalPanel("input.toggle_AUC == true", hr()),
             conditionalPanel("input.toggle_AUC == true && input.plot_type != 'Metadata'", h3("AUC plot")),
             conditionalPanel("(output.plotRendered && (input.plot_type == 'RawMeasurement' || input.plot_type == 'HeatProduction' || input.plot_type == 'FuelOxidation' || input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RestingMetabolicRate')) && input.toggle_AUC == true", plotlyOutput("aucPlot")),
-            conditionalPanel(condition = "input.toggle_AUC == true", uiOutput("facets_by_data_two")),
+            conditionalPanel(condition = "input.toggle_AUC == true && input.facets_by_data_one != null", uiOutput("facets_by_data_two")),
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),

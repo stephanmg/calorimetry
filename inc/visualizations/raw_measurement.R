@@ -459,9 +459,9 @@ result <- df %>%
     color = input$facets_by_data_two,
     title = paste("AUC by", input$facets_by_data_one, "and", input$facets_by_data_two)
   ) +
-  labs(x = "Group", y = "Mean AUC", title = "Mean AUC per Group with Individual Values") +
+  labs(x = input$facets_by_data_one, y = "Mean AUC", title = "Mean AUC per Group with Individual Values") +
   theme_minimal() +
-  theme(legend.position = "none")
+  theme(legend.position = "right")
 	}
 
 p3 <- NULL
