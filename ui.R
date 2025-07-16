@@ -456,9 +456,10 @@ page_for_visualization <- fluidPage(
       h4("Variable selection")),
    tabsetPanel(id = "tabsPC", type = "hidden",
       tabPanelBody("PC",
-   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable"))),
+   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "COSMED QNRG", "Sable"))),
    conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation")))),
    conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
+   conditionalPanel(condition = "input.ic_system == 'COSMED QNRG'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'RawMeasurement'", uiOutput("myr")),
    conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Protein oxidation", "Nitrogen oxidation"))),
@@ -557,6 +558,7 @@ page_for_visualization_advanced_options <- fluidPage(
    colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h5("Time averaging of raw data")),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
+   conditionalPanel(condition = "input.ic_system == 'COSMED QNRG'", sliderInput("averaging", "Time averaging [min]", 0, 30, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum")))
 )

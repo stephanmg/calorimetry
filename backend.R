@@ -38,6 +38,7 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/importers/import_CE_QNRG.R") # import for COSMED QNRG data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 source("inc/importers/util.R") # for consistency checks of columns
 
@@ -252,7 +253,7 @@ load_data <- function(file, input, exclusion, output, session) {
       scaleFactor <- 60
    } else {
       tmp_file <- tempfile()
-      if (check_for_cosmed_QNRG(file)) {
+      if (input$ic_system == "COSMED QNRG") {
          output$file_type_detected <- renderText("Input file type detected as: COSMED QNRG")
          updateCheckboxInput(session, "recalculate_RER", value = TRUE)
          updateCheckboxInput(session, "recalculate_HP", value = TRUE)
@@ -262,7 +263,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
          storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
-         import_calobox(file, tmp_file, input[[paste0("AnimalInFile", i)]], input[[paste0("AnimalInBox", i)]])
+         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], i)
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
@@ -962,7 +963,12 @@ server <- function(input, output, session) {
          html_ui <- " "
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort #", i)))
+            label = paste0("Cohort #", i)))
+            if (input$ic_system == 'COSMED QNRG') {
+               html_ui <- paste0(html_ui,
+                  selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="No", choices=c("Yes", "No")),
+                  selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="No", choices=c("Yes", "No")))
+               }
             }
          HTML(html_ui)
          })
