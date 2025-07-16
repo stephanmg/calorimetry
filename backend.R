@@ -250,6 +250,25 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
       # For COSMED need to scale to minutes
       scaleFactor <- 60
+   } else {
+      tmp_file <- tempfile()
+      if (check_for_cosmed_QNRG(file)) {
+         output$file_type_detected <- renderText("Input file type detected as: COSMED QNRG")
+         updateCheckboxInput(session, "recalculate_RER", value = TRUE)
+         updateCheckboxInput(session, "recalculate_HP", value = TRUE)
+         updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
+         updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
+         updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
+         updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
+         storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
+         import_calobox(file, tmp_file, input[[paste0("AnimalInFile", i)]], input[[paste0("AnimalInBox", i)]])
+         file <- tmp_file
+         toSkip <- detectData(file)
+      } else {
+         # Other filetype or example data - nothing to do currently - this is a placeholder
+      }
+
    }
 
    # LabMaster V5 (horizontal format)
