@@ -387,6 +387,80 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		p2 <- p2 + ggtitle(paste0("Average measurement of ", mylabel, " in window")) + ylab(mylabel)
 		annotations_window_plot <<- window_plot$annotations
 	}
+
+	print("oclnames:")
+	print(colnames(df_to_plot))
+	get_auc <- function(df_to_plot, variable_mine) {
+		df <- df_to_plot %>%
+  arrange(`Animal No._NA`, running_total.hrs.halfhour)
+
+# Calculate AUC per group using base R interpolation and integration
+result <- df %>%
+  group_by(`Animal No._NA`) %>%
+    summarise(
+    AUC = {
+      # Extract vectors for current group
+      x <- running_total.hrs.halfhour
+      y <- .data[[variable_mine]]
+
+      # Create linear interpolating function
+      f_fun <- approxfun(x, y, rule = 2)
+
+      # Numerically integrate from min to max time
+      integrate(f_fun, min(x), max(x), subdivisions=2000)$value
+    },
+  )
+  print(result)
+  return(result)
+	}
+
+	result_mean <- NULL
+	if (input$with_facets) {
+		if (!is.null(input$facets_by_data_one)) {
+			result <- compute_auc_with_group(df_to_plot, "running_total.hrs.halfhour", input$myr, "Animal No._NA", input$facets_by_data_one)
+			print("with facets result:")
+			print(result)
+			result_mean <- result %>% group_by(input$facets_by_data_one) %>% mutate(MeanAUC=mean(AUC, na.rm=TRUE)) %>% ungroup()
+			print("mean with factes:")
+			print(result_mean)
+		}
+	}
+
+	AUC_df <- get_auc(df_to_plot, input$myr)
+	p4 <- ggplot(AUC_df, aes_string(x="`Animal No._NA`", y="AUC")) + geom_col()
+
+	if (input$with_facets) {
+		p4 <- ggplot() + geom_col(data=result_mean, aes_string(x=input$facets_by_data_one, y="MeanAUC"), width=0.4, fill="lightgray") +
+		geom_point(data=result, aes_string(x = input$facets_by_data_one, y = "AUC", color = input$facets_by_data_one))
+		#p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "MeanAUC", fill=input$facets_by_data_one)) + geom_col(alpha=0.5) + geom_point() + ylab("AUC")
+		p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "AUC", fill = input$facets_by_data_one)) +
+  stat_summary(geom = "col", fun = mean, width = 0.4, alpha = 0.5) +
+  geom_jitter(width = 0.1, size = 2, alpha = 0.8, color = "black") +
+  labs(x = "Group", y = "Mean AUC", title = "Mean AUC per Group with Individual Values") +
+  theme_minimal() +
+  theme(legend.position = "none")
+	}
+
+p3 <- NULL
+	if (input$toggle_AUC == TRUE) {
+		print("toggled AUC")
+print(head(df_to_plot))
+		set.seed(42)
+df <- data.frame(
+  x = rnorm(100, mean = 5, sd = 2),
+  y = rnorm(100, mean = 10, sd = 3),
+  group = sample(c("A", "B"), 100, replace = TRUE)
+)
+		p3 <- ggplot(df, aes(x = x, y = y, color = group)) +
+		  geom_point(size = 3, alpha = 0.7) +
+			labs(
+			title = "Random Scatter Plot",
+			x = "X axis",
+			y = "Y axis"
+		) +
+		theme_minimal()
+	}
+	p3 <- p4
 	
 	# add facetting
 	if (input$with_facets) {
@@ -524,5 +598,5 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	storeSession(session$token, "raw_variable", input$myr, global_data)
 
 	# return current plot of raw measurements
-	return(list("window_plot"=p2, "plot"=p))
+	return(list("window_plot"=p2, "plot"=p, "auc_plot"=ggplotly(p3)))
 }

@@ -573,6 +573,8 @@ load_data <- function(file, input, exclusion, output, session) {
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
    }
 
+   print(finalC1)
+
    # print master list for interval lengths
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
@@ -803,6 +805,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    RawMeasurement = {
       p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       p_window <- p$window_plot
+      p_auc <- p$auc_plot
       p <- p$plot
 
       # indicate if plot available
@@ -813,6 +816,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       if (!is.null(p_window)) {
          output$windowPlot <- renderPlotly(p_window)
+      }
+
+      if (!is.null(p_auc)) {
+         output$aucPlot <- renderPlotly(p_auc)
       }
    },
    #####################################################################################################################

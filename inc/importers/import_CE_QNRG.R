@@ -30,8 +30,8 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
    df <- all_data[ , cols_to_keep]
    df$Date <- "01.01.1970"
    df$`Animal No.` <- id
-   df$Treatment <- treatment
-   df$Intervention <- intervention
+   df$Treatment <- as.factor(treatment)
+   df$Intervention <- as.factor(intervention)
    df <- df[-c(1,3), ]
    print(df$Time)
 
@@ -101,4 +101,4 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
 }
 
 
-import_cosmed_QNRG(file_path, file_out, 1, 2, 3)
+# import_cosmed_QNRG(file_path, file_out, 1, 2, 3)

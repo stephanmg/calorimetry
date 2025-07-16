@@ -81,6 +81,7 @@ main_content <- mainPanel(
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("stylize_plot", "Stylize plot")),
             conditionalPanel("input.stylize_plot == true", uiOutput("stylize_plot_plotting_control")),
             conditionalPanel("input.plot_type != 'Metadata'", h4("Advanced options")),
+            conditionalPanel("input.plot_type != 'Metadata'", checkboxInput("toggle_AUC", "Toggle AUC", value=FALSE)),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_average_with_se", "Model mean trace")),
             conditionalPanel("output.plotRendered && input.plot_type != 'Metadata'", checkboxInput("add_trend_line", "Add trend line")),
             conditionalPanel("input.add_trend_line == true", numericInput("add_trend_line_sd", "sd", min=1, max=4, value=1)),
@@ -104,7 +105,12 @@ main_content <- mainPanel(
             conditionalPanel("input.windowed_plot == true && input.connect_medians_of_boxplots != true && input.with_facets == true", checkboxInput("facet_medians_statistics", "Display test statistics", value=FALSE)),
             conditionalPanel("input.windowed_plot == true && input.facet_medians_statistics == true", selectInput("add_windowed_plot_statistics_multiple_testing", "Multiple testing correction", choices=c("BH", "bonferroni", "holm", "hochberg", "BY", "fdr", "none", "hommel"), selected="BH")),
             conditionalPanel("input.facet_medians == true", checkboxInput("facet_medians_in_one_plot", "One plot", value=TRUE)),
-            conditionalPanel("input.windowed_plot == true && input.boxplots_or_sem_plots == true", checkboxInput("connect_medians_of_boxplots", "Connect individual medians", value=FALSE))
+            conditionalPanel("input.windowed_plot == true && input.boxplots_or_sem_plots == true", checkboxInput("connect_medians_of_boxplots", "Connect individual medians", value=FALSE)),
+            conditionalPanel("input.toggle_AUC == true", hr()),
+            conditionalPanel("input.toggle_AUC == true && input.plot_type != 'Metadata'", h3("AUC plot")),
+            conditionalPanel("(output.plotRendered && (input.plot_type == 'RawMeasurement' || input.plot_type == 'HeatProduction' || input.plot_type == 'FuelOxidation' || input.plot_type == 'TotalHeatProduction' || input.plot_type == 'RestingMetabolicRate')) && input.toggle_AUC == true", plotlyOutput("aucPlot")),
+
+
          )
       ),
       tabPanel("Statistical testing", uiOutput("test")),
