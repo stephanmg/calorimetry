@@ -7,7 +7,8 @@ check_for_cosmed_QNRG <- function(file) {
    return(grepl("QNRG", file, fixed = TRUE))
 }
 
-#file_path <- "/home/stephan/Downloads/Daten Alex/ID1_CE_QNRG_pre_2.csv"
+file_path <- "/home/stephan/Downloads/Daten Alex/ID1_CE_QNRG_pre_2.csv"
+file_out <- "test.csv"
 
 import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id) {
    reformat_time_for_cosmed <- function(time) {
@@ -29,6 +30,8 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
    df <- all_data[ , cols_to_keep]
    df$Date <- "01.01.1970"
    df$`Animal No.` <- id
+   df$Treatment <- treatment
+   df$Intervention <- intervention
    df <- df[-c(1,3), ]
    print(df$Time)
 
@@ -48,13 +51,13 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
    print(colnames(df))
    print(df$Time)
 
-   header <- data.frame(matrix(ncol = length(cols_to_keep)+2, nrow = 0)) # +1 for date, and +1 for animal ID
+   header <- data.frame(matrix(ncol = length(cols_to_keep)+4, nrow = 0)) # +1 for date, and +1 for animal ID +1 for Treatment +1 for intervention
 
    print(length(cols_to_keep))
 
-   fileinfo <- c(file_path, rep("", 12))
-   extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 10))
-   boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", 10))
+   fileinfo <- c(file_path, rep("", 13))
+   extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 12))
+   boxInfo <- c("Box", "Animal No.", "Weight [g]", rep("", 11))
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -65,26 +68,37 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id)
    print("Here?")
 
    header[nrow(header) + 1, ] <- fileinfo
+
+   print("a")
    header[nrow(header) + 1, ] <- extendedinfo
+   print("b")
    header[nrow(header) + 1, ] <- boxInfo
-   header[nrow(header) + 1, ] <- c(id, id, 0, rep("", 9))
+   print("c")
+   header[nrow(header) + 1, ] <- c(id, id, 0, rep("", 11))
    print("foo:")
 
-   units <- c("", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/day]", "[%]", "[%]", "[%]", "[%]", "[%]", rep("", 3))
+   units <- c("", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/day]", "[%]", "[%]", "[%]", "[%]", "[%]", rep("", 5))
 
-   header[nrow(header) + 1, ] <- rep("", 13)
+   header[nrow(header) + 1, ] <- rep("", 14)
 
-   header[nrow(header) + 1, ] <- c(cols_to_keep, "Date", "Animal No.")
+   header[nrow(header) + 1, ] <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention")
    header[nrow(header) + 1, ] <- units
 
    print("Header")
    print(header)
 
-   colnames(header) <- c(cols_to_keep, "Date", "Animal No.")
-   colnames(df) <- c(cols_to_keep, "Date", "Animal No.")
+   print("cols")
+   colnames(header) <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention")
+   print("foobar")
+   colnames(df) <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention")
+   print("barbar")
 
+   print("rbind")
    full_data <- rbind(header, df)
 
    print(full_data)
    write.table(full_data, file_out, col.names=FALSE, row.names=FALSE, sep=";", quote=FALSE)
 }
+
+
+import_cosmed_QNRG(file_path, file_out, 1, 2, 3)
