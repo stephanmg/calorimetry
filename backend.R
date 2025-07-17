@@ -250,6 +250,10 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
       # For COSMED need to scale to minutes
       scaleFactor <- 60
+   } else {
+      if (ic.system == "CLAMS Oxymax") {
+         
+      }
    }
 
    # LabMaster V5 (horizontal format)
