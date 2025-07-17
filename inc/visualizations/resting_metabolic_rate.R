@@ -70,6 +70,41 @@ resting_metabolic_rate <- function(finalC1, finalC1meta, input, output, session,
 	# df already prepared to be day and night summed activities
 	finalC1 <- finalC1 %>% filter(NightDay %in% input$light_cycle)
 
+	# create input select fields for animals and days
+	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
+
+	# set default for animals and selected days: typically all selected at the beginning
+	selected_days <- getSession(session$token, global_data)[["selected_days"]]
+	if (is.null(selected_days)) {
+		output$select_day <- renderUI({
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = days_and_animals_for_select$days, multiple = TRUE)
+		})
+		selected_days = days_and_animals_for_select$days
+		storeSession(session$token, "selected_days", selected_days, global_data)
+	} else {
+		output$select_day <- renderUI({
+			selectInput("select_day", "Select day(s):", choices = days_and_animals_for_select$days, selected = selected_days, multiple = TRUE)
+		})
+	}
+	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
+	if (is.null(selected_animals)) {
+		output$select_animal <- renderUI({
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = days_and_animals_for_select$animals, multiple = TRUE)
+		})
+		selected_animals = days_and_animals_for_select$animals
+		storeSession(session$token, "selected_animals", selected_animals, global_data)
+	} else {
+		output$select_animal <- renderUI({
+			selectInput("select_animal", "Select animal(s):", choices = days_and_animals_for_select$animals, selected = selected_animals, multiple = TRUE)
+		})
+	}
+
+	# filter for selected days and animals in data set
+	selected_animals <- getSession(session$token, global_data)[["selected_animals"]]
+	finalC1 <- finalC1 %>% filter(`Animal No._NA` %in% selected_animals)
+
+
+
 	# first component, typically O2
 	df <- data.frame(Values = finalC1[[component]],
 		Group = `$`(finalC1, "Animal No._NA"),

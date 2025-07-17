@@ -38,6 +38,7 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/importers/import_CLAMS_Oxymax_helper.R") # import for CLAMS Oxymax
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 source("inc/importers/util.R") # for consistency checks of columns
 
@@ -250,6 +251,23 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
       # For COSMED need to scale to minutes
       scaleFactor <- 60
+   } else {
+      tmp_file <- tempfile()
+      if (input$ic_system == "CLAMS Oxymax") {
+         print("OXYMAX detected!")
+         output$file_type_detected <- renderText("Input file type detected as: CLAMS Oxymax")
+         updateCheckboxInput(session, "recalculate_RER", value = TRUE)
+         updateCheckboxInput(session, "recalculate_HP", value = TRUE)
+         updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
+         updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
+         updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
+         updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox", "CLAMS Oxymax"), selected = "CLAMS Oxymax")
+         storeSession(session$token, "input_file_type", "CLAMS Oxymax", global_data)
+         import_CLAMS_Oxymax(file, tmp_file)
+         file <- tmp_file
+         toSkip <- detectData(file)
+      }
    }
 
    # LabMaster V5 (horizontal format)
@@ -316,6 +334,9 @@ load_data <- function(file, input, exclusion, output, session) {
                         sep = sep, # separator for columns
                         dec = dec) # decimal separator
    names(C1) <- paste(C1.head[1, ], C1.head[2, ], sep = "_")
+
+   print("df our:")
+   print(C1)
    # unite data sets
    C1 <- C1 %>%
    unite(Datetime, # name of the final column
