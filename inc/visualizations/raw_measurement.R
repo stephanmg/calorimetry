@@ -74,16 +74,55 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		paste(splitted[[1]][2], ":00", sep = "")
 	}
 
+	correct_day_count <- function(df) {
+		seconds_per_day <- 86400
+
+return(df2 <- df %>%
+  group_by(`Animal No._NA`) %>%
+  mutate(
+    StartTime  = first(running_total.sec),
+    ElapsedSec = running_total.sec - StartTime,
+    # Calculate how far ElapsedSec is from an integer number of days
+    DayRemainder = ElapsedSec %% seconds_per_day,
+    # Determine if within ±5% of 86400 sec
+    DayCount = case_when(
+      ElapsedSec < 0                  ~ NA_real_,
+      abs(DayRemainder - seconds_per_day) / seconds_per_day <= 0.05 ~ floor(ElapsedSec / seconds_per_day) + 1,
+      DayRemainder / seconds_per_day <= 0.05 ~ floor(ElapsedSec / seconds_per_day),
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  ungroup() %>%
+  select(-StartTime, -ElapsedSec, -DayRemainder))
+	}
+
+	num_full_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
 		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		print("Num days:")
+		print(num_days)
 		if (input$only_full_days_zeitgeber) {
+			finalC1 <- correct_day_count(finalC1)
+			num_days <- max(finalC1$DayCount, na.rm=TRUE)
+			print("new num days:")
+			print(num_days)
+			num_full_days <- num_days
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-		} 
-		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		} else {
+			num_full_days <- num_days + 1 # account for missing half days at the beginning and end
+		}
+
+		write.csv(finalC1, "debug.csv")
+		#finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+
+		print("daycount:")
+
+		print(finalC1$DayCount)
 		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
+		num_full_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
@@ -136,6 +175,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# create input select fields for animals and days
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
+	days_and_animals_for_select$days <- seq(1, num_full_days, 1)
+
+	print("days and animals:")
+	print(days_and_animals_for_select)
 
 	# set default for animals and selected days: typically all selected at the beginning
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]
