@@ -66,7 +66,7 @@ print(head(df))
 
    fileinfo <- c(file_path, rep("", 5))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 4)) 
-   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Diet", rep("", 2)) # NOTE: is is crucially that we always have at least these informations, otherwise the TSE format is not well defined in SHiny-Calorie
+   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Diet", "Genotyp", rep("", 1)) # NOTE: is is crucially that we always have at least these informations, otherwise the TSE format is not well defined in SHiny-Calorie
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -86,7 +86,7 @@ print(head(df))
    print("b")
    header[nrow(header) + 1, ] <- boxInfo
    print("c")
-   header[nrow(header) + 1, ] <- c(subject_id, subject_cage, subject_mass, "CD", "", "")
+   header[nrow(header) + 1, ] <- c(subject_id, subject_cage, subject_mass, "CD", "WT", "")
    print("foo:")
 
 
