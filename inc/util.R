@@ -616,7 +616,8 @@ add_anova_ancova_panel <- function(input, output, session, global_data, true_met
 
 	# FIXME: Optimization - results is calculated multiple times, in fact only once should be necessary... optimize this.
 	output$post_hoc_plot <- renderPlotly({
-		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, 1, FALSE, FALSE, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)
+		results <- do_ancova_alternative(input_df, true_metadata, input$covar, input$covar2, input$indep_var, input$indep_var2, dep_var, input$test_statistic, input$post_hoc_test, input$connected_or_independent_ancova, input$num_covariates, input$connected_or_unconnected, input$lm_or_glm, input$sort_factors_alphabetically_decreasing, input$sort_factors_by_custom_sorting)
 		p <- results$plot_details + xlab(input$indep_var2) + ylab("estimated marginal mean") + labs(colour=input$indep_var)
       if (input$test_statistic == '1-way ANOVA' || input$test_statistic == '1-way ANCOVA') {
          p <- p + xlab(input$indep_var)

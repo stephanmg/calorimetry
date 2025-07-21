@@ -74,16 +74,93 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		paste(splitted[[1]][2], ":00", sep = "")
 	}
 
+	correct_day_count2 <- function(df) {
+
+		df2 <- df %>%
+  group_by(Animals) %>%
+  mutate(
+    max_time = max(running_total.sec, na.rm = TRUE),
+    DayCounter = floor(max_time / 86400),
+    DayCount = floor(running_total.sec / 86400) + 1
+  ) %>%
+  # Keep only rows whose time is inside the last full day boundary
+  filter(running_total.sec < DayCounter * 86400) %>%
+  ungroup() %>%
+  select(-max_time)
+
+
+df3 <- df %>%
+  group_by(Animals) %>%
+  mutate(
+    max_time = max(running_total.sec, na.rm = TRUE),
+    DayCounter = floor(max_time / 86400),
+    DayCount = floor(running_total.sec / 86400)
+  ) %>%
+  # Keep only rows whose time is inside the last full day boundary
+  filter(running_total.sec >= DayCounter * 86400) %>%
+  ungroup() %>%
+  select(-max_time)
+
+
+print(length(colnames(df2)))
+print(length(colnames(df3)))
+
+
+df_combined <- rbind(df2, df3)
+
+return(df_combined)
+	}
+
+	correct_day_count <- function(df) {
+		seconds_per_day <- 86400
+
+return(df2 <- df %>%
+  group_by(`Animal No._NA`) %>%
+  mutate(
+    StartTime  = first(running_total.sec),
+    ElapsedSec = running_total.sec - StartTime,
+    # Calculate how far ElapsedSec is from an integer number of days
+    DayRemainder = ElapsedSec %% seconds_per_day,
+    # Determine if within ±5% of 86400 sec
+    DayCount = case_when(
+      ElapsedSec < 0                  ~ NA_real_,
+      abs(DayRemainder - seconds_per_day) / seconds_per_day <= 0.05 ~ floor(ElapsedSec / seconds_per_day) + 1,
+      DayRemainder / seconds_per_day <= 0.05 ~ floor(ElapsedSec / seconds_per_day),
+      TRUE ~ NA_real_
+    )
+  ) %>%
+  ungroup() %>%
+  select(-StartTime, -ElapsedSec, -DayRemainder))
+	}
+
+	num_full_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
 		finalC1 <- zeitgeber_zeit(finalC1, light_off)
 		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		print("Num days:")
+		print(num_days)
 		if (input$only_full_days_zeitgeber) {
+			finalC1 <- correct_day_count2(finalC1)
+			num_days <- max(finalC1$DayCount, na.rm=TRUE)
+			print("new num days:")
+			print(num_days)
+			num_full_days <- num_days
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
-		} 
-		finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		} else {
+			num_full_days <- num_days + 1 # account for missing half days at the beginning and end
+		}
+
+		write.csv(finalC1, "debug.csv")
+		#finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+
+		print("daycount:")
+
+		print(finalC1$DayCount)
+		finalC1 <- correct_day_count2(finalC1)
 		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
+		num_full_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
 		finalC1$Datetime2 <- lapply(finalC1$Datetime, convert)
 		finalC1$NightDay <- ifelse(hour(hms(finalC1$Datetime2)) * 60 + minute(hms(finalC1$Datetime2)) < (light_on * 60), "Day", "Night")
 		finalC1$NightDay <- as.factor(finalC1$NightDay)
@@ -132,10 +209,14 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	}
 
 	# annotations for days
-	finalC1 <- day_annotations$df_annotated
+	#finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
+	days_and_animals_for_select$days <- seq(1, num_full_days, 1)
+
+	print("days and animals:")
+	print(days_and_animals_for_select)
 
 	# set default for animals and selected days: typically all selected at the beginning
 	selected_days <- getSession(session$token, global_data)[["selected_days"]]
@@ -303,26 +384,89 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 	# Add trend for ungrouped data
 	if (input$add_trend_line) {
 		if (!input$with_facets) {
+			if (!is.null(input$trend_line_color_scale)) {
+				if (input$override_color_scale_in_trendline) {
+			  p <- p + scale_color_viridis_d(option = input$trend_line_color_scale) 
+			  if (input$trend_line_color_scale == "black") {
+				scale_color_black <- function(groups) {
+ 			 scale_color_manual(values = setNames(rep("black", length(groups)), groups))
+			}
+			p <- p + scale_color_black(unique(df_to_plot[["Animals"]]))
+			  }
+			}
+			}
 			summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE), .groups="drop")
 			p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean), color = "blue", inherit.aes=FALSE) 
 			p <- p + geom_ribbon(data=summary_df, aes(x=running_total.hrs.halfhour, ymin=mean-input$add_trend_line_sd*sd, ymax=mean+input$add_trend_line_sd*sd), fill = "lightblue", alpha=0.6, inherit.aes=FALSE)
 		} else {
 			if (!is.null(input$facets_by_data_one)) {
-				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
-				print(summary_df)
-				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
-				p <- p + geom_ribbon(
- 		 	   		data = summary_df,
-						aes(
-						x = running_total.hrs.halfhour,
-						ymin = mean - input$add_trend_line_sd*sd,
-						ymax = mean + input$add_trend_line_sd*sd,
-						fill = .data[[input$facets_by_data_one]],
-						group = .data[[input$facets_by_data_one]]
-						),
-						alpha = 0.6,
-						inherit.aes = FALSE
-					)
+			if (!is.null(input$trend_line_color_scale)) {
+				if (input$override_color_scale_in_trendline) {
+			  p <- p + scale_color_viridis_d(option = input$trend_line_color_scale) 
+				  if (input$trend_line_color_scale == "black") {
+				scale_color_black <- function(groups) {
+ 			 scale_color_manual(values = setNames(rep("black", length(groups)), groups))
+			}
+			p <- p + scale_color_black(unique(df_to_plot[["Animals"]]))
+			  }
+			}
+			}
+				
+# Step 1: Create summary data
+summary_df <- df_to_plot %>%
+  group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>%
+  summarise(
+    mean = mean(.data[[input$myr]], na.rm = TRUE),
+    sd = sd(.data[[input$myr]], na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Step 2: Prepare group and colors
+group_var <- input$facets_by_data_one
+groups <- unique(summary_df[[group_var]])
+
+# Generate n distinct colors from the selected viridis scale
+my_colors <- viridisLite::viridis(length(groups), option = input$trend_line_color_scale)
+
+# Step 3: Add one line per group using a loop
+for (i in seq_along(groups)) {
+  grp <- groups[i]
+  clr <- my_colors[i]
+
+  sub_df <- summary_df[summary_df[[group_var]] == grp, ]
+
+  # Add individual line with manually set color
+  p <- p + geom_line(
+    data = sub_df,
+    aes(x = running_total.hrs.halfhour, y = mean),
+    color = clr,
+    inherit.aes = FALSE
+  )
+  p <- p + geom_ribbon(
+	data = sub_df,
+	aes(x = running_total.hrs.halfhour,
+	ymin = mean - input$add_trend_line_sd*sd,
+	ymax = mean + input$add_trend_line_sd*sd),
+	fill = clr,
+	alpha = 0.6,
+	inherit.aes = FALSE
+  )
+}
+
+#				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+#				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
+#				p <- p + geom_ribbon(
+# 		 	   		data = summary_df,
+#						aes(
+#						x = running_total.hrs.halfhour,
+#						ymin = mean - input$add_trend_line_sd*sd,
+#						ymax = mean + input$add_trend_line_sd*sd,
+#						fill = .data[[input$facets_by_data_one]],
+#						group = .data[[input$facets_by_data_one]]
+#						),
+#						alpha = 0.6,
+#						inherit.aes = FALSE
+#					)
 			}
 		}
 	}
@@ -560,8 +704,38 @@ df <- data.frame(
 	}
 
 	if (input$add_trend_line_one_plot) {
- 	 	p <- p + facet_null()
+		# TODO: this is not enough, we want instead to add the grouped df directly to have also legend entries,
+		# individual geom_line(...) will not result in legend entries...
+ 	 	p <- ggplot() 
+				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
+				p <- p + geom_ribbon(
+ 		 	   		data = summary_df,
+					aes(
+						x = running_total.hrs.halfhour,
+						ymin = mean - input$add_trend_line_sd*sd,
+						ymax = mean + input$add_trend_line_sd*sd,
+					fill = .data[[input$facets_by_data_one]],
+						group = .data[[input$facets_by_data_one]]
+						),
+						alpha = 0.6,
+						inherit.aes = FALSE
+					)
+		if (!is.null(input$trend_line_color_scale)) {
+				if (input$override_color_scale_in_trendline) {
+			  p <- p + scale_color_viridis_d(option = input$trend_line_color_scale) 
+			  if (input$trend_line_color_scale == "black") {
+				scale_color_black <- function(groups) {
+ 			 scale_color_manual(values = setNames(rep("black", length(groups)), groups))
+			}
+			p <- p + scale_color_black(unique(df_to_plot[["Animals"]]))
+			  }
+				}
+		}
+
+
 	}
+
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
 	if (input$only_full_days_zeitgeber) {
@@ -574,13 +748,15 @@ df <- data.frame(
 
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=3, color="black")
 	if (!input$ic_system == "COSMED QNRG") { # COSMED QNRG has always measurements below 1h!
 		# indicate new day
 		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 		# indicate night start
 		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	}
+
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
