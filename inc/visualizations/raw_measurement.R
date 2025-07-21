@@ -384,26 +384,89 @@ return(df2 <- df %>%
 	# Add trend for ungrouped data
 	if (input$add_trend_line) {
 		if (!input$with_facets) {
+			if (!is.null(input$trend_line_color_scale)) {
+				if (input$override_color_scale_in_trendline) {
+			  p <- p + scale_color_viridis_d(option = input$trend_line_color_scale) 
+			  if (input$trend_line_color_scale == "black") {
+				scale_color_black <- function(groups) {
+ 			 scale_color_manual(values = setNames(rep("black", length(groups)), groups))
+			}
+			p <- p + scale_color_black(unique(df_to_plot[["Animals"]]))
+			  }
+			}
+			}
 			summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE), .groups="drop")
 			p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean), color = "blue", inherit.aes=FALSE) 
 			p <- p + geom_ribbon(data=summary_df, aes(x=running_total.hrs.halfhour, ymin=mean-input$add_trend_line_sd*sd, ymax=mean+input$add_trend_line_sd*sd), fill = "lightblue", alpha=0.6, inherit.aes=FALSE)
 		} else {
 			if (!is.null(input$facets_by_data_one)) {
-				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
-				print(summary_df)
-				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
-				p <- p + geom_ribbon(
- 		 	   		data = summary_df,
-						aes(
-						x = running_total.hrs.halfhour,
-						ymin = mean - input$add_trend_line_sd*sd,
-						ymax = mean + input$add_trend_line_sd*sd,
-						fill = .data[[input$facets_by_data_one]],
-						group = .data[[input$facets_by_data_one]]
-						),
-						alpha = 0.6,
-						inherit.aes = FALSE
-					)
+			if (!is.null(input$trend_line_color_scale)) {
+				if (input$override_color_scale_in_trendline) {
+			  p <- p + scale_color_viridis_d(option = input$trend_line_color_scale) 
+				  if (input$trend_line_color_scale == "black") {
+				scale_color_black <- function(groups) {
+ 			 scale_color_manual(values = setNames(rep("black", length(groups)), groups))
+			}
+			p <- p + scale_color_black(unique(df_to_plot[["Animals"]]))
+			  }
+			}
+			}
+				
+# Step 1: Create summary data
+summary_df <- df_to_plot %>%
+  group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>%
+  summarise(
+    mean = mean(.data[[input$myr]], na.rm = TRUE),
+    sd = sd(.data[[input$myr]], na.rm = TRUE),
+    .groups = "drop"
+  )
+
+# Step 2: Prepare group and colors
+group_var <- input$facets_by_data_one
+groups <- unique(summary_df[[group_var]])
+
+# Generate n distinct colors from the selected viridis scale
+my_colors <- viridisLite::viridis(length(groups), option = input$trend_line_color_scale)
+
+# Step 3: Add one line per group using a loop
+for (i in seq_along(groups)) {
+  grp <- groups[i]
+  clr <- my_colors[i]
+
+  sub_df <- summary_df[summary_df[[group_var]] == grp, ]
+
+  # Add individual line with manually set color
+  p <- p + geom_line(
+    data = sub_df,
+    aes(x = running_total.hrs.halfhour, y = mean),
+    color = clr,
+    inherit.aes = FALSE
+  )
+  p <- p + geom_ribbon(
+	data = sub_df,
+	aes(x = running_total.hrs.halfhour,
+	ymin = mean - input$add_trend_line_sd*sd,
+	ymax = mean + input$add_trend_line_sd*sd),
+	fill = clr,
+	alpha = 0.6,
+	inherit.aes = FALSE
+  )
+}
+
+#				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+#				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
+#				p <- p + geom_ribbon(
+# 		 	   		data = summary_df,
+#						aes(
+#						x = running_total.hrs.halfhour,
+#						ymin = mean - input$add_trend_line_sd*sd,
+#						ymax = mean + input$add_trend_line_sd*sd,
+#						fill = .data[[input$facets_by_data_one]],
+#						group = .data[[input$facets_by_data_one]]
+#						),
+#						alpha = 0.6,
+#						inherit.aes = FALSE
+#					)
 			}
 		}
 	}
@@ -544,8 +607,11 @@ return(df2 <- df %>%
 	}
 
 	if (input$add_trend_line_one_plot) {
+		# TODO: this is not enough, we want instead to add the grouped df directly to have also legend entries,
+		# individual geom_line(...) will not result in legend entries...
  	 	p <- p + facet_null()
 	}
+
 
 	# if we have full days based on zeitgeber time, we kindly switch to Full Day annotation instead of Day
 	if (input$only_full_days_zeitgeber) {
