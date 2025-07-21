@@ -74,6 +74,43 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		paste(splitted[[1]][2], ":00", sep = "")
 	}
 
+	correct_day_count2 <- function(df) {
+
+		df2 <- df %>%
+  group_by(Animals) %>%
+  mutate(
+    max_time = max(running_total.sec, na.rm = TRUE),
+    DayCounter = floor(max_time / 86400),
+    DayCount = floor(running_total.sec / 86400) + 1
+  ) %>%
+  # Keep only rows whose time is inside the last full day boundary
+  filter(running_total.sec < DayCounter * 86400) %>%
+  ungroup() %>%
+  select(-max_time)
+
+
+df3 <- df %>%
+  group_by(Animals) %>%
+  mutate(
+    max_time = max(running_total.sec, na.rm = TRUE),
+    DayCounter = floor(max_time / 86400),
+    DayCount = floor(running_total.sec / 86400)
+  ) %>%
+  # Keep only rows whose time is inside the last full day boundary
+  filter(running_total.sec >= DayCounter * 86400) %>%
+  ungroup() %>%
+  select(-max_time)
+
+
+print(length(colnames(df2)))
+print(length(colnames(df3)))
+
+
+df_combined <- rbind(df2, df3)
+
+return(df_combined)
+	}
+
 	correct_day_count <- function(df) {
 		seconds_per_day <- 86400
 
@@ -104,7 +141,7 @@ return(df2 <- df %>%
 		print("Num days:")
 		print(num_days)
 		if (input$only_full_days_zeitgeber) {
-			finalC1 <- correct_day_count(finalC1)
+			finalC1 <- correct_day_count2(finalC1)
 			num_days <- max(finalC1$DayCount, na.rm=TRUE)
 			print("new num days:")
 			print(num_days)
@@ -120,6 +157,7 @@ return(df2 <- df %>%
 		print("daycount:")
 
 		print(finalC1$DayCount)
+		finalC1 <- correct_day_count2(finalC1)
 		finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
 	} else {
 		num_full_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
@@ -171,7 +209,7 @@ return(df2 <- df %>%
 	}
 
 	# annotations for days
-	finalC1 <- day_annotations$df_annotated
+	#finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
