@@ -38,6 +38,7 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/importers/import_CE_QNRG.R") # import for COSMED QNRG data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 source("inc/importers/util.R") # for consistency checks of columns
 
@@ -132,9 +133,9 @@ load_data <- function(file, input, exclusion, output, session) {
    fileFormatTSE <- FALSE
    finalC1 <- c()
 
-   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 8))
+   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 10))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
-   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob", "Measurement")
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob", "Measurement", "Treatment", "Intervention")
 
    # check if we need to use example data or not
    use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
@@ -250,6 +251,27 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
       # For COSMED need to scale to minutes
       scaleFactor <- 60
+   } else {
+      tmp_file <- tempfile()
+      if (input$ic_system == "COSMED QNRG") {
+         output$file_type_detected <- renderText("Input file type detected as: COSMED QNRG")
+         updateCheckboxInput(session, "recalculate_RER", value = TRUE)
+         updateCheckboxInput(session, "recalculate_HP", value = TRUE)
+         updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
+         updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
+         updateSliderInput(session, "light_cycle_start", value=0)
+         updateSliderInput(session, "light_cycle_stop", value=0)
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
+         updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
+         updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
+         storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
+         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], i, input$normalize_to_body_weight)
+         file <- tmp_file
+         toSkip <- detectData(file)
+      } else {
+         # Other filetype or example data - nothing to do currently - this is a placeholder
+      }
+
    }
 
    # LabMaster V5 (horizontal format)
@@ -553,6 +575,8 @@ load_data <- function(file, input, exclusion, output, session) {
    finalC1meta <- rbind(subset(finalC1meta, select = common_cols), subset(C1meta, select = common_cols))
    }
 
+   print(finalC1)
+
    # print master list for interval lengths
    storeSession(session$token, "interval_length_list", interval_length_list, global_data)
    pretty_print_interval_length_list(interval_length_list)
@@ -783,6 +807,7 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
    RawMeasurement = {
       p <- raw_measurement(finalC1, finalC1meta, input, output, session, global_data, scaleFactor)
       p_window <- p$window_plot
+      p_auc <- p$auc_plot
       p <- p$plot
 
       # indicate if plot available
@@ -793,6 +818,10 @@ do_plotting <- function(file, input, exclusion, output, session) { # nolint: cyc
 
       if (!is.null(p_window)) {
          output$windowPlot <- renderPlotly(p_window)
+      }
+
+      if (!is.null(p_auc)) {
+         output$aucPlot <- renderPlotly(p_auc)
       }
    },
    #####################################################################################################################
@@ -941,9 +970,15 @@ server <- function(input, output, session) {
    observeEvent(input$nFiles, {
       output$fileInputs <- renderUI({
          html_ui <- " "
+         html_ui <- paste0(html_ui, checkboxInput("normalize_to_body_weight", "Normalize with body weight"))
          for (i in 1:input$nFiles) {
             html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-               label = paste0("Cohort #", i)))
+            label = paste0("Cohort #", i)))
+            if (input$ic_system == 'COSMED QNRG') {
+               html_ui <- paste0(html_ui,
+                  selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="No", choices=c("Yes", "No")),
+                  selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="No", choices=c("Yes", "No")))
+               }
             }
          HTML(html_ui)
          })
@@ -1252,7 +1287,7 @@ server <- function(input, output, session) {
             }
 
             #############################################################################
-            # Facets
+            # Facets (First grouping)
             #############################################################################
             if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_one)) {
                if (input$havemetadata) {
@@ -1270,6 +1305,29 @@ server <- function(input, output, session) {
 
                   output$facets_by_data_one <- renderUI(
                      selectInput(inputId = "facets_by_data_one", label = "Chosen facet",
+                     selected = "Animals", choices = our_group_names))
+                  }
+             }  
+
+            #############################################################################
+            # Facets (Second grouping) -> use currently only for AUC
+            #############################################################################
+            if ((! is.null(real_data$animals)) && is.null(input$facets_by_data_two)) {
+               if (input$havemetadata) {
+	               metadatafile <- get_metadata_datapath(input, session, global_data)
+                  true_metadata <- get_true_metadata(metadatafile)
+                  output$facets_by_data_two <- renderUI(
+                  selectInput(inputId = "facets_by_data_two", label = "Chosen second facet",
+                  selected = "Animals", choices = colnames(true_metadata)))
+                } else {
+                  df_filtered <- real_data$metadata[, colSums(is.na(real_data$metadata)) == 0]
+                  df_filtered <- df_filtered[, !grepl("Text", names(df_filtered))]
+                  df_filtered <- df_filtered[, !grepl("^X", names(df_filtered))]
+                  colnames(df_filtered)[colnames(df_filtered) == "Box"] <- "Box_NA"
+                  our_group_names <- unique(colnames(df_filtered))
+
+                  output$facets_by_data_two <- renderUI(
+                     selectInput(inputId = "facets_by_data_two", label = "Chosen second facet",
                      selected = "Animals", choices = our_group_names))
                   }
              }  

@@ -531,6 +531,103 @@ for (i in seq_along(groups)) {
 		p2 <- p2 + ggtitle(paste0("Average measurement of ", mylabel, " in window")) + ylab(mylabel)
 		annotations_window_plot <<- window_plot$annotations
 	}
+
+	print("oclnames:")
+	print(colnames(df_to_plot))
+	get_auc <- function(df_to_plot, variable_mine) {
+		df <- df_to_plot %>%
+  arrange(`Animal No._NA`, running_total.hrs.halfhour)
+
+# Calculate AUC per group using base R interpolation and integration
+result <- df %>%
+  group_by(`Animal No._NA`) %>%
+    summarise(
+    AUC = {
+      # Extract vectors for current group
+      x <- running_total.hrs.halfhour
+      y <- .data[[variable_mine]]
+
+      # Create linear interpolating function
+      f_fun <- approxfun(x, y, rule = 2)
+
+      # Numerically integrate from min to max time
+      integrate(f_fun, min(x), max(x), subdivisions=2000)$value
+    },
+  )
+  print(result)
+  return(result)
+	}
+
+	result_mean <- NULL
+	if (input$with_facets) {
+		if (!is.null(input$facets_by_data_one)) {
+			if (!is.null(input$facets_by_data_one)) {
+				result <- compute_auc_with_group(df_to_plot, "running_total.hrs.halfhour", input$myr, "Animal No._NA", input$facets_by_data_one, input$facets_by_data_two)
+			} else {
+				result <- compute_auc_with_group(df_to_plot, "running_total.hrs.halfhour", input$myr, "Animal No._NA", input$facets_by_data_one, NULL)
+			}
+			print("with facets result:")
+			print(result)
+			result_mean <- result %>% group_by(input$facets_by_data_one) %>% mutate(MeanAUC=mean(AUC, na.rm=TRUE)) %>% ungroup()
+			print("mean with factes:")
+			print(result_mean)
+		}
+	}
+
+	AUC_df <- get_auc(df_to_plot, input$myr)
+	p4 <- ggplot(AUC_df, aes_string(x="`Animal No._NA`", y="AUC")) + geom_col()
+
+	if (input$with_facets) {
+		p4 <- ggplot() + geom_col(data=result_mean, aes_string(x=input$facets_by_data_one, y="MeanAUC"), width=0.4, fill="lightgray") +
+		geom_point(data=result, aes_string(x = input$facets_by_data_one, y = "AUC", color = input$facets_by_data_one))
+		#p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "MeanAUC", fill=input$facets_by_data_one)) + geom_col(alpha=0.5) + geom_point() + ylab("AUC")
+		facet_two = input$facets_by_data_one
+		if (!is.null(input$facets_by_data_two)) {
+			facet_two = input$facets_by_data_two
+		}
+		p4 <- ggplot(result, aes_string(x = input$facets_by_data_one, y = "AUC", fill = facet_two)) +
+  stat_summary(geom = "col", fun = mean, width = 0.4, alpha = 0.5, position = position_dodge(width = 0.8)) +
+  #geom_jitter(width = 0.1, size = 2, alpha = 0.8, color = "black") +
+   geom_jitter(
+    aes_string(color = input$facets_by_data_two, group = input$facets_by_data_two),
+    position = position_jitterdodge(
+      jitter.width = 0.1,
+      dodge.width = 0.8
+    ),
+    size = 2, alpha = 0.8
+  ) +
+  labs(
+    x = input$facets_by_data_one,
+    y = "Mean AUC",
+    fill = input$facets_by_data_two,
+    color = input$facets_by_data_two,
+    title = paste("AUC by", input$facets_by_data_one, "and", input$facets_by_data_two)
+  ) +
+  labs(x = input$facets_by_data_one, y = "Mean AUC", title = "Mean AUC per Group with Individual Values") +
+  theme_minimal() +
+  theme(legend.position = "right")
+	}
+
+p3 <- NULL
+	if (input$toggle_AUC == TRUE) {
+		print("toggled AUC")
+print(head(df_to_plot))
+		set.seed(42)
+df <- data.frame(
+  x = rnorm(100, mean = 5, sd = 2),
+  y = rnorm(100, mean = 10, sd = 3),
+  group = sample(c("A", "B"), 100, replace = TRUE)
+)
+		p3 <- ggplot(df, aes(x = x, y = y, color = group)) +
+		  geom_point(size = 3, alpha = 0.7) +
+			labs(
+			title = "Random Scatter Plot",
+			x = "X axis",
+			y = "Y axis"
+		) +
+		theme_minimal()
+	}
+	p3 <- p4
 	
 	# add facetting
 	if (input$with_facets) {
@@ -651,11 +748,15 @@ for (i in seq_along(groups)) {
 
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
+
 	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=3, color="black")
-	# indicate new day
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
-	# indicate night start
-	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	if (!input$ic_system == "COSMED QNRG") { # COSMED QNRG has always measurements below 1h!
+		# indicate new day
+		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
+		# indicate night start
+		p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
+	}
+
 	# set title and display buttons
 	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	# add points only if toggle outliers
@@ -668,6 +769,12 @@ for (i in seq_along(groups)) {
 	# scale y axis to range 
 	y_range <- range(df_to_plot[[input$myr]], na.rm = TRUE)
 	p <- p + scale_y_continuous(limits=y_range)
+
+	# FIXME: currently a hack: re-label mis-detected hour intervals into minutes. -> time needs to be read-in similar as in CALOBOX, we assume HH:MM but we need HH:MM:SS also for COSMED
+	if (input$ic_system == "COSMED QNRG") {
+		p <- p + xlab("Time [min]")
+		p <- p + ylab(paste(mylabel, "[ml/min/kg]"))
+	}
 
 	p2 <- p2 + annotations_window_plot
 	# toggle outliers
@@ -698,5 +805,5 @@ for (i in seq_along(groups)) {
 	storeSession(session$token, "raw_variable", input$myr, global_data)
 
 	# return current plot of raw measurements
-	return(list("window_plot"=p2, "plot"=p))
+	return(list("window_plot"=p2, "plot"=p, "auc_plot"=ggplotly(p3)))
 }

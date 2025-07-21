@@ -2,6 +2,34 @@ source("inc/constants.R")
 source("inc/metadata/read_metadata.R")
 library(glue)
 
+compute_auc_with_group <- function(df, time_var, yvar, id_col, group_col, group_col2) {
+  if (!is.null(group_col2)) {
+   return(df %>%
+      arrange(.data[[id_col]], .data[[time_var]]) %>%
+      group_by(!!sym(id_col), !!sym(group_col), !!sym(group_col2)) %>%
+      summarise(
+         AUC = {
+         x <- .data[[time_var]]
+         y <- .data[[yvar]]
+         f_fun <- approxfun(x, y, rule = 2)
+         integrate(f_fun, min(x), max(x))$value
+         }
+      ))
+  } else {
+    return(df %>%
+      arrange(.data[[id_col]], .data[[time_var]]) %>%
+      group_by(!!sym(id_col), !!sym(group_col)) %>%
+      summarise(
+         AUC = {
+         x <- .data[[time_var]]
+         y <- .data[[yvar]]
+         f_fun <- approxfun(x, y, rule = 2)
+         integrate(f_fun, min(x), max(x))$value
+         }
+      ))
+   }
+}
+
 ################################################################################
 #' add_windowed_plot_statistics
 #' 
