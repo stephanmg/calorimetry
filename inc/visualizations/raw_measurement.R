@@ -609,7 +609,34 @@ for (i in seq_along(groups)) {
 	if (input$add_trend_line_one_plot) {
 		# TODO: this is not enough, we want instead to add the grouped df directly to have also legend entries,
 		# individual geom_line(...) will not result in legend entries...
- 	 	p <- p + facet_null()
+ 	 	p <- ggplot() 
+				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
+				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
+				p <- p + geom_ribbon(
+ 		 	   		data = summary_df,
+					aes(
+						x = running_total.hrs.halfhour,
+						ymin = mean - input$add_trend_line_sd*sd,
+						ymax = mean + input$add_trend_line_sd*sd,
+					fill = .data[[input$facets_by_data_one]],
+						group = .data[[input$facets_by_data_one]]
+						),
+						alpha = 0.6,
+						inherit.aes = FALSE
+					)
+		if (!is.null(input$trend_line_color_scale)) {
+				if (input$override_color_scale_in_trendline) {
+			  p <- p + scale_color_viridis_d(option = input$trend_line_color_scale) 
+			  if (input$trend_line_color_scale == "black") {
+				scale_color_black <- function(groups) {
+ 			 scale_color_manual(values = setNames(rep("black", length(groups)), groups))
+			}
+			p <- p + scale_color_black(unique(df_to_plot[["Animals"]]))
+			  }
+				}
+		}
+
+
 	}
 
 
@@ -624,7 +651,7 @@ for (i in seq_along(groups)) {
 
 	# add day annotations and indicators vertical lines
 	# +2 for annotation inside plotting
-	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=4, color="black")
+	p <- p + geom_text(data=day_annotations$annotations, aes(x = x+light_offset+2.5+first_night_start, y = y+6, label=label), vjust=1.5, hjust=0.5, size=3, color="black")
 	# indicate new day
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+24+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="black")
 	# indicate night start
