@@ -33,22 +33,26 @@ prepare_data_frame_for_export <- function(df_to_plot, global_data, session) {
 ################################################################################
 do_export_all_data <- function(input, output, session, file_output, do_plotting, global_data) {
    # Individual files for zip archive
-   df_df_input <- file.path(tempdir(), "df_input.csv")
-   df_df_output <- file.path(tempdir(), "df_output.csv")
+   df_df_input <- file.path(tempdir(), "df_raw.csv")
+   df_df_output <- file.path(tempdir(), "df_energy_expenditure.csv")
    df_tee_and_rmr <- file.path(tempdir(), "df_tee_and_rmr.csv")
    df_day_night <- file.path(tempdir(), "df_day_night.csv")
    df_gox_lox <- file.path(tempdir(), "df_gox_lox.csv")
-   df_raw <- file.path(tempdir(), "df_raw.csv")
 
    # Additional data from other panels
    day_night <- getSession(session$token, global_data)[["df_day_night"]]
    TEE_and_RMR <- getSession(session$token, global_data)[["TEE_and_RMR"]]
    goxlox <- getSession(session$token, global_data)[["df_gox_lox"]]
-   raw <- getSession(session$token, global_data)[["df_raw"]]
    df <- getSession(session$token, global_data)[["finalC1"]]
 
    # to store in zip archive
    filenames <- c()
+
+   # Raw input data
+   if (!is.null(df_df_input)) { 
+      write.csv2(df, file = df_df_input)
+      filenames <- c(filenames, df_df_input)
+   }
 
    # Day and Night Activity
    if (!is.null(day_night)) { 
@@ -62,20 +66,13 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       filenames <- c(filenames, df_tee_and_rmr)
    }
 
-   # GoxLox / FuelOxidation
+   # Fuel Oxidation
    if (!is.null(goxlox)) {
       write.csv2(goxlox, file = df_gox_lox)
       filenames <- c(filenames, df_gox_lox)
    }
 
-   # Raw measurements
-   if (!is.null(raw)) { 
-      raw <- raw %>% rename(Raw=TEE)
-      write.csv2(raw, file = df_raw) 
-      filenames <- c(filenames, df_raw)
-   }
-
-   # Total output data frame
+   # Energy expenditure for two formulas
    if (!is.null(df)) { 
       df_calc <- df %>% select(c(HP, HP2)) %>% rename("Energy Expenditure #1"=HP, "Energy Expenditure #2"=HP2)
       df_calc <- df_calc %>% rename(Animals=`Animal No._NA`)
@@ -83,21 +80,13 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       filenames <- c(filenames, df_df_output)
    }
 
-   # Total input data frame
-   if (!is.null(df)) {
-      print(head(df))
-      df <- df %>% select(-c(HP, HP2))
-      write.csv2(df, file=df_df_input)
-      filenames <- c(filenames, df_df_input)
-   }
-
    #############################################################################
    # Main plots
    #############################################################################
-   plot_for_raw_input <- file.path(tempdir(), "raw_plot.html")
-   plot_for_raw <- getSession(session$token, global_data)[["plot_for_raw"]]
-   if (!is.null(plot_for_raw)) {
-      htmlwidgets::saveWidget(plot_for_raw, plot_for_raw_input, selfcontained=TRUE)
+   raw_plots <- getSession(session$token, global_data)[["plot_for_raw"]]
+   for (key in names(raw_plots)) {
+      plot_for_raw_input <- file.path(tempdir(), paste0("raw_plot_", key, ".html"))
+      htmlwidgets::saveWidget(raw_plots[[key]], plot_for_raw_input, selfcontained=TRUE)
       filenames <- c(filenames, plot_for_raw_input)
    }
 
@@ -115,11 +104,11 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
       filenames <- c(filenames, plot_for_ee_input)
    }
 
-   plot_for_GoxLox_input <- file.path(tempdir(), "GoxLox_plot.html")
-   plot_for_GoxLox <- getSession(session$token, global_data)[["plot_for_GoxLox"]]
-   if (!is.null(plot_for_GoxLox)) {
-      htmlwidgets::saveWidget(plot_for_GoxLox, plot_for_GoxLox_input, selfcontained=TRUE)
-      filenames <- c(filenames, plot_for_GoxLox_input)
+   goxlox_plots <- getSession(session$token, global_data)[["plot_for_goxlox"]]
+   for (key in names(goxlox_plots)) {
+      plot_for_goxlox_input <- file.path(tempdir(), paste0("goxlox_plot_", gsub(" ", "_", key), ".html"))
+      htmlwidgets::saveWidget(goxlox_plots[[key]], plot_for_goxlox_input, selfcontained=TRUE)
+      filenames <- c(filenames, plot_for_goxlox_input)
    }
 
    plot_for_metadata_input <- file.path(tempdir(), "metadata_plot.html")
@@ -233,7 +222,6 @@ do_export_all_data <- function(input, output, session, file_output, do_plotting,
 
    # Create zip file of all files
    zip_file <- file.path(tempdir(), "all_data.zip")
-   #files = c(df_df_input, df_df_output, df_gox_lox, df_tee_and_rmr, df_day_night, df_raw, plot_for_raw_input, plot_for_tee_input, plot_for_ee_input, plot_for_GoxLox_input, plot_for_metadata_input, plot_for_RMR_input, time_trace_plots, filenames)
    files = filenames
    zip(zipfile=zip_file, files=files)
    return(zip_file)

@@ -353,7 +353,13 @@ goxlox <- function(finalC1, finalC1meta, input, output, session, global_data, sc
 	}
 
 	# store plot and indicate GoxLox has been calculated
-	storeSession(session$token, "plot_for_goxlox", p, global_data)
+	plots_for_goxlox <- getSession(session$token, global_data)[["plot_for_goxlox"]]
+	if (is.null(plots_for_goxlox)) {
+		plots_for_goxlox <- list()
+	} 
+	plots_for_goxlox[[input$goxlox]] <- ggplotly(p)
+
+	storeSession(session$token, "plot_for_goxlox", plots_for_goxlox, global_data)
 	storeSession(session$token, "is_GoxLox_calculated", TRUE, global_data)
 	storeSession(session$token, "plot_for_goxlox_window", p2, global_data)
 	storeSession(session$token, "is_GoxLox_window_calculated", length(p2) > 0, global_data)
