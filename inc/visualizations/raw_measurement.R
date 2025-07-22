@@ -452,21 +452,6 @@ for (i in seq_along(groups)) {
 	inherit.aes = FALSE
   )
 }
-
-#				summary_df <- df_to_plot %>% group_by(running_total.hrs.halfhour, .data[[input$facets_by_data_one]]) %>% summarise(mean=mean(.data[[input$myr]], na.rm = TRUE), sd=sd(.data[[input$myr]], na.rm = TRUE))
-#				p <- p + geom_line(data=summary_df, aes(x=running_total.hrs.halfhour, y=mean, color=.data[[input$facets_by_data_one]], group=.data[[input$facets_by_data_one]]),  inherit.aes=FALSE)
-#				p <- p + geom_ribbon(
-# 		 	   		data = summary_df,
-#						aes(
-#						x = running_total.hrs.halfhour,
-#						ymin = mean - input$add_trend_line_sd*sd,
-#						ymax = mean + input$add_trend_line_sd*sd,
-#						fill = .data[[input$facets_by_data_one]],
-#						group = .data[[input$facets_by_data_one]]
-#						),
-#						alpha = 0.6,
-#						inherit.aes = FALSE
-#					)
 			}
 		}
 	}
@@ -525,6 +510,7 @@ for (i in seq_along(groups)) {
 	} else {
 		# offset is minimum value for time (on x-axis)
 		offset <- min(finalC1$running_total.hrs.halfhour)
+
 		# windowed time trace plot
 		window_plot <- add_windowed_plot(input, output, session, global_data, true_metadata, metadatafile, df_to_plot, "Raw", offset, input$myr)
 		p2 <- window_plot$plot
@@ -691,7 +677,13 @@ for (i in seq_along(groups)) {
 	create_lme_model_ui(input, output, true_metadata, df_to_plot, input$myr, session, global_data)
 
 	# store plot and indicate that Raw has been calculated
-	storeSession(session$token, "plot_for_raw", p, global_data)
+	plots_for_raw <- getSession(session$token, global_data)[["plot_for_raw"]]
+	if (is.null(plots_for_raw)) {
+		plots_for_raw <- list()
+	} 
+	plots_for_raw[[input$myr]] <- p
+	
+	storeSession(session$token, "plot_for_raw", plots_for_raw, global_data)
 	storeSession(session$token, "plot_for_raw_window", p2, global_data)
 	storeSession(session$token, "is_Raw_calculated", TRUE, global_data)
 	storeSession(session$token, "is_Raw_window_calculated", length(p2) > 0, global_data)
