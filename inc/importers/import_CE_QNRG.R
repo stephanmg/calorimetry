@@ -10,7 +10,7 @@ check_for_cosmed_QNRG <- function(file) {
 file_path <- "/home/stephan/Downloads/Daten Alex/ID1_CE_QNRG_pre_2.csv"
 file_out <- "test.csv"
 
-import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, id, normalize_to_body_weight) {
+import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, training, id, normalize_to_body_weight) {
    reformat_time_for_cosmed <- function(time) {
       td <- seconds_to_period(time)
       sprintf("%02d:%02d", minute(td), second(td))
@@ -48,6 +48,7 @@ value_found <- all_data[row_idx[1], target_col]
    df$`Animal No.` <- id
    df$Treatment <- as.factor(treatment)
    df$Intervention <- as.factor(intervention)
+   df$Training <- as.factor(training)
    df <- df[-c(1,3), ]
    print(df$Time)
 
@@ -83,13 +84,13 @@ value_found <- all_data[row_idx[1], target_col]
    print(colnames(df))
    print(df$Time)
 
-   header <- data.frame(matrix(ncol = length(cols_to_keep)+4, nrow = 0)) # +1 for date, and +1 for animal ID +1 for Treatment +1 for intervention
+   header <- data.frame(matrix(ncol = length(cols_to_keep)+5, nrow = 0)) # +1 for date, and +1 for animal ID +1 for Treatment +1 for intervention +1 for training
 
    print(length(cols_to_keep))
 
-   fileinfo <- c(file_path, rep("", 13))
-   extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 12))
-   boxInfo <- c("Box", "Animal No.", "Weight [kg]", "Treatment", "Intervention", rep("", 9))
+   fileinfo <- c(file_path, rep("", 14))
+   extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 13))
+   boxInfo <- c("Box", "Animal No.", "Weight [kg]", "Treatment", "Intervention", "Training", rep("", 9))
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -106,23 +107,23 @@ value_found <- all_data[row_idx[1], target_col]
    print("b")
    header[nrow(header) + 1, ] <- boxInfo
    print("c")
-   header[nrow(header) + 1, ] <- c(id, id, value_found, treatment, intervention, rep("", 9))
+   header[nrow(header) + 1, ] <- c(id, id, value_found, treatment, intervention, training, rep("", 9))
    print("foo:")
 
    units <- c("", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/day]", "[%]", "[%]", "[%]", "[%]", "[%]", rep("", 5))
 
-   header[nrow(header) + 1, ] <- rep("", 14)
+   header[nrow(header) + 1, ] <- rep("", 15)
 
-   header[nrow(header) + 1, ] <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention")
+   header[nrow(header) + 1, ] <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention", "Training")
    header[nrow(header) + 1, ] <- units
 
    print("Header")
    print(header)
 
    print("cols")
-   colnames(header) <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention")
+   colnames(header) <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention", "Training")
    print("foobar")
-   colnames(df) <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention")
+   colnames(df) <- c(cols_to_keep, "Date", "Animal No.", "Treatment", "Intervention", "Training")
    print("barbar")
 
    print("rbind")
@@ -133,4 +134,4 @@ value_found <- all_data[row_idx[1], target_col]
 }
 
 
-import_cosmed_QNRG(file_path, file_out, 1, 2, 3, FALSE)
+import_cosmed_QNRG(file_path, file_out, 1, 2, 0, 3, FALSE)

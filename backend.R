@@ -133,9 +133,9 @@ load_data <- function(file, input, exclusion, output, session) {
    fileFormatTSE <- FALSE
    finalC1 <- c()
 
-   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 10))
+   finalC1meta <- data.frame(matrix(nrow = 0, ncol = 11))
    # Supported basic metadata fields from TSE LabMaster/PhenoMaster (these are defined manually by the user exporting the TSE files)
-   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob", "Measurement", "Treatment", "Intervention")
+   colnames(finalC1meta) <- c("Animal.No.", "Diet", "Genotype", "Box", "Sex", "Weight..g.", "Dob", "Measurement", "Intervention", "Training", "Treatment")
 
    # check if we need to use example data or not
    use_example_data <- getSession(session$token, global_data)[["use_example_data"]]
@@ -265,7 +265,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
          storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
-         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], i, input$normalize_to_body_weight)
+         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], input[[paste0("TrainingGroup", i)]], i, input$normalize_to_body_weight)
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
@@ -976,8 +976,9 @@ server <- function(input, output, session) {
             label = paste0("Cohort #", i)))
             if (input$ic_system == 'COSMED QNRG') {
                html_ui <- paste0(html_ui,
-                  selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="No", choices=c("Yes", "No")),
-                  selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="No", choices=c("Yes", "No")))
+                  selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="Pre", choices=c("Pre", "Post")),
+                  selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="Before", choices=c("After", "Before")),
+                  selectInput(paste0("TrainingGroup", i), label=paste0("Group"), selected="Control", choices=c("Control", "Training")))
                }
             }
          HTML(html_ui)
