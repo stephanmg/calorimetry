@@ -1983,5 +1983,16 @@ server <- function(input, output, session) {
       updateSliderInput(session, "temperature_mean", min = temp_min, max = temp_max, value = temp_value, step = 1)
       updateSliderInput(session, "temperature_deviation", min = temp_dev_min, max = temp_dev_max, value = temp_dev_value, step = 1)
    })
+
+   observeEvent(input$ic_system, {
+  choices <- switch(input$ic_system,
+                    "General" = c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation"),
+                    "COSMED" = c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas"),
+                    "COSMED QNRG" = c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas"),
+                    "Sable" = c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas"),
+                    character(0))
+
+  updateSelectInput(session, "plot_type", choices = choices)
+})
 }
 
