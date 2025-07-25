@@ -562,8 +562,7 @@ page_for_visualization_advanced_options <- fluidPage(
    colourInput(inputId = "light_cycle_day_color", label = "Color day", "#FFBF00"),
    colourInput(inputId = "light_cycle_night_color", label = "Color night", "#B2BEB5"),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", h5("Time averaging of raw data")),
-   conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", 0, 30, 10, step = 1)),
-   conditionalPanel(condition = "input.ic_system == 'COSMED QNRG'", sliderInput("averaging", "Time averaging [min]", 0, 30, 1, step = 1)),
+   conditionalPanel(condition = "input.plot_type != null && input.plot_type != 'RestingMetabolicRate'", sliderInput("averaging", "Time averaging [min]", min = 0, max = 30, value = 10, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", sliderInput("running_average", "Moving average (k)", 0, 10, 1, step = 1)),
    conditionalPanel(condition = "input.plot_type != 'RestingMetabolicRate'", selectInput("running_average_method", "Method", choices = c("Mean", "Max", "Median", "Sum")))
 )

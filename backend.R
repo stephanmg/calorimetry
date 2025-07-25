@@ -1994,5 +1994,16 @@ server <- function(input, output, session) {
 
   updateSelectInput(session, "plot_type", choices = choices)
 })
+
+observeEvent(input$ic_system, {
+  req(input$plot_type != "RestingMetabolicRate")  # skip if slider shouldn't show
+  
+  step_val <- if (input$ic_system == "COSMED QNRG") 1 else 2
+  default_val <- if (input$ic_system == "COSMED QNRG") 1 else 10
+  
+  updateSliderInput(session, "averaging",
+                    value = default_val,
+                    step = step_val)
+})
 }
 
