@@ -650,7 +650,7 @@ for (i in seq_along(groups)) {
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	# set title and display buttons
 	if (startsWith(input$myr, "EE")) {
-		p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), "using raw data from calorimeter"))
+		p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using raw data from calorimeter"))
 	} else {
 		p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
 	}
