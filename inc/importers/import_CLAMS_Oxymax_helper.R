@@ -4,7 +4,6 @@ library(dplyr)
 
 import_CLAMS_Oxymax  <- function(file_path, file_out) {
 
-# 1️⃣ Read lines and discover data section
 lines <- readLines(file_path)
 
 # Extract numeric values using regex
@@ -22,18 +21,14 @@ if (length(data_start) == 0L) stop("Error: ':DATA' section not found")
 header_idx <- data_start + 2
 data_lines <- lines[header_idx:length(lines)]
 
-# 2️⃣ Read into a full data frame
 df_all <- read.csv(text = data_lines, header = TRUE, stringsAsFactors = FALSE)
 
-# 3️⃣ Select only the columns you need
-df <- df_all[, c("DATE.TIME", "VO2", "VCO2")]
+df <- df_all[, c("DATE.TIME", "VO2", "VCO2", "HEAT")]
 colnames(df)[1] <- "DATETIME"
 
-# 4️⃣ Remove the second row
 df <- df[-1, ]  # drop row index 2 :contentReference[oaicite:1]{index=1}
 df <- df[-1, ]  # drop row index 2 :contentReference[oaicite:1]{index=1}
 
-# 5️⃣ Convert DATETIME column to POSIXct
 df$DATETIME <- as.POSIXct(df$DATETIME, format = "%m/%d/%y %H:%M", tz = Sys.timezone())
 
 df$Date <- as.Date(df$DATETIME, format="%Y/%m/%d")
@@ -44,29 +39,32 @@ df <- df[, !names(df) %in% c("DATETIME")]
 
 df <- df %>% rename("VO2(3)" = "VO2")
 df <- df %>% rename("VCO2(3)" = "VCO2")
+df <- df %>% rename("EE" = "HEAT")
 
 
 
 df$`Animal. No.` <- as.character(subject_id)
+df$EE <- gsub("\\.", ",", as.character(df$EE))
 
 print(head(df))
 
 
 
-   cols_to_keep <- c("VO2(3)", "VCO2(3)")
+   cols_to_keep <- c("VO2(3)", "VCO2(3)", "EE")
 
 
 
    colnames(df) <- rep("", ncol(df))
 
 
+
    header <- data.frame(matrix(ncol = length(cols_to_keep)+4, nrow = 0)) # +1 for date, and +1 for time + 1 for animal ID
 
    print(length(cols_to_keep))
 
-   fileinfo <- c(file_path, rep("", 5))
-   extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 4)) 
-   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Diet", "Genotyp", rep("", 1)) # NOTE: is is crucially that we always have at least these informations, otherwise the TSE format is not well defined in SHiny-Calorie
+   fileinfo <- c(file_path, rep("", 6))
+   extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 5)) 
+   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Diet", "Genotyp", rep("", 2)) # NOTE: is is crucially that we always have at least these informations, otherwise the TSE format is not well defined in SHiny-Calorie
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -86,13 +84,13 @@ print(head(df))
    print("b")
    header[nrow(header) + 1, ] <- boxInfo
    print("c")
-   header[nrow(header) + 1, ] <- c(subject_id, subject_cage, subject_mass, "CD", "WT", "")
+   header[nrow(header) + 1, ] <- c(subject_id, subject_cage, subject_mass, "CD", "WT", "", "")
    print("foo:")
 
 
-   units <- c("", "", "", "", "[ml/h]", "[ml/h]")
+   units <- c("", "", "", "", "[ml/h]", "[ml/h]", "[kcal/day]")
 
-   header[nrow(header) + 1, ] <- rep("", 6)
+   header[nrow(header) + 1, ] <- rep("", 7)
 
    print("d")
 
@@ -114,8 +112,8 @@ print(head(df))
    print("barbar")
 
 
-df <- df[, c(3, 4, 5, 6, 1, 2)]
-   colnames(df) <- c("Date", "Time", "Animal No.", "Box", cols_to_keep)
+df <- df[, c(4, 5, 7, 6, 1, 2, 3)]
+   colnames(df) <- c("Date", "Time", "Box", "Animal No.", cols_to_keep)
 print(head(df))
    print("rbind")
    print(head(header, 20))
@@ -124,6 +122,7 @@ print(head(df))
 
 
    df$`Animal No.` <- as.character(df$`Animal No.`)
+   df$`Box` <- as.character(df$`Box`)
    df$Date <- as.Date(df$Date)
    print("head df:")
    print(head(df))
@@ -162,3 +161,4 @@ full_data <- rbind(header_rows, data_clean)
 
    write.table(full_data, file_out, col.names=FALSE, row.names=FALSE, sep=";", quote=FALSE)
 }
+

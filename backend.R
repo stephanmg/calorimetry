@@ -260,7 +260,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateCheckboxInput(session, "recalculate_HP", value = TRUE)
          updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
          updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
-         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER", "EE"))
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox", "CLAMS Oxymax"), selected = "CLAMS Oxymax")
          storeSession(session$token, "input_file_type", "CLAMS Oxymax", global_data)
@@ -1137,7 +1137,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
-      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK", "EE")
       choices = intersect(choices, clean_var_names(raw_cols))
       # Clean var names ensures that users dont need to worry about the units in the drop down menu
       if (length(choices) == 0) {

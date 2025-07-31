@@ -118,12 +118,14 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER_NA" }
+	if (startsWith(input$myr, "EE")) { mylabel <- "EE_[kcal/day]" }
 
 	# annotate days and animals (already shifted by above correction)
 	day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
 
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
+	if (startsWith(input$myr, "EE")) { mylabel <- "EE" }
 
 
 	colnames(finalC1)[colnames(finalC1) == "WeightBody_[g]"] <- "WeightBody"
@@ -244,6 +246,10 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		mylabel <- "RER"
 	}
 
+	if (startsWith(input$myr, "EE")) {
+		mylabel <- "EE"
+	}
+
 	colnames(df_to_plot)[colnames(df_to_plot) == "WeightBody_[g]"] <- "WeightBody"
 
 	if (startsWith(input$myr, "WeightBody")) {
@@ -252,6 +258,7 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 	names(df_to_plot)[names(df_to_plot) == mylabel] <- input$myr
 	names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
+	names(df_to_plot)[names(df_to_plot) == "EE_[kcal/day]"] <- "EE"
 
 	# TODO: v0.5.0 - factor this out as utility or method, can be re-used in other panels after discussion
 	# replot outlier removed data, only if toggled: outlier removal by selection
