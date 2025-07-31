@@ -1119,7 +1119,7 @@ server <- function(input, output, session) {
 
    observeEvent(input$plot_type, {
       raw_cols <- getSession(session$token, global_data)[["finalC1cols"]]
-      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK")
+      choices = c("O2", "CO2", "RER", "VO2", "VCO2", "TempL", "Drink1", "Feed1", "Temp", "TempC", "WeightBody", "XT+YT", "DistD", "DistK", "EE")
       choices = intersect(choices, clean_var_names(raw_cols))
       # Clean var names ensures that users dont need to worry about the units in the drop down menu
       if (length(choices) == 0) {
