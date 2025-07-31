@@ -38,6 +38,7 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
+source("inc/importers/import_calR_helper.R") # import for CalR data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 source("inc/importers/util.R") # for consistency checks of columns
 
@@ -250,6 +251,22 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
       # For COSMED need to scale to minutes
       scaleFactor <- 60
+   } else {
+      tmp_file <- tempfile()
+      if (input$ic_system == "CalR") {
+         output$file_type_detected <- renderText("Input file type detected as: CalR")
+         updateCheckboxInput(session, "recalculate_RER", value = TRUE)
+         updateCheckboxInput(session, "recalculate_HP", value = TRUE)
+         updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
+         updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER", "EE")) # these are the minimum default fields
+         storeSession(session$token, "input_file_type", "CalR", global_data)
+         import_calR(file, tmp_file)
+         file <- tmp_file
+         toSkip <- detectData(file)
+      } else {
+         # Other filetype or example data - nothing to do currently - this is a placeholder
+      }
    }
 
    # LabMaster V5 (horizontal format)
