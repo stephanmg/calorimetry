@@ -250,6 +250,23 @@ load_data <- function(file, input, exclusion, output, session) {
       toSkip <- detectData(file)
       # For COSMED need to scale to minutes
       scaleFactor <- 60
+   } else {
+      tmp_file <- tempfile()
+      if (input$ic_system == "CaloPy") {
+         output$file_type_detected <- renderText("Input file type detected as: CaloPy")
+         updateCheckboxInput(session, "recalculate_RER", value = TRUE)
+         updateCheckboxInput(session, "recalculate_HP", value = TRUE)
+         updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
+         updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER")) # basic columns CaloPy prpvides
+         storeSession(session$token, "input_file_type", "CaloPy", global_data)
+         import_calR(file, tmp_file)
+         file <- tmp_file
+         toSkip <- detectData(file)
+      } else {
+         # Other filetype or example data - nothing to do currently - this is a placeholder
+      }
+   }
    }
 
    # LabMaster V5 (horizontal format)
