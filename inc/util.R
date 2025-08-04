@@ -131,7 +131,11 @@ add_windowed_plot <- function(input, output, session, global_data, true_metadata
 
 		averages <- averages %>% rename(Days=DayCount)
 
-		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+      if (input$ic_system == 'COSMED QNRG') {
+	   	storeSession(session$token, "selected_indep_var", "Cohort", global_data)
+      } else {
+	   	storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+      }
       # TODO: This adds always the "Raw" panel which works currently, but legends are wrong then, need to fix this.
       # use the same way to add anova_Ancova_panel as in inc/visualization/*.R files.
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, averages, metadatafile, mylabel, "Raw")
@@ -1021,7 +1025,7 @@ enrich_with_metadata <- function(finalC1, C1meta, havemetadata, metadatafile) {
       colnames(df_filtered)[colnames(df_filtered) == "Animal"] <- "Animals"
       df_filtered$Animals <- as.factor(df_filtered$Animals)
       for (col in colnames(df_filtered)) {
-         if (col %in% c("Sex", "Diet", "Genotype", "Box", "Box_NA", "Dob")) { # factor columns from TSE standard header
+         if (col %in% c("Sex", "Diet", "Genotype", "Box", "Box_NA", "Dob", "Training", "Intervention", "Treatment")) { # factor columns from TSE standard header
             df_filtered[[col]] = as.factor(df_filtered[[col]])
          } # renaming columns are assumed to be numerical and used as covariates
       }

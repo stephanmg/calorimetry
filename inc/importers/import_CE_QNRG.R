@@ -90,7 +90,7 @@ value_found <- all_data[row_idx[1], target_col]
 
    fileinfo <- c(file_path, rep("", 14))
    extendedinfo <- c("", "TSE Labmaster V6.3.3 (2017-3514)", rep("", 13))
-   boxInfo <- c("Box", "Animal No.", "Weight [kg]", "Treatment", "Intervention", "Training", rep("", 9))
+   boxInfo <- c("Box", "Animal No.", "Weight [g]", "Treatment", "Intervention", "Training", "Genotype", rep("", 8))
    print("fileinfo:")
    print(fileinfo)
    print("extnededinfo:")
@@ -107,7 +107,7 @@ value_found <- all_data[row_idx[1], target_col]
    print("b")
    header[nrow(header) + 1, ] <- boxInfo
    print("c")
-   header[nrow(header) + 1, ] <- c(id, id, value_found, treatment, intervention, training, rep("", 9))
+   header[nrow(header) + 1, ] <- c(id, id, as.character(as.numeric(value_found)*1000), treatment, intervention, training, "WT", rep("", 8))
    print("foo:")
 
    units <- c("", "[ml/h]", "[ml/h]", "[ml/h]", "[kcal/day]", "[%]", "[%]", "[%]", "[%]", "[%]", rep("", 5))

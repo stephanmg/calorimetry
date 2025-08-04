@@ -60,6 +60,9 @@ calculate_statistic <- function(data, method) {
 # via the inputs (input$glm_family and input$link_function) - not only defaults
 do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, group, group2, dep_var, test_type, adjust_method = "bonferroni", connected_or_independent_ancova=FALSE, num_covariates=1, repeated_measurements=FALSE, lm_or_glm=FALSE, sort_factors_alphabetically_decreasing=TRUE, sort_factors_by_custom_sorting=NULL) {
   df <- df_data %>% full_join(y = df_metadata, by = c("Animals")) %>% na.omit() 
+
+  print("df:")
+  print(df)
   # Might not be necessary, does no harm, can be removed if no adverse effects revealed during testing
   if (! "Genotype" %in% names(df)) {
     if ("Genotype.x" %in% names(df)) {

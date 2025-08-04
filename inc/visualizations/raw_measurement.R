@@ -374,7 +374,11 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 
 		# store calculated results
 		storeSession(session$token, "df_raw", raw_df, global_data)
-		storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+		if (input$ic_system == 'COSMED QNRG') {
+			storeSession(session$token, "selected_indep_var", "Cohort", global_data)
+		} else {
+			storeSession(session$token, "selected_indep_var", "Genotype", global_data)
+		}
 		
 		# add anova/ancova panel
 		add_anova_ancova_panel(input, output, session, global_data, true_metadata, raw_df, metadatafile, mylabel, "Raw")

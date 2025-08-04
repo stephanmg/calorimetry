@@ -265,6 +265,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
          storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
+         storeSession(session$token, "indep_grouping_var", "Cohort", global_data)
          import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], input[[paste0("TrainingGroup", i)]], i, input$normalize_to_body_weight)
          file <- tmp_file
          toSkip <- detectData(file)
