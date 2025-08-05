@@ -111,6 +111,7 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   # TODO: Rename TEE for ANCOVA 
   # -> DependentVariable to generalize/cleanup the naming of variables in this statistics module
+  tryCatch({
   if (dep_var == "TEE") {
     df <- df %>% select(all_of(to_select_columns))
   } else if (dep_var == "GoxLox") {
@@ -146,6 +147,10 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
 
   print("raw df:")
   print(df)
+  }, error = function(e) {
+    shinyalert("Error", "No metadata attached - statistical comparisons are futile. Please start from scratch.")
+    delay(10000, shinyjs::runjs("history.go(0);"))
+  })
 
   # covariates need to be always numeric, tse header must be prepared better, see util methods to allow only numerical non-factor columns?
   df$Weight <- as.numeric(df$Weight)
