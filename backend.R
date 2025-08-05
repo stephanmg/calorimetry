@@ -38,7 +38,7 @@ source("inc/rmr/extract_rmr_helper.R") # rmr extraction helper
 source("inc/importers/import_promethion_helper.R") # import for SABLE/Promethion data sets
 source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 data sets
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
-source("inc/importers/import_CE_QNRG.R") # import for COSMED QNRG data sets
+source("inc/importers/import_cosmed_QNRG.R") # import for COSMED QNRG data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 source("inc/importers/util.R") # for consistency checks of columns
 
