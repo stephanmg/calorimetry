@@ -208,7 +208,7 @@ return(df2 <- df %>%
 		mylabel <- "WeightBody"
 	}
 
-	# annotations for days
+	# annotations for days (old)
 	#finalC1 <- day_annotations$df_annotated
 
 	# create input select fields for animals and days
