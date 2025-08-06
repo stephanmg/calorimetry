@@ -266,8 +266,10 @@ page_for_data_curation <- fluidPage(
    p("Selection of experimental times"),
    conditionalPanel(condition = "input.do_select_date_range == true", uiOutput("daterange")),
    checkboxInput(inputId = "curate", label = "Trim data (start and end of measurement times)"),
+   checkboxInput(inputId = "curate_box", label = "Limit time"),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_start", "Exclude hours from start of measurements", 0, 24, 2, step = 1)),
    conditionalPanel(condition = "input.curate == true", sliderInput("exclusion_end", "Exclude hours from end of measurements", 0, 24, 2, step = 1)),
+   conditionalPanel(condition = "input.curate_box == true", sliderInput("set_end_time", "Set end time", 1, 15, 15, step=1)),
    # FIXME: Calendrical day selection needs fix for zeitgeber time, needs changes to utility function for zeitgeber time, thus the do_select_date_range checkbox is disabled now
    conditionalPanel(condition = "input.use_zeitgeber_time == false", checkboxInput("do_select_date_range", label = "Select dates", value=FALSE)),
    tags$script(HTML("$('#do_select_date_range').prop('disabled', true);")),
@@ -468,7 +470,8 @@ page_for_visualization <- fluidPage(
    #conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'RawMeasurement'", uiOutput("myr")),
    conditionalPanel(condition = "input.plot_type == 'FuelOxidation'", selectInput("goxlox", "FuelOxidation", choices = c("Glucose oxidation", "Lipid oxidation", "Protein oxidation", "Nitrogen oxidation"))),
-   conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Violinplot")),
+   # TODO: box_violin_or_other is added duplicated... need to correct -> leads to unexpected errors, see other examples like ic_system in backend.R using uiOutput(...) and renderUI(...)
+   conditionalPanel(condition = "input.plot_type == 'TotalHeatProduction' || input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
    conditionalPanel(condition = "input.plot_type == 'DayNightActivity'", selectInput("box_violin_or_other", "Type of visualization", c("Boxplot", "Violinplot", "Dotplot"), selected="Boxplot")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("myp")),
    conditionalPanel(condition = "input.plot_type == 'HeatProduction'", uiOutput("wmeans")),

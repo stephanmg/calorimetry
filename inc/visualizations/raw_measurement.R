@@ -172,6 +172,11 @@ raw_measurement <- function(finalC1, finalC1meta, input, output, session, global
 		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour >= min(running_total.hrs.halfhour) + input$exclusion_start, running_total.hrs.halfhour <= (max(finalC1$running_total.hrs.halfhour) - input$exclusion_end))
 	}
 
+	# Limit end time
+	if (input$curate_box) {
+		finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour <= input$set_end_time)
+	}
+
 	# prepare grouping of data frame
 	finalC1 <- finalC1 %>% filter(DayCount %in% intersect(selected_days, levels(as.factor(finalC1$DayCount))))
 	finalC1$NightDay <- ifelse((finalC1$running_total.hrs %% 24) < 12, "Night", "Day")
