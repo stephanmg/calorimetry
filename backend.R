@@ -156,6 +156,7 @@ load_data <- function(file, input, exclusion, output, session) {
 
    for (i in 1:num_files) {
       file <- input[[paste0("File", i)]]
+      filename <- file$name
       file <- file$datapath
       if (use_example_data) {
          if (use_example_data_set) {
@@ -266,7 +267,11 @@ load_data <- function(file, input, exclusion, output, session) {
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
          storeSession(session$token, "input_file_type", "COSMED QNRG", global_data)
          storeSession(session$token, "indep_grouping_var", "Cohort", global_data)
-         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], input[[paste0("TrainingGroup", i)]], i, input$normalize_to_body_weight)
+         
+         print("filename:")
+         print(filename)
+
+         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], input[[paste0("TrainingGroup", i)]], tools::file_path_sans_ext(filename), input$normalize_to_body_weight)
          file <- tmp_file
          toSkip <- detectData(file)
       } else {

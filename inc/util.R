@@ -1096,12 +1096,19 @@ get_global_offset_for_day_night <- function(df) {
 #' @export
 ################################################################################
 zeitgeber_zeit <- function(df, light_on) {
+
+   print("df in zeitgeber:")
+   print(df)
    # TODO: v0.5.0 - this needs to be revised, if one want to select indvidual calendrical days,
    # because running_total.sec == 0 will not be found, also for RMR the following df
    # is grouped and needs to be converted before writing. Why?
    offsets <- df %>% group_by(`Animal No._NA`) %>% filter(running_total.sec == 0) %>% select(Datetime, `Animal No._NA`) %>% as.data.frame()
    offsets <- offsets %>% mutate(offset = format(as.POSIXct(Datetime, format="%d/%m/%Y %H:%M"), "%H")) %>% select(offset, `Animal No._NA`)
    offsets$`offset`  <- as.numeric(offsets$`offset`)
+
+   print("light on:")
+   print(light_on)
+   light_on = 1
    offsets$offset2 <- offsets$offset - (light_on - offsets$offset)
    offsets$offset3 <- offsets$offset - light_on
 
@@ -1109,6 +1116,8 @@ zeitgeber_zeit <- function(df, light_on) {
    df_joined <- df %>% left_join(offsets, by = "Animal No._NA")
    df_joined <- df_joined %>% mutate(running_total.hrs = running_total.hrs + offset3)
    df_joined <- df_joined %>% mutate(running_total.hrs.halfhour = running_total.hrs.halfhour + offset3)
+
+   print("joined?")
    return(df_joined)
 }
 

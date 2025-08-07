@@ -139,6 +139,7 @@ get_true_metadata <- function(file, load_example_data) {
    df <- df %>% slice(from_index:to_index[1])
 
    # indices of metadata from sheet
+   # TODO: Adapt to get all sample-sections between Sample-Section .. Sub-Sample Section do not manually specify these.
    lean_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lm_start"))) %>% pull(ind)
    lean_index_end <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "lm_end"))) %>% pull(ind)
    fat_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "fm_start"))) %>% pull(ind)
@@ -150,17 +151,23 @@ get_true_metadata <- function(file, load_example_data) {
    body_weight_index_end <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "bw_end"))) %>% pull(ind)
    sexes_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "sex"))) %>% pull(ind)
    age_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "age"))) %>% pull(ind)
+   training_index <- df %>% mutate(ind = row_number()) %>% filter(if_any(everything(), ~str_detect(., "training"))) %>% pull(ind)
 
    # number of samples
    ids <- df %>% slice(id_index)
    ids$`1` <- NULL
    samples <- ids[!is.na(ids)]
 
+   print("samples:")
+   print(samples)
+
    # fat mass (start)
    fats <- df %>% slice(fat_index)
    fats$`1` <- NULL
    fats <- fats[!is.na(fats)]
 
+   print("fats:")
+   print(fats)
    # fat mass (end)
    fats_end <- df %>% slice(fat_index_end)
    fats_end$`1` <- NULL
@@ -171,46 +178,80 @@ get_true_metadata <- function(file, load_example_data) {
    leans$`1` <- NULL
    leans <- leans[!is.na(leans)]
 
+   print("leans:")
+   print(leans)
+
    # lean mass (end)
    leans_end <- df %>% slice(lean_index_end)
    leans_end$`1` <- NULL
    leans_end <- leans_end[!is.na(leans_end)]
+
+   print("leans_end:")
+   print(leans_end)
 
    # body weights (start)
    body_weights <- df %>% slice(body_weight_index)
    body_weights$`1` <- NULL
    body_weights <- body_weights[!is.na(body_weights)]
 
+   print("body_weihts:")
+   print(body_weights)
+
    # body weights (end)
    body_weights_end <- df %>% slice(body_weight_index_end)
    body_weights_end$`1` <- NULL
    body_weights_end <- body_weights_end[!is.na(body_weights_end)]
+
+   print("body_weights end")
+   print(body_weights_end)
 
    # genotypes
    genotypes <- df %>% slice(genotype_index)
    genotypes$`1` <- NULL
    genotypes <- genotypes[!is.na(genotypes)]
 
+   print("gfenotpyes:")
+   print(genotypes)
+
    # diets
    diets <- df %>% slice(diet_index)
    diets$`1` <- NULL
    diets <- diets[!is.na(diets)]
+
+   print("diets:")
+   print(diets)
 
    # sexes
    sexes <- df %>% slice(sexes_index)
    sexes$`1` <- NULL
    sexes <- sexes[!is.na(sexes)]
 
+   print("sexes:")
+   print(sexes)
+
    # ages
    ages <- df %>% slice(age_index)
    ages$`1` <- NULL
    ages <- ages[!is.na(ages)]
 
+   print("ages:")
+   print(ages)
+
+   # training
+   training <- df %>% slice(training_index)
+   training$`1` <- NULL
+   training <- training[!is.na(training)]
+
+   print("training:")
+   print(training)
+
    # compile metadata and we require that all fields above are contained within the metadata sheet
    df_meta <- try({
-      data.frame(lm_start = leans, lm_end = leans_end, fm_start = fats, fm_end = fats_end, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), bw_start = body_weights, bw_end = body_weights_end, Sex = as.factor(sexes), Age = as.numeric(ages))
+      data.frame(Training2 = training, lm_start = leans, lm_end = leans_end, fm_start = fats, fm_end = fats_end, Animals = as.factor(samples), Diet = as.factor(diets), Genotype = as.factor(genotypes), bw_start = body_weights, bw_end = body_weights_end, Sex = as.factor(sexes), Age = as.numeric(ages))
    }, silent = TRUE)
 
+      print("metadata we read:")
+      print(df_meta)
    # check if metadata has been formatted properly 
    if (inherits(df_meta, "try-error")) {
       shinyalert("Warning", "Metadata sheet is lacking informations. Fallback to data file metadata headers. Required columns: Genotype, Sex, Age, Diet, lm_start, lm_end, fm_start, fm_end, bw_start and bw_end", showCancelButton = TRUE)
