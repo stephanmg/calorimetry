@@ -177,10 +177,6 @@ load_data <- function(file, input, exclusion, output, session) {
          }
       }
 
-      print("there?")
-
-      print(filename)
-      print(file)
 
       if (use_example_data) {
          if (use_example_data_set) {
@@ -1016,7 +1012,12 @@ server <- function(input, output, session) {
          if (!is.null(input$upload_data_folder)) {
             if (input$upload_data_folder == TRUE) {
                numberOfFiles = 0
-            } 
+               if (input$havemetadata == FALSE) {
+                  if (!is.null(input$folder)) {
+                     numberOfFiles <- nrow(input$folder)
+                }
+               } 
+           }
          } 
 
 
@@ -1029,7 +1030,9 @@ server <- function(input, output, session) {
 
             html_ui <- paste0(html_ui, fileInput(paste0("File", i), label))
             if (input$ic_system == 'COSMED QNRG') {
-               if (input$havemetadata == FALSE) {
+               if (input$havemetadata == FALSE || input$upload_data_folder == TRUE) { # if we do not have metadata provided we need to specify it.
+                     # TODO: Pre populate Intervention and Cold Exposure 
+                     print(tools::file_path_sans_ext(input$folder$name[i]))
                      html_ui <- paste0(html_ui,
                         selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="Pre", choices=c("Pre", "Post")),
                         selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="Before", choices=c("After", "Before")),
