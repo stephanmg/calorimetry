@@ -154,10 +154,22 @@ load_data <- function(file, input, exclusion, output, session) {
 
 	metadatafile <- get_metadata_datapath(input, session, global_data)
 
+     if (!is.null(input$upload_data_folder)) {
+      num_files <- length(input$folder)
+     }
    for (i in 1:num_files) {
-      file <- input[[paste0("File", i)]]
-      filename <- file$name
-      file <- file$datapath
+      # if data folder upload
+      if (!is.null(input$upload_data_folder)) {
+         if (input$upload_data_folder) {
+            file <- input$folder$datapath[i]
+            filename <- input$folder$name[i]
+         }
+      } else {
+         file <- input[[paste0("File", i)]]
+         filename <- file$name
+         file <- file$datapath
+      }
+
       if (use_example_data) {
          if (use_example_data_set) {
             example_data_set_name <- getSession(session$token, global_data)[["example_data_single_name"]]
@@ -972,12 +984,29 @@ server <- function(input, output, session) {
          }
     )
 
+   #observeEvent(input$folder, {
+   #      html_ui <- " "
+   #   my_files <- input$folder
+   #    if (!is.null(input$folder)) {
+   #   for (i in seq_len(nrow(input$folder))) {
+   #      print(my_files$name)
+   #      print(my_files$datapath)
+   #      html_ui <- paste0(html_ui, fileInput(paste0("File", i), label, value=my_files$datapath))
+   #   }
+   #})
+
    # Dynamically create fileInput fields by the number of requested files of the user
    observeEvent(input$nFiles, {
-      output$fileInputs <- renderUI({
+         output$fileInputs <- renderUI({
          html_ui <- " "
          html_ui <- paste0(html_ui, checkboxInput("normalize_to_body_weight", "Normalize with body weight"))
-         for (i in 1:input$nFiles) {
+         numberOfFiles <- input$nFiles
+         if (!is.null(input$upload_data_folder)) {
+            if (input$upload_data_folder) {
+               numberOfFiles = 0
+            } 
+         } 
+         for (i in seq_len(numberOfFiles)) {
             if (input$ic_system == 'COSMED QNRG') {
                label = paste0("Subject #", i)
             } else {
@@ -1872,8 +1901,13 @@ server <- function(input, output, session) {
            load_data(file$File1$datapath, input, input$sick, output, session)
            storeSession(session$token, "data_loaded", TRUE, global_data)
       } else {
-           shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
-           return()
+           if (is.null(input$upload_data_folder)) {
+             shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
+             return()
+           } else {
+            print("Loading data from folder")
+            load_data(NULL, input, input$sick, output, session)
+           }
       }
    })
 
@@ -2018,5 +2052,15 @@ observeEvent(input$ic_system, {
                     value = default_val,
                     step = step_val)
 })
+# folder upload
+ output$file_list <- renderPrint({
+    req(input$folder)
+
+    df <- input$folder[, c("name", "size", "type")]
+    df$size <- round(df$size / 1024^2, 2)
+    colnames(df) <- c("Name", "Size (MB)", "Type")
+    print(df)
+  })
+
 }
 
