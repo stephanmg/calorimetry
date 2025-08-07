@@ -1914,14 +1914,17 @@ server <- function(input, output, session) {
    # Load data
    #############################################################################
    observeEvent(input$load_data, {
+      # at least one  file given
       if (!is.null(input$File1)) {
            load_data(file$File1$datapath, input, input$sick, output, session)
            storeSession(session$token, "data_loaded", TRUE, global_data)
       } else {
+          # no file given and also no folder -> empty input data
            if (is.null(input$upload_data_folder)) {
              shinyalert("No data files given", "Upload at least one data file (Number of data files > 1)")
              return()
            } else {
+            # folder given, load from folder with webkitextension
             print("Loading data from folder")
             load_data(NULL, input, input$sick, output, session)
            }
