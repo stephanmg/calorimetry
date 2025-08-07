@@ -157,20 +157,30 @@ load_data <- function(file, input, exclusion, output, session) {
      if (!is.null(input$upload_data_folder)) {
       if (!is.null(input$folder)) {
       num_files <- nrow(input$folder)
+      } else {
+         num_files <- input$nFiles
       }
      }
+
+     print("here?")
+     print(num_files)
    for (i in 1:num_files) {
       # if data folder upload
       if (!is.null(input$upload_data_folder)) {
          if (input$upload_data_folder) {
             file <- input$folder$datapath[i]
             filename <- input$folder$name[i]
-         }
-      } else {
+         } else {
          file <- input[[paste0("File", i)]]
          filename <- file$name
          file <- file$datapath
+         }
       }
+
+      print("there?")
+
+      print(filename)
+      print(file)
 
       if (use_example_data) {
          if (use_example_data_set) {
@@ -274,8 +284,8 @@ load_data <- function(file, input, exclusion, output, session) {
          updateCheckboxInput(session, "recalculate_HP", value = TRUE)
          updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
          updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
-         updateSliderInput(session, "light_cycle_start", value=1)
-         updateSliderInput(session, "light_cycle_stop", value=1)
+         updateSliderInput(session, "light_cycle_start", value=0)
+         updateSliderInput(session, "light_cycle_stop", value=0)
          updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
          updateSelectInput(session, "ic_system", choices=c("General", "Sable", "COSMED QNRG", "Calobox"), selected = "COSMED QNRG")
@@ -1008,6 +1018,7 @@ server <- function(input, output, session) {
                numberOfFiles = 0
             } 
          } 
+
 
          for (i in seq_len(numberOfFiles)) {
             if (input$ic_system == 'COSMED QNRG') {
