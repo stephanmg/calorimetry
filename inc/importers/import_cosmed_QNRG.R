@@ -28,7 +28,7 @@ import_cosmed_QNRG <- function(file_path, file_out, intervention, treatment, tra
       sprintf("%02d:%02d", minute(td), second(td))
    }
 
-   all_data <- read.csv2(file_path, stringsAsFactors = FALSE)
+   all_data <- read.csv2(file_path, stringsAsFactors = FALSE, sep=",")
    row_idx <- which(all_data[[1]] %in% c("Gewicht (kg)", "Weight (kg)"))
 
    # Find the column index in that row
