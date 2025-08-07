@@ -260,7 +260,7 @@ load_data <- function(file, input, exclusion, output, session) {
          updateCheckboxInput(session, "recalculate_HP", value = TRUE)
          updateCheckboxInput(session, "use_zeitgeber_time", value = TRUE)
          updateCheckboxInput(session, "only_full_days_zeitgeber", value = FALSE)
-         updateSliderInput(session, "light_cycle_start", value=1)
+         updateSliderInput(session, "light_cycle_start", value=0)
          updateSliderInput(session, "light_cycle_stop", value=1)
          updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER"))
          updateSelectInput(session, "kj_or_kcal", choices = c("kJ", "kcal", "mW"), selected = "kJ")
@@ -271,7 +271,7 @@ load_data <- function(file, input, exclusion, output, session) {
          print("filename:")
          print(filename)
 
-         import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], input[[paste0("TrainingGroup", i)]], tools::file_path_sans_ext(filename), input$normalize_to_body_weight)
+         import_cosmed_QNRG(file, tmp_file, "no", "no", "no", tools::file_path_sans_ext(filename), input$normalize_to_body_weight)
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
@@ -978,13 +978,20 @@ server <- function(input, output, session) {
          html_ui <- " "
          html_ui <- paste0(html_ui, checkboxInput("normalize_to_body_weight", "Normalize with body weight"))
          for (i in 1:input$nFiles) {
-            html_ui <- paste0(html_ui, fileInput(paste0("File", i),
-            label = paste0("Cohort #", i)))
             if (input$ic_system == 'COSMED QNRG') {
-               html_ui <- paste0(html_ui,
-                  selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="Pre", choices=c("Pre", "Post")),
-                  selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="Before", choices=c("After", "Before")),
-                  selectInput(paste0("TrainingGroup", i), label=paste0("Group"), selected="Control", choices=c("Control", "Training")))
+               label = paste0("Subject #", i)
+            } else {
+               label = paste0("Cohort #", i)
+            }
+
+            html_ui <- paste0(html_ui, fileInput(paste0("File", i), label))
+            if (input$ic_system == 'COSMED QNRG') {
+               if (input$havemetadata == FALSE) {
+                     html_ui <- paste0(html_ui,
+                        selectInput(paste0("Intervention", i), label=paste0("Intervention"), selected="Pre", choices=c("Pre", "Post")),
+                        selectInput(paste0("ColdExposure", i), label=paste0("Cold exposure"), selected="Before", choices=c("After", "Before")),
+                        selectInput(paste0("TrainingGroup", i), label=paste0("Group"), selected="Control", choices=c("Control", "Training")))
+                     }
                }
             }
          HTML(html_ui)

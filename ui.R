@@ -360,7 +360,7 @@ page_for_data_import <- fluidPage(
    hr(),
    h3("Datasets"),
    p("Specify number of file(s)"),
-   numericInput("nFiles", "Number of cohorts", value = 1, min = 1, step = 1),
+   numericInput("nFiles", "Number of cohorts/subjects", value = 1, min = 1, step = 1),
    uiOutput("fileInputs"),
    hr(),
    div(actionButton("load_data", "Load data"), style="text-align: center; margin-left: 50px"),
