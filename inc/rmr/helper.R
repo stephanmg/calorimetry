@@ -218,11 +218,11 @@ calc_heat_production <- function(choice, C1, variable, scaleFactor) {
          # input: ml/h -> output: J / h -> (divide by 1000) kJ / h 
       },
       Heldmaier1 = {
-        df[[variable]] <- scaleFactor * (C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) + 15.3) * 0.278) * (3.6/100
+        df[[variable]] <- scaleFactor * (C1$`VO2(3)_[ml/h]` * (6 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`) + 15.3) * 0.278) * (3.6/1000)
          # input: ml/h -> output: mW -> multiply 3.6 to get: J / h -> (divide by 1000) kJ / h 
       },
       Heldmaier2 = {
-         df[[variable]] <- scaleFactor * (4.44 + 1.43 * (C1$`CO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * (3.6/1000 * C1$`VO2(3)_[ml/h]`)
+         df[[variable]] <- scaleFactor * (4.44 + 1.43 * (C1$`VCO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) * (3.6/1000 * C1$`VO2(3)_[ml/h]`)
          # input: ml/h -> output: mW -> multiply 3.6/1000 to get: kJ / h 
       },
       Weir = {
