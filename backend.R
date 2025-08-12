@@ -291,7 +291,11 @@ load_data <- function(file, input, exclusion, output, session) {
          print("filename:")
          print(filename)
 
-         import_cosmed_QNRG(file, tmp_file, "no", "no", "no", tools::file_path_sans_ext(filename), input$normalize_to_body_weight)
+         if (is.null(input$metadatasheet)) {
+            import_cosmed_QNRG(file, tmp_file, "no", "no", "no", tools::file_path_sans_ext(filename), input$normalize_to_body_weight)
+         } else {
+            import_cosmed_QNRG(file, tmp_file, input[[paste0("Intervention", i)]], input[[paste0("ColdExposure", i)]], input[[paste0("TrainingGroup", i)]], tools::file_path_sans_ext(filename), input$normalize_to_body_weight)
+         }
          file <- tmp_file
          toSkip <- detectData(file)
       } else {
