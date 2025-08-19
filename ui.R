@@ -473,8 +473,8 @@ page_for_visualization <- fluidPage(
       tabPanelBody("PC",
    # TODO: important to note that adding duplicated fields plot_type might be problematic for less lenient browsers' adherence to DOM specification! avoid (fixed in add_COSMED_QNRG branch, adapt this.)
    #conditionalPanel(condition = "input.ic_system == 'General'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation")))),
-   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable", "CLAMS Oxymax", "CalR"))),
-   conditionalPanel(condition = "input.ic_system == 'General' || input.ic_system == 'CLAMS Oxymax' || input.ic_system == 'CalR'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation")))),
+   selectInput(inputId = "ic_system", "Select indirect calorimetry platform", factor(c("General", "COSMED", "Sable", "CLAMS Oxymax", "CalR", "CaloPy"))),
+   conditionalPanel(condition = "input.ic_system == 'General' || input.ic_system == 'CLAMS Oxymax' || input.ic_system == 'CalR' || input.ic_system == 'CaloPy'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation")))),
    conditionalPanel(condition = "input.ic_system == 'COSMED'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "EstimateRMRforCOSMED", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.ic_system == 'Sable'", selectInput("plot_type", "Select quantity to plot", factor(c("Metadata", "RawMeasurement", "TotalHeatProduction", "RestingMetabolicRate", "HeatProduction", "FuelOxidation", "Locomotion", "LocomotionBudget", "CompareHeatProductionFormulas")))),
    conditionalPanel(condition = "input.plot_type == 'RawMeasurement'", uiOutput("myr")),

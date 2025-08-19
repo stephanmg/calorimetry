@@ -40,6 +40,7 @@ source("inc/importers/import_pheno_v8_helper.R") # import for PhenoMaster V8 dat
 source("inc/importers/import_cosmed_helper.R") # import for COSMED data sets
 source("inc/importers/import_CLAMS_Oxymax_helper.R") # import for CLAMS Oxymax
 source("inc/importers/import_calR_helper.R") # import for CalR data sets
+source("inc/importers/import_calopy_helper.R") # import for CaloPy data sets
 source("inc/importers/import_example_data_sets_helper.R") # for example data sets
 source("inc/importers/import_impc_data_sets_helper.R") # for IMPC database
 source("inc/importers/util.R") # for consistency checks of columns
@@ -309,6 +310,15 @@ load_data <- function(file, input, exclusion, output, session) {
          output$file_type_detected <- renderText("Input file type detected as: CalR")
          storeSession(session$token, "input_file_type", "CalR", global_data)
          import_calR(file, tmp_file)
+         file <- tmp_file
+         toSkip <- detectData(file)
+      }
+
+      if (input$ic_system == "CaloPy") {
+         output$file_type_detected <- renderText("Input file type detected as: CaloPy")
+         updateSelectInput(session, "myr", choices = c("VO2", "VCO2", "RER")) # basic columns CaloPy prpvides
+         storeSession(session$token, "input_file_type", "CaloPy", global_data)
+         import_calopy(file, tmp_file)
          file <- tmp_file
          toSkip <- detectData(file)
       }
