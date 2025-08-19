@@ -204,7 +204,6 @@ return(df2 <- df %>%
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
 	if (startsWith(input$myr, "EE")) { mylabel <- "EE" }
 
-
 	colnames(finalC1)[colnames(finalC1) == "WeightBody_[g]"] <- "WeightBody"
 	if (startsWith(input$myr, "WeightBody")) {
 		mylabel <- "WeightBody"
@@ -650,7 +649,11 @@ for (i in seq_along(groups)) {
 	# indicate night start
 	p <- p + geom_vline(xintercept = as.numeric(seq(light_offset+12+first_night_start, length(unique(days_and_animals_for_select$days))*24+light_offset, by=24)), linetype="dashed", color="gray")
 	# set title and display buttons
-	p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
+	if (startsWith(input$myr, "EE")) {
+		p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using raw data from calorimeter"))
+	} else {
+		p <- p + ggtitle(paste0("Raw measurement: ", pretty_print_variable(mylabel, metadatafile), " using equation ", pretty_print_equation(input$variable1)))
+	}
 	# add points only if toggle outliers
 	if (input$toggle_outliers) { p <- p + geom_point() }
 	# center x axis
