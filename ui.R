@@ -299,7 +299,7 @@ page_for_data_import_example_data <- fluidPage(
    div(actionButton("example_data_single_alternative", "DAKO study", style = "margin: 5px; width: 200px; border: 1px solid white; background-color: rgba(213,173,65,0.5)"), style="text-align: center"),
    hr(),
    h4("IMPC data sets"),
-   div(textInput("impc_gene_symbol", "Gene symbol", value="Ucp1")),
+   div(selectInput("impc_gene_symbol", "Gene symbol", choices=c("Ucp1", "Adipoq"), selected="Ucp1")),
    tags$script(HTML("
       $(document).ready(function() {
          $('#impc_gene_symbol').attr('title', 'e.g. Ucp1 or Adipoq')
