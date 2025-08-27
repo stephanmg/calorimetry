@@ -137,24 +137,28 @@ return(df2 <- df %>%
 	# when zeitgeber time should be used  
 	if (input$use_zeitgeber_time) {
 		finalC1 <- zeitgeber_zeit(finalC1, light_off)
-		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24)
+		num_days <- floor(max(finalC1$running_total.hrs.halfhour) / 24) 
 		print("Num days:")
 		print(num_days)
 		if (input$only_full_days_zeitgeber) {
 			finalC1 <- correct_day_count2(finalC1)
-			num_days <- max(finalC1$DayCount, na.rm=TRUE)
+			num_days <- max(finalC1$DayCount, na.rm=TRUE) 
 			print("new num days:")
 			print(num_days)
 			num_full_days <- num_days
 			finalC1 <- finalC1 %>% filter(running_total.hrs.halfhour > 0, running_total.hrs.halfhour < (24*num_days))
 		} else {
-			num_full_days <- num_days + 1 # account for missing half days at the beginning and end
+			num_full_days <- num_days  # account for missing half days at the beginning and end
 		}
 
 		write.csv(finalC1, "debug.csv")
 		#finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
 
 		print("daycount:")
+		if (is.null(finalC1$DayCount)) {
+			print("set daycount")
+			finalC1$DayCount <- ceiling((finalC1$running_total.hrs.halfhour / 24) + 1)
+		}
 
 		print(finalC1$DayCount)
 		finalC1 <- correct_day_count2(finalC1)
@@ -340,6 +344,7 @@ return(df2 <- df %>%
 	names(df_to_plot)[names(df_to_plot) == "RER_NA"] <- "RER"
 	names(df_to_plot)[names(df_to_plot) == "EE_[kcal/day]"] <- "EE"
 
+
 	# TODO: v0.5.0 - factor this out as utility or method, can be re-used in other panels after discussion
 	# replot outlier removed data, only if toggled: outlier removal by selection
 	if (input$toggle_outliers) {
@@ -478,7 +483,11 @@ for (i in seq_along(groups)) {
 	}
 
 	# set y-axis labels 
-	p <- p + ylab(pretty_print_variable(mylabel, metadatafile))
+	if (input$ic_system == "CLAMS Oxymax") {
+		p <- p + ylab(pretty_print_variable(mylabel, metadatafile, "kcal/kg/hr"))
+	} else {
+		p <- p + ylab(pretty_print_variable(mylabel, metadatafile, input$kj_or_kcal))
+	}
 
 	# set x-axis label
 	if (input$use_zeitgeber_time) {

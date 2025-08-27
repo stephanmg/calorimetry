@@ -36,6 +36,9 @@ import_CLAMS_Oxymax  <- function(file_path, file_out) {
    colnames(df)[1] <- "DATETIME"
    df <- df[-1, ] 
 
+   print("head df:")
+   print(head(df))
+
    df$DATETIME <- as.POSIXct(df$DATETIME, format = "%m/%d/%y %H:%M", tz = Sys.timezone())
 
    df$Date <- as.Date(df$DATETIME, format="%Y/%m/%d")
@@ -46,6 +49,9 @@ import_CLAMS_Oxymax  <- function(file_path, file_out) {
    df <- df %>% rename("VO2(3)" = "VO2")
    df <- df %>% rename("VCO2(3)" = "VCO2")
    df <- df %>% rename("EE" = "HEAT")
+
+   print("df after import:")
+   print(df)
 
    df$`Animal. No.` <- as.character(subject_id)
    df$EE <- gsub("\\.", ",", as.character(df$EE))
