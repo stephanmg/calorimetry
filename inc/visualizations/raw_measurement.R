@@ -178,6 +178,8 @@ return(df2 <- df %>%
 	# format variable from UI to compatible TSE format
 	mylabel <- paste0(input$myr, sep = "", "_[%]")
 
+	print("there")
+
 	# for activity data
 	if (startsWith(input$myr, "XT")) {
 		mylabel <- paste0(input$myr, sep="", "_[Cnts]")
@@ -204,6 +206,8 @@ return(df2 <- df %>%
 	# annotate days and animals (already shifted by above correction)
 	day_annotations <- annotate_zeitgeber_zeit(finalC1, 0, mylabel, input$with_facets)
 
+	print("foo")
+
 	# rename RER_NA to RER (but finalC1 still has RER_NA)
 	if (startsWith(input$myr, "RER")) { mylabel <- "RER" }
 	if (startsWith(input$myr, "EE")) { mylabel <- "EE" }
@@ -218,7 +222,10 @@ return(df2 <- df %>%
 
 	# create input select fields for animals and days
 	days_and_animals_for_select <- get_days_and_animals_for_select_alternative(finalC1)
-	days_and_animals_for_select$days <- seq(1, num_full_days, 1)
+	# FIXME: Temporary fix
+	if (input$ic_system != "IMPC") { # IMPC datasets are below 1 full day, but for numbering in theory we need 1 full day at least.
+		days_and_animals_for_select$days <- seq(1, num_full_days, 1)
+	}
 
 	print("days and animals:")
 	print(days_and_animals_for_select)
