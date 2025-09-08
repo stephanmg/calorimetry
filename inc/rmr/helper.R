@@ -214,7 +214,7 @@ calc_heat_production <- function(choice, C1, variable, scaleFactor) {
    df <- C1
    switch(choice,
       Lusk = {
-         df[[variable]] <- scaleFactor * (15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) / 1000
+         df[[variable]] <- scaleFactor * (15.79 * C1$`VO2(3)_[ml/h]` + 5.09 * C1$`VO2(3)_[ml/h]`) / 1000
          # input: ml/h -> output: J / h -> (divide by 1000) kJ / h 
       },
       Heldmaier1 = {
@@ -230,11 +230,11 @@ calc_heat_production <- function(choice, C1, variable, scaleFactor) {
          # input: ml/h -> output: J / h -> (divide by 1000) kJ / h 
       },
       Elia = {
-         df[[variable]] <- scaleFactor * (15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`))  / 1000
+         df[[variable]] <- scaleFactor * (15.8 * C1$`VO2(3)_[ml/h]` + 5.18 * C1$`VCO2(3)_[ml/h]`)  / 1000
          # input: ml/h -> output: J / h -> (divide by 1000) kJ / h 
       },
       Brouwer = {
-         df[[variable]] <- scaleFactor * (16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * (C1$`VO2(3)_[ml/h]` / C1$`VO2(3)_[ml/h]`)) / 1000
+         df[[variable]] <- scaleFactor * (16.07 * C1$`VO2(3)_[ml/h]` + 4.69 * C1$`VCO2(3)_[ml/h]`) / 1000
          # input: ml/h -> output: J / h -> (divide by 1000) kJ / h 
       },
       Ferrannini = {
