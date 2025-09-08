@@ -212,7 +212,6 @@ do_ancova_alternative <- function(df_data, df_metadata, indep_var, indep_var2, g
      p3 <- p3 + stat_regline_equation(aes(label = after_stat(rr.label), color = group), label.y=c(max(df$TEE), max(df$TEE)), label.x=c(min(df$Weight2), min(df$Weight2)+1), geom="text", output.type = "text", parse=FALSE)
      p3 <- p3 + geom_point(aes(text=paste0("ID: ", Animals, "<br>Day: ", group2), color=group), label = "", alpha=1)
     }
-    write.csv2(df, "for_rebuttal.csv")
 
   } else {
     group_count <- length(unique(df$group))
