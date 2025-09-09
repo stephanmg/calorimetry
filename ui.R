@@ -309,7 +309,7 @@ page_for_data_import_example_data <- fluidPage(
 page_for_data_import_select_equation <- fluidPage(
    withMathJax(),
    h4("Heat production"),
-   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier2", "Weir", "Ferrannini", "Lusk", "Elia", "Brouwer"), selected="Heldmaier2")),
+   conditionalPanel("input.plot_type != 'CompareHeatProductionFormulas'", selectInput("variable1", "Select equation", choices = c("Heldmaier1", "Weir", "Ferrannini", "Lusk", "Elia", "Brouwer"), selected="Heldmaier1")),
    conditionalPanel("input.plot_type == 'CompareHeatProductionFormulas'", selectInput("variable2", "Select second equation", choices = c("Heldmaier1", "Heldmaier2", "Lusk", "Weir", "Elia", "Brouwer", "Ferrannini"))),
    selectInput("kj_or_kcal", "Unit of energy", choices = c("kJ", "kcal", "mW")),
    withMathJax(),
