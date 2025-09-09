@@ -1062,7 +1062,7 @@ server <- function(input, output, session) {
             text2 <- "$$ \\tag{1} \\dot{V}O_2[\\frac{ml}{h}] \\times (6 + RER + 15.3) \\times 0.278) $$"
          },
          Heldmaier2 = {
-            text2 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) + \\dot{V}O_2[\\frac{ml}{h}] $$"
+            text2 <- "$$ \\tag{1} (4.44 + 1.43 \\times RER) \\times \\dot{V}O_2[\\frac{ml}{h}] $$"
          },
          Lusk = {
             text2 <- "$$ \\tag{4} 15.79 \\times \\dot{V}O2[\\frac{ml}{h}] + 5.09 \\times RER $$"
