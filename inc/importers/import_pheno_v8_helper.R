@@ -77,11 +77,11 @@ import_pheno_v8 <- function(file, file_out) {
    units <- df_selected[1,]
    units[is.na(units)] <- ''
 
+
    df_selected <- df_selected[-1, ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VO2.3.")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VCO2.3.")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "O2")), ]
-
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "CO2")), ]
 
    if ("Weight" %in% colnames(df)) {
@@ -96,6 +96,8 @@ import_pheno_v8 <- function(file, file_out) {
       df_selected <<- df_selected[!grepl("-", `$`(df_selected, additional_field)), ]
    }
 
+   print("Here?")
+
    # 9 fields
    header <- data.frame(matrix(ncol = length(colnames(df_selected)), nrow = 0))
    if ("Weight" %in% colnames(df)) {
@@ -104,15 +106,24 @@ import_pheno_v8 <- function(file, file_out) {
       colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", additional_fields)
    }
    colnames(header) <- colnames(df_selected)
+
+   print("there?")
    header[nrow(header) + 1, ] <- c(file, rep("", 10 + length(additional_fields)))
    header[nrow(header) + 1, ] <- c("", filetype, rep("", 9 + length(additional_fields)))
 
    metadata <- read.csv2(file, skip = 2, nrows = toskip - 4)
 
+   print("metada")
+
    cc <- colnames(metadata)
    cc <- cc[!grepl("^X", cc)]
+
+   print(cc)
+   print(header)
    header[nrow(header) + 1, ] <- c(cc, rep("", 5 + length(additional_fields)))
    metadata_selected <- metadata %>% select(cc)
+
+   print("after metada")
 
    for (i in 1:nrow(metadata_selected)) {
       header[nrow(header) + 1, ] <- c(metadata_selected[i, ], rep("", 1))
@@ -120,6 +131,10 @@ import_pheno_v8 <- function(file, file_out) {
    header[nrow(header) + 1, ] <- rep("", 11 + length(additional_fields))
    header[nrow(header) + 1, ] <- colnames(header)
    header[nrow(header) + 1, ] <- units
+
+   print("binding")
+   print(header)
+   print(df_selected)
 
    full_data <- rbind(header, df_selected)
 
