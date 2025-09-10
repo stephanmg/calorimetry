@@ -30,6 +30,8 @@ import_pheno_v8 <- function(file, file_out) {
    close(con)
 
    df <- read.csv2(file, skip = toskip)
+
+   print(df)
    
    additional_fields = c()
    if ("XT.YT" %in% colnames(df)) {
@@ -64,18 +66,31 @@ import_pheno_v8 <- function(file, file_out) {
       additional_fields <- append(additional_fields, "DistK")
    }
 
-   df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "Weight", additional_fields))
+   # TODO: Weight needs different treatment, why? Refactor ...
+
+   df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", additional_fields))
+   if ("Weight" %in% colnames(df)) {
+      df_selected <- df %>% select(c("Animal.No.", "VO2.3.", "VCO2.3.", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "Weight", additional_fields))
+   }
    # PhenoMaster v8 has the following time format HH:MM:SS
    df_selected$Time <- sub("(..):(..):(..)", "\\1:\\2", df_selected$Time)
    units <- df_selected[1,]
    units[is.na(units)] <- ''
+
    df_selected <- df_selected[-1, ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VO2.3.")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "VCO2.3.")), ]
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "O2")), ]
+
    df_selected <- df_selected[!grepl("-", `$`(df_selected, "CO2")), ]
-   df_selected <- df_selected[!grepl("-", `$`(df_selected, "Weight")), ]
-   df_selected <- df_selected[!grepl("-", `$`(df_selected, "TempL")), ]
+
+   if ("Weight" %in% colnames(df)) {
+      df_selected <- df_selected[!grepl("-", `$`(df_selected, "Weight")), ]
+   }
+
+   if ("TempL" %in% colnames(df)) {
+      df_selected <- df_selected[!grepl("-", `$`(df_selected, "TempL")), ]
+   }
 
    for (additional_field in additional_fields) {
       df_selected <<- df_selected[!grepl("-", `$`(df_selected, additional_field)), ]
@@ -83,12 +98,17 @@ import_pheno_v8 <- function(file, file_out) {
 
    # 9 fields
    header <- data.frame(matrix(ncol = length(colnames(df_selected)), nrow = 0))
-   colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "WeightBody", additional_fields)
+   if ("Weight" %in% colnames(df)) {
+      colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", "WeightBody", additional_fields)
+   } else {
+      colnames(df_selected) <- c("Animal No.", "VO2(3)", "VCO2(3)", "RER", "Time", "Date", "LightC", "Box", "O2", "CO2", additional_fields)
+   }
    colnames(header) <- colnames(df_selected)
    header[nrow(header) + 1, ] <- c(file, rep("", 10 + length(additional_fields)))
    header[nrow(header) + 1, ] <- c("", filetype, rep("", 9 + length(additional_fields)))
 
    metadata <- read.csv2(file, skip = 2, nrows = toskip - 4)
+
    cc <- colnames(metadata)
    cc <- cc[!grepl("^X", cc)]
    header[nrow(header) + 1, ] <- c(cc, rep("", 5 + length(additional_fields)))
@@ -102,5 +122,10 @@ import_pheno_v8 <- function(file, file_out) {
    header[nrow(header) + 1, ] <- units
 
    full_data <- rbind(header, df_selected)
+
+   print("full data:")
+   print(full_data)
+   print("df_selected")
+   print(df_selected)
    write.table(full_data, file_out, col.names = FALSE, row.names = FALSE, sep = ";", quote = FALSE)
 }

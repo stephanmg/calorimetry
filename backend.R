@@ -293,6 +293,8 @@ load_data <- function(file, input, exclusion, output, session) {
    C1 <- read.table(file, header = FALSE, skip = toSkip + 1,
       na.strings = c("-", "NA"), fileEncoding = "ISO-8859-1", sep = sep, dec = dec)
 
+   print("read?")
+
    # Remove NaNs just in case, sloppy TSE systems export
    if (input$drop_nan_rows) {
       C1 <- C1 %>% drop_na()
