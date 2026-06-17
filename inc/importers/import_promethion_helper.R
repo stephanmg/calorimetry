@@ -19,9 +19,17 @@ import_promethion <- function(file, file_out) {
    NUM_TOTAL_COLUMNS_EXPECTED <- 8
 
    df <- read_excel(file)
-   # TODO: Support not only row-wise format but column-wise format, i.e. without 
+
+   # ProMethion/Sable should always contain EnviroTemp_M field, if not inject it with default value of 0°C
+   if (!"EnviroTemp_M" %in% names(df)) {
+      df$EnviroTemp_M <- 0
+   }
+
+   # TODO: Support not only row-wise format but column-wise format, i.e. without
    # Animal column, but VO2_M_1, VO2_M2, ... i.e. animals are encoded via numerical suffix
    data <- df %>% select(c("Animal", "VO2_M", "VCO2_M", "RER_M", "EnviroTemp_M", "DateTime"))
+
+
    weights <- df %>% select(c("BodyMass_Mnz", "Animal"))
    animals_with_weights <- na.omit(weights %>% group_by(Animal) %>% slice(c(1)))
 
